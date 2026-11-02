@@ -23,6 +23,11 @@ const MIN_TASKS_PER_UNIT = 30;
 const MIN_PER_UNIT_LEVEL = 3;
 const MIN_SELECTION_TASKS = 100;
 
+const FULL = process.argv.includes("--full"); // more seeds per template and longer runs of the repeat rule
+const ENDLESS_ROUNDS = FULL ? 300 : 120;
+const PRACTICE_ROUNDS = FULL ? 60 : 25;
+const pending = []; // async checks (making derived template variants runs Python); the report waits for them
+
 const failures = [];
 let checks = 0;
 function check(cond, message) {
@@ -127,10 +132,45 @@ const currentIds = new Set(tasks.map((t) => t.id));
 const formerIds = tasks.flatMap((t) => t.former_ids || []);
 check(formerIds.every((id) => !currentIds.has(id)) && new Set(formerIds).size === formerIds.length, "former_ids must be unique and not used by a current task");
 
+// ---------- Section 5 fixes ----------
+const taskById = Object.fromEntries(tasks.map((t) => [t.id, t]));
+check(!taskById["sel-L10d"] && (taskById["logic-L10b"].former_ids || []).includes("sel-L10d"),
+  "The duplicate rock, paper, scissors task sel-L10d is removed; logic-L10b keeps its id in former_ids");
+const OLD_SKILL_NAMES = Object.keys(App.SKILL_RENAMES);
+check(!tasks.some((t) => t.skills.some((s) => OLD_SKILL_NAMES.includes(s))), "No task uses an old skill name (and-or, validation)");
+check(!Curriculum.UNITS.some((u) => u.skills.some((s) => OLD_SKILL_NAMES.includes(s))), "curriculum.js uses one name per skill (and/or, input-validation)");
+const varL10j = taskById["var-L10j"];
+check(varL10j && !/1 people/.test(varL10j.description + JSON.stringify(varL10j.tests)) && varL10j.tests.some((x) => x.inputs[0] === "1" && x.expected.startsWith("For 1 person:")),
+  "var-L10j says \"For 1 person\" (description and test)");
+check(/never changes minutes/.test(taskById["while-L6c"].description), "while-L6c says accurately why a distractor would make the loop run for ever");
+// Reports (not failures): Maths tasks that contain selection, and functions tasks below level 5.
+const hasSelection = (t) => /\b(if|elif|else)\b/.test([t.solution, t.starter, ...(t.distractors || []), ...(t.options || []), ...(t.answers || [])].join("\n"));
+const mathsWithSelection = tasks.filter((t) => t.unit === "maths" && hasSelection(t)).map((t) => t.id);
+const earlyFunctions = tasks.filter((t) => t.skills.includes("selection-in-functions") && t.level <= 4).map((t) => t.id + " (L" + t.level + ")");
+
+// ---------- Worked examples ("Show me how") ----------
+const practiceTasks = tasks.filter((t) => !(t.tags || []).includes("placement"));
+const literals = (code) => (code.match(/"([^"\\\n]{4,})"|'([^'\\\n]{4,})'/g) || []).map((s) => s.slice(1, -1));
+for (const t of practiceTasks) {
+  const we = t.worked_example;
+  if (!check(we && we.problem && we.code && typeof we.output === "string" && we.key_idea, `${t.id}: needs a worked_example with problem, code, output and key_idea`)) continue;
+  check(we.code.trim() !== t.solution.trim(), `${t.id}: the worked example must not be the task's own solution`);
+  const text = t.description + "\n" + t.solution;
+  const shared = literals(we.code).filter((s) => text.includes(s));
+  check(shared.length === 0, `${t.id}: the worked example should use a different context from the task (shares ${JSON.stringify(shared)})`);
+}
+{
+  const { withWorkedExamples } = require(path.join(ROOT, "tools", "add-worked-examples.js"));
+  const fresh = withWorkedExamples(tasks);
+  check(fresh.missing.length === 0 && JSON.stringify(fresh.tasks) === JSON.stringify(tasks), "Worked examples are up to date – run: node tools/add-worked-examples.js");
+}
+
 // Unit order on the landing page, and a skill that is in two units' lists counting for the task's own unit.
 check(UNIT_IDS.join() === "output,variables,maths,selection,loops-condition,loops-count", "Units are listed with Selection, then the two loops units");
 check(App.unitOfSkill("accumulator", ["loops-condition"]) === "loops-condition" && App.unitOfSkill("accumulator", ["loops-count"]) === "loops-count" &&
   App.unitOfSkill("accumulator") === "loops-condition", "A skill in two units' lists belongs to the task's own unit");
+check(App.unitOfSkill("and/or", ["loops-condition"]) === "loops-condition" && App.unitOfSkill("and/or", ["selection"]) === "selection" &&
+  App.unitOfSkill("input-validation", ["loops-condition"]) === "loops-condition", "and/or and input-validation count for the task's own unit (Selection or Condition-controlled loops)");
 
 // ---------- Per-task schema checks (bank tasks and template variants) ----------
 // Skills a task may use: its own units' skills. "Write from scratch" tasks may also use skills from earlier units.
@@ -208,7 +248,8 @@ tasks.forEach(checkTask);
 
 // ---------- Templates (templates.json) ----------
 const Templates = require(path.join(ROOT, "templates.js"));
-const VARIANTS_PER_TEMPLATE = 20;   // variants made from each template (seeds 1..20)
+const VARIANTS_PER_TEMPLATE = 20;   // variants made from each expression template (seeds 1..20)
+const DERIVED_SEEDS = FULL ? 24 : 16; // seeds tried for each derived template (each runs Python); --full tries 20
 const MIN_DIFFERENT_VARIANTS = 5;
 const MIN_COMBINED_TEMPLATES = 10;
 let templates = [];
@@ -219,6 +260,18 @@ try {
 }
 const variants = [];
 const variantCounts = {};
+// Derived templates' variants are made by running Python: all of them in a few batched runs.
+const derivedMade = {};
+{
+  const requests = [];
+  const keys = [];
+  for (const tpl of templates.filter((t) => t.derived)) {
+    for (let seed = 1; seed <= DERIVED_SEEDS; seed++) { requests.push([tpl, seed]); keys.push(tpl.id + "#" + seed); }
+    requests.push([tpl, 1]); keys.push(tpl.id + "#again");
+  }
+  if (requests.length) console.log(`Making ${requests.length} variants of ${requests.length / (DERIVED_SEEDS + 1)} derived templates…`);
+  Templates.realiseMany(requests, runPython).forEach((v, i) => { derivedMade[keys[i]] = v; });
+}
 const tplIds = templates.map((t) => t.id);
 check(tplIds.length === new Set(tplIds).size, "Duplicate template ids");
 for (const tpl of templates) {
@@ -230,11 +283,31 @@ for (const tpl of templates) {
     for (const u of tpl.units) check((tpl.skills || []).some((s) => App.unitOfSkill(s, [u]) === u), `${name}: combined template has no skill from unit "${u}"`);
     check(tpl.type !== "scratch", `${name}: write-from-scratch templates belong to one unit`);
   }
+  // Every template points at a bank task whose worked example its variants use for "Show me how".
+  const src = taskById[tpl.source];
+  check(src && !(src.tags || []).includes("placement") && src.worked_example, `${name}: "source" must be a practice bank task with a worked example (found ${tpl.source})`);
+  if (tpl.derived) {
+    check(tpl.units.length === 1 && src && src.unit === tpl.units[0] && src.level === tpl.level && src.type === tpl.type &&
+      JSON.stringify(src.skills) === JSON.stringify(tpl.skills) &&
+      JSON.stringify((src.tags || []).filter(isMisconceptionTag)) === JSON.stringify((tpl.tags || []).filter(isMisconceptionTag)) &&
+      JSON.stringify((src.buggy_variants || []).map((v) => v.misconception)) === JSON.stringify((tpl.buggy_variants || []).map((v) => v.misconception)),
+      `${name}: a derived template keeps its source task's unit, level, type, skills, misconception tags and buggy variants`);
+    if (src && src.type === "fill") check((tpl.starter.match(/____/g) || []).length === (src.starter.match(/____/g) || []).length, `${name}: keeps the source task's number of blanks`);
+    if (src && src.type === "parsons") check(tpl.distractors.length === src.distractors.length, `${name}: keeps the source task's number of distractors`);
+    if (src && src.type === "predict") check((tpl.optionCount || 4) === src.options.length, `${name}: keeps the source task's number of options`);
+  }
   const sigs = new Set();
-  for (let seed = 1; seed <= VARIANTS_PER_TEMPLATE; seed++) {
+  const fps = new Set();
+  const seeds = tpl.derived ? DERIVED_SEEDS : VARIANTS_PER_TEMPLATE;
+  for (let seed = 1; seed <= seeds; seed++) {
     let v;
-    try { v = Templates.expand(tpl, seed); } catch (e) { check(false, `${name}: ${e.message}`); break; }
-    check(Templates.expand(tpl, seed).id === v.id && Templates.signature(Templates.expand(tpl, seed)) === Templates.signature(v), `${name}: the same seed must give the same variant`);
+    try { v = tpl.derived ? derivedMade[tpl.id + "#" + seed] : Templates.expand(tpl, seed); } catch (e) { check(false, `${name}: ${e.message}`); break; }
+    if (v && v.error) { check(false, `${name}: ${v.error}`); break; }
+    if (!v) continue; // a derived draw that wasn't valid (counted below)
+    if (!tpl.derived) check(Templates.expand(tpl, seed).id === v.id && Templates.signature(Templates.expand(tpl, seed)) === Templates.signature(v), `${name}: the same seed must give the same variant`);
+    else if (seed === 1) check(JSON.stringify(derivedMade[tpl.id + "#again"]) === JSON.stringify(v), `${name}: the same seed must give the same variant`);
+    check(typeof v.fingerprint === "string" && v.fingerprint.startsWith(tpl.id + "|"), `${name}: every variant has a fingerprint (template id plus values)`);
+    fps.add(v.fingerprint);
     const sig = Templates.signature(v);
     if (sigs.has(sig)) continue; // identical variants are only checked once
     sigs.add(sig);
@@ -242,7 +315,7 @@ for (const tpl of templates) {
     checkTask(v);
   }
   variantCounts[tpl.id] = sigs.size;
-  check(sigs.size >= MIN_DIFFERENT_VARIANTS, `${name}: makes only ${sigs.size} different variants from ${VARIANTS_PER_TEMPLATE} seeds (need ${MIN_DIFFERENT_VARIANTS})`);
+  check(sigs.size >= MIN_DIFFERENT_VARIANTS && fps.size >= MIN_DIFFERENT_VARIANTS, `${name}: makes only ${sigs.size} different valid variants from ${seeds} seeds (need ${MIN_DIFFERENT_VARIANTS})`);
 }
 // Endless mode never runs out: every unit has a single-unit template at every level, and a from-scratch template.
 for (const unit of UNIT_IDS) {
@@ -251,6 +324,16 @@ for (const unit of UNIT_IDS) {
 }
 const combinedCount = templates.filter((t) => Array.isArray(t.units) && t.units.length >= 2).length;
 check(combinedCount >= MIN_COMBINED_TEMPLATES, `Need at least ${MIN_COMBINED_TEMPLATES} combined templates, found ${combinedCount}`);
+// At least 3 combined templates for each pair of units taught one after the other.
+const MIN_COMBINED_PER_PAIR = 3;
+for (let i = 0; i + 1 < UNIT_IDS.length; i++) {
+  const pair = [UNIT_IDS[i], UNIT_IDS[i + 1]];
+  const n = templates.filter((t) => Array.isArray(t.units) && t.units.length === 2 && pair.every((u) => t.units.includes(u))).length;
+  check(n >= MIN_COMBINED_PER_PAIR, `Units ${pair.join(" and ")} need at least ${MIN_COMBINED_PER_PAIR} combined templates, found ${n}`);
+}
+// Every practice bank task has a derived template; placement tasks have none.
+for (const t of practiceTasks) check(templates.some((tpl) => tpl.derived && tpl.source === t.id), `${t.id}: needs a template derived from it (run node tools/derive-templates.js)`);
+check(!templates.some((tpl) => tpl.derived && taskById[tpl.source] && (taskById[tpl.source].tags || []).includes("placement")), "Placement tasks have no templates");
 
 // ---------- Run every reference solution against its own tests ----------
 const jobs = [];
@@ -402,40 +485,88 @@ check(!Checker.outputsMatch("pass", "Pass"), "Comparison should be case-sensitiv
     !scratchDue({ completedTop: true, level: 10, sinceScratch: 0 }) && !scratchDue({ completedTop: true, level: 9, sinceScratch: 9 }),
     "From-scratch tasks come every " + App.SCRATCH_EVERY_N_TASKS + " tasks, only at level 10 after completing");
 
-  // Endless mode task choice.
-  const completed = (level) => Object.assign(freshUnitState(level), { completedTop: true });
-  const passedAll = (unit, level) => Object.assign(completed(level), { log: Object.fromEntries(tasks.filter((t) => t.unit === unit).map((t) => [t.id, { passes: 1 }])) });
-  const units = { maths: passedAll("maths", 10), selection: passedAll("selection", 10), output: freshUnitState(10) };
-  const rng = Templates.mulberry32(42);
-  let prev = {};
-  let lockedUsed = 0, combinedSeen = 0, repeats = 0, notGenerated = 0, onlyMaths = true;
-  for (let k = 0; k < 300; k++) {
-    const t = chooseEndlessTask({ tasks, templates, units, unitIds: ["maths", "selection", "output"], last: prev, rand: rng, Templates });
-    if ((t.units || [t.unit]).includes("output")) lockedUsed++;
-    if ((t.units || []).length >= 2) combinedSeen++;
-    if (!t.generated) notGenerated++;
-    const sig = t.generated ? Templates.signature(t) : t.id;
-    if (sig === prev.signature || t.id === prev.key) repeats++;
-    prev = { key: t.id, unit: t.unit, templateId: t.templateId, signature: sig };
-  }
-  check(lockedUsed === 0, `Endless mode never uses a unit that isn't completed (used ${lockedUsed} times)`);
-  check(combinedSeen > 30, `Endless mode sets combined tasks when 2+ units are ticked (${combinedSeen}/300)`);
-  check(notGenerated === 0, "Once every bank task at the level is passed, endless mode makes new variants from templates");
-  check(repeats === 0, `Endless mode never gives the same task or variant twice in a row (${repeats} repeats)`);
-  prev = {};
-  for (let k = 0; k < 100; k++) {
-    const t = chooseEndlessTask({ tasks, templates, units, unitIds: ["maths"], last: prev, rand: rng, Templates });
-    if ((t.units || [t.unit]).some((u) => u !== "maths")) onlyMaths = false;
-    prev = { key: t.id, unit: t.unit, templateId: t.templateId, signature: t.generated ? Templates.signature(t) : t.id };
-  }
-  check(onlyMaths, "With one unit ticked, endless mode sets no combined tasks");
-  const fresh2 = { maths: completed(10) };
-  const first = chooseEndlessTask({ tasks, templates, units: fresh2, unitIds: ["maths"], last: {}, rand: rng, Templates });
-  check(!first.generated && first.unit === "maths" && first.level === 10, "Endless mode uses unpassed bank tasks at the student's level first");
-  check(chooseEndlessTask({ tasks, templates, units: { output: freshUnitState(10) }, unitIds: ["output"], last: {}, rand: rng, Templates }) === null,
-    "Endless mode gives nothing if no ticked unit is completed");
+  // Endless mode and the repeat rule (section 4). Making a derived template's variant runs Python, so these are async.
+  const realise = (tpl, seed) => Templates.realiseSync(tpl, seed, runPython);
+  pending.push((async () => {
+    const completed = (level) => Object.assign(freshUnitState(level), { completedTop: true });
+    const passedAll = (unit, level) => Object.assign(completed(level), { log: Object.fromEntries(tasks.filter((t) => t.unit === unit).map((t) => [t.id, { passes: 1 }])) });
+    const units = { maths: passedAll("maths", 10), selection: passedAll("selection", 10), output: freshUnitState(10) };
+    const rng = Templates.mulberry32(42);
+    const endless = (o) => chooseEndlessTask(Object.assign({ tasks, templates, rand: rng, Templates, realise }, o));
+    let prev = {};
+    let lockedUsed = 0, combinedSeen = 0, repeats = 0, notGenerated = 0, onlyMaths = true, passedAgain = 0;
+    for (let k = 0; k < ENDLESS_ROUNDS; k++) {
+      const t = await endless({ units, unitIds: ["maths", "selection", "output"], last: prev });
+      if ((t.units || [t.unit]).includes("output")) lockedUsed++;
+      if ((t.units || []).length >= 2) combinedSeen++;
+      if (!t.generated) notGenerated++;
+      const fp = App.fingerprintOf(t);
+      if ((t.units || [t.unit]).some((u) => App.hasPassed(units[u], fp))) passedAgain++;
+      const sig = t.generated ? Templates.signature(t) : t.id;
+      if (sig === prev.signature || fp === prev.key) repeats++;
+      for (const u of t.units || [t.unit]) App.recordTaskResult(units[u], t, true); // every task passed
+      prev = { key: fp, unit: t.unit, templateId: t.templateId, signature: sig };
+    }
+    check(lockedUsed === 0, `Endless mode never uses a unit that isn't completed (used ${lockedUsed} times)`);
+    check(combinedSeen > ENDLESS_ROUNDS / 10, `Endless mode sets combined tasks when 2+ units are ticked (${combinedSeen}/${ENDLESS_ROUNDS})`);
+    check(notGenerated === 0, "Once every bank task at the level is passed, endless mode makes new variants from templates");
+    check(repeats === 0, `Endless mode never gives the same task or variant twice in a row (${repeats} repeats)`);
+    check(passedAgain === 0, `Endless mode never gives a task whose fingerprint has been passed (${passedAgain} times)`);
+    prev = {};
+    for (let k = 0; k < 30; k++) {
+      const t = await endless({ units, unitIds: ["maths"], last: prev });
+      if ((t.units || [t.unit]).some((u) => u !== "maths")) onlyMaths = false;
+      prev = { key: App.fingerprintOf(t), unit: t.unit, templateId: t.templateId, signature: t.generated ? Templates.signature(t) : t.id };
+    }
+    check(onlyMaths, "With one unit ticked, endless mode sets no combined tasks");
+    const first = await endless({ units: { maths: completed(10) }, unitIds: ["maths"], last: {} });
+    check(!first.generated && first.unit === "maths" && first.level === 10, "Endless mode uses unpassed bank tasks at the student's level first");
+    check((await endless({ units: { output: freshUnitState(10) }, unitIds: ["output"], last: {} })) === null,
+      "Endless mode gives nothing if no ticked unit is completed");
 
-  // Task choice stays within the unit and level, avoids repeats, and respects skillMinLevel.
+    // Practice: a passed fingerprint is never served again, and the pool never runs out.
+    for (const [unit, level] of [["maths", 3], ["loops-count", 6], ["selection", 1]]) {
+      const s = freshUnitState(level);
+      let last = {}, again = 0, none = 0, twice = 0, variants = 0;
+      const seen = new Set();
+      for (let k = 0; k < PRACTICE_ROUNDS; k++) {
+        const t = await App.chooseNextTask({ tasks, templates, unitId: unit, state: s, last, rand: rng, realise, Templates });
+        if (!t) { none++; continue; }
+        const fp = App.fingerprintOf(t);
+        if (seen.has(fp)) again++;
+        if (fp === last.key) twice++;
+        if (t.generated) variants++;
+        seen.add(fp);
+        App.recordTaskResult(s, t, true);
+        last = { key: fp, templateId: t.templateId, signature: t.generated ? Templates.signature(t) : null };
+      }
+      check(again === 0, `Practice (${unit} level ${level}): a passed task is never served again (${again} repeats in ${PRACTICE_ROUNDS})`);
+      check(none === 0 && variants > 0, `Practice (${unit} level ${level}): the pool never runs out – ${PRACTICE_ROUNDS} passes in a row all got a new task (${variants} were template variants)`);
+      check(twice === 0, `Practice (${unit} level ${level}): the same task is never served twice in a row`);
+    }
+    // Failed tasks may come back: a failed bank task, and a failed template variant once the bank is used up.
+    {
+      const s = freshUnitState(3);
+      const bank = tasksAt(tasks, "maths", 3);
+      bank.slice(1).forEach((t) => App.recordTaskResult(s, t, true));
+      App.recordTaskResult(s, bank[0], false);
+      s.log[bank[0].id] = { fails: 1, passes: 0 };
+      const back = await App.chooseNextTask({ tasks, templates, unitId: "maths", state: s, last: { key: "other" }, rand: rng, realise, Templates });
+      check(back && back.id === bank[0].id, "A failed bank task can be served again");
+      const notTwice = await App.chooseNextTask({ tasks, templates, unitId: "maths", state: s, last: { key: bank[0].id }, rand: rng, realise, Templates });
+      check(notTwice && notTwice.id !== bank[0].id, "…but not straight after itself");
+      App.recordTaskResult(s, bank[0], true);
+      const v = await App.chooseNextTask({ tasks, templates, unitId: "maths", state: s, last: {}, rand: rng, realise, Templates });
+      App.recordTaskResult(s, v, false);
+      const v2 = await App.chooseNextTask({ tasks, templates, unitId: "maths", state: s, last: { key: "other" }, rand: rng, realise, Templates });
+      check(v.generated && v2 && App.fingerprintOf(v2) === App.fingerprintOf(v), "A failed template variant is served again (the same fingerprint) before new variants");
+      App.recordTaskResult(s, v2, true);
+      const v3 = await App.chooseNextTask({ tasks, templates, unitId: "maths", state: s, last: { key: App.fingerprintOf(v2) }, rand: rng, realise, Templates });
+      check(v3 && App.fingerprintOf(v3) !== App.fingerprintOf(v), "Once that variant is passed it is never served again");
+    }
+  })());
+
+  // Bank task choice stays within the unit and level, never gives a passed task, and respects skillMinLevel.
   for (const unit of UNIT_IDS) {
     const pool = tasksAt(tasks, unit, 3);
     const seen = {};
@@ -446,9 +577,11 @@ check(!Checker.outputsMatch("pass", "Pass"), "Comparison should be case-sensitiv
       else { if (seen[t.id]) noRepeats = false; seen[t.id] = { passes: 1 }; }
     }
     check(ok, `chooseTask must pick from the right unit and level (${unit})`);
-    check(noRepeats, `chooseTask must avoid repeats while unseen tasks remain (${unit})`);
-    const again = chooseTask(tasks, unit, 3, seen, pool[0].id);
-    check(again && again.id !== pool[0].id, `chooseTask must avoid the last task once all are seen (${unit})`);
+    check(noRepeats, `chooseTask never gives a passed task (${unit})`);
+    check(chooseTask(tasks, unit, 3, seen, null) === null, `chooseTask gives nothing once every bank task at the level is passed (${unit})`);
+    const failedOnce = Object.fromEntries(pool.map((t) => [t.id, { passes: 0, fails: 1 }]));
+    const again = chooseTask(tasks, unit, 3, failedOnce, pool[0].id);
+    check(again && again.id !== pool[0].id, `chooseTask may give a failed task again, but never the last one (${unit})`);
   }
   const minLevels = Curriculum.unitById("selection").skillMinLevel;
   let early = 0;
@@ -457,6 +590,9 @@ check(!Checker.outputsMatch("pass", "Pass"), "Comparison should be case-sensitiv
     if (t.skills.some((sk) => minLevels[sk] > t.level)) early++;
   }
   check(early === 0, "Selection tasks for functions are never set below level 5");
+let earlyTpl = 0;
+for (let lv = 1; lv <= 4; lv++) earlyTpl += App.singleTemplates(templates, "selection", lv).filter((t) => t.skills.some((sk) => minLevels[sk] > lv)).length;
+check(earlyTpl === 0, "Templates for functions are never set below level 5 either");
   const last = tasks.find((t) => t.unit === "maths" && t.level === 3 && t.skills.includes("modulo"));
   let sameSkill = 0;
   for (let k = 0; k < 200; k++) if (chooseTask(tasks, "maths", 3, {}, last.id).skills.includes("modulo")) sameSkill++;
@@ -467,7 +603,7 @@ check(!Checker.outputsMatch("pass", "Pass"), "Comparison should be case-sensitiv
 // Reads the three theme blocks in styles.css and checks each text colour against the backgrounds it is used on.
 const MIN_CONTRAST = 4.5; // WCAG AA for body text
 const TEXT_PAIRS = [
-  ["text", "bg"], ["text", "card"], ["text", "code-bg"], ["text", "up-bg"], ["text", "down-bg"], ["text", "selection"],
+  ["text", "bg"], ["text", "card"], ["text", "code-bg"], ["text", "up-bg"], ["text", "down-bg"], ["text", "selection"], ["text", "fail-bg"],
   ["muted", "bg"], ["muted", "card"], ["muted", "code-bg"],
   ["link", "bg"], ["link", "card"], ["primary-text", "primary"],
   ["pass", "pass-bg"], ["pass", "card"], ["fail", "fail-bg"], ["fail", "card"], ["on-danger", "fail"],
@@ -515,6 +651,8 @@ const hardCoded = outsideThemes.match(/#[0-9a-fA-F]{3,6}\b/g) || [];
 check(hardCoded.length === 0, "styles.css has hard-coded colours outside the theme blocks: " + hardCoded.join(", "));
 
 // ---------- Report ----------
+Promise.all(pending).then(report, (e) => { console.error(e); process.exit(1); });
+function report() {
 console.log(`Tasks: ${tasks.length}`);
 for (const unit of UNIT_IDS) {
   const mine = tasks.filter((t) => t.unit === unit);
@@ -527,6 +665,13 @@ const scratchTpls = templates.filter((t) => t.type === "scratch").length;
 const minVariants = Math.min(...Object.values(variantCounts));
 console.log(`Templates: ${templates.length} (single-unit ${templates.length - combinedTpls - scratchTpls}, combined ${combinedTpls}, write-from-scratch ${scratchTpls}); ${variants.length} different variants checked, fewest from one template: ${minVariants}`);
 console.log(`Lowest text contrast: ${Object.entries(contrastReport).map(([k, v]) => `${k} ${v}:1`).join(", ")}`);
+console.log(`Maths tasks containing if, elif or else: ${mathsWithSelection.length ? mathsWithSelection.join(", ") : "none"}`);
+console.log(`Functions tasks at levels 1-4 using selection-in-functions: ${earlyFunctions.length ? earlyFunctions.join(", ") : "none"}`);
+for (const unit of UNIT_IDS) {
+  const mine = templates.filter((t) => t.derived && t.units[0] === unit);
+  const made = variants.filter((v) => mine.some((t) => t.id === v.templateId)).length;
+  console.log(`  derived templates ${unit.padEnd(16)} ${String(mine.length).padStart(3)} (${TYPES.map((ty) => ty + "=" + mine.filter((t) => t.type === ty).length).join(" ")}), ${made} different variants checked`);
+}
 console.log(`Checks run: ${checks}`);
 if (failures.length) {
   console.log(`\nFAILED: ${failures.length} problem(s)\n`);
@@ -534,3 +679,4 @@ if (failures.length) {
   process.exit(1);
 }
 console.log("\nAll checks passed.");
+}

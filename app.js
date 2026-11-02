@@ -51,6 +51,17 @@ const PLACEMENT_TAG = "placement";         // tasks with this tag are only used 
 // ===================== "This is too easy" / "This is way too hard" =====================
 const BUTTON_JUMP_LEVELS = 1;              // levels moved by either button (each can be used once per unit)
 
+// ===================== "Show me how" =====================
+// After this many failed attempts on the same task (counted across visits), a "Show me how" button appears.
+// Using it shows a worked example; the task can't then be a strong pass, but it doesn't count towards
+// HINTS_ON_ONE_TASK_TO_LEVEL_DOWN, and it doesn't change the level or the streaks by itself.
+const SHOW_HOW_AFTER_FAILS = 2;
+
+// ===================== Never repeating a passed task =====================
+// Every task has a fingerprint: a bank task's id, or a template variant's template id plus its parameter values.
+// A passed fingerprint is never served again in that unit. Failed tasks may come back.
+const MAX_NEW_VARIANT_TRIES = 40;          // draws to find a template variant that hasn't been passed
+
 // ===================== Other settings =====================
 const MAX_HINTS_PER_TASK = 3;
 const RUN_TIMEOUT_MS = 5000;               // stop a run after this long (e.g. an infinite loop)
@@ -87,8 +98,127 @@ function freshUnitState(level) {
     placement: null,      // see newPlacement(); null or missing: the unit was started before placement existed
     buttonsUsed: {},      // { "too-easy": true, "too-hard": true } once used in this unit
     passedTop: false,     // passed a level 10 task in this unit (glowing card, complete badge)
+    passedFingerprints: {}, // fingerprint → time passed: never served again
+    failedAttempts: {},   // fingerprint → failed checks on that task (kept across visits; "Show me how")
+    failedVariants: {},   // fingerprint → { templateId, seed, level } of template variants failed and not yet passed
+    lastFingerprint: null,
   };
 }
+
+// ---------- Saved progress from earlier versions ----------
+// Skills that were renamed, so each skill has one name (the one in curriculum.js).
+const SKILL_RENAMES = { "and-or": "and/or", validation: "input-validation" };
+const PROGRESS_VERSION = 2;
+
+function mergeSkillState(a, b) {
+  if (!a) return b;
+  if (!b) return a;
+  return { attempts: (a.attempts || 0) + (b.attempts || 0), passes: (a.passes || 0) + (b.passes || 0), run: Math.max(a.run || 0, b.run || 0), secured: !!(a.secured || b.secured) };
+}
+
+function mergeLogEntry(a, b) {
+  const later = (a.lastAttempt || "") >= (b.lastAttempt || "") ? a : b;
+  const out = Object.assign({}, later);
+  for (const k of ["timesSet", "attempts", "hintsUsed", "passes", "fails", "failedAttempts", "showHowUsed"]) if (k in a || k in b) out[k] = (a[k] || 0) + (b[k] || 0);
+  return out;
+}
+
+// Brings saved progress up to date. Nothing is removed: stored records keep their shape and only gain fields.
+//   - renamed skills are merged into their new name
+//   - a removed duplicate task (in another task's former_ids, in the same unit) is merged into the task kept
+//   - passedFingerprints, failedAttempts (counted from the attempt log) and failedVariants are added
+// ctx = { tasks, templates, attempts (this student's attempt log), Templates }. Safe to run more than once.
+function migrateProgress(progress, ctx) {
+  const { tasks = [], templates = [], attempts = [], Templates } = ctx || {};
+  const unitOfTask = Object.fromEntries(tasks.map((t) => [t.id, t.unit]));
+  const renamedTo = {};
+  for (const t of tasks) for (const old of t.former_ids || []) renamedTo[old] = t.id;
+  const tplById = Object.fromEntries(templates.map((t) => [t.id, t]));
+  const currentId = (id, unitId) => (renamedTo[id] && unitOfTask[renamedTo[id]] === unitId ? renamedTo[id] : id);
+  const renameSkills = (skills) => [...new Set((skills || []).map((s) => SKILL_RENAMES[s] || s))];
+  let changed = false;
+
+  for (const [unitId, s] of Object.entries(progress.units || {})) {
+    if (!s) continue;
+    if (s.skills) {
+      for (const [old, now] of Object.entries(SKILL_RENAMES)) {
+        if (!(old in s.skills)) continue;
+        s.skills[now] = mergeSkillState(s.skills[now], s.skills[old]);
+        delete s.skills[old];
+        changed = true;
+      }
+    }
+    for (const h of s.history || []) if (h.skills && h.skills.some((sk) => sk in SKILL_RENAMES)) { h.skills = renameSkills(h.skills); changed = true; }
+    if (Array.isArray(s.recentSkills)) s.recentSkills = s.recentSkills.map((list) => renameSkills(list));
+    s.log = s.log || {};
+    for (const key of Object.keys(s.log)) {
+      const now = currentId(key, unitId);
+      if (now === key) continue;
+      s.log[now] = s.log[now] ? mergeLogEntry(s.log[now], s.log[key]) : s.log[key];
+      delete s.log[key];
+      changed = true;
+    }
+    if (s.current && !s.current.task && currentId(s.current.taskId, unitId) !== s.current.taskId) { s.current.taskId = currentId(s.current.taskId, unitId); changed = true; }
+    if (s.lastTaskId) s.lastTaskId = currentId(s.lastTaskId, unitId);
+    if (!s.passedFingerprints) {
+      s.passedFingerprints = {};
+      for (const [key, e] of Object.entries(s.log)) if (!key.startsWith("tpl:") && e.passes) s.passedFingerprints[key] = e.lastAttempt || true;
+      changed = true;
+    }
+    if (!s.failedAttempts) {
+      s.failedAttempts = {};
+      for (const a of attempts) {
+        if ((a.kind || "attempt") !== "attempt" || a.result !== "fail" || a.unit !== unitId) continue;
+        let fp = currentId(a.taskId, unitId);
+        if (a.templateId) {
+          const tpl = tplById[a.templateId];
+          const seed = Number(String(a.taskId).split("#")[1]);
+          fp = a.fingerprint || (tpl && !tpl.derived && Templates && seed ? Templates.fingerprintOf(tpl, seed) : null);
+        }
+        if (fp) s.failedAttempts[fp] = (s.failedAttempts[fp] || 0) + 1;
+      }
+      changed = true;
+    }
+    if (!s.failedVariants) { s.failedVariants = {}; changed = true; }
+    if (!("lastFingerprint" in s)) s.lastFingerprint = null;
+  }
+  if (progress.version !== PROGRESS_VERSION) { progress.version = PROGRESS_VERSION; changed = true; }
+  return changed;
+}
+
+// ---------- Fingerprints (never repeating a passed task) ----------
+const fingerprintOf = (t) => (t.generated ? t.fingerprint || t.id : t.id);
+// A task is passed in a unit if its fingerprint is recorded there (bank tasks: or the log shows a pass).
+function hasPassed(state, fp) {
+  if (!state) return false;
+  if ((state.passedFingerprints || {})[fp]) return true;
+  const e = (state.log || {})[fp];
+  return !!(e && e.passes && !fp.includes("|"));
+}
+
+// After a task is finished: a pass is remembered for good; a failed template variant is kept so it can come back.
+function recordTaskResult(state, t, passed, when) {
+  const fp = fingerprintOf(t);
+  state.passedFingerprints = state.passedFingerprints || {};
+  state.failedVariants = state.failedVariants || {};
+  if (passed) {
+    state.passedFingerprints[fp] = when || new Date().toISOString();
+    delete state.failedVariants[fp];
+  } else if (t.generated && !state.passedFingerprints[fp]) {
+    state.failedVariants[fp] = { templateId: t.templateId, seed: t.seed, level: t.level };
+  }
+  state.lastFingerprint = fp;
+}
+
+// One more failed check on a task (shown as "Show me how" once it reaches SHOW_HOW_AFTER_FAILS).
+function noteFailedAttempt(state, t) {
+  const fp = fingerprintOf(t);
+  state.failedAttempts = state.failedAttempts || {};
+  state.failedAttempts[fp] = (state.failedAttempts[fp] || 0) + 1;
+  return state.failedAttempts[fp];
+}
+
+const showHowAvailable = (state, t) => ((state && state.failedAttempts) || {})[fingerprintOf(t)] >= SHOW_HOW_AFTER_FAILS;
 
 // ---------- Placement test ----------
 // status: "pending" (to be taken: new unit, or reset by the teacher), "in-progress", "done",
@@ -157,7 +287,8 @@ function resetPlacement(state) {
 const checkerLib = () => (typeof module === "object" && module.exports ? require("./checker.js") : self.Checker);
 
 // The record saved for one attempt (Store.logAttempt) and exported for the teacher.
-// o = { task, unit, phase, kind ("attempt" | "skip"), attemptNumber, hints, result, failure (Checker.classifyAttempt), code, levelBefore, levelAfter }
+// o = { task, unit, phase, kind ("attempt" | "skip" | "hint"), hintType ("show-me-how", for kind "hint"),
+//       attemptNumber, hints, result, failure (Checker.classifyAttempt), code, levelBefore, levelAfter }
 function attemptRecord(o) {
   const t = o.task;
   const rec = {
@@ -165,6 +296,8 @@ function attemptRecord(o) {
     phase: o.phase, taskType: t.type, taskLevel: t.level, attemptNumber: o.attemptNumber, result: o.result, hints: o.hints,
     levelBefore: o.levelBefore, levelAfter: o.levelAfter,
   };
+  if (t.generated && t.fingerprint) rec.fingerprint = t.fingerprint;
+  if (o.kind === "hint") rec.hintType = o.hintType;
   const f = o.failure;
   if (f) {
     const test = f.failedTest == null ? null : t.tests[f.failedTest];
@@ -259,14 +392,20 @@ function ensureSkillStates(progress, findTask) {
 }
 
 // True if this task completes the unit: the move-up rule is met while already at MAX_LEVEL.
+const isStrongPass = (outcome) => outcome.passed && outcome.hints <= MAX_HINTS_FOR_A_STRONG_PASS && !outcome.showHow;
+
 function completesTopLevel(state, outcome) {
-  return state.level === MAX_LEVEL && outcome.passed && outcome.hints <= MAX_HINTS_FOR_A_STRONG_PASS &&
+  return state.level === MAX_LEVEL && isStrongPass(outcome) &&
     (state.passStreak || 0) + 1 >= PASSES_IN_A_ROW_TO_LEVEL_UP;
 }
 
 // ---------- Templates ----------
-const singleTemplates = (templates, unitId, level) =>
-  templates.filter((t) => t.units.length === 1 && t.units[0] === unitId && t.level === level && t.type !== "scratch");
+// Templates follow the same skillMinLevel rule as bank tasks (see tasksAt).
+const singleTemplates = (templates, unitId, level) => {
+  const minLevels = (unitById(unitId) || {}).skillMinLevel || {};
+  return templates.filter((t) => t.units.length === 1 && t.units[0] === unitId && t.level === level && t.type !== "scratch" &&
+    (t.skills || []).every((s) => !(level < (minLevels[s] || 0))));
+};
 const scratchTemplates = (templates, unitId) => templates.filter((t) => t.type === "scratch" && t.units[0] === unitId);
 const combinedTemplates = (templates, unitIds, levelOf) =>
   templates.filter((t) => t.units.length >= 2 && t.units.every((u) => unitIds.includes(u) && levelOf(u) >= t.level));
@@ -278,7 +417,7 @@ function pickAvoiding(items, avoid, key, rand) {
   return pool.length ? pool[Math.floor(rand() * pool.length)] : null;
 }
 
-// A variant of the template that differs from the last task served (lastSignature).
+// A variant of the template that differs from the last task served (lastSignature). Expression templates only.
 function freshVariant(tpl, lastSignature, rand, Templates) {
   let task = null;
   for (let k = 0; k < MAX_VARIANT_TRIES; k++) {
@@ -293,34 +432,86 @@ function scratchDue(state) {
   return !!state.completedTop && state.level === MAX_LEVEL && (state.sinceScratch || 0) >= SCRATCH_EVERY_N_TASKS - 1;
 }
 
+// A new variant from one of `tpls` whose fingerprint hasn't been passed in any of `states` and isn't the last task.
+// realise(tpl, seed) → (Promise of) the task, or null. Returns null only if every draw failed.
+async function newVariant(tpls, states, last, rand, realise, Templates) {
+  if (!tpls.length) return null;
+  for (let k = 0; k < MAX_NEW_VARIANT_TRIES; k++) {
+    const tpl = pickAvoiding(tpls, k < MAX_NEW_VARIANT_TRIES / 2 ? last.templateId : null, (t) => t.id, rand);
+    const task = await realise(tpl, Templates.randomSeed(rand));
+    if (!task) continue;
+    const fp = fingerprintOf(task);
+    if (fp === last.key || states.some((s) => hasPassed(s, fp))) continue;
+    if (last.signature && Templates.signature(task) === last.signature) continue;
+    return task;
+  }
+  return null;
+}
+
+// A template variant failed before (and not passed since) at this level, made again.
+async function failedVariantAgain(state, templates, level, last, rand, realise) {
+  const tplById = Object.fromEntries(templates.map((t) => [t.id, t]));
+  const due = Object.entries(state.failedVariants || {})
+    .filter(([fp, v]) => v.level === level && tplById[v.templateId] && fp !== last.key && !hasPassed(state, fp));
+  while (due.length) {
+    const [[fp, v]] = due.splice(Math.floor(rand() * due.length), 1);
+    const task = await realise(tplById[v.templateId], v.seed);
+    if (task && fingerprintOf(task) === fp) return task;
+    delete state.failedVariants[fp]; // the template has changed: this variant can't be made again
+  }
+  return null;
+}
+
+// The next practice task in one unit at the student's level, by the repeat rule:
+//   1. bank tasks not yet passed (never seen first), 2. template variants failed before,
+//   3. new template variants. A passed task is never served, and never the same task twice in a row.
+// o = { tasks, templates, unitId, state, last: { key (fingerprint), templateId, signature }, rand, realise, Templates }
+async function chooseNextTask(o) {
+  const { tasks, templates, unitId, state, Templates } = o;
+  const rand = o.rand || Math.random;
+  const last = o.last || {};
+  const level = state.level;
+  const bank = chooseTask(tasks, unitId, level, state.log || {}, last.key, rand, state.passedFingerprints || {});
+  if (bank) return bank;
+  const again = await failedVariantAgain(state, templates, level, last, rand, o.realise);
+  if (again) return again;
+  return newVariant(singleTemplates(templates, unitId, level), [state], last, rand, o.realise, Templates);
+}
+
+// A from-scratch task for a completed unit (never one already passed).
+function chooseScratchTask(o) {
+  const { templates, unitId, state, Templates } = o;
+  return newVariant(scratchTemplates(templates, unitId), [state], o.last || {}, o.rand || Math.random, o.realise, Templates);
+}
+
 // Endless mode: the next task from the ticked units. Only units the student has completed are used.
-// last = { key, unit, templateId, signature } of the previous task. Returns a task (a bank task or a new variant).
-function chooseEndlessTask(o) {
+// The same repeat rule as practice applies in each unit.
+// last = { key, unit, templateId, signature } of the previous task. Returns (a Promise of) a task.
+async function chooseEndlessTask(o) {
   const { tasks, templates, units, unitIds, last, Templates } = o;
   const rand = o.rand || Math.random;
+  const realise = o.realise || ((tpl, seed) => Templates.expand(tpl, seed));
   const open = unitIds.filter((u) => units[u] && units[u].completedTop);
   if (!open.length) return null;
   if (open.length >= 2 && rand() < ENDLESS_COMBINED_CHANCE) {
     const combos = combinedTemplates(templates, open, (u) => units[u].level);
-    if (combos.length) return freshVariant(pickAvoiding(combos, last.templateId, (t) => t.id, rand), last.signature, rand, Templates);
+    const task = await newVariant(combos, open.map((u) => units[u]), last, rand, realise, Templates);
+    if (task) return task;
   }
   const unitId = pickAvoiding(open, open.length > 1 ? last.unit : null, (u) => u, rand);
   const s = units[unitId];
-  // Bank tasks the student hasn't passed yet come first. When they run out, make new variants.
-  const pool = tasksAt(tasks, unitId, s.level).filter((t) => !(s.log[t.id] && s.log[t.id].passes) && t.id !== last.key);
-  if (pool.length) return pool[Math.floor(rand() * pool.length)];
-  let tpls = singleTemplates(templates, unitId, s.level);
-  if (s.level === MAX_LEVEL) tpls = tpls.concat(scratchTemplates(templates, unitId));
-  if (tpls.length) return freshVariant(pickAvoiding(tpls, last.templateId, (t) => t.id, rand), last.signature, rand, Templates);
-  return chooseTask(tasks, unitId, s.level, s.log, last.key, rand);
+  const task = await chooseNextTask({ tasks, templates, unitId, state: s, last, rand, realise, Templates });
+  if (task || s.level !== MAX_LEVEL) return task;
+  return chooseScratchTask({ templates, unitId, state: s, last, rand, realise, Templates });
 }
 
 // Given a unit's state and how a task went, work out the new level, streaks and ceiling.
-// outcome = { passed: boolean, hints: number used, skills: [skill ids of the task] }
+// outcome = { passed: boolean, hints: number used, skills: [skill ids of the task], showHow: "Show me how" was used }
+// "Show me how" stops a pass being strong, but isn't counted in hints (so not in the 3-hints move down).
 // Returns the changed fields plus change (levels moved) and reason
 // ("hints", "fails", "recovery", "fast", "passes" or "" when the level didn't change).
 function applyOutcome(state, outcome) {
-  const strong = outcome.passed && outcome.hints <= MAX_HINTS_FOR_A_STRONG_PASS;
+  const strong = isStrongPass(outcome);
   let passStreak = strong ? (state.passStreak || 0) + 1 : 0;
   let strongRun = strong ? (state.strongRun || 0) + 1 : 0;
   let failStreak = outcome.passed ? 0 : (state.failStreak || 0) + 1;
@@ -381,16 +572,16 @@ function tasksAt(tasks, unitId, level) {
     t.skills.every((s) => !(level < (minLevels[s] || 0))));
 }
 
-// Pick a random task in the unit at the given level, avoiding repeats where possible.
+// Pick a random bank task in the unit at the given level that hasn't been passed (passed = passedFingerprints),
+// never the last one. Never-seen tasks come first, then ones tried but not passed. Returns null if none is left.
 // Prefers tasks whose skills differ from the last task's, so a run covers a range of skills.
-function chooseTask(tasks, unitId, level, log, lastTaskId, rand) {
+function chooseTask(tasks, unitId, level, log, lastTaskId, rand, passed) {
   rand = rand || Math.random;
-  const pool = tasksAt(tasks, unitId, level);
+  const isPassed = (t) => !!((passed || {})[t.id] || (log[t.id] && log[t.id].passes));
+  const pool = tasksAt(tasks, unitId, level).filter((t) => !isPassed(t) && t.id !== lastTaskId);
   const tiers = [
-    pool.filter((t) => !log[t.id]),                                              // never seen
-    pool.filter((t) => t.id !== lastTaskId && !(log[t.id] && log[t.id].passes)), // seen, never passed
-    pool.filter((t) => t.id !== lastTaskId),                                     // anything but the last one
-    pool,
+    pool.filter((t) => !log[t.id]), // never seen
+    pool,                           // seen, never passed
   ];
   let candidates = tiers.find((tier) => tier.length > 0) || [];
   const last = tasks.find((t) => t.id === lastTaskId);
@@ -408,6 +599,9 @@ if (typeof module === "object" && module.exports) {
     HINTS_ON_ONE_TASK_TO_LEVEL_DOWN, DOWN_LEVEL_STEP, RECOVERY_WINDOW_TASKS, RECOVERY_CEILING_TASKS, MAX_HINTS_PER_TASK,
     SECURED_PASSES_IN_A_ROW, SECURED_MAX_HINTS, SCRATCH_EVERY_N_TASKS, ENDLESS_COMBINED_CHANCE,
     PLACEMENT_LEVELS, PLACEMENT_ATTEMPTS, PLACEMENT_MAX_LEVEL, PLACEMENT_TAG, BUTTON_JUMP_LEVELS,
+    SHOW_HOW_AFTER_FAILS, MAX_NEW_VARIANT_TRIES, SKILL_RENAMES, PROGRESS_VERSION,
+    migrateProgress, fingerprintOf, hasPassed, recordTaskResult, noteFailedAttempt, showHowAvailable, isStrongPass,
+    chooseNextTask, chooseScratchTask, newVariant,
     newPlacement, isPlacementTask, needsPlacement, choosePlacementTasks, startPlacement, placementStartLevel,
     recordPlacementStep, resetPlacement, attemptRecord, levelButtonAvailable, applyLevelButton, levelButtonMessage, pressLevelButton,
     freshUnitState, applyOutcome, levelMessage, tasksAt, chooseTask,
@@ -417,7 +611,7 @@ if (typeof module === "object" && module.exports) {
 }
 
 // ===================== Browser app (practice.html only) =====================
-if (typeof document !== "undefined" && document.getElementById("task")) (function () {
+if (typeof document !== "undefined" && document.getElementById("task")) Store.whenReady(function () {
 
   // ---------- Who, and which unit or units ----------
   // practice.html?unit=maths              practise one unit
@@ -511,18 +705,45 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
     },
 
     // Runs code once per inputs list. Resolves to an array of {output, error, inputsLeft}.
-    async run(code, inputLists) {
+    // maxLines: stop after that many lines (the app's own runs of template variants).
+    async run(code, inputLists, maxLines) {
       const ok = await this.ready;
       if (!ok) return null;
+      while (this.job) await this.job.done; // one run at a time
+      let markDone;
+      const done = new Promise((res) => { markDone = res; });
       return new Promise((resolve) => {
         const id = ++this.seq;
-        this.job = { id, resolve, results: new Array(inputLists.length).fill(null) };
+        this.job = { id, resolve: (r) => { markDone(); resolve(r); }, done, results: new Array(inputLists.length).fill(null) };
         this.armTimer();
-        this.worker.postMessage({ type: "run", id, code, tests: inputLists });
+        this.worker.postMessage({ type: "run", id, code, tests: inputLists, maxLines: maxLines || 0 });
       });
+    },
+
+    // jobs = [{ code, inputs, maxLines }] (templates.js) → one result per job, in order.
+    async runJobs(jobs) {
+      const results = new Array(jobs.length);
+      const groups = new Map();
+      jobs.forEach((j, i) => {
+        const key = j.code + "\u0000" + (j.maxLines || 0);
+        if (!groups.has(key)) groups.set(key, { code: j.code, maxLines: j.maxLines, idx: [] });
+        groups.get(key).idx.push(i);
+      });
+      for (const g of groups.values()) {
+        const res = await this.run(g.code, g.idx.map((i) => jobs[i].inputs), g.maxLines);
+        g.idx.forEach((i, k) => { results[i] = res ? res[k] : { output: "", error: { type: "Unavailable" }, inputsLeft: 0 }; });
+      }
+      return results;
     },
   };
   runner.start();
+
+  // Makes a template variant. Derived templates need Python to work out their outputs; without it, they are skipped.
+  async function realiseTask(tpl, seed) {
+    if (!tpl.derived) return Templates.expand(tpl, seed);
+    if (!(await runner.ready)) return null;
+    return Templates.realise(tpl, seed, (jobs) => runner.runJobs(jobs));
+  }
 
   // ---------- Helpers ----------
   const $ = (id) => document.getElementById(id);
@@ -548,21 +769,32 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
     return a;
   }
 
-  function describeInputs(inputs) {
-    if (!inputs.length) return "No input";
-    return "Input: " + inputs.map((v) => (v === "" ? "(nothing – just Enter)" : v)).join(", then ");
-  }
+  const inputsText = (inputs) => (inputs.length ? inputs.map((v) => (v === "" ? "(nothing – just Enter)" : v)).join(", then ") : "(no input)");
+  const describeInputs = (inputs) => (inputs.length ? "Input: " + inputsText(inputs) : "No input");
 
   function showOutput(text) {
     const n = Checker.normalise(text);
-    return n === "" ? '<span class="nothing">(nothing)</span>' : esc(n);
+    return n === "" ? '<span class="nothing">(no output)</span>' : esc(n);
+  }
+
+  // The message for a failed attempt: a matched misconception's explanation first (the main message),
+  // then the category message and its "What to try" line.
+  function failureHtml(t, failure, extra) {
+    const matched = Checker.matchMisconceptions(t, failure).map((id) => misconceptionById[id]).filter((m) => m && m.explanation);
+    const parts = Checker.failureParts(failure);
+    return '<div class="problem failure" role="alert">' +
+      matched.map((m) => '<p class="misconception"><strong>' + esc(m.name) + ".</strong> " + esc(m.explanation) + "</p>").join("") +
+      "<p>" + esc(parts.message + (extra ? " " + extra : "")) + "</p>" +
+      '<p class="try-next"><strong>What to try:</strong> ' + esc(parts.tryNext) + "</p></div>";
   }
 
   // ---------- State ----------
   let tasks = [];
   let taskById = {};
   let templates = [];
+  let misconceptionById = {};
   let busy = false;
+  let serving = false; // a new task is being made
   let skipArmed = false;
   let notice = null; // message carried over to the next task (e.g. level change)
   let activeEditor = null; // CodeMirror instance on a write task (null with the plain text box)
@@ -602,33 +834,41 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
     return { code: t.starter || "" };
   }
 
-  function nextTaskFor() {
+  async function nextTaskFor() {
+    const choice = { tasks, templates, Templates, realise: realiseTask };
     if (endless) {
       const e = progress.endless;
-      return chooseEndlessTask({ tasks, templates, units: progress.units, unitIds: e.units, last: e.last || {}, Templates });
+      return chooseEndlessTask(Object.assign(choice, { units: progress.units, unitIds: e.units, last: e.last || {} }));
     }
     const s = us();
+    const last = { key: s.lastFingerprint || s.lastTaskId, templateId: s.lastTemplateId, signature: s.lastSignature };
+    Object.assign(choice, { unitId, state: s, last });
     if (scratchDue(s)) {
-      const pool = scratchTemplates(templates, unitId);
-      if (pool.length) {
-        s.sinceScratch = 0;
-        return freshVariant(pickAvoiding(pool, s.lastTemplateId, (x) => x.id, Math.random), s.lastSignature, Math.random, Templates);
-      }
+      const t = await chooseScratchTask(choice);
+      if (t) { s.sinceScratch = 0; return t; }
     }
     if (s.completedTop && s.level === MAX_LEVEL) s.sinceScratch = (s.sinceScratch || 0) + 1;
-    return chooseTask(tasks, unitId, s.level, s.log, s.lastTaskId);
+    return chooseNextTask(choice);
   }
 
-  function serveNewTask() {
-    const t = nextTaskFor();
-    if (!t) return;
-    holder().current = { taskId: t.id, task: t.generated ? t : null, started: false, hints: 0, attempts: 0, finished: false, passed: false, draft: initialDraft(t) };
+  // Sets up the next task (a template variant may need Python to run first).
+  async function serveNewTask() {
+    serving = true;
+    if ($("results")) $("results").innerHTML = '<p class="running">Getting your next task ready…</p>';
+    let t = null;
+    try { t = await nextTaskFor(); } finally { serving = false; }
+    if (!t) {
+      $("task").innerHTML = '<p class="problem">Your next task couldn\'t be made. Check your internet connection (Python needs to load), then reload the page.</p>';
+      return false;
+    }
+    holder().current = { taskId: t.id, task: t.generated ? t : null, started: false, hints: 0, attempts: 0, showHow: 0, finished: false, passed: false, draft: initialDraft(t) };
     eachLog((entry) => {
       entry.timesSet += 1;
       if (!entry.passes && !entry.fails) entry.lastResult = "in progress";
     });
     skipArmed = false;
     save();
+    return true;
   }
 
   // ---------- Attempt records (teacher view and export) ----------
@@ -636,6 +876,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
   function recordAttempt(t, c, o) {
     const u = unitsOf(t)[0];
     const lv = (o.levels || {})[u] || { from: us(u).level, to: us(u).level };
+    // Failed checks are counted per task in each unit (kept across visits) for "Show me how".
+    if ((o.kind || "attempt") === "attempt" && o.result === "fail") { unitsOf(t).forEach((x) => noteFailedAttempt(us(x), t)); save(); }
     return Store.logAttempt(student.id, attemptRecord({
       task: t, unit: u, phase: c.placement ? "placement" : endless ? "endless" : "practice", kind: o.kind,
       attemptNumber: c.attempts, hints: c.hints, result: o.result, failure: o.failure, code: o.code, levelBefore: lv.from, levelAfter: lv.to,
@@ -653,7 +895,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
       t = choosePlacementTasks(tasks, unitId, p.used)[p.step] || null;
       if (t) { p.taskIds[p.step] = t.id; p.used = (p.used || []).concat(p.used && p.used.includes(t.id) ? [] : [t.id]); }
     }
-    if (!t) { p.status = "not-taken"; save(); return serveNewTask(); } // no placement tasks in this unit
+    if (!t) { p.status = "not-taken"; save(); return serveNewTask(); } // no placement tasks in this unit (a promise)
     s.current = { taskId: t.id, task: null, placement: true, started: false, hints: 0, attempts: 0, finished: false, passed: false, draft: initialDraft(t) };
     skipArmed = false;
     save();
@@ -691,7 +933,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
     c.finished = true;
     c.passed = passed;
     const t = task();
-    const outcome = { passed, hints: c.hints, skills: t.skills };
+    const outcome = { passed, hints: c.hints, skills: t.skills, showHow: (c.showHow || 0) > 0 };
     const now = new Date().toISOString();
     const messages = [];
     const levels = {};
@@ -716,7 +958,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
       s.lastTaskId = t.id;
       s.lastTemplateId = t.generated ? t.templateId : null;
       s.lastSignature = t.generated ? Templates.signature(t) : null;
-      s.history.push({ taskId: t.id, templateId: t.templateId, skills: t.skills, result: passed ? "pass" : "fail", hints: c.hints, attempts: c.attempts, levelBefore: before, levelAfter: r.level, reason, at: now });
+      recordTaskResult(s, t, passed, now); // a passed task is never served again in this unit
+      s.history.push({ taskId: t.id, templateId: t.templateId, skills: t.skills, result: passed ? "pass" : "fail", hints: c.hints, showHow: c.showHow || 0, attempts: c.attempts, levelBefore: before, levelAfter: r.level, reason, at: now });
       if (s.history.length > 500) s.history = s.history.slice(-500);
       levels[u] = { from: before, to: r.level };
       if (change !== 0) Store.logLevelChange({ studentId: student.id, unit: u, from: before, to: r.level, reason, taskId: t.id });
@@ -737,7 +980,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
       const owner = unitOfSkill(sk, unitsOf(t));
       if (owner && progress.units[owner]) progress.units[owner].skills = updateSkillStates(progress.units[owner].skills || {}, [sk], outcome);
     }
-    if (endless) progress.endless.last = { key: t.id, unit: t.unit, templateId: t.templateId || null, signature: t.generated ? Templates.signature(t) : null };
+    if (endless) progress.endless.last = { key: fingerprintOf(t), unit: t.unit, templateId: t.templateId || null, signature: t.generated ? Templates.signature(t) : null };
 
     notice = messages.length ? { kind, text: messages.join(" ") } : null;
     save();
@@ -792,6 +1035,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
   }
 
   function renderTask() {
+    if (!cur()) return; // no task could be made (the page already says so)
     const t = task();
     const c = cur();
     if (!c.draft) { c.draft = initialDraft(t); save(); } // e.g. damaged saved data
@@ -831,9 +1075,11 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
         (t.type !== "predict" ? '<button type="button" id="run-btn" class="secondary">Run</button>' : "") +
         '<button type="button" id="check-btn" class="primary">' + checkLabel + "</button>" +
         '<button type="button" id="hint-btn" class="secondary"></button>' +
+        '<button type="button" id="show-how-btn" class="secondary" hidden>Show me how</button>' +
         '<button type="button" id="next-btn" class="secondary"></button>' +
       "</div>" +
       '<ol id="hints" class="hints" aria-label="Hints"></ol>' +
+      '<section id="show-how" class="worked" aria-labelledby="show-how-h" tabindex="-1" hidden></section>' +
       (showLevelButtons ? '<div id="level-buttons" class="level-buttons" role="group" aria-label="Change your level"></div>' : "") +
       '<div id="results" class="results" aria-live="polite"></div>';
 
@@ -845,8 +1091,10 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
     if ($("run-btn")) $("run-btn").addEventListener("click", runOnce);
     $("check-btn").addEventListener("click", check);
     $("hint-btn").addEventListener("click", showHint);
+    $("show-how-btn").addEventListener("click", showHow);
     $("next-btn").addEventListener("click", nextTask);
     renderHints();
+    renderShowHow();
     renderButtons();
     if (c.finished) renderFinishedMessage();
   }
@@ -864,7 +1112,69 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
     next.className = c.finished ? "primary" : skipArmed ? "danger" : "secondary";
     $("check-btn").disabled = busy || (t.type === "predict" && c.finished);
     if ($("run-btn")) $("run-btn").disabled = busy;
+    // "Show me how": after SHOW_HOW_AFTER_FAILS failed attempts on this task, and after every later failure.
+    const howBtn = $("show-how-btn");
+    howBtn.hidden = !!c.placement || (c.finished && c.passed) || !workedExampleFor(t) || !unitsOf(t).some((u) => showHowAvailable(us(u), t));
+    howBtn.disabled = busy;
     renderLevelButtons();
+  }
+
+  // ---------- "Show me how" ----------
+  // A bank task's worked example, or (for a template variant) the one of the task it was made from.
+  function workedExampleFor(t) {
+    if (t.worked_example) return t.worked_example;
+    const src = t.source && taskById[t.source];
+    return src ? src.worked_example || null : null;
+  }
+
+  function showHow() {
+    const c = cur();
+    const t = task();
+    if (!workedExampleFor(t)) return;
+    c.showHow = (c.showHow || 0) + 1; // the task can't be a strong pass now; it isn't counted as a hint for moving down
+    eachLog((entry) => { entry.showHowUsed = (entry.showHowUsed || 0) + 1; });
+    const u = unitsOf(t)[0];
+    Store.logAttempt(student.id, attemptRecord({
+      task: t, unit: u, phase: endless ? "endless" : "practice", kind: "hint", hintType: "show-me-how",
+      attemptNumber: c.attempts, hints: c.hints, result: "show-me-how", levelBefore: us(u).level, levelAfter: us(u).level,
+    }));
+    save();
+    renderShowHow();
+    renderButtons();
+    $("show-how").focus();
+  }
+
+  function renderShowHow() {
+    const c = cur();
+    const t = task();
+    const box = $("show-how");
+    const we = workedExampleFor(t);
+    box.hidden = !(c.showHow > 0 && we);
+    if (box.hidden) return;
+    const keyStep = t.hints[t.hints.length - 1];
+    box.innerHTML = '<h3 id="show-how-h">Show me how</h3>' +
+      "<p><strong>A similar problem:</strong> " + esc(we.problem) + "</p>" +
+      '<pre class="code">' + highlight(we.code) + "</pre>" +
+      (we.output != null ? '<p class="small">' + (we.inputs && we.inputs.length ? "When the user types " + esc(we.inputs.join(", then ")) + ", it prints:" : "It prints:") + "</p>" +
+        '<pre class="output">' + showOutput(we.output) + "</pre>" : "") +
+      "<p><strong>The key idea:</strong> " + esc(we.key_idea) + "</p>" +
+      "<p><strong>The key step for this task:</strong> " + esc(keyStep) + "</p>" +
+      (c.finished && !c.passed ? '<p><button type="button" id="try-again-btn" class="primary">Try this task again</button></p>' : "");
+    if ($("try-again-btn")) $("try-again-btn").addEventListener("click", tryAgain);
+  }
+
+  // After "Show me how" on a task that has already ended unpassed, the same task is offered again at the same level.
+  function tryAgain() {
+    const c = cur();
+    const t = task();
+    holder().current = { taskId: t.id, task: t.generated ? t : null, started: true, hints: 0, attempts: 0, showHow: c.showHow,
+      finished: false, passed: false, draft: initialDraft(t) };
+    eachLog((entry) => { entry.timesSet += 1; entry.lastResult = "in progress"; });
+    notice = null;
+    skipArmed = false;
+    save();
+    renderTask();
+    $("task").focus();
   }
 
   // ---------- "This is too easy" / "This is way too hard" ----------
@@ -884,15 +1194,16 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
     }).join("");
   }
 
-  function useLevelButton(button) {
+  async function useLevelButton(button) {
+    if (serving) return;
     const t = task();
     const r = pressLevelButton({ state: us(), button, studentId: student.id, unitId, taskId: t.id, store: Store });
     if (!r) return;
     // The current task is set aside: it counts as neither a pass nor a fail.
     eachLog((entry) => { if (entry.lastResult === "in progress") entry.lastResult = "set aside"; });
     notice = { kind: "up", text: r.message };
-    serveNewTask();
     renderSide();
+    if (!(await serveNewTask())) return;
     renderTask();
     $("task").focus();
   }
@@ -921,7 +1232,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
     if (items.length) { items[items.length - 1].setAttribute("tabindex", "-1"); items[items.length - 1].focus(); }
   }
 
-  function nextTask() {
+  async function nextTask() {
+    if (serving) return;
     const c = cur();
     const t = task();
     if (!c.finished) {
@@ -934,14 +1246,15 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
         recordAttempt(t, c, { kind: "skip", result: "skipped", levels });
       }
     }
-    if (c.placement && inPlacement()) servePlacementTask();
+    renderSide();
+    if (c.placement && inPlacement()) await servePlacementTask();
     else {
       if (c.placement) {
         // Placement just finished: show the result once, then straight into practice.
         const start = us().placement.startLevel;
         notice = { kind: "up", text: "Quick check done – thank you! You'll start at Level " + start + " (" + levelName(start) + ")." };
       }
-      serveNewTask();
+      if (!(await serveNewTask())) return;
     }
     renderSide();
     renderTask();
@@ -1038,7 +1351,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
         recordAttempt(t, c, { result: "fail", failure, code: "" });
         if (c.placement) more = placementAfterFail() ? " You have one more try." : "";
       }
-      $("results").innerHTML = '<p class="problem" role="alert">' + esc(Checker.failureMessage(failure) + more) + "</p>";
+      $("results").innerHTML = failureHtml(t, failure, more.trim());
       renderButtons();
       if (c.finished) renderFinishedMessage();
       return;
@@ -1068,6 +1381,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
       if (c.placement) tryAgain = placementAfterFail() ? "You have one more try." : "";
     }
     renderResults(results, passes, extraProblem, allPass, failure, tryAgain);
+    if (!allPass) renderButtons(); // "Show me how" may be available now
 
     if (allPass && counted) {
       if (c.placement) {
@@ -1092,7 +1406,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
     let html = "";
     if (allPass) html += '<p class="success">✓ Well done – all ' + results.length + " tests passed!</p>";
     else html += "<h3>" + passCount + " of " + results.length + " tests passed</h3>";
-    if (failure) html += '<p class="problem" role="alert">' + esc(Checker.failureMessage(failure) + (tryAgain ? " " + tryAgain : "")) + "</p>";
+    if (failure) html += failureHtml(t, failure, tryAgain);
     if (extraProblem && !(failure && failure.details && failure.details.parsons)) html += '<p class="problem">' + esc(extraProblem) + "</p>";
 
     // A syntax error stops every test the same way – explain it once.
@@ -1111,10 +1425,13 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
         html += '<li class="pass"><span class="mark" aria-hidden="true">✓</span> <strong>Test ' + (i + 1) + " passed</strong> <span class=\"inputs\">" + esc(describeInputs(test.inputs)) + "</span></li>";
         return;
       }
-      html += '<li class="fail"><span class="mark" aria-hidden="true">✗</span> <strong>Test ' + (i + 1) + (r.notRun ? " not run" : " didn't pass") + "</strong> <span class=\"inputs\">" + esc(describeInputs(test.inputs)) + "</span>";
-      if (r.notRun) { html += "<p>This test didn't run because an earlier test was stopped.</p></li>"; return; }
-      html += '<div class="compare"><div><span class="cmp-label">Expected</span><pre>' + showOutput(test.expected) + "</pre></div>" +
-        '<div><span class="cmp-label">Your program printed</span><pre>' + showOutput(r.output) + "</pre></div></div>";
+      html += '<li class="fail"><span class="mark" aria-hidden="true">✗</span> <strong>Test ' + (i + 1) + (r.notRun ? " not run" : " didn't pass") + "</strong>";
+      if (r.notRun) { html += " <span class=\"inputs\">" + esc(describeInputs(test.inputs)) + "</span><p>This test didn't run because an earlier test was stopped.</p></li>"; return; }
+      // Input, expected output and actual output, each on its own labelled line.
+      html += '<dl class="io-lines">' +
+        "<dt>Input</dt><dd>" + esc(inputsText(test.inputs)) + "</dd>" +
+        "<dt>Expected</dt><dd><pre>" + showOutput(test.expected) + "</pre></dd>" +
+        "<dt>Your output</dt><dd><pre>" + showOutput(r.output) + "</pre></dd></dl>";
       if (r.error) html += errorBox(Checker.explainError(r.error));
       else {
         let tip = Checker.mismatchHint(r.output, test.expected);
@@ -1302,7 +1619,9 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
     const output = actual == null ? t.options[t.answer] : actual;
     let html = c.passed
       ? '<p class="success">✓ Correct – your prediction matched!</p>'
-      : '<p class="problem">Not quite. Compare your choice with what the program really printed, and trace through the code line by line.</p>';
+      : c.draft.choice == null
+        ? '<p class="problem">Not quite. Compare your choice with what the program really printed, and trace through the code line by line.</p>'
+        : failureHtml(t, Checker.classifyAttempt({ type: "predict", choice: c.draft.choice, options: t.options, answer: t.answer }));
     html += "<h3>The program printed</h3><pre class=\"output\">" + showOutput(output) + "</pre>";
     $("results").innerHTML = html;
   }
@@ -1445,17 +1764,20 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
   // ---------- Reset ----------
   $("reset-btn").addEventListener("click", () => { $("reset-confirm").hidden = false; $("reset-yes").focus(); });
   $("reset-no").addEventListener("click", () => { $("reset-confirm").hidden = true; $("reset-btn").focus(); });
-  $("reset-yes").addEventListener("click", () => {
+  $("reset-yes").addEventListener("click", async () => {
+    if (serving) return;
     const old = us();
     const before = old.level;
     // The placement result, the level buttons used and a level 10 pass are kept: only a teacher can reset placement.
+    // Passed tasks and failed-attempt counts are kept too, so a passed task is still never served again.
     const start = old.placement && old.placement.status === "done" ? old.placement.startLevel : START_LEVEL;
-    progress.units[unitId] = Object.assign(freshUnitState(start), { placement: old.placement || null, buttonsUsed: old.buttonsUsed || {}, passedTop: !!old.passedTop });
+    progress.units[unitId] = Object.assign(freshUnitState(start), { placement: old.placement || null, buttonsUsed: old.buttonsUsed || {}, passedTop: !!old.passedTop,
+      passedFingerprints: old.passedFingerprints || {}, failedAttempts: old.failedAttempts || {}, failedVariants: old.failedVariants || {} });
     if (before !== start) Store.logLevelChange({ studentId: student.id, unit: unitId, from: before, to: start, reason: "reset" });
     notice = null;
-    serveNewTask();
     $("reset-confirm").hidden = true;
     renderSide();
+    if (!(await serveNewTask())) return;
     renderTask();
     $("task").focus();
   });
@@ -1465,30 +1787,36 @@ if (typeof document !== "undefined" && document.getElementById("task")) (functio
   Promise.all([
     loadJson("tasks.json"),
     loadJson("templates.json").catch(() => []), // without templates, practice still works from the task bank
+    loadJson("misconceptions.json").catch(() => []), // without it, failures just don't show a misconception's explanation
   ])
-    .then(([data, tpls]) => {
+    .then(async ([data, tpls, mis]) => {
       tasks = data;
       templates = tpls;
+      misconceptionById = Object.fromEntries(mis.map((m) => [m.id, m]));
       taskById = Object.fromEntries(tasks.map((t) => [t.id, t]));
+      // Saved progress from earlier versions: renamed skills, removed duplicate tasks, and the new fields.
+      if (migrateProgress(progress, { tasks, templates, attempts: Store.attempts(student.id), Templates })) save();
       ensureSkillStates(progress, (id) => taskById[id]);
       if (!endless && !tasks.some((t) => t.unit === unitId)) { location.replace("index.html"); return; }
       // Keep the task in progress if it still makes sense here.
       const c = holder().current;
       const t = c && (c.task || taskById[c.taskId]);
+      renderSide();
       if (inPlacement()) {
         const p = us().placement;
         const onStep = c && c.placement && t && p.status === "in-progress" && c.taskId === p.taskIds[p.step];
-        if (!onStep) servePlacementTask();
+        if (!onStep) await servePlacementTask();
       } else {
         // A finished placement task stays on screen until Next is pressed.
         const fits = t && (endless ? unitsOf(t).every((u) => progress.endless.units.includes(u)) : unitsOf(t).includes(unitId)) &&
           (!c.placement || c.finished);
-        if (!fits) serveNewTask();
+        if (!fits && !(await serveNewTask())) return;
       }
       renderSide();
       renderTask();
     })
-    .catch(() => {
+    .catch((e) => {
+      if (typeof console !== "undefined") console.error(e);
       $("task").innerHTML = '<p class="problem">Couldn\'t load the tasks. Open this site through a local web server (see README.md) rather than double-clicking index.html.</p>';
     });
-})();
+});

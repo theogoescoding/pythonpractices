@@ -60,10 +60,26 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
   const Curriculum = require(path.join(ROOT, "curriculum.js"));
   const TD = require(path.join(ROOT, "teacher-data.js"));
   const Templates = require(path.join(ROOT, "templates.js"));
+  const Rows = require(path.join(ROOT, "backend-rows.js"));
   const byId = Object.fromEntries(tasks.map((t) => [t.id, t]));
   const out = [];
   const check = (ok, message) => { out.push({ ok: !!ok, message }); return !!ok; };
   const rng = Templates.mulberry32(7);
+
+  // Backend mode: the class as the database would hold it (rows as sent by backend.js, through JSON, with the database's
+  // +00:00 times and ids in arrival order), read back the way the teacher view reads it.
+  function throughBackend(data) {
+    const wire = (v) => JSON.parse(JSON.stringify(v));
+    const dbTime = (r) => Object.assign(r, { timestamp: r.timestamp.replace(/Z$/, "+00:00") });
+    let id = 0;
+    const students = Object.entries(data.students).map(([sid, s]) => ({ id: sid, nickname: s.name, created_at: s.created }));
+    const progress = Object.entries(data.progress).flatMap(([sid, p]) => Rows.progressToRows(p).map((r) => wire(Object.assign(r, { student_id: sid }))));
+    const attempts = data.attempts.map((a) => dbTime(wire(Object.assign(Rows.attemptToRow(a), { id: ++id, student_id: a.studentId }))));
+    const events = [
+      ...data.levelLog.map((e) => Rows.levelToRow(e)), ...data.buttonLog.map(Rows.buttonToRow), ...data.placementLog.map(Rows.placementToRow),
+    ].map((r, i) => dbTime(wire(Object.assign(r, { id: ++id, student_id: [...data.levelLog, ...data.buttonLog, ...data.placementLog][i].studentId }))));
+    return Rows.teacherData({ students, progress, attempts, events }, data.units);
+  }
 
   // ===================== Placement =====================
   {
@@ -181,6 +197,148 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     }
     const missing = [...used].filter((id) => !known.has(id));
     check(missing.length === 0, "Every misconception id used in tasks exists in misconceptions.json" + (missing.length ? " (missing: " + missing.join(", ") + ")" : ""));
+
+    // Section 1: every misconception id used in tasks.json has a plain-English explanation of 2 or 3 sentences.
+    const byMis = Object.fromEntries(misconceptions.map((m) => [m.id, m]));
+    const noExplanation = [...used].filter((id) => !(byMis[id] && typeof byMis[id].explanation === "string" && byMis[id].explanation.trim()));
+    check(noExplanation.length === 0, "Every misconception id in tasks.json has an explanation" + (noExplanation.length ? " (missing: " + noExplanation.join(", ") + ")" : ""));
+    const sentences = (s) => (s.match(/[.!?](\s|$)/g) || []).length;
+    const badLength = misconceptions.filter((m) => !m.explanation || sentences(m.explanation) < 2 || sentences(m.explanation) > 3).map((m) => m.id);
+    check(badLength.length === 0, "Each misconception explanation is 2 or 3 sentences" + (badLength.length ? " (" + badLength.join(", ") + ")" : ""));
+    // It must not give the answer: no explanation contains a line of any task's solution.
+    const solutionLines = new Set(tasks.flatMap((t) => t.solution.split("\n").map((l) => l.trim()).filter((l) => l.length > 12)));
+    const leaks = misconceptions.filter((m) => [...solutionLines].some((l) => (m.explanation || "").includes(l))).map((m) => m.id);
+    check(leaks.length === 0, "No misconception explanation contains a line of a task's solution" + (leaks.length ? " (" + leaks.join(", ") + ")" : ""));
+  }
+
+  // ===================== Section 1: failure messages =====================
+  {
+    const samples = [
+      { category: "SYNTAX", details: { line: 2 } }, { category: "NAME", details: { name: "scroe", line: 2 } },
+      { category: "TYPE", details: { types: ["str", "int"], line: 1 } }, { category: "TIMEOUT", details: {} },
+      { category: "NO_ANSWER", details: {} }, { category: "ORDER", details: {} }, { category: "OTHER_ERROR", details: { errorType: "ValueError", line: 1 } },
+      { category: "WRONG_OUTPUT", details: { test: 1 } }, { category: "WRONG_OUTPUT", details: { parsons: "used a line that isn't needed" } },
+      { category: "WRONG_CHOICE", details: {} },
+    ];
+    for (const f of samples) {
+      const lines = Checker.failureMessage(f).split("\n");
+      check(lines.length === 2 && lines[1].startsWith("What to try: ") && lines[1].length > 30 && !lines[0].includes("What to try"),
+        `Failure message for ${f.category}${f.details.parsons ? " (Parsons)" : ""} ends with one "What to try" line`);
+    }
+    check(Checker.CATEGORIES.every((c) => samples.some((f) => f.category === c)), "Every failure category has a \"What to try\" line");
+    // The practice page shows input, expected output and actual output on labelled lines, and "(no output)" for nothing printed.
+    const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+    check(appSrc.includes("<dt>Input</dt>") && appSrc.includes("<dt>Expected</dt>") && appSrc.includes("<dt>Your output</dt>") && appSrc.includes("(no output)"),
+      "A failed test shows Input, Expected and Your output on labelled lines, with (no output) when nothing was printed");
+    check(/failureHtml[\s\S]*matchMisconceptions[\s\S]*misconception[\s\S]*parts\.message/.test(appSrc),
+      "A matched misconception's explanation is shown first, above the category message");
+  }
+
+  // ===================== Section 0: saved data from the current format still loads and exports the same rows =====================
+  {
+    const templates = JSON.parse(fs.readFileSync(path.join(ROOT, "templates.json"), "utf8"));
+    const dump = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", "saved-data-v1.json"), "utf8"));
+    const wantRows = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", "saved-data-v1-export.json"), "utf8"));
+    const before = globalThis.localStorage;
+    const mem = memoryStorage();
+    for (const [k, v] of Object.entries(dump)) mem.setItem(k, v);
+    Object.defineProperty(globalThis, "localStorage", { value: mem, configurable: true, writable: true });
+    try {
+      const sameRows = (rows) => wantRows.length === rows.length && wantRows.every((w) => {
+        const r = rows.find((x) => x.record_type === w.record_type && x.record_id === w.record_id);
+        return r && Object.keys(w).every((k) => JSON.stringify(r[k]) === JSON.stringify(w[k]));
+      });
+      const exportNow = () => TD.fullExportRows(TD.collect(Store, Curriculum.UNITS));
+      check(sameRows(exportNow()), "Saved data from the current format exports the same rows (with the same values) as before");
+      const ids = Object.keys(Store.students());
+      check(ids.length === 2 && ids.every((id) => Object.keys(Store.loadProgress(id).units).length > 0), "Saved students and their progress still load");
+      const ctx = (id) => ({ tasks, templates, attempts: Store.attempts(id), Templates });
+      const [ava, ben] = ids.map((id) => [id, Store.loadProgress(id)]);
+      const raw = JSON.stringify(ava[1]);
+      check(App.migrateProgress(ava[1], ctx(ava[0])) === true, "Old progress is brought up to date when it is loaded");
+      Store.saveProgress(ava[0], ava[1]);
+      App.migrateProgress(ben[1], ctx(ben[0]));
+      Store.saveProgress(ben[0], ben[1]);
+      const again = JSON.parse(JSON.stringify(ava[1]));
+      check(App.migrateProgress(again, ctx(ava[0])) === false && JSON.stringify(again) === JSON.stringify(ava[1]), "Bringing progress up to date twice changes nothing more");
+      const old = JSON.parse(raw);
+      const sel = ava[1].units.selection;
+      const loops = ava[1].units["loops-condition"];
+      check(sel.level === old.units.selection.level && sel.highest === old.units.selection.highest && sel.passedTop && sel.placement.startLevel === 2 &&
+        sel.history.length === old.units.selection.history.length && sel.stats.finished === old.units.selection.stats.finished,
+        "After the update, levels, placement, history and stats are unchanged");
+      check(!sel.log["sel-L10d"] && sel.log["logic-L10b"].attempts === 4 && sel.log["logic-L10b"].passes === 1 && sel.current.taskId === "logic-L10b",
+        "The removed duplicate sel-L10d is merged into logic-L10b (its log and the task in progress)");
+      check(loops.skills["and/or"] && loops.skills["and/or"].secured && loops.skills["input-validation"] && !loops.skills["and-or"] && !loops.skills.validation,
+        "Skills saved under their old names (and-or, validation) are kept under the new names");
+      check(sel.passedFingerprints["logic-L10b"] && sel.passedFingerprints["if-L9a"] && !Object.keys(sel.passedFingerprints).some((k) => k.startsWith("tpl:")),
+        "Bank tasks already passed are recorded as passed fingerprints");
+      check(sel.failedAttempts["logic-L10b"] === 1 && ben[1].units.maths.failedAttempts["maths-L9b"] === 1, "Failed attempts per task are counted from the saved attempt log");
+      check(sameRows(exportNow()), "After the update, the export still contains every row it contained before, with the same values");
+      const local = TD.collect(Store, Curriculum.UNITS);
+      check(TD.fullExportCsv(throughBackend(local)) === TD.fullExportCsv(local), "Backend mode: the saved class exports identically from the backend");
+
+      // Import (backend section 8): this class's export, imported, exports the same rows again (with moved tasks renamed).
+      const Imp = require(path.join(ROOT, "backend-import.js"));
+      const exportCsv = TD.fullExportCsv(local);
+      const parsed = Imp.parseCsv("﻿" + exportCsv);
+      const planned = Imp.plan(parsed, tasks);
+      const built = Imp.rebuild(planned, App.freshUnitState);
+      const asRows = (list) => list.map((r, i) => Object.assign((({ file_id, ...rest }) => rest)(r), { id: i + 1, student_id: r.file_id }));
+      const back = Rows.teacherData({
+        students: planned.students.map((s) => ({ id: s.file_id, nickname: s.nickname, created_at: null })),
+        progress: built.progress.map((p) => ({ student_id: p.file_id, unit: p.unit, state: p.state })),
+        attempts: asRows(planned.attempts), events: asRows(planned.events),
+      }, Curriculum.UNITS);
+      const moved = Imp.renames(tasks);
+      const want = TD.fullExportRows(local).map((r) => Object.assign({}, r, { task_id: moved[r.task_id] || r.task_id }));
+      const got = TD.fullExportRows(back);
+      const diff = want.findIndex((w, i) => JSON.stringify(w) !== JSON.stringify(got[i]));
+      check(planned.students.length === 2 && got.length === want.length && diff === -1,
+        "Import: an imported export gives the same rows again, with moved task ids renamed" + (diff >= 0 ? " (first difference at row " + (diff + 2) + ")" : ""));
+      check(planned.renamedTasks > 0 && !got.some((r) => r.task_id === "sel-L10d") && got.some((r) => r.task_id === "logic-L10b"),
+        "Import: old task ids are renamed using former_ids (sel-L10d becomes logic-L10b)");
+      const avaId = ids[0];
+      const rebuilt = built.progress.find((p) => p.file_id === avaId && p.unit === "selection").state;
+      const have = Store.loadProgress(avaId).units.selection;
+      const passedTen = local.attempts.some((a) => a.studentId === avaId && a.unit === "selection" && a.result === "pass" && a.taskLevel === 10);
+      check(rebuilt.level === have.level && rebuilt.placement.status === "done" && rebuilt.placement.startLevel === have.placement.startLevel && rebuilt.passedTop === passedTen,
+        "Import: the level and placement are rebuilt as they were saved, and level 10 counts as passed only if the export has a level 10 pass");
+      const passedHere = new Set(built.passed.filter((p) => p.file_id === avaId && p.unit === "selection").map((p) => p.fingerprint));
+      check(Object.keys(have.passedFingerprints).every((fp) => passedHere.has(fp) || !local.attempts.some((a) => a.studentId === avaId && a.result === "pass" && (moved[a.taskId] || a.taskId) === fp)) &&
+        passedHere.size > 0, "Import: every task passed in the attempt log is marked as passed");
+      check(Imp.parseCsv("name,age\nA,1") === null, "Import: a CSV that isn't a full export is refused");
+    } finally {
+      Object.defineProperty(globalThis, "localStorage", { value: before, configurable: true, writable: true });
+    }
+  }
+
+  // ===================== Section 2: "Show me how" =====================
+  {
+    check(App.SHOW_HOW_AFTER_FAILS === 2, "SHOW_HOW_AFTER_FAILS is 2");
+    const t = byId["maths-L9b"];
+    const s = App.freshUnitState(5);
+    App.noteFailedAttempt(s, t);
+    check(!App.showHowAvailable(s, t), "\"Show me how\" isn't offered after 1 failed attempt");
+    App.noteFailedAttempt(s, t);
+    check(App.showHowAvailable(s, t), "\"Show me how\" is offered after the 2nd failed attempt on the same task");
+    App.noteFailedAttempt(s, t);
+    check(App.showHowAvailable(s, t) && !App.showHowAvailable(s, byId["maths-L9a"]), "…and after every later failure, for that task only");
+    const P = { passed: true, hints: 0, skills: ["modulo"] };
+    const two = (o) => [o, o].reduce((st, x) => Object.assign({}, st, App.applyOutcome(st, x)), App.freshUnitState(3));
+    check(two(P).level === 4 && two(Object.assign({}, P, { showHow: true })).level === 3, "A pass after \"Show me how\" is not a strong pass, so it doesn't count towards moving up");
+    const r = App.applyOutcome(App.freshUnitState(5), { passed: true, hints: 2, skills: ["modulo"], showHow: true });
+    check(r.level === 5 && r.reason === "", "\"Show me how\" doesn't count towards the 3-hints move down");
+    check(!App.completesTopLevel({ level: 10, passStreak: 1 }, Object.assign({}, P, { showHow: true })), "A pass after \"Show me how\" can't complete Level 10");
+    const rec = App.attemptRecord({ task: t, unit: "maths", phase: "practice", kind: "hint", hintType: "show-me-how", attemptNumber: 2, hints: 0, result: "show-me-how", levelBefore: 5, levelAfter: 5 });
+    check(rec.kind === "hint" && rec.hintType === "show-me-how" && rec.levelBefore === rec.levelAfter && !rec.category, "Each use of \"Show me how\" is logged in the attempt log as a hint of type show-me-how");
+    const rows = TD.fullExportRows({ students: { x: { name: "X" } }, progress: {}, attempts: [Object.assign({ id: "a-1", at: "2026-11-01T10:00:00Z", studentId: "x" }, rec)], levelLog: [], buttonLog: [], placementLog: [], units: Curriculum.UNITS });
+    check(rows[0].record_type === "hint" && rows[0].hint_type === "show-me-how" && rows[0].result === "show-me-how", "The export has a hint row with hint_type show-me-how");
+    const dict = parseCsv(TD.dataDictionaryCsv(misconceptions));
+    check(dict.some((d) => d.name === "show-me-how" && d.kind === "value of hint_type") && dict.some((d) => d.name === "hint" && d.kind === "value of record_type") &&
+      dict.some((d) => d.kind === "column" && d.name === "hint_type"), "The data dictionary explains the hint record type and show-me-how");
+    const stats = TD.taskStats({ attempts: [Object.assign({ studentId: "x" }, rec)] });
+    check(stats.length === 0 || stats[0].attempts === 0, "A \"Show me how\" row isn't counted as an attempt in the teacher's task statistics");
   }
 
   // ===================== Simulated class: matching, export, recheck.py =====================
@@ -255,6 +413,22 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
   check(failedRec && failedRec.saved.code && "output" in failedRec.saved && failedRec.saved.category && failedRec.saved.failedTest && failedRec.saved.expected != null,
     "A failed attempt stores the code, its output, the category and the failing test's details");
 
+  // A template variant made from a bank task keeps its buggy variants, so a matching mistake is tagged there too.
+  const allTemplates = JSON.parse(fs.readFileSync(path.join(ROOT, "templates.json"), "utf8"));
+  const derivedTpl = allTemplates.find((t) => t.id === "d-maths-L9b");
+  const variant = derivedTpl && Templates.realiseSync(derivedTpl, 4242, runPython);
+  let variantRecord = null;
+  if (check(variant && variant.buggy_variants && variant.buggy_variants[0].misconception === "INT_DIV_VS_DIV",
+    "A template variant keeps its source task's buggy variants (with their outputs worked out)")) {
+    const code = variant.buggy_variants[0].code;
+    const vr = runPython(variant.tests.map((x) => ({ code, inputs: x.inputs })));
+    const vf = Checker.classifyAttempt({ type: "write", code, results: vr, tests: variant.tests });
+    variantRecord = Store.logAttempt(S.Cara, App.attemptRecord({ task: variant, unit: "maths", phase: "practice", attemptNumber: 1, hints: 0, result: "fail",
+      failure: vf, code, levelBefore: 9, levelAfter: 9 }));
+    check(JSON.stringify(variantRecord.misconceptions) === JSON.stringify(["INT_DIV_VS_DIV"]) && variantRecord.fingerprint === variant.fingerprint,
+      "A mistake on a template variant is matched to the same misconception, and the attempt stores the variant's fingerprint");
+  }
+
   // Skips, level changes, button uses and placement results, through the real Store.
   Store.logAttempt(S.Cara, App.attemptRecord({ task: byId["maths-L9b"], unit: "maths", phase: "practice", kind: "skip", attemptNumber: 0, hints: 0, result: "skipped", levelBefore: 9, levelAfter: 8 }));
   Store.logLevelChange({ studentId: S.Cara, unit: "maths", from: 9, to: 8, reason: "fails", taskId: "maths-L9b" });
@@ -273,7 +447,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
   const allAttempts = Object.values(S).flatMap((id) => Store.attempts(id));
   const idsOf = (type) => new Set(exportRows.filter((r) => r.record_type === type || (Array.isArray(type) && type.includes(r.record_type))).map((r) => r.record_id));
   const attemptIds = idsOf(["attempt", "skip"]);
-  check(allAttempts.length === scenarios.length + 1 && allAttempts.every((a) => attemptIds.has(a.id)) && attemptIds.size === allAttempts.length,
+  check(allAttempts.length === scenarios.length + 1 + (variantRecord ? 1 : 0) && allAttempts.every((a) => attemptIds.has(a.id)) && attemptIds.size === allAttempts.length,
     "The full export contains every attempt (and skip)");
   check(exportRows.filter((r) => r.record_type === "level_change").length === Store.levelLog().length && Store.levelLog().length === 3, "The full export contains every level change");
   const buttonIds = idsOf("button_use");
@@ -288,6 +462,23 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
   check(header.every((c) => dict.some((d) => d.kind === "column" && d.name === c && d.meaning.length > 20)), "data-dictionary.csv explains every column of the full export");
   check(misconceptions.every((m) => dict.some((d) => d.name === m.id)) && Checker.CATEGORIES.every((c) => dict.some((d) => d.name === c)),
     "data-dictionary.csv explains every failure category and misconception id");
+
+  // Export parity (backend section 9): the same class exported in backend mode gives the same CSV.
+  {
+    const back = throughBackend(data);
+    check(TD.fullExportCsv(back) === csv, "Backend mode: the full export of the same class is identical to local mode's");
+    check(JSON.stringify(TD.quickLook(back, misconceptions)) === JSON.stringify(TD.quickLook(data, misconceptions)) &&
+      JSON.stringify(TD.overviewRows(back)) === JSON.stringify(TD.overviewRows(data)) &&
+      JSON.stringify(TD.detailRows(back)) === JSON.stringify(TD.detailRows(data)),
+      "Backend mode: the teacher view's overview, quick look and detail log are the same as local mode's");
+    const rt = data.attempts.map((a) => Rows.rowToAttempt(JSON.parse(JSON.stringify(Rows.attemptToRow(a))), a.studentId));
+    check(rt.every((a, i) => JSON.stringify(TD.fullExportRows(Object.assign({}, data, { attempts: [a], levelLog: [], buttonLog: [], placementLog: [] }))) ===
+      JSON.stringify(TD.fullExportRows(Object.assign({}, data, { attempts: [data.attempts[i]], levelLog: [], buttonLog: [], placementLog: [] })))),
+      "Backend mode: every attempt record exports the same after going to a row and back");
+    const p = { units: { selection: { level: 3, z: 1, a: { y: 2, b: 3 } } }, endless: { units: ["selection"], current: null, last: {} } };
+    check(JSON.stringify(Rows.rowsToProgress(JSON.parse(JSON.stringify(Rows.progressToRows(p))))) === JSON.stringify(p),
+      "Backend mode: saved progress is stored one row per unit (and endless) and comes back unchanged");
+  }
 
   // Teacher view sums
   const ql = TD.quickLook(data, misconceptions);
@@ -321,6 +512,9 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       check(failedRows.every((r) => r.misconception_matches === appMatches[r.record_id] && r.matches_changed === "no"),
         "recheck.py on an unchanged export gives the same matches as the app recorded");
       check(same.rows.length === exportRows.length, "recheck.py keeps every row of the export");
+      const vRow = variantRecord && same.rows.find((r) => r.record_id === variantRecord.id);
+      check(vRow && vRow.misconception_matches === "INT_DIV_VS_DIV" && vRow.matches_changed === "no",
+        "recheck.py makes a template variant again from its template and seed, and gives the same match as the app");
     }
 
     // A teacher adds a new buggy variant (no stored outputs yet): only the attempts it applies to change.

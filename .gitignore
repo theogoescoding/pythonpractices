@@ -1,0 +1,13 @@
+# Secrets: never committed. (config.js is committed: it holds only the project URL and the public anon key.)
+.env
+*.env
+supabase/.temp/
+supabase/.branches/
+supabase/functions/.env
+tests/backend/config.local.json
+backups/
+
+# Exports and other CSV files in the project root (student data)
+/*.csv
+
+__pycache__/

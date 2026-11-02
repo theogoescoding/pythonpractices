@@ -203,7 +203,7 @@ button.danger { background: var(--fail); border-color: var(--fail); color: var(-
 
 /* ---------- Code ---------- */
 pre, code, textarea, .blank { font-family: Consolas, "Cascadia Mono", "Courier New", monospace; }
-pre.code, pre.output, .compare pre, .option pre {
+pre.code, pre.output, .compare pre, .io-lines pre, .option pre, .worked pre {
   background: var(--code-bg);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -343,6 +343,16 @@ pre.code, pre.output, .compare pre, .option pre {
 @media (max-width: 600px) { .compare { grid-template-columns: 1fr; } }
 .cmp-label { font-size: .85rem; font-weight: 700; }
 .compare pre { background: var(--card); }
+.io-lines { display: grid; grid-template-columns: max-content 1fr; gap: .2rem .75rem; align-items: baseline; margin: .5rem 0 0; }
+.io-lines dt { font-size: .9rem; font-weight: 700; }
+.io-lines dd { margin: 0; min-width: 0; }
+.io-lines pre { background: var(--card); margin: 0; padding: .3rem .6rem; }
+@media (max-width: 600px) { .io-lines { grid-template-columns: 1fr; } }
+.worked { border: 2px solid var(--primary); background: var(--card); border-radius: 8px; padding: .5rem .9rem; margin-top: .75rem; }
+.worked h3 { margin-top: .2rem; }
+.failure p { margin: .3rem 0; }
+.failure .misconception { color: var(--text); background: var(--card); border-radius: 6px; padding: .4rem .6rem; }
+.failure .try-next { color: var(--text); }
 .tip { margin: .4rem 0 0; }
 .error-box { border: 2px solid var(--fail); background: var(--card); border-radius: 8px; padding: .6rem .8rem; margin-top: .5rem; }
 .error-box p { margin: .25rem 0 0; }
@@ -396,6 +406,13 @@ pre.code, pre.output, .compare pre, .option pre {
   background: var(--card); color: var(--text);
 }
 .known-list { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
+/* Backend mode: landing choices, the new code and PIN, and the "not saved yet" notice */
+.landing-choices { gap: .75rem; }
+.login-details { display: grid; grid-template-columns: auto 1fr; gap: .25rem 1rem; font-size: 1.3rem; }
+.login-details dd { margin: 0; font-family: Consolas, "Cascadia Mono", "Courier New", monospace; letter-spacing: .08em; }
+.class-code { font-family: Consolas, "Cascadia Mono", "Courier New", monospace; letter-spacing: .08em; }
+.retention-note { margin-top: 1.5rem; }
+.backend-status { margin: 0; padding: .5rem 1rem; background: var(--down-bg); border-bottom: 2px solid var(--predict); color: var(--text); text-align: center; }
 .unit-list { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 1rem; }
 .unit-card {
   display: block; height: 100%; box-sizing: border-box;

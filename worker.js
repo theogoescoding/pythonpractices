@@ -5,6 +5,7 @@
 const PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/";
 
 let runCodeJson = null;
+let runCodeLimitedJson = null;
 
 async function init() {
   importScripts(PYODIDE_URL + "pyodide.js");
@@ -13,6 +14,7 @@ async function init() {
   if (!response.ok) throw new Error("Could not load harness.py");
   pyodide.runPython(await response.text());
   runCodeJson = pyodide.globals.get("run_code_json");
+  runCodeLimitedJson = pyodide.globals.get("run_code_limited_json");
 }
 
 const ready = init().then(
@@ -20,7 +22,8 @@ const ready = init().then(
   (err) => { postMessage({ type: "load-error", message: String(err) }); return false; }
 );
 
-// Message in:  { type: "run", id, code, tests: [ [input, input, ...], ... ] }
+// Message in:  { type: "run", id, code, tests: [ [input, input, ...], ... ], maxLines? }
+//   maxLines: stop after this many lines have run (the app's own runs of template variants, not students' code)
 // Messages out: { type: "progress", id, index, result } once per test,
 //               then { type: "done", id }
 self.onmessage = async (event) => {
@@ -30,7 +33,8 @@ self.onmessage = async (event) => {
   for (let i = 0; i < msg.tests.length; i++) {
     let result;
     try {
-      result = JSON.parse(runCodeJson(msg.code, JSON.stringify(msg.tests[i])));
+      const inputs = JSON.stringify(msg.tests[i]);
+      result = JSON.parse(msg.maxLines ? runCodeLimitedJson(msg.code, inputs, msg.maxLines) : runCodeJson(msg.code, inputs));
     } catch (err) {
       result = { output: "", error: { type: "InternalError", message: "", line: null }, inputsLeft: 0 };
     }

@@ -2,81 +2,97 @@
   {
     "id": "EQUALS_VS_DOUBLE_EQUALS",
     "name": "= instead of == (or the other way round)",
-    "description": "Uses a single = (which stores a value) where == (which compares two values) is needed, for example in an if condition, or uses == where a value should be stored."
+    "description": "Uses a single = (which stores a value) where == (which compares two values) is needed, for example in an if condition, or uses == where a value should be stored.",
+    "explanation": "It looks like = and == have been mixed up. A single = stores a value in a variable, and == asks whether two values are the same. Look at each = in your code and ask: is this line storing a value, or comparing two?"
   },
   {
     "id": "SEPARATE_IF_VS_ELIF",
     "name": "Separate ifs instead of elif",
-    "description": "Writes a chain of separate if statements where only one branch should run, so more than one message can be printed. Or expects separate if statements to behave like elif."
+    "description": "Writes a chain of separate if statements where only one branch should run, so more than one message can be printed. Or expects separate if statements to behave like elif.",
+    "explanation": "More than one branch may be running when only one should. Separate if statements are each checked, one after another, but in an if/elif chain Python stops at the first condition that is True. Try the input yourself and count how many messages your code prints."
   },
   {
     "id": "BOUNDARY_LT_VS_LTE",
     "name": "< instead of <= (or the other way round)",
-    "description": "Gets the boundary value wrong with 'less than': uses < where <= is needed, or <= where < is needed, so the program is wrong for the value exactly on the boundary."
+    "description": "Gets the boundary value wrong with 'less than': uses < where <= is needed, or <= where < is needed, so the program is wrong for the value exactly on the boundary.",
+    "explanation": "Your program seems to go wrong for the value exactly on the boundary. < means 'less than' and leaves the boundary value out, while <= means 'less than or equal to' and includes it. Read the task again to decide whether the boundary value itself should count, then test it."
   },
   {
     "id": "GT_VS_GTE",
     "name": "> instead of >= (or the other way round)",
-    "description": "Gets the boundary value wrong with 'greater than': uses > where >= is needed, or >= where > is needed, so the program is wrong for the value exactly on the boundary."
+    "description": "Gets the boundary value wrong with 'greater than': uses > where >= is needed, or >= where > is needed, so the program is wrong for the value exactly on the boundary.",
+    "explanation": "Your program seems to go wrong for the value exactly on the boundary. > means 'greater than' and leaves the boundary value out, while >= means 'greater than or equal to' and includes it. Read the task again to decide whether the boundary value itself should count, then test it."
   },
   {
     "id": "MISSING_ELSE",
     "name": "Missing else",
-    "description": "Leaves out the else branch, so nothing is printed when the if condition is False."
+    "description": "Leaves out the else branch, so nothing is printed when the if condition is False.",
+    "explanation": "Nothing seems to be printed when the condition is False. An if on its own only does something when its condition is True. Check what the task wants to happen otherwise, and whether your code has a branch for it."
   },
   {
     "id": "INPUT_NOT_INT",
     "name": "Input not turned into a number",
-    "description": "Forgets that input() always gives text, so doesn't use int() before doing maths or comparing with a number. This causes an error, or text being repeated or joined instead of added."
+    "description": "Forgets that input() always gives text, so doesn't use int() before doing maths or comparing with a number. This causes an error, or text being repeated or joined instead of added.",
+    "explanation": "It looks like a value from input() is being used as text, not as a number. input() always gives you text, even if the user types digits, so maths and comparisons don't work as expected. Check where you read the input and whether it is turned into a number before you use it."
   },
   {
     "id": "PRECEDENCE",
     "name": "Order of operations (BIDMAS)",
-    "description": "Expects Python to work left to right, or leaves out brackets that are needed, for example writing a + b / 2 for the mean of a and b."
+    "description": "Expects Python to work left to right, or leaves out brackets that are needed, for example writing a + b / 2 for the mean of a and b.",
+    "explanation": "Python may be working out your sum in a different order from the one you meant. It follows BIDMAS: brackets first, then powers, then * and /, then + and -. Work through your expression one step at a time, the way Python does, and see whether you need brackets."
   },
   {
     "id": "INT_DIV_VS_DIV",
     "name": "// mixed up with /",
-    "description": "Uses / (which always gives a decimal answer) where // (whole-number division) is needed, or expects / to give a whole number."
+    "description": "Uses / (which always gives a decimal answer) where // (whole-number division) is needed, or expects / to give a whole number.",
+    "explanation": "The two kinds of division may have been mixed up. / always gives a decimal answer (7 / 2 is 3.5), while // gives only the whole-number part. Check which kind of answer the task asks for."
   },
   {
     "id": "STRING_PLUS_INT",
     "name": "Joining text and a number with +",
-    "description": "Uses + to join text and a number without str(), which causes an error. A comma in print() or str() around the number is needed."
+    "description": "Uses + to join text and a number without str(), which causes an error. A comma in print() or str() around the number is needed.",
+    "explanation": "It looks like text and a number are being joined with +. Python can add two numbers, or join two pieces of text, but it can't do both at once. Find the line that joins text and a number, and think about how to make both parts the same type, or use a comma in print()."
   },
   {
     "id": "LOOP_NO_UPDATE",
     "name": "Loop variable never changes",
-    "description": "The value tested in a while loop's condition is never changed inside the loop (for example a counter isn't increased or the next input isn't read), so the loop never ends or runs out of input."
+    "description": "The value tested in a while loop's condition is never changed inside the loop (for example a counter isn't increased or the next input isn't read), so the loop never ends or runs out of input.",
+    "explanation": "Your loop seems to keep going for ever. A while loop only stops when its condition becomes False, so something inside the loop must change the value the condition checks. Find the variable in your loop's condition and check where the loop changes it."
   },
   {
     "id": "LOOP_TEST_ONCE",
     "name": "if used where a loop is needed",
-    "description": "Uses if where while is needed, so the check only happens once instead of repeating until the condition is False."
+    "description": "Uses if where while is needed, so the check only happens once instead of repeating until the condition is False.",
+    "explanation": "Your check only seems to happen once. An if checks its condition one time, but a while loop keeps checking and repeating until the condition is False. Ask yourself whether this part of the program needs to repeat."
   },
   {
     "id": "LOOP_ZERO_RUNS",
     "name": "Loop that never runs",
-    "description": "Sets up a while loop whose condition is already False at the start (for example the wrong comparison, or a starting value that stops it), or a for loop over an empty range (for example counting down with a positive step), so the loop body runs zero times."
+    "description": "Sets up a while loop whose condition is already False at the start (for example the wrong comparison, or a starting value that stops it), or a for loop over an empty range (for example counting down with a positive step), so the loop body runs zero times.",
+    "explanation": "Your loop doesn't seem to run at all. If a while condition is already False at the start, or a range is empty, Python skips the loop body completely. Check the starting value and the condition (or the range's start, stop and step) using the first value your program gets."
   },
   {
     "id": "RANGE_STOP_EXCLUSIVE",
     "name": "Thinks range includes the stop value",
-    "description": "Thinks range(1, 5) includes 5, so expects one number too many, or writes a stop value one too small and the loop runs one time too few."
+    "description": "Thinks range(1, 5) includes 5, so expects one number too many, or writes a stop value one too small and the loop runs one time too few.",
+    "explanation": "Your loop seems to run one time too many or too few. range stops just before its stop value, so range(1, 5) gives 1, 2, 3 and 4 but not 5. List the numbers your range gives and compare them with what the task needs."
   },
   {
     "id": "RANGE_START_DEFAULT",
     "name": "Wrong start for range(n)",
-    "description": "Thinks range(5) starts at 5 or at 1, instead of 0 (it gives 0, 1, 2, 3, 4). So expects the numbers 1 to 5, or uses range(n) where the loop variable must start at 1."
+    "description": "Thinks range(5) starts at 5 or at 1, instead of 0 (it gives 0, 1, 2, 3, 4). So expects the numbers 1 to 5, or uses range(n) where the loop variable must start at 1.",
+    "explanation": "Your loop seems to start at the wrong number. range(n) with one number starts at 0, not at 1 or at n. Write out the first few values your loop variable takes and check them against the task."
   },
   {
     "id": "LOOP_VAR_ASSIGNED_IN_BODY",
     "name": "Changing the loop variable inside a for loop",
-    "description": "Changes the loop variable inside a for loop (for example i = i + 1) and expects that to change the loop. In Python, the for loop gives the variable its next value from the range each time round, so the change only affects the rest of that time round."
+    "description": "Changes the loop variable inside a for loop (for example i = i + 1) and expects that to change the loop. In Python, the for loop gives the variable its next value from the range each time round, so the change only affects the rest of that time round.",
+    "explanation": "The loop variable seems to be changed inside a for loop. A for loop gives the variable its next value from the range each time round, so changing it inside the loop doesn't change how many times the loop runs. Think about whether to change the range instead, or to use a separate variable."
   },
   {
     "id": "NESTED_LOOP_WRONG_INNER",
     "name": "Inner loop runs the wrong number of times",
-    "description": "In nested loops, the inner loop runs the wrong number of times (for example range(row) instead of range(4), so each row is a different length), or the outer loop's variable is reset inside the inner loop."
+    "description": "In nested loops, the inner loop runs the wrong number of times (for example range(row) instead of range(4), so each row is a different length), or the outer loop's variable is reset inside the inner loop.",
+    "explanation": "The inner loop seems to run the wrong number of times. With nested loops, the whole inner loop runs once for every time round the outer loop. Check what the inner loop's range uses, and that the outer loop's variable isn't changed inside it."
   }
 ]

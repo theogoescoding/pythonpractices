@@ -22,9 +22,91 @@
   </header>
 
   <main class="wrap" style="padding-block: 1.25rem">
-    <p class="notice notice-down"><strong>Data is stored in this browser only. Results from other devices won't appear here.</strong></p>
+    <p id="local-notice" class="notice notice-down"><strong>Data is stored in this browser only. Results from other devices won't appear here.</strong></p>
     <p id="storage-warning" class="problem" role="alert" hidden></p>
 
+    <!-- ===== Backend mode: teacher sign-in ===== -->
+    <section id="tb-auth" class="task-card name-card" hidden aria-labelledby="tb-auth-h">
+      <h2 id="tb-auth-h" tabindex="-1">Teacher sign-in</h2>
+      <form id="tb-signin-form" novalidate>
+        <label for="tb-email" class="editor-label">Email</label>
+        <input type="email" id="tb-email" class="text-input" autocomplete="username">
+        <label for="tb-password" class="editor-label">Password</label>
+        <input type="password" id="tb-password" class="text-input" autocomplete="current-password">
+        <p><button type="submit" class="primary">Sign in</button></p>
+        <p class="small">New teacher? <a href="#signup" id="tb-to-signup">Create an account</a></p>
+      </form>
+      <form id="tb-signup-form" novalidate hidden>
+        <label for="tb-new-name" class="editor-label">Your name (shown to you only)</label>
+        <input type="text" id="tb-new-name" class="text-input" autocomplete="name" maxlength="100">
+        <label for="tb-new-email" class="editor-label">School email</label>
+        <input type="email" id="tb-new-email" class="text-input" autocomplete="username">
+        <label for="tb-new-password" class="editor-label">Password (at least 10 characters)</label>
+        <input type="password" id="tb-new-password" class="text-input" autocomplete="new-password" minlength="10">
+        <p><button type="submit" class="primary">Create account</button></p>
+        <p class="small">Already have an account? <a href="#signin" id="tb-to-signin">Sign in</a></p>
+      </form>
+      <p id="tb-auth-status" role="alert" hidden></p>
+    </section>
+
+    <!-- ===== Backend mode: classes and students ===== -->
+    <section id="tb-classes" hidden aria-labelledby="tb-classes-h">
+      <div class="teacher-controls">
+        <h2 id="tb-classes-h" style="margin:0">My classes</h2>
+        <label>Class <select id="tb-class"></select></label>
+        <span class="small">Signed in as <strong id="tb-who"></strong></span>
+        <button type="button" id="tb-signout" class="secondary">Sign out</button>
+      </div>
+      <div id="tb-ending" class="notice notice-down" hidden></div>
+      <form id="tb-new-class" class="teacher-controls" novalidate>
+        <label>New class name <input type="text" id="tb-new-class-name" class="text-input" style="width:auto" maxlength="100"></label>
+        <button type="submit" class="secondary">Create class</button>
+      </form>
+      <p id="tb-status" role="status"></p>
+
+      <div id="tb-class-info" hidden>
+        <p>Class code: <strong id="tb-code" class="class-code"></strong>
+          <span class="small">Students join with this code.</span> ·
+          Ends: <strong id="tb-end"></strong>
+          <span class="small">(then the class, its students and all their data are deleted)</span></p>
+        <h3>Students in this class</h3>
+        <div class="teacher-controls">
+          <button type="button" id="tb-show-codes" class="secondary">Show codes</button>
+          <button type="button" id="tb-copy-codes" class="secondary" hidden>Copy codes</button>
+          <button type="button" id="tb-reload" class="secondary">Refresh</button>
+        </div>
+        <p class="small">Showing codes is logged. PINs are never shown again after they are made: use Reset PIN if a student forgets theirs.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th scope="col">Nickname</th><th scope="col">Login code</th><th scope="col">How they joined</th><th scope="col">PIN</th><th scope="col">Actions</th></tr></thead>
+            <tbody id="tb-students"></tbody>
+          </table>
+        </div>
+        <div id="tb-pin-result" role="status"></div>
+
+        <div id="tb-import"></div>
+
+        <h3 style="margin-top:1.5rem">Delete this class</h3>
+        <p class="small">Deletes the class, its students and all their progress and attempts for good.</p>
+        <p><button type="button" id="tb-delete-class" class="danger">Delete class</button>
+          <span id="tb-delete-confirm" hidden>Type the class name to confirm: <input type="text" id="tb-delete-name" class="text-input" style="width:auto" autocomplete="off">
+            <button type="button" id="tb-delete-yes" class="danger">Delete for good</button>
+            <button type="button" id="tb-delete-no" class="secondary">Cancel</button></span></p>
+      </div>
+
+      <details class="retention-note">
+        <summary>What is kept, and for how long</summary>
+        <ul>
+          <li><strong>Nicknames, progress and attempts</strong> are kept until the class ends (its end date) or is deleted. A student can delete all their own progress from the landing page; you can delete a single student or the whole class here.</li>
+          <li><strong>Program code and output</strong> from failed attempts are kept in full for 30 days, then cleared every night. The failure category, misconception matches and a fingerprint of the code stay.</li>
+          <li><strong>Login codes</strong> are kept encrypted until the class is deleted or ends. Only you can reveal them (with "Show codes"), and each reveal is logged.</li>
+          <li><strong>PINs</strong> are stored only as a one-way hash. No one can see them, not even you.</li>
+          <li>The data is held by Supabase in the EU (Ireland).</li>
+        </ul>
+      </details>
+    </section>
+
+    <div id="teacher-main">
     <nav class="tab-nav" aria-label="Teacher view pages">
       <a href="#overview" data-page="overview">Overview</a>
       <a href="#log" data-page="log">Detail log</a>
@@ -139,12 +221,17 @@
         </div>
       </details>
     </div>
+    </div>
   </main>
 
   <script src="curriculum.js"></script>
   <script src="checker.js"></script>
   <script src="app.js"></script>
   <script src="teacher-data.js"></script>
+  <script src="config.js"></script>
+  <script src="backend-rows.js"></script>
+  <script src="backend-import.js"></script>
+  <script src="teacher-backend.js"></script>
   <script src="teacher.js"></script>
 </body>
 </html>

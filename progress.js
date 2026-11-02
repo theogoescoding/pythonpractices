@@ -2,7 +2,7 @@
 
 // Progress summary: one card per unit, and a drill-down showing each skill's status.
 // progress.html#maths opens the drill-down for a unit, so the browser's Back button works.
-(function () {
+Store.whenReady(function () {
   const { UNITS, unitById, levelName } = self.Curriculum;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -20,8 +20,9 @@
 
   function summary(u) {
     const s = progress.units[u.id];
-    const mine = tasks.filter((t) => t.unit === u.id);
-    const passed = s ? mine.filter((t) => s.log[t.id] && s.log[t.id].passes > 0).length : 0;
+    // Practice (bank) tasks only: placement tasks aren't counted.
+    const mine = tasks.filter((t) => t.unit === u.id && !isPlacementTask(t));
+    const passed = s ? mine.filter((t) => hasPassed(s, t.id)).length : 0;
     const skills = u.skills.map((sk) => ({ skill: sk, state: s && s.skills ? s.skills[sk] : null }));
     const secured = skills.filter((x) => skillStatus(x.state) === "secured").length;
     return { s, total: mine.length, passed, percent: mine.length ? Math.round((passed / mine.length) * 100) : 0, skills, secured };
@@ -77,9 +78,11 @@
     .then((data) => {
       tasks = data;
       progress = Store.loadProgress(student.id);
+      // Brought up to date for display only; the practice page saves the full update.
+      migrateProgress(progress, { tasks, attempts: Store.attempts(student.id) });
       const byId = Object.fromEntries(tasks.map((t) => [t.id, t]));
       ensureSkillStates(progress, (id) => byId[id]);
       route();
     })
     .catch(() => { $("progress-cards").innerHTML = '<li class="problem">Couldn\'t load the tasks. Open this site through a local web server (see README.md).</li>'; });
-})();
+});

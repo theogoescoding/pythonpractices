@@ -2,6 +2,7 @@
 
 // Teacher view: Overview, Detail log and Workshop pages (switched with #overview, #log, #workshop), and CSV export.
 // Reads the same localStorage data as the student pages (see store.js); the sums are in teacher-data.js.
+// In backend mode, teacher-backend.js signs the teacher in and loads the chosen class into the same data object.
 (function () {
   const { UNITS, unitTitle } = self.Curriculum;
   const TD = self.TeacherData;
@@ -38,7 +39,10 @@
   const mName = (id) => (misconceptions.find((m) => m.id === id) || { name: id }).name;
   const taskLabel = (id) => (tasksById[id] ? id + " – " + tasksById[id].title : id);
   const unitShort = (id) => (id ? unitTitle(id) : "–");
-  const collect = () => TD.collect(Store, UNITS);
+  const tb = self.TeacherBackend && self.TeacherBackend.enabled ? self.TeacherBackend : null;
+  let classData = null; // backend mode: the chosen class, as teacher-backend.js loaded it
+  const collect = () => (tb ? classData : TD.collect(Store, UNITS));
+  const byName = (students) => Object.entries(students).sort((a, b) => a[1].name.localeCompare(b[1].name));
 
   // ---------- Page switching ----------
   function render() {
@@ -47,11 +51,14 @@
     document.querySelectorAll(".tab-nav a").forEach((a) => {
       if (a.dataset.page === p) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
     });
-    const used = Store.storageUsed();
-    $("storage-warning").hidden = used < Store.STORAGE_WARN_BYTES;
-    $("storage-warning").textContent = "This browser's storage is nearly full (" + (used / 1048576).toFixed(1) +
-      " MB used, about 5 MB allowed). Export the full data now. New attempts may stop being saved.";
+    if (!tb) {
+      const used = Store.storageUsed();
+      $("storage-warning").hidden = used < Store.STORAGE_WARN_BYTES;
+      $("storage-warning").textContent = "This browser's storage is nearly full (" + (used / 1048576).toFixed(1) +
+        " MB used, about 5 MB allowed). Export the full data now. New attempts may stop being saved.";
+    }
     const data = collect();
+    if (!data) return; // backend mode: no class loaded yet
     if (p === "overview") renderOverview(data);
     else if (p === "log") renderLog(data);
     else renderWorkshop(data);
@@ -110,7 +117,7 @@
     // Reset placement controls
     const keepStudent = $("reset-student").value;
     const keepUnit = $("reset-unit").value;
-    const students = Object.entries(Store.students()).sort((a, b) => a[1].name.localeCompare(b[1].name));
+    const students = byName(data.students);
     $("reset-student").innerHTML = students.map(([id, s]) => '<option value="' + esc(id) + '">' + esc(s.name) + "</option>").join("");
     $("reset-unit").innerHTML = UNITS.map((u) => '<option value="' + u.id + '">' + esc(u.title) + "</option>").join("");
     if (keepStudent) $("reset-student").value = keepStudent;
@@ -131,21 +138,28 @@
 
   $("reset-placement").addEventListener("click", () => { $("reset-confirm").hidden = false; $("reset-yes").focus(); });
   $("reset-no").addEventListener("click", () => { $("reset-confirm").hidden = true; $("reset-placement").focus(); });
-  $("reset-yes").addEventListener("click", () => {
+  $("reset-yes").addEventListener("click", async () => {
     const studentId = $("reset-student").value;
     const unit = $("reset-unit").value;
-    const name = (Store.students()[studentId] || { name: "" }).name;
+    const name = (collect().students[studentId] || { name: "" }).name;
     $("reset-confirm").hidden = true;
+    const notStarted = name + " hasn't started " + unitTitle(unit) + " yet, so they will take the placement test when they first open it.";
+    const done = "Placement reset for " + name + " in " + unitTitle(unit) + ". They will take it once more the next time they open the unit.";
+    if (tb) {
+      const r = await tb.resetPlacement(studentId, unit); // teacher-api: resets it and logs it on the server
+      $("reset-status").textContent = r.status !== 200 ? r.body.error || "Couldn't reset the placement. Please try again." : r.body.reset ? done : notStarted;
+      return;
+    }
     const progress = Store.loadProgress(studentId);
     const st = progress.units[unit];
     if (!st) {
-      $("reset-status").textContent = name + " hasn't started " + unitTitle(unit) + " yet, so they will take the placement test when they first open it.";
+      $("reset-status").textContent = notStarted;
       return;
     }
     resetPlacement(st); // app.js
     Store.saveProgress(studentId, progress);
     Store.logPlacement({ studentId, unit, kind: "reset", by: "teacher" });
-    $("reset-status").textContent = "Placement reset for " + name + " in " + unitTitle(unit) + ". They will take it once more the next time they open the unit.";
+    $("reset-status").textContent = done;
     render();
   });
 
@@ -173,7 +187,7 @@
 
   function renderLog(data) {
     const all = TD.detailRows(data);
-    fillSelect("f-student", Object.entries(Store.students()).sort((a, b) => a[1].name.localeCompare(b[1].name)).map(([id, s]) => [id, s.name]));
+    fillSelect("f-student", byName(data.students).map(([id, s]) => [id, s.name]));
     fillSelect("f-unit", UNITS.map((u) => [u.id, u.title]));
     fillSelect("f-task", [...new Set(all.map((r) => r.taskId))].sort().map((id) => [id, taskLabel(id)]));
     fillSelect("f-category", Checker.CATEGORIES.map((c) => [c, c]));
@@ -255,12 +269,14 @@
   const today = () => new Date().toISOString().slice(0, 10);
 
   $("export-full").addEventListener("click", () => {
+    if (!collect()) return;
     download("python-practice-full-data-" + today() + ".csv", TD.fullExportCsv(collect()));
     setTimeout(() => download("data-dictionary.csv", TD.dataDictionaryCsv(misconceptions)), 400);
   });
 
   $("export-filtered").addEventListener("click", () => {
     const data = collect();
+    if (!data) return;
     const p = page();
     if (p === "overview") {
       const cols = [{ key: "name", label: "Name" }];
@@ -309,8 +325,12 @@
   });
 
   // ---------- Start up ----------
-  window.addEventListener("hashchange", () => { render(); const h = document.querySelector("#page-" + page() + " h2"); if (h) h.focus(); });
-  window.addEventListener("storage", render); // refresh if a student page in another tab saves progress
+  window.addEventListener("hashchange", () => {
+    if (tb && ["#signin", "#signup"].includes(location.hash)) return; // these belong to the sign-in screen
+    render(); const h = document.querySelector("#page-" + page() + " h2"); if (h) h.focus();
+  });
+  if (tb) tb.start((data) => { classData = data; render(); });
+  else window.addEventListener("storage", render); // refresh if a student page in another tab saves progress
   const loadJson = (file) => fetch(file).then((r) => { if (!r.ok) throw new Error(file); return r.json(); });
   Promise.all([loadJson("tasks.json").catch(() => []), loadJson("misconceptions.json").catch(() => [])]).then(([tasks, ms]) => {
     // Attempts logged before a task moved unit use its old id (former_ids).

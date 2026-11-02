@@ -1,7 +1,7 @@
 "use strict";
 
 // Endless mode set-up: a checkbox per unit. A unit unlocks once the student completes Level 10 in it.
-(function () {
+Store.whenReady(function () {
   const { UNITS, levelName } = self.Curriculum;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -48,4 +48,4 @@
     .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
     .then(render)
     .catch(() => { $("endless-units").innerHTML = '<li class="problem">Couldn\'t load the tasks. Open this site through a local web server (see README.md).</li>'; });
-})();
+});

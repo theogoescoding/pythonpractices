@@ -1,18 +1,98 @@
 "use strict";
 
 // Landing page: student name, unit menu and (with ?test=1) the starting-level control.
-(function () {
+// In backend mode (config.js), the name screen is replaced by joining a class or signing in with a code and PIN.
+Store.whenReady(function () {
   const { UNITS, levelName } = self.Curriculum;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   const testMode = new URLSearchParams(location.search).get("test") === "1";
+  const backend = self.Backend && self.Backend.enabled ? self.Backend : null;
 
   Store.setupDisplaySettings();
 
   let tasks = null;
 
+  // ---------- Backend mode: join a class or sign in ----------
+  function showLanding(form) {
+    $("units-screen").hidden = true;
+    $("student-area").hidden = true;
+    $("landing").hidden = false;
+    $("landing-choices").hidden = !!form;
+    for (const id of ["join-form", "resume-form", "new-login"]) $(id).hidden = id !== form;
+    if (form === "join-form") $("join-class").focus();
+    else if (form === "resume-form") $("resume-code").focus();
+    else if (form === "new-login") $("new-login").focus();
+  }
+
+  function showError(id, message) {
+    $(id).textContent = message;
+    $(id).hidden = !message;
+  }
+
+  if (backend) {
+    $("landing").addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-show], button[data-back]");
+      if (b) showLanding(b.dataset.show || null);
+    });
+
+    $("join-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const classCode = $("join-class").value.trim();
+      const nickname = $("join-nickname").value.trim();
+      if (!classCode || !nickname) return showError("join-error", "Please type the class code and a nickname.");
+      const button = e.submitter || $("join-form").querySelector("button[type=submit]");
+      button.disabled = true;
+      const r = await backend.join(classCode, nickname);
+      button.disabled = false;
+      if (r.status !== 200) return showError("join-error", r.body.error || "Something went wrong. Please try again.");
+      showError("join-error", "");
+      $("join-form").reset();
+      // Shown once. The PIN isn't kept anywhere in this browser.
+      $("new-code").textContent = r.body.code.replace(/(\d{4})(\d{4})/, "$1 $2");
+      $("new-pin").textContent = r.body.pin;
+      showLanding("new-login");
+    });
+
+    $("new-login-done").addEventListener("click", () => {
+      $("new-code").textContent = "";
+      $("new-pin").textContent = "";
+      location.reload(); // opens the unit menu with the new student's (empty) saved data
+    });
+
+    $("resume-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const code = $("resume-code").value.replace(/\s/g, "");
+      const pin = $("resume-pin").value.trim();
+      if (!/^\d{8}$/.test(code) || !/^\d{4}$/.test(pin)) return showError("resume-error", "Your code is 8 digits and your PIN is 4 digits.");
+      const button = e.submitter || $("resume-form").querySelector("button[type=submit]");
+      button.disabled = true;
+      const r = await backend.resume(code, pin);
+      button.disabled = false;
+      $("resume-pin").value = "";
+      if (r.status !== 200) return showError("resume-error", r.body.error || "Something went wrong. Please try again.");
+      showError("resume-error", "");
+      location.reload(); // loads this student's saved data
+    });
+
+    $("delete-area").hidden = false;
+    $("change-name").textContent = "Not you? Sign out";
+    $("delete-mine").addEventListener("click", () => { $("delete-confirm").hidden = false; $("delete-no").focus(); });
+    $("delete-no").addEventListener("click", () => { $("delete-confirm").hidden = true; $("delete-mine").focus(); });
+    $("delete-yes").addEventListener("click", async () => {
+      $("delete-yes").disabled = true;
+      const r = await backend.deleteMyProgress();
+      $("delete-yes").disabled = false;
+      $("delete-confirm").hidden = true;
+      if (r.status !== 200) { $("delete-status").textContent = r.body.error || "Couldn't delete it. Please try again."; return; }
+      showLanding(null);
+      $("landing-choices").insertAdjacentHTML("afterbegin", '<p class="notice notice-up" role="status">' + esc(r.body.message) + "</p>");
+    });
+  }
+
   // ---------- Name screen ----------
   function showNameScreen() {
+    if (backend) return showLanding(null);
     const known = Object.entries(Store.students());
     const current = Store.currentStudent();
     $("units-screen").hidden = true;
@@ -49,7 +129,11 @@
   });
 
   $("name-cancel").addEventListener("click", showUnits);
-  $("change-name").addEventListener("click", (e) => { e.preventDefault(); showNameScreen(); });
+  $("change-name").addEventListener("click", async (e) => {
+    e.preventDefault();
+    if (backend) await backend.signOut(); // sends anything waiting, then clears this student from the browser
+    showNameScreen();
+  });
 
   // ---------- Unit menu ----------
   function unitLevel(progress, unitId) {
@@ -86,6 +170,7 @@
     const student = Store.currentStudent();
     if (!student) return showNameScreen();
     $("name-screen").hidden = true;
+    $("landing").hidden = true;
     $("units-screen").hidden = false;
     $("student-area").hidden = false;
     $("student-name").textContent = student.name;
@@ -167,4 +252,4 @@
       $("unit-list").innerHTML = '<li class="problem">Couldn\'t load the tasks. Open this site through a local web server (see README.md) rather than double-clicking index.html.</li>';
     });
   if (Store.currentStudent()) showUnits();
-})();
+});

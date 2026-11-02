@@ -83,3 +83,37 @@ def run_code(src, inputs):
 
 def run_code_json(src, inputs_json):
     return json.dumps(run_code(src, json.loads(inputs_json)))
+
+
+class _LineLimit(BaseException):
+    pass
+
+
+def run_code_limited(src, inputs, max_lines):
+    """run_code, stopped after max_lines lines of the program have run (reported as a Timeout).
+    Used for the app's own runs (template variants and their buggy variants), not for students' code:
+    counting lines rather than seconds gives the same result in the browser and in local Python."""
+    count = [0]
+
+    def local(frame, event, arg):
+        if event == "line":
+            count[0] += 1
+            if count[0] > max_lines:
+                raise _LineLimit()
+        return local
+
+    def tracer(frame, event, arg):
+        return local if frame.f_code.co_filename == USER_FILENAME else None
+
+    sys.settrace(tracer)
+    try:
+        result = run_code(src, inputs)
+    finally:
+        sys.settrace(None)
+    if result["error"] and result["error"]["type"] == "_LineLimit":
+        result["error"] = {"type": "Timeout", "message": "", "line": None}
+    return result
+
+
+def run_code_limited_json(src, inputs_json, max_lines):
+    return json.dumps(run_code_limited(src, json.loads(inputs_json), int(max_lines)))

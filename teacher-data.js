@@ -151,7 +151,7 @@
   function detailRows(data) {
     const rows = data.attempts.map((a) => ({
       id: a.id, at: a.at, studentId: a.studentId, name: nameOf(data, a.studentId), unit: a.unit, taskId: a.taskId,
-      level: a.taskLevel, phase: a.phase || "", result: a.kind === "skip" ? "skipped" : a.result,
+      level: a.taskLevel, phase: a.phase || "", result: a.kind === "skip" ? "skipped" : a.kind === "hint" ? a.hintType || "hint" : a.result,
       category: a.category || "", misconceptions: a.misconceptions || [], hints: a.hints == null ? "" : a.hints, button: "",
       levelChange: a.levelBefore != null && a.levelAfter != null && a.levelBefore !== a.levelAfter ? a.levelBefore + " → " + a.levelAfter : "",
       code: a.code || "", output: a.output || "", expected: a.expected == null ? "" : a.expected,
@@ -203,14 +203,14 @@
 
   // Every column of the full export, with a plain-English explanation (written to data-dictionary.csv).
   const FULL_COLUMNS = [
-    ["record_type", "What this row records. One of: attempt, skip, level_change, button_use, placement_result, placement_reset (see the record_type rows below)."],
+    ["record_type", "What this row records. One of: attempt, skip, hint, level_change, button_use, placement_result, placement_reset (see the record_type rows below)."],
     ["record_id", "A unique id for this row. Attempt ids start with a-, button uses with b-, placement records with p-. Level changes have no stored id, so one is made from the row number (l-1, l-2, …)."],
     ["timestamp", "When it happened, in UTC, in ISO 8601 format (for example 2026-10-28T09:15:02.123Z)."],
     ["student_id", "A stable id for the student, created when they first typed their name in this browser. Two students with the same name have different ids."],
     ["student_name", "The name the student typed. Not a login; it may not be unique."],
-    ["unit", "The unit: output (Output and sequence), variables (Variables and input), maths (Maths in Python) or selection (Selection)."],
-    ["task_id", "The task. Bank tasks come from tasks.json (for example if-L3a). Placement tasks have P in the id (for example sel-P5a). Tasks made from a template have an id of the form <template id>#<seed>."],
-    ["template_id", "For a task made from a template (Endless mode and write-from-scratch tasks), the template it came from. Empty for bank tasks."],
+    ["unit", "The unit: output (Output and sequence), variables (Variables and input), maths (Maths in Python), selection (Selection), loops-condition (Condition-controlled loops) or loops-count (Count-controlled loops)."],
+    ["task_id", "The task. Bank tasks come from tasks.json (for example if-L3a). Placement tasks have P in the id (for example sel-P5a). Tasks made from a template have an id of the form <template id>#<seed>. An older export may name a task by an old id that tasks.json now lists in that task's former_ids."],
+    ["template_id", "For a task made from a template (a variant with different values, in practice once the bank tasks at a level are passed, in Endless mode, and write-from-scratch tasks), the template it came from. Empty for bank tasks."],
     ["phase", "Where it happened: placement (the starting test taken the first time a unit is opened), practice (normal practice in one unit) or endless (Endless mode)."],
     ["task_type", "predict (choose the output), fill (fill in the blanks), parsons (put lines in order), write (write code) or scratch (write from a blank editor)."],
     ["task_level", "The difficulty level of the task, 1 to 10. Levels 1-2 predict, 3-4 fill in, 5-6 Parsons, 7 complete a line, 8-10 write code."],
@@ -233,11 +233,15 @@
     ["level_change_reason", "For level changes: why the level changed. One of the level_change_reason values listed below."],
     ["placement_start_level", "For placement results: the level the student started practice at (the highest placement level passed, at least 1 and at most 8)."],
     ["placement_results", "For placement results: each placement task as JSON – its level, task id, whether it was passed, the number of attempts and the hints used."],
+    ["hint_type", "For hint rows: which kind of help was used. show-me-how means the student pressed 'Show me how' and saw a worked example (see the hint_type values below). Ordinary hints are not separate rows: they are counted in hints_used."],
+    ["variant_fingerprint", "For tasks made from a template: the template id and the values drawn for this variant. Two rows with the same fingerprint are the same task. A passed fingerprint is never given to that student again in that unit. Empty for bank tasks (their task_id is their fingerprint)."],
   ];
 
   const VALUE_NOTES = [
     ["record_type", "attempt", "One press of Check (or choosing a predict option). Passes and fails are both recorded."],
     ["record_type", "skip", "The student skipped a task. In practice this counts as a fail for the adaptive rule."],
+    ["record_type", "hint", "The student asked for extra help on a task. hint_type says which kind. result is the hint type too."],
+    ["hint_type", "show-me-how", "'Show me how': a worked example on a similar problem, then the key step for this task. Offered after 2 failed attempts on the same task. The task can then not be a strong pass (it can't count towards moving up), but it doesn't count towards the 3-hints move down, and it doesn't change the level or the pass and fail streaks by itself."],
     ["record_type", "level_change", "The student's level in a unit changed. The reason is in level_change_reason."],
     ["record_type", "button_use", "The student pressed 'This is too easy' or 'This is way too hard'."],
     ["record_type", "placement_result", "The student finished the placement test in a unit."],
@@ -278,10 +282,12 @@
     const rows = [];
     const base = (rec, type, id) => ({ record_type: type, record_id: id, timestamp: rec.at, student_id: rec.studentId, student_name: nameOf(data, rec.studentId), unit: rec.unit });
     for (const a of data.attempts) {
-      rows.push(Object.assign(base(a, a.kind === "skip" ? "skip" : "attempt", a.id), {
+      const type = a.kind === "skip" ? "skip" : a.kind === "hint" ? "hint" : "attempt";
+      rows.push(Object.assign(base(a, type, a.id), {
         task_id: a.taskId, template_id: a.templateId || "", phase: a.phase || "", task_type: a.taskType || "", task_level: a.taskLevel,
         student_level_before: a.levelBefore, student_level_after: a.levelAfter, attempt_number: a.attemptNumber,
-        result: a.kind === "skip" ? "skipped" : a.result, failure_category: a.category || "", failure_details: a.category ? json(a.details) : "",
+        result: type === "skip" ? "skipped" : type === "hint" ? a.hintType || "hint" : a.result, failure_category: a.category || "", failure_details: a.category ? json(a.details) : "",
+        hint_type: type === "hint" ? a.hintType || "" : "", variant_fingerprint: a.fingerprint || "",
         misconception_matches: (a.misconceptions || []).join(";"), hints_used: a.hints,
         failed_test_number: a.failedTest == null ? "" : a.failedTest, failed_test_inputs: a.inputs ? json(a.inputs) : "",
         expected_output: a.expected == null ? "" : a.expected, student_output: a.output == null ? "" : a.output,

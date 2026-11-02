@@ -14,6 +14,9 @@ the app does (checker.js matchMisconceptions):
     same as the app's. Run `node tools/build-variants.js` to store outputs for new variants.
   * A variant with no stored outputs (for example one you have just added) is run here
     with harness.py, the same runner the app uses, on the failing test's inputs.
+  * Attempts on template variants (task ids like d-maths-L9b#1234) are matched against the
+    variant made again from templates.json with `node tools/expand-template.js`. This part
+    needs Node.js; without it those attempts are skipped and keep the app's matches.
 
 The output CSV has every row of the export. For failed attempts, misconception_matches
 holds the new matches, previous_misconception_matches the ones the app recorded, and
@@ -25,6 +28,7 @@ import csv
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 
@@ -102,11 +106,32 @@ def same_result(variant_out, output, kind):
     return normalise(variant_out.get("output")) == normalise(output)
 
 
+def template_variants(rows, templates_path):
+    """Template variants (task id "<template id>#<seed>") named by failed attempts, made again with
+    `node tools/expand-template.js`. Returns {task id: task}, or None if Node isn't available."""
+    wanted = sorted({r["task_id"] for r in rows
+                     if r.get("record_type") == "attempt" and r.get("result") == "fail" and r.get("template_id") and "#" in r.get("task_id", "")})
+    if not wanted:
+        return {}
+    requests = [[tid.split("#")[0], int(tid.split("#")[1])] for tid in wanted]
+    tool = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tools", "expand-template.js")
+    try:
+        res = subprocess.run(["node", tool, templates_path], input=json.dumps(requests), capture_output=True,
+                             text=True, encoding="utf-8", timeout=600)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if res.returncode != 0:
+        return None
+    return {tid: t for tid, t in zip(wanted, json.loads(res.stdout)) if t}
+
+
 class Matcher:
-    def __init__(self, tasks):
+    def __init__(self, tasks, variants=None):
         # A task that was moved to another unit keeps its old ids in former_ids, so older exports still match.
         self.tasks = {old: t for t in tasks for old in t.get("former_ids", [])}
         self.tasks.update({t["id"]: t for t in tasks})
+        # Template variants made again from their template and seed (they aren't in the tasks file).
+        self.tasks.update(variants or {})
         self.cache = {}
         self.ran = 0
 
@@ -140,18 +165,23 @@ class Matcher:
         return ids
 
 
-def recheck(rows, tasks):
-    """Returns (new rows, summary). Each failed attempt gets updated misconception_matches."""
-    matcher = Matcher(tasks)
+def recheck(rows, tasks, variants=None):
+    """Returns (new rows, summary). Each failed attempt gets updated misconception_matches.
+    variants: template variants made again (template_variants); None means they couldn't be made, so attempts
+    on template variants keep the app's matches and are marked matches_changed = "skipped"."""
+    matcher = Matcher(tasks, variants)
     out = []
-    summary = {"failed_attempts": 0, "changed": 0, "before": {}, "after": {}}
+    summary = {"failed_attempts": 0, "changed": 0, "skipped": 0, "before": {}, "after": {}}
     for row in rows:
         row = dict(row)
         is_failed_attempt = row.get("record_type") == "attempt" and row.get("result") == "fail"
         previous = row.get("misconception_matches", "")
         row["previous_misconception_matches"] = previous if is_failed_attempt else ""
         row["matches_changed"] = ""
-        if is_failed_attempt:
+        if is_failed_attempt and variants is None and row.get("template_id"):
+            row["matches_changed"] = "skipped"
+            summary["skipped"] += 1
+        elif is_failed_attempt:
             new = ";".join(matcher.match(row))
             row["misconception_matches"] = new
             changed = set(filter(None, previous.split(";"))) != set(filter(None, new.split(";")))
@@ -173,6 +203,7 @@ def main(argv=None):
     parser.add_argument("tasks", help="tasks file with buggy_variants, normally tasks.json")
     parser.add_argument("-o", "--output", help="CSV to write (default: <export>-rechecked.csv)")
     parser.add_argument("--misconceptions", help="misconceptions.json, to warn about unknown misconception ids")
+    parser.add_argument("--templates", help="templates file, for attempts on template variants (default: templates.json next to the tasks file)")
     args = parser.parse_args(argv)
 
     with open(args.tasks, encoding="utf-8") as f:
@@ -189,7 +220,9 @@ def main(argv=None):
         columns = list(reader.fieldnames or [])
         rows = list(reader)
 
-    new_rows, summary = recheck(rows, tasks)
+    templates_path = args.templates or os.path.join(os.path.dirname(os.path.abspath(args.tasks)), "templates.json")
+    variants = template_variants(rows, templates_path) if os.path.exists(templates_path) else None
+    new_rows, summary = recheck(rows, tasks, variants)
     for extra in ("previous_misconception_matches", "matches_changed"):
         if extra not in columns:
             columns.append(extra)
@@ -201,6 +234,9 @@ def main(argv=None):
 
     print("Rechecked %d failed attempts: %d with changed matches (%d variant runs without stored outputs)."
           % (summary["failed_attempts"], summary["changed"], summary["variants_run"]))
+    if summary["skipped"]:
+        print("Skipped %d attempts on template variants: Node.js (node) is needed to make them again. "
+              "Their matches are left as the app recorded them (matches_changed = skipped)." % summary["skipped"])
     for m in sorted(set(summary["before"]) | set(summary["after"])):
         print("  %-26s %3d -> %3d" % (m, summary["before"].get(m, 0), summary["after"].get(m, 0)))
     print("Written to " + output)

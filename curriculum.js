@@ -40,7 +40,7 @@
       id: "loops-condition",
       title: "Condition-controlled loops",
       description: "Repeat code while a condition is true, and stop when it isn't.",
-      skills: ["while", "counter", "accumulator", "sentinel", "validation", "menu", "and-or", "infinite-loop"],
+      skills: ["while", "counter", "accumulator", "sentinel", "input-validation", "menu", "and/or", "infinite-loop"],
     },
     {
       id: "loops-count",

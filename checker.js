@@ -224,34 +224,51 @@
   }
 
   // A friendly, specific message for a failed attempt. Never includes Python's own error text.
-  function failureMessage(f) {
+  // Returns { message, tryNext }: what went wrong, and one thing to try next.
+  function failureParts(f) {
     const d = f.details || {};
     const onLine = d.line ? " on line " + d.line : "";
     switch (f.category) {
       case "SYNTAX":
-        return "Python couldn't understand your code" + onLine + ". Check that line for a missing colon, bracket or quote mark.";
+        return { message: "Python couldn't understand your code" + onLine + ". Check that line for a missing colon, bracket or quote mark.",
+          tryNext: "Read that line one character at a time, and compare it with a line that works, such as one in the task." };
       case "NAME":
-        return "Python couldn't find a name it expected" + (d.name ? " ('" + d.name + "')" : "") + onLine + ". Check your spelling, and that you created it before using it.";
+        return { message: "Python couldn't find a name it expected" + (d.name ? " ('" + d.name + "')" : "") + onLine + ". Check your spelling, and that you created it before using it.",
+          tryNext: "Find where that name is first given a value. Is it spelt exactly the same, with the same capital letters, and does it come before this line?" };
       case "TYPE": {
         const words = (d.types || []).map((t) => TYPE_WORDS[t] || t);
-        return "Your code mixes values that don't go together" + (words.length === 2 ? " – " + words[0] + " and " + words[1] : "") + onLine + ". Check whether each value is text or a number.";
+        return { message: "Your code mixes values that don't go together" + (words.length === 2 ? " – " + words[0] + " and " + words[1] : "") + onLine + ". Check whether each value is text or a number.",
+          tryNext: "For each value on that line, say whether it is text or a number. Remember that input() always gives text." };
       }
       case "TIMEOUT":
-        return "Your program kept going for too long, so it was stopped. Check that your loop's condition can become False.";
+        return { message: "Your program kept going for too long, so it was stopped. Check that your loop's condition can become False.",
+          tryNext: "Pick the variable in your loop's condition and follow its value round the loop two or three times. Does it ever make the condition False?" };
       case "NO_ANSWER":
-        return "There's nothing to check yet. Have a go – any attempt helps you learn.";
+        return { message: "There's nothing to check yet. Have a go – any attempt helps you learn.",
+          tryNext: "Start with the first line the task needs, then press Run to see what it does. You can open a hint if you're stuck." };
       case "ORDER":
-        return "You've picked all the right lines. Now check their order and indentation.";
+        return { message: "You've picked all the right lines. Now check their order and indentation.",
+          tryNext: "Read your program from the top, as Python does. Does each variable get a value before it is used, and are the lines inside an if or loop indented under it?" };
       case "OTHER_ERROR":
-        return "Your program stopped with an error" + onLine + ". Read the explanation below to see why.";
+        return { message: "Your program stopped with an error" + onLine + ". Read the explanation below to see why.",
+          tryNext: "Use the input from the test that failed and follow your program to the line in the explanation. What value does each variable have there?" };
       case "WRONG_OUTPUT":
-        if (d.parsons) return "Your program works, but it " + d.parsons + ". Check which lines you've used.";
-        return "Your program ran, but test " + d.test + " printed something different from what was expected. Compare the two below.";
+        if (d.parsons) return { message: "Your program works, but it " + d.parsons + ". Check which lines you've used.",
+          tryNext: "Compare each line in your program with the task description. Every line should be needed, and nothing the task asks for should be missing." };
+        return { message: "Your program ran, but test " + d.test + " printed something different from what was expected. Compare the two below.",
+          tryNext: "Find the first line where your output and the expected output differ, then follow your code with that test's input to see why." };
       case "WRONG_CHOICE":
-        return "That's not what this program prints. Trace through it one line at a time.";
+        return { message: "That's not what this program prints. Trace through it one line at a time.",
+          tryNext: "Write down each variable's value after every line, and what each print() shows, before you choose." };
       default:
-        return "That's not quite right yet. Have another look.";
+        return { message: "That's not quite right yet. Have another look.", tryNext: "Read the task again and test your program with the inputs it gives." };
     }
+  }
+
+  // The message and its "What to try" line, as one text (the line starts on a new line).
+  function failureMessage(f) {
+    const p = failureParts(f);
+    return p.message + "\nWhat to try: " + p.tryNext;
   }
 
   // ---------- Misconception matching ----------
@@ -281,6 +298,6 @@
 
   return {
     normalise, outputsMatch, explainError, mismatchHint,
-    CATEGORIES, isNoAnswer, errorKind, classifyAttempt, failureMessage, matchMisconceptions,
+    CATEGORIES, isNoAnswer, errorKind, classifyAttempt, failureParts, failureMessage, matchMisconceptions,
   };
 });

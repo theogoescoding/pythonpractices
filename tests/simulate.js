@@ -13,6 +13,7 @@ const passOneHint = (skill) => ({ passed: true, hints: 1, skills: [skill] });
 const passWithHints = (skill) => ({ passed: true, hints: 2, skills: [skill] });
 const passAllHints = (skill) => ({ passed: true, hints: 3, skills: [skill] });
 const fail = (skill) => ({ passed: false, hints: 0, skills: [skill] });
+const passAfterShowHow = (skill) => ({ passed: true, hints: 0, skills: [skill], showHow: true }); // used "Show me how" first
 
 // Runs one student through a list of outcomes. Returns one row per task.
 function simulate(startLevel, outcomes) {
@@ -67,6 +68,16 @@ const STUDENTS = [
     start: 1,
     outcomes: [fail("print"), fail("comments"), fail("print"), fail("sequence")],
   },
+  {
+    name: "Maya (uses \"Show me how\" twice)",
+    start: 4,
+    outcomes: [fail("range"), passAfterShowHow("range"), passAfterShowHow("step"), pass("for"), pass("range")],
+  },
+  {
+    name: "Max (the same tasks as Maya, without \"Show me how\")",
+    start: 4,
+    outcomes: [fail("range"), pass("range"), pass("step"), pass("for"), pass("range")],
+  },
 ];
 
 function runSimulations() {
@@ -119,6 +130,14 @@ function runSimulations() {
   check(leo.every((r) => r.after === 1), "Leo: never goes below Level 1");
   check(leo.every((r) => r.message === null), "Leo: no level-change message when the level can't change");
 
+  // "Show me how" never moves a student by itself: the passes after it aren't strong, so they don't move her up,
+  // and it isn't a hint, so it doesn't move her down either.
+  const maya = t("Maya");
+  const max = t("Max");
+  check(maya.slice(1, 3).every((r) => r.change === 0 && r.reason === ""), "Maya: using \"Show me how\" twice doesn't change her level (stays at 4)");
+  check(max[2].after === 5, "Max: the same passes without \"Show me how\" move him up (4 → 5)");
+  check(maya[3].after === 4 && maya[4].after === 5 && maya[4].reason === "passes", "Maya: afterwards the normal rule carries on (2 strong passes → Level 5)");
+
   return { traces, checks };
 }
 
@@ -126,7 +145,7 @@ module.exports = { runSimulations, simulate };
 
 if (require.main === module) {
   const { traces, checks } = runSimulations();
-  const describe = (o) => (o.passed ? "pass" : "fail") + (o.hints ? " (" + o.hints + " hint" + (o.hints > 1 ? "s" : "") + ")" : "") + " [" + o.skills.join(",") + "]";
+  const describe = (o) => (o.passed ? "pass" : "fail") + (o.hints ? " (" + o.hints + " hint" + (o.hints > 1 ? "s" : "") + ")" : "") + (o.showHow ? " (show me how)" : "") + " [" + o.skills.join(",") + "]";
   for (const [name, rows] of Object.entries(traces)) {
     console.log("\n" + name);
     for (const r of rows) {

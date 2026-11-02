@@ -1,5 +1,6 @@
 // Everything saved in localStorage. Shared by index.html, practice.html and teacher.html.
-// Nothing is sent anywhere: all data stays in this browser.
+// In local mode nothing is sent anywhere: all data stays in this browser. In backend mode (config.js), backend.js
+// sends every write to the server too, and these keys become a cache of the signed-in student's data.
 
 (function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory();
@@ -215,9 +216,13 @@
     apply();
   }
 
+  // Runs a page's start-up once saved data is available. In local mode that's straight away; backend.js replaces
+  // this so the page waits until the signed-in student's data has been fetched.
+  const whenReady = (fn) => fn();
+
   return {
     STUDENTS_KEY, CURRENT_KEY, PROGRESS_PREFIX, LEVEL_LOG_KEY, SETTINGS_KEY, THEMES, TINTS,
-    ATTEMPTS_PREFIX, BUTTON_LOG_KEY, PLACEMENT_LOG_KEY, MAX_STORED_TEXT, STORAGE_WARN_BYTES,
+    ATTEMPTS_PREFIX, BUTTON_LOG_KEY, PLACEMENT_LOG_KEY, MAX_STORED_TEXT, STORAGE_WARN_BYTES, whenReady,
     readJson, writeJson, students, addStudent, setCurrent, currentStudent,
     loadProgress, saveProgress, logLevelChange, levelLog, setupDisplaySettings,
     logAttempt, attempts, logButton, buttonLog, logPlacement, placementLog, storageUsed,

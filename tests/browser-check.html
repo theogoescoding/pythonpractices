@@ -12,7 +12,7 @@
 </head>
 <body>
   <h1>In-browser check</h1>
-  <p>Runs every reference solution in tasks.json, and one variant of every template in templates.json, through the real Pyodide worker, and checks that an infinite loop is stopped by the timeout. Serve the project folder and open <code>/tests/browser-check.html</code>.</p>
+  <p>Runs every reference solution in tasks.json, and one variant of every template in templates.json (derived templates are made in Pyodide, as the app makes them), through the real Pyodide worker. It also checks that an infinite loop is stopped by the timeout, and by the line limit used for template programs. Making the variants takes a few minutes. Serve the project folder and open <code>/tests/browser-check.html</code>.</p>
   <p id="status">Loading Pyodide…</p>
   <pre id="log"></pre>
   <p id="summary"></p>
@@ -24,7 +24,7 @@
   const log = (s) => { document.getElementById("log").textContent += s + "\n"; };
   const status = (s) => { document.getElementById("status").textContent = s; };
 
-  function runInWorker(worker, code, tests) {
+  function runInWorker(worker, code, tests, maxLines) {
     return new Promise((resolve) => {
       const results = [];
       const id = Math.random();
@@ -35,15 +35,13 @@
         if (m.type === "progress") results[m.index] = m.result;
         if (m.type === "done") resolve({ results });
       };
-      worker.postMessage({ type: "run", id, code, tests });
+      worker.postMessage({ type: "run", id, code, tests, maxLines: maxLines || 0 });
     });
   }
 
   (async () => {
     const bank = await (await fetch("../tasks.json")).json();
-    // Also one variant of every template (seed 1).
     const templates = await (await fetch("../templates.json")).json();
-    const tasks = bank.concat(templates.map((t) => Templates.expand(t, 1)));
     const worker = new Worker("../worker.js");
     await new Promise((res) => {
       worker.onmessage = (e) => {
@@ -51,9 +49,23 @@
         if (e.data.type === "load-error") { status("Pyodide failed to load: " + e.data.message); }
       };
     });
-    status("Pyodide ready – running solutions…");
-
     let failed = 0, passedTests = 0;
+
+    // One variant of every template (seed 1). Derived templates are made here in Pyodide, as the app makes them.
+    status("Pyodide ready – making template variants…");
+    const runJobs = async (jobs) => {
+      const out = [];
+      for (const j of jobs) out.push((await runInWorker(worker, j.code, [j.inputs], j.maxLines)).results[0]);
+      return out;
+    };
+    const variants = [];
+    for (const t of templates) {
+      const v = t.derived ? await Templates.realise(t, 1, runJobs) : Templates.expand(t, 1);
+      if (v) variants.push(v);
+      else { failed++; log("FAIL template " + t.id + ": no valid variant from seed 1 in Pyodide"); }
+    }
+    const tasks = bank.concat(variants);
+    status("Running solutions…");
     for (const t of tasks) {
       const r = await runInWorker(worker, t.solution, t.tests.map((x) => x.inputs));
       t.tests.forEach((test, i) => {
@@ -63,6 +75,12 @@
       });
     }
     log("Solutions: " + passedTests + " tests passed, " + failed + " failed");
+
+    // The line limit used for template programs stops an endless loop quickly, reported as a Timeout.
+    const limited = await runInWorker(worker, "n = 1\nwhile n > 0:\n    pass", [[]], Templates.MAX_LINES);
+    const limitOk = limited.results[0].error && limited.results[0].error.type === "Timeout";
+    log("Line limit stops an endless loop as a Timeout: " + (limitOk ? "yes" : "NO " + JSON.stringify(limited.results[0])));
+    if (!limitOk) failed++;
 
     // Infinite loop: the worker never replies, so terminate after 5 seconds and check a fresh worker works.
     const start = performance.now();

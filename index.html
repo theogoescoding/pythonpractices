@@ -7,6 +7,9 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="styles.css">
   <script src="store.js"></script>
+  <script src="config.js"></script>
+  <script src="backend-rows.js"></script>
+  <script src="backend.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -24,6 +27,52 @@
   </header>
 
   <main id="main" class="wrap home" tabindex="-1">
+    <!-- Backend mode only: sign in or join a class (replaces the name screen) -->
+    <section id="landing" class="task-card name-card" hidden aria-labelledby="landing-h">
+      <h2 id="landing-h">Welcome to Python Practice</h2>
+      <div id="landing-choices">
+        <p>Who are you?</p>
+        <ul class="known-list landing-choices">
+          <li><button type="button" class="primary" data-show="join-form">New student</button></li>
+          <li><button type="button" class="primary" data-show="resume-form">Returning student</button></li>
+          <li><a class="menu-link" href="teacher.html#signup">New teacher</a></li>
+          <li><a class="menu-link" href="teacher.html#signin">Returning teacher</a></li>
+        </ul>
+      </div>
+
+      <form id="join-form" hidden novalidate aria-labelledby="join-h">
+        <h3 id="join-h">Join your class</h3>
+        <label for="join-class" class="editor-label">Class code (from your teacher)</label>
+        <input type="text" id="join-class" class="text-input" autocomplete="off" autocapitalize="characters" maxlength="6" spellcheck="false">
+        <label for="join-nickname" class="editor-label">Choose a nickname</label>
+        <input type="text" id="join-nickname" class="text-input" autocomplete="off" maxlength="20" aria-describedby="join-rules">
+        <p id="join-rules" class="small">2 to 20 letters or numbers, with single spaces between words. Don't use your full name.</p>
+        <p id="join-error" class="problem" role="alert" hidden></p>
+        <p><button type="submit" class="primary">Join</button> <button type="button" class="secondary" data-back>Back</button></p>
+      </form>
+
+      <form id="resume-form" hidden novalidate aria-labelledby="resume-h">
+        <h3 id="resume-h">Sign in</h3>
+        <label for="resume-code" class="editor-label">Your 8-digit code</label>
+        <input type="text" id="resume-code" class="text-input" autocomplete="off" inputmode="numeric" maxlength="9" spellcheck="false">
+        <label for="resume-pin" class="editor-label">Your 4-digit PIN</label>
+        <input type="password" id="resume-pin" class="text-input" autocomplete="off" inputmode="numeric" maxlength="4">
+        <p id="resume-error" class="problem" role="alert" hidden></p>
+        <p><button type="submit" class="primary">Sign in</button> <button type="button" class="secondary" data-back>Back</button></p>
+        <p class="small">Forgotten your code or PIN? Ask your teacher.</p>
+      </form>
+
+      <div id="new-login" hidden tabindex="-1" aria-labelledby="new-login-h">
+        <h3 id="new-login-h">Write these down</h3>
+        <p>You need both to sign in next time. Keep them somewhere safe and don't share them. This is the only time your PIN is shown.</p>
+        <dl class="login-details">
+          <dt>Your code</dt><dd><strong id="new-code"></strong></dd>
+          <dt>Your PIN</dt><dd><strong id="new-pin"></strong></dd>
+        </dl>
+        <p><button type="button" id="new-login-done" class="primary">I've written them down</button></p>
+      </div>
+    </section>
+
     <!-- Name screen: shown before anything else until a name is entered -->
     <section id="name-screen" class="task-card name-card" hidden aria-labelledby="name-h">
       <h2 id="name-h">Welcome! What's your name?</h2>
@@ -63,7 +112,15 @@
       </div>
 
       <ul id="unit-list" class="unit-list"><li class="loading">Loading units…</li></ul>
-      <p class="privacy">Your progress is saved in this browser only. Nothing is sent anywhere.</p>
+      <p class="privacy" id="privacy-note">Your progress is saved in this browser only. Nothing is sent anywhere.</p>
+      <div id="delete-area" hidden>
+        <p><button type="button" id="delete-mine" class="secondary">Delete everything saved for me</button></p>
+        <div id="delete-confirm" class="problem" hidden>
+          <p>This deletes your progress, attempts and nickname for good. You'll need to join your class again. Are you sure?</p>
+          <p><button type="button" id="delete-yes" class="danger">Yes, delete it all</button> <button type="button" id="delete-no" class="secondary">No, keep it</button></p>
+        </div>
+        <p id="delete-status" role="status" class="small"></p>
+      </div>
     </section>
   </main>
 

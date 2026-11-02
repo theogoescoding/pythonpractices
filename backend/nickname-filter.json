@@ -1,0 +1,19 @@
+{
+  "about": "Words a nickname may not contain (section 6). Checked as whole words and with the spaces removed, ignoring capitals, after common substitutions (0 for o, 1 for i or l, 3 for e, 4 for a, 5 for s, 7 for t, 8 for b, @ for a, $ for s). Add words in lower case, letters only.",
+  "substitutions": { "0": "o", "1": ["i", "l"], "3": "e", "4": "a", "5": "s", "7": "t", "8": "b", "@": "a", "$": "s" },
+  "rude": [
+    "arse", "arsehole", "ass", "asshole", "bastard", "bellend", "bitch", "bollocks", "boob", "boobs", "bugger",
+    "bullshit", "butthole", "cock", "crap", "cum", "cunt", "dick", "dickhead", "dildo", "fanny", "fuck", "fucker",
+    "fucking", "fuk", "knob", "knobhead", "minge", "motherfucker", "nob", "nonce", "penis", "piss", "pissed", "porn",
+    "prick", "pussy", "rape", "rapist", "sex", "sexy", "shag", "shit", "shite", "shitty", "slag", "slut", "tit",
+    "tits", "titty", "tosser", "turd", "twat", "vagina", "wank", "wanker", "whore"
+  ],
+  "slurs": [
+    "chink", "coon", "dyke", "fag", "faggot", "gook", "gyppo", "kike", "nazi", "negro", "nig", "nigga", "nigger",
+    "paki", "pikey", "retard", "retarded", "spastic", "spaz", "tranny", "wog"
+  ],
+  "identifying": [
+    "address", "avenue", "discord", "email", "gmail", "hotmail", "insta", "instagram", "mobile", "number", "outlook",
+    "password", "phone", "postcode", "road", "snap", "snapchat", "street", "telegram", "tiktok", "whatsapp", "youtube"
+  ]
+}
