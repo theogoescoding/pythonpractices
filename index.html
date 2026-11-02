@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Python Practice</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+  <script src="store.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <h1>Python Practice</h1>
+      <div class="header-tools" role="group" aria-label="Student and display settings">
+        <span id="student-area" class="student-chip" hidden>Hi, <strong id="student-name"></strong>
+          · <a href="#" id="change-name">Not you? Change name</a></span>
+        <a href="teacher.html">Teacher view</a>
+        <span id="display-tools"></span>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="wrap home" tabindex="-1">
+    <!-- Name screen: shown before anything else until a name is entered -->
+    <section id="name-screen" class="task-card name-card" hidden aria-labelledby="name-h">
+      <h2 id="name-h">Welcome! What's your name?</h2>
+      <div id="known-students" hidden>
+        <p>Are you one of these students?</p>
+        <ul id="known-list" class="known-list"></ul>
+        <p>Or enter a new name:</p>
+      </div>
+      <form id="name-form" novalidate>
+        <label for="name-input" class="editor-label">Your name</label>
+        <input type="text" id="name-input" class="text-input" autocomplete="off" maxlength="40" aria-describedby="name-error">
+        <p id="name-error" class="problem" role="alert" hidden>Please type your name (at least one character).</p>
+        <p><button type="submit" class="primary">Continue</button>
+          <button type="button" id="name-cancel" class="secondary" hidden>Cancel</button></p>
+      </form>
+    </section>
+
+    <!-- Unit menu -->
+    <section id="units-screen" hidden aria-labelledby="units-h">
+      <nav class="menu-links" aria-label="More">
+        <a href="progress.html" class="menu-link">My progress</a>
+        <a href="endless.html" class="menu-link">Endless mode</a>
+      </nav>
+      <h2 id="units-h">Choose a unit</h2>
+      <p class="small">Each unit has its own level, from 1 (predict the output) to 10 (write an extended program).</p>
+
+      <div id="test-panel" class="test-panel" hidden>
+        <h3>Test mode: starting level</h3>
+        <p class="small">Sets the level for <strong id="test-student"></strong> in one unit. Only that unit's level is reset; the change is logged in the teacher view.</p>
+        <div class="teacher-controls">
+          <label>Unit <select id="test-unit"></select></label>
+          <label>Level <select id="test-level"></select></label>
+          <button type="button" id="test-set" class="primary">Set level</button>
+          <button type="button" id="test-complete" class="secondary">Mark unit completed (unlocks endless mode)</button>
+        </div>
+        <p id="test-status" class="small" role="status"></p>
+      </div>
+
+      <ul id="unit-list" class="unit-list"><li class="loading">Loading units…</li></ul>
+      <p class="privacy">Your progress is saved in this browser only. Nothing is sent anywhere.</p>
+    </section>
+  </main>
+
+  <script src="curriculum.js"></script>
+  <script src="app.js"></script>
+  <script src="home.js"></script>
+</body>
+</html>

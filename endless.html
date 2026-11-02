@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Endless Mode – Python Practice</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+  <script src="store.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <h1><a href="index.html" class="home-link">Python Practice</a> <span class="unit-crumb">· Endless mode</span></h1>
+      <div class="header-tools" role="group" aria-label="Student and display settings">
+        <span class="student-chip">Hi, <strong id="student-name"></strong></span>
+        <a href="index.html">← All units</a>
+        <span id="display-tools"></span>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="wrap home" tabindex="-1">
+    <h2>Endless mode</h2>
+    <p>Keep practising for as long as you like. Tick the units to include. Each task is set at your current level in its unit, and your levels keep moving up and down in the same way as normal practice. Tick two or more units to get tasks that combine their skills.</p>
+    <form id="endless-form">
+      <fieldset style="border:none; padding:0; margin:0">
+        <legend class="editor-label">Units to include</legend>
+        <ul id="endless-units" class="endless-list"><li class="loading">Loading…</li></ul>
+      </fieldset>
+      <p id="endless-error" class="problem" role="alert" hidden>Tick at least one unit to start.</p>
+      <p><button type="submit" class="primary" id="endless-start">Start endless mode</button></p>
+    </form>
+  </main>
+
+  <script src="curriculum.js"></script>
+  <script src="endless.js"></script>
+</body>
+</html>

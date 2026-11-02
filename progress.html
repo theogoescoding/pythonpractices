@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Progress – Python Practice</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+  <script src="store.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <h1><a href="index.html" class="home-link">Python Practice</a> <span class="unit-crumb">· My progress</span></h1>
+      <div class="header-tools" role="group" aria-label="Student and display settings">
+        <span class="student-chip">Hi, <strong id="student-name"></strong></span>
+        <a href="index.html">← All units</a>
+        <span id="display-tools"></span>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="wrap home" tabindex="-1">
+    <section id="overview" aria-labelledby="overview-h">
+      <h2 id="overview-h">My progress</h2>
+      <p class="small">A skill is <strong>secured</strong> when you pass <span id="secured-rule"></span>. Select a unit to see each skill.</p>
+      <ul id="progress-cards" class="unit-list"><li class="loading">Loading…</li></ul>
+    </section>
+
+    <section id="detail" hidden aria-labelledby="detail-h">
+      <p><a href="#" id="back-link">← All units</a></p>
+      <h2 id="detail-h" tabindex="-1"></h2>
+      <p id="detail-summary"></p>
+      <ul id="skill-list" class="skill-list"></ul>
+      <p><a id="practise-link" class="menu-link" href="#">Practise this unit</a></p>
+    </section>
+  </main>
+
+  <script src="curriculum.js"></script>
+  <script src="app.js"></script>
+  <script src="progress.js"></script>
+</body>
+</html>

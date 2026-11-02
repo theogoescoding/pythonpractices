@@ -1,0 +1,5955 @@
+[
+  {
+    "id": "out-t1",
+    "units": [
+      "output"
+    ],
+    "level": 1,
+    "type": "predict",
+    "shuffleOptions": true,
+    "title": "Morning messages",
+    "description": "What will this program print?",
+    "params": {
+      "a": {
+        "choice": [
+          "Good morning",
+          "Welcome back",
+          "Hello Year 7",
+          "Time for maths"
+        ]
+      },
+      "b": {
+        "choice": [
+          "Form 7B",
+          "Form 7G",
+          "Form 8R",
+          "Form 8K",
+          "Form 9C",
+          "Form 9F",
+          "Form 10T",
+          "Form 11S"
+        ]
+      }
+    },
+    "solution": "print(\"{{a}}\")\nprint(\"{{b}}\")",
+    "options": [
+      "{{a}}\n{{b}}",
+      "{{b}}\n{{a}}",
+      "{{a}} {{b}}",
+      "{{a}}"
+    ],
+    "answer": 0,
+    "hints": [
+      "Python runs the lines from top to bottom.",
+      "Each print() starts a new line."
+    ],
+    "skills": [
+      "print",
+      "sequence"
+    ],
+    "tags": [
+      "trace",
+      "order of statements"
+    ]
+  },
+  {
+    "id": "out-t2",
+    "units": [
+      "output"
+    ],
+    "level": 2,
+    "type": "predict",
+    "shuffleOptions": true,
+    "title": "What goes at the end?",
+    "description": "What will this program print?",
+    "params": {
+      "w1": {
+        "choice": [
+          "Maths",
+          "Science",
+          "History",
+          "Art",
+          "Music",
+          "French",
+          "Geography",
+          "Drama"
+        ]
+      },
+      "w2": {
+        "choice": [
+          "Maths",
+          "Science",
+          "History",
+          "Art",
+          "Music",
+          "French",
+          "Geography",
+          "Drama"
+        ]
+      },
+      "sep": {
+        "choice": [
+          "-",
+          "*",
+          "+",
+          "...",
+          "/"
+        ]
+      }
+    },
+    "where": "w1 !== w2",
+    "solution": "print(\"{{w1}}\", end=\"{{sep}}\")\nprint(\"{{w2}}\")",
+    "options": [
+      "{{w1}}{{sep}}{{w2}}",
+      "{{w1}}\n{{w2}}",
+      "{{w1}} {{sep}} {{w2}}",
+      "{{w1}}{{sep}}\n{{w2}}"
+    ],
+    "answer": 0,
+    "hints": [
+      "end= replaces the new line at the end of a print().",
+      "Nothing is added around the end= text – no spaces."
+    ],
+    "skills": [
+      "sep/end"
+    ],
+    "tags": [
+      "end="
+    ]
+  },
+  {
+    "id": "out-t3",
+    "units": [
+      "output"
+    ],
+    "level": 3,
+    "type": "fill",
+    "title": "Days with separators",
+    "params": {
+      "days": {
+        "sample": [
+          [
+            "Mon",
+            "Tue",
+            "Wed",
+            "Thu",
+            "Fri"
+          ],
+          3
+        ]
+      },
+      "s": {
+        "choice": [
+          "-",
+          "/",
+          ":",
+          "|",
+          "+"
+        ]
+      }
+    },
+    "description": "Fill in the blank so the program prints: {{days.join(s)}}",
+    "starter": "print(\"{{days[0]}}\", \"{{days[1]}}\", \"{{days[2]}}\", sep=____)",
+    "answers": [
+      "\"{{s}}\""
+    ],
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "{{days.join(s)}}"
+      }
+    ],
+    "hints": [
+      "sep= sets what goes between the items.",
+      "The separator is text, so it needs quotes."
+    ],
+    "skills": [
+      "sep/end"
+    ],
+    "tags": [
+      "sep="
+    ]
+  },
+  {
+    "id": "out-t4",
+    "units": [
+      "output"
+    ],
+    "level": 4,
+    "type": "fill",
+    "title": "Subject and room",
+    "params": {
+      "subject": {
+        "choice": [
+          "Maths",
+          "Science",
+          "History",
+          "Art",
+          "Music",
+          "French",
+          "Geography",
+          "Drama"
+        ]
+      },
+      "room": {
+        "choice": [
+          "M4",
+          "S2",
+          "H7",
+          "A1",
+          "L3",
+          "C12"
+        ]
+      }
+    },
+    "description": "Fill in the blanks so the program prints, on one line: {{subject}} {{room}}",
+    "starter": "print(\"{{subject}}\", end=____)\n____(\"{{room}}\")",
+    "answers": [
+      "\" \"",
+      "print"
+    ],
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "{{subject}} {{room}}"
+      }
+    ],
+    "hints": [
+      "The first print should end with a space instead of a new line.",
+      "The second blank is the function that shows text."
+    ],
+    "skills": [
+      "sep/end",
+      "print"
+    ],
+    "tags": [
+      "end="
+    ]
+  },
+  {
+    "id": "out-t5",
+    "units": [
+      "output"
+    ],
+    "level": 5,
+    "type": "parsons",
+    "title": "Timetable order",
+    "params": {
+      "l": {
+        "sample": [
+          [
+            "English",
+            "Maths",
+            "Science",
+            "PE",
+            "French",
+            "Art",
+            "Computing",
+            "Drama",
+            "History"
+          ],
+          3
+        ]
+      }
+    },
+    "description": "Arrange the lines to print the timetable in order:\nPeriod 1: {{l[0]}}\nPeriod 2: {{l[1]}}\nPeriod 3: {{l[2]}}\nOne line is not needed.",
+    "solution": "print(\"Period 1: {{l[0]}}\")\nprint(\"Period 2: {{l[1]}}\")\nprint(\"Period 3: {{l[2]}}\")",
+    "distractors": [
+      "print(Period 2: {{l[1]}})"
+    ],
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "Period 1: {{l[0]}}\nPeriod 2: {{l[1]}}\nPeriod 3: {{l[2]}}"
+      }
+    ],
+    "hints": [
+      "The order of the lines is the order of the output.",
+      "Text must be inside quotes."
+    ],
+    "skills": [
+      "sequence",
+      "print"
+    ],
+    "tags": [
+      "order of statements",
+      "quotes"
+    ]
+  },
+  {
+    "id": "out-t6",
+    "units": [
+      "output"
+    ],
+    "level": 6,
+    "type": "parsons",
+    "title": "Bus board",
+    "params": {
+      "b1": {
+        "int": [
+          10,
+          99
+        ]
+      },
+      "b2": {
+        "int": [
+          10,
+          99
+        ]
+      },
+      "t1": {
+        "choice": [
+          "3:15pm",
+          "3:20pm",
+          "3:25pm"
+        ]
+      },
+      "t2": {
+        "choice": [
+          "3:35pm",
+          "3:40pm",
+          "3:45pm"
+        ]
+      }
+    },
+    "where": "b1 !== b2",
+    "description": "Arrange the lines to print:\nBus {{b1}} | {{t1}}\nBus {{b2}} | {{t2}}\nTwo lines are not needed.",
+    "solution": "print(\"Bus {{b1}}\", \"{{t1}}\", sep=\" | \")\nprint(\"Bus {{b2}}\", \"{{t2}}\", sep=\" | \")",
+    "distractors": [
+      "print(\"Bus {{b1}}\", \"{{t1}}\", end=\" | \")",
+      "print(\"Bus {{b2}}\" \"{{t2}}\", sep=\" | \")"
+    ],
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "Bus {{b1}} | {{t1}}\nBus {{b2}} | {{t2}}"
+      }
+    ],
+    "hints": [
+      "sep= goes between items; end= goes at the end of the line.",
+      "Without a comma, two pieces of text join into one item."
+    ],
+    "skills": [
+      "sep/end",
+      "sequence"
+    ],
+    "tags": [
+      "sep=",
+      "end=",
+      "missing comma"
+    ]
+  },
+  {
+    "id": "out-t7",
+    "units": [
+      "output"
+    ],
+    "level": 7,
+    "type": "fill",
+    "title": "The missing line",
+    "params": {
+      "l": {
+        "sample": [
+          [
+            "English",
+            "Maths",
+            "Science",
+            "PE",
+            "French",
+            "Art",
+            "Computing",
+            "Drama",
+            "History"
+          ],
+          2
+        ]
+      },
+      "msg": {
+        "choice": [
+          "Morning break",
+          "Lunch time",
+          "Form time",
+          "Assembly in the hall"
+        ]
+      }
+    },
+    "description": "Write the missing line so the program prints:\nLesson 1: {{l[0]}}\n{{msg}}\nLesson 2: {{l[1]}}",
+    "starter": "print(\"Lesson 1: {{l[0]}}\")\n____\nprint(\"Lesson 2: {{l[1]}}\")",
+    "answers": [
+      "print(\"{{msg}}\")"
+    ],
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "Lesson 1: {{l[0]}}\n{{msg}}\nLesson 2: {{l[1]}}"
+      }
+    ],
+    "hints": [
+      "The missing line goes between the two lessons.",
+      "It is a print() with the text in quotes."
+    ],
+    "skills": [
+      "sequence",
+      "print"
+    ],
+    "tags": [
+      "order of statements",
+      "whole line"
+    ]
+  },
+  {
+    "id": "out-t8",
+    "units": [
+      "output"
+    ],
+    "level": 8,
+    "type": "write",
+    "title": "Name badge",
+    "params": {
+      "name": {
+        "choice": [
+          "Ava",
+          "Leo",
+          "Priya",
+          "Kofi",
+          "Mia",
+          "Sam",
+          "Zara",
+          "Ollie",
+          "Amira",
+          "Chen"
+        ]
+      },
+      "form": {
+        "choice": [
+          "7B",
+          "7G",
+          "8R",
+          "8K",
+          "9C",
+          "9F",
+          "10T",
+          "11S"
+        ]
+      },
+      "ch": {
+        "choice": [
+          "*",
+          "=",
+          "#",
+          "~"
+        ]
+      },
+      "n": {
+        "int": [
+          8,
+          14
+        ]
+      }
+    },
+    "values": {
+      "border": "ch.repeat(n)"
+    },
+    "description": "Add two lines between the borders so the program prints:\n{{border}}\nHello, my name is {{name}}\nForm {{form}}\n{{border}}",
+    "starter": "print(\"{{border}}\")\n# Write two lines here\nprint(\"{{border}}\")",
+    "solution": "print(\"{{border}}\")\nprint(\"Hello, my name is {{name}}\")\nprint(\"Form {{form}}\")\nprint(\"{{border}}\")",
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "{{border}}\nHello, my name is {{name}}\nForm {{form}}\n{{border}}"
+      }
+    ],
+    "hints": [
+      "Your two new lines go between the borders.",
+      "Check the comma and the capital letters."
+    ],
+    "skills": [
+      "print",
+      "strings"
+    ],
+    "tags": [
+      "print"
+    ]
+  },
+  {
+    "id": "out-t9",
+    "units": [
+      "output"
+    ],
+    "level": 9,
+    "type": "write",
+    "title": "Club list",
+    "params": {
+      "clubs": {
+        "sample": [
+          [
+            "Chess",
+            "Coding",
+            "Choir",
+            "Drama",
+            "Football",
+            "Netball",
+            "Art",
+            "Debating"
+          ],
+          4
+        ]
+      },
+      "sep": {
+        "choice": [
+          " - ",
+          " / ",
+          " | ",
+          ", "
+        ]
+      }
+    },
+    "description": "Using ONE print(), print the clubs with \"{{sep}}\" between them:\n{{clubs.join(sep)}}",
+    "starter": "# Write your program here",
+    "solution": "print(\"{{clubs[0]}}\", \"{{clubs[1]}}\", \"{{clubs[2]}}\", \"{{clubs[3]}}\", sep=\"{{sep}}\")",
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "{{clubs.join(sep)}}"
+      }
+    ],
+    "hints": [
+      "Give print() each club as a separate item.",
+      "Use sep= to choose what goes between them."
+    ],
+    "skills": [
+      "sep/end"
+    ],
+    "tags": [
+      "sep="
+    ]
+  },
+  {
+    "id": "out-t10",
+    "units": [
+      "output"
+    ],
+    "level": 10,
+    "type": "write",
+    "title": "Event poster",
+    "params": {
+      "event": {
+        "choice": [
+          "Sports day",
+          "Science fair",
+          "Book week",
+          "Summer concert"
+        ]
+      },
+      "day": {
+        "choice": [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday"
+        ]
+      },
+      "item": {
+        "choice": [
+          "water bottle",
+          "packed lunch",
+          "PE kit",
+          "library book"
+        ]
+      }
+    },
+    "description": "Write a program that starts with a comment, then prints exactly:\n{{event.toUpperCase()}}\nRemember: \"Bring a {{item}}\"\nDon't be late on {{day}}!",
+    "starter": "# Write your program here",
+    "solution": "# Poster for {{event}}\nprint(\"{{event.toUpperCase()}}\")\nprint('Remember: \"Bring a {{item}}\"')\nprint(\"Don't be late on {{day}}!\")",
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "{{event.toUpperCase()}}\nRemember: \"Bring a {{item}}\"\nDon't be late on {{day}}!"
+      }
+    ],
+    "hints": [
+      "Text with double quotes inside can be wrapped in single quotes.",
+      "Text with an apostrophe can be wrapped in double quotes.",
+      "Choose the outer quotes for each line separately."
+    ],
+    "skills": [
+      "strings",
+      "comments",
+      "print"
+    ],
+    "tags": [
+      "quotes inside strings"
+    ]
+  },
+  {
+    "id": "var-t1",
+    "units": [
+      "variables"
+    ],
+    "level": 1,
+    "type": "predict",
+    "shuffleOptions": true,
+    "title": "Changing value",
+    "description": "What will this program print?",
+    "params": {
+      "v": {
+        "choice": [
+          "points",
+          "score",
+          "lives",
+          "coins",
+          "merits"
+        ]
+      },
+      "a": {
+        "int": [
+          1,
+          20
+        ]
+      },
+      "b": {
+        "int": [
+          21,
+          40
+        ]
+      }
+    },
+    "solution": "{{v}} = {{a}}\n{{v}} = {{b}}\nprint({{v}})",
+    "options": [
+      "{{b}}",
+      "{{a}}",
+      "{{a + b}}",
+      "{{a}}\n{{b}}"
+    ],
+    "answer": 0,
+    "hints": [
+      "A variable holds one value at a time.",
+      "The second line replaces the first value."
+    ],
+    "skills": [
+      "reassignment"
+    ],
+    "tags": [
+      "overwriting"
+    ]
+  },
+  {
+    "id": "var-t2",
+    "units": [
+      "variables"
+    ],
+    "level": 2,
+    "type": "predict",
+    "shuffleOptions": true,
+    "title": "Adding inputs?",
+    "description": "What will this program print?",
+    "params": {
+      "a": {
+        "int": [
+          1,
+          9
+        ]
+      },
+      "b": {
+        "int": [
+          1,
+          9
+        ]
+      }
+    },
+    "inputs": [
+      "{{a}}",
+      "{{b}}"
+    ],
+    "solution": "a = input(\"First number: \")\nb = input(\"Second number: \")\nprint(a + b)",
+    "options": [
+      "{{String(a) + String(b)}}",
+      "{{a + b}}",
+      "a + b",
+      "{{a}} {{b}}"
+    ],
+    "answer": 0,
+    "hints": [
+      "input() always gives text.",
+      "+ on two pieces of text joins them."
+    ],
+    "skills": [
+      "input",
+      "int()"
+    ],
+    "tags": [
+      "int() on input",
+      "text vs numbers"
+    ]
+  },
+  {
+    "id": "var-t3",
+    "units": [
+      "variables"
+    ],
+    "level": 3,
+    "type": "fill",
+    "title": "Age in a few years",
+    "params": {
+      "k": {
+        "int": [
+          2,
+          10
+        ]
+      }
+    },
+    "description": "Fill in the blank so the program can add {{k}} to the age the user types.",
+    "starter": "age = ____(input(\"How old are you? \"))\nprint(\"In {{k}} years you will be\", age + {{k}})",
+    "answers": [
+      "int"
+    ],
+    "testParams": {
+      "age": {
+        "int": [
+          10,
+          16
+        ]
+      }
+    },
+    "testCount": 3,
+    "test": {
+      "inputs": [
+        "{{age}}"
+      ],
+      "expected": "In {{k}} years you will be {{age + k}}"
+    },
+    "hints": [
+      "input() gives text, and you can't add a number to text.",
+      "Which function turns text into a whole number?"
+    ],
+    "skills": [
+      "int()"
+    ],
+    "tags": [
+      "int() on input"
+    ]
+  },
+  {
+    "id": "var-t4",
+    "units": [
+      "variables"
+    ],
+    "level": 4,
+    "type": "fill",
+    "title": "Test score",
+    "params": {
+      "score": {
+        "int": [
+          5,
+          19
+        ]
+      },
+      "total": {
+        "choice": [
+          20,
+          25,
+          30
+        ]
+      }
+    },
+    "description": "Fill in the blanks so the program prints: You scored {{score}} out of {{total}}",
+    "starter": "score = {{score}}\ntotal = {{total}}\nprint(\"You scored \" + ____(score) + \" out of \" + ____(total))",
+    "answers": [
+      "str",
+      "str"
+    ],
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "You scored {{score}} out of {{total}}"
+      }
+    ],
+    "hints": [
+      "score and total are numbers.",
+      "Turn each number into text before joining it with +."
+    ],
+    "skills": [
+      "str()",
+      "concatenation"
+    ],
+    "tags": [
+      "type conversion"
+    ]
+  },
+  {
+    "id": "var-t5",
+    "units": [
+      "variables"
+    ],
+    "level": 5,
+    "type": "parsons",
+    "title": "Adding up points",
+    "params": {
+      "a": {
+        "int": [
+          2,
+          9
+        ]
+      },
+      "b": {
+        "int": [
+          2,
+          9
+        ]
+      }
+    },
+    "description": "Arrange the lines so the program adds {{a}} points, then {{b}} points, and prints: Total points: {{a + b}}\nOne line is not needed.",
+    "solution": "points = 0\npoints = points + {{a}}\npoints = points + {{b}}\nprint(\"Total points:\", points)",
+    "distractors": [
+      "print(\"Total points:\", \"points\")"
+    ],
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "Total points: {{a + b}}"
+      }
+    ],
+    "hints": [
+      "Create the variable before you add to it.",
+      "Print the variable, not the word \"points\"."
+    ],
+    "skills": [
+      "reassignment",
+      "assignment"
+    ],
+    "tags": [
+      "running total"
+    ]
+  },
+  {
+    "id": "var-t6",
+    "units": [
+      "variables"
+    ],
+    "level": 6,
+    "type": "parsons",
+    "title": "Birthday money",
+    "params": {
+      "bonus": {
+        "int": [
+          2,
+          10
+        ]
+      }
+    },
+    "description": "Arrange the lines so the program adds the money saved, the money earned and a £{{bonus}} birthday gift, then prints, for example: You have £20\nTwo lines are not needed.",
+    "solution": "saved = int(input(\"Money saved: \"))\nearned = int(input(\"Money earned: \"))\ntotal = saved + earned + {{bonus}}\nprint(\"You have £\" + str(total))",
+    "distractors": [
+      "saved = input(\"Money saved: \")",
+      "print(\"You have £\" + total)"
+    ],
+    "testParams": {
+      "s": {
+        "int": [
+          1,
+          30
+        ]
+      },
+      "e": {
+        "int": [
+          1,
+          30
+        ]
+      }
+    },
+    "testCount": 3,
+    "test": {
+      "inputs": [
+        "{{s}}",
+        "{{e}}"
+      ],
+      "expected": "You have £{{s + e + bonus}}"
+    },
+    "hints": [
+      "Both inputs need int() so they are added, not joined.",
+      "Use str() to join the total onto text."
+    ],
+    "skills": [
+      "int()",
+      "str()",
+      "input"
+    ],
+    "tags": [
+      "int() on input",
+      "money"
+    ]
+  },
+  {
+    "id": "var-t7",
+    "units": [
+      "variables"
+    ],
+    "level": 7,
+    "type": "fill",
+    "title": "Using some up",
+    "params": {
+      "v": {
+        "choice": [
+          "money",
+          "lives",
+          "tickets",
+          "sweets",
+          "credits"
+        ]
+      },
+      "start": {
+        "int": [
+          20,
+          50
+        ]
+      },
+      "used": {
+        "int": [
+          1,
+          19
+        ]
+      }
+    },
+    "description": "Write the missing line so {{v}} goes down by the amount in used. The program should print: {{v}} left: {{start - used}}",
+    "starter": "{{v}} = {{start}}\nused = {{used}}\n____\nprint(\"{{v}} left:\", {{v}})",
+    "answers": [
+      "{{v}} = {{v}} - used"
+    ],
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "{{v}} left: {{start - used}}"
+      }
+    ],
+    "hints": [
+      "Change the value stored in {{v}}.",
+      "{{v}} = {{v}} - used"
+    ],
+    "skills": [
+      "reassignment"
+    ],
+    "tags": [
+      "overwriting",
+      "whole line"
+    ]
+  },
+  {
+    "id": "var-t8",
+    "units": [
+      "variables"
+    ],
+    "level": 8,
+    "type": "write",
+    "title": "Times table helper",
+    "params": {
+      "k": {
+        "int": [
+          2,
+          9
+        ]
+      }
+    },
+    "description": "The number has been read for you. Convert it to a whole number, then print it multiplied by {{k}}.",
+    "starter": "number = input(\"Enter a number: \")\n# Convert number to a whole number, then print it multiplied by {{k}}",
+    "solution": "number = input(\"Enter a number: \")\nnumber = int(number)\nprint(number * {{k}})",
+    "testParams": {
+      "n": {
+        "int": [
+          1,
+          50
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "n": 0
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        "{{n}}"
+      ],
+      "expected": "{{n * k}}"
+    },
+    "hints": [
+      "number holds text. Multiplying text repeats it!",
+      "number = int(number)"
+    ],
+    "skills": [
+      "int()",
+      "input"
+    ],
+    "tags": [
+      "int() on input"
+    ]
+  },
+  {
+    "id": "var-t9",
+    "units": [
+      "variables"
+    ],
+    "level": 9,
+    "type": "write",
+    "title": "Trip total",
+    "params": {
+      "place": {
+        "choice": [
+          "the zoo",
+          "the Science Museum",
+          "a theme park",
+          "the theatre",
+          "the aquarium"
+        ]
+      },
+      "price": {
+        "int": [
+          5,
+          25
+        ]
+      }
+    },
+    "description": "A trip to {{place}} costs £{{price}} per pupil. Ask how many pupils are going and print the total, for example: Total: £{{price * 30}}",
+    "starter": "# Write your program here",
+    "solution": "pupils = int(input(\"Pupils: \"))\nprint(\"Total: £\" + str(pupils * {{price}}))",
+    "testParams": {
+      "n": {
+        "int": [
+          1,
+          60
+        ]
+      }
+    },
+    "testCount": 3,
+    "test": {
+      "inputs": [
+        "{{n}}"
+      ],
+      "expected": "Total: £{{n * price}}"
+    },
+    "hints": [
+      "Use int() on the input so you can multiply.",
+      "There's no space after the £, so join with + and str()."
+    ],
+    "skills": [
+      "int()",
+      "str()",
+      "concatenation"
+    ],
+    "tags": [
+      "money"
+    ]
+  },
+  {
+    "id": "var-t10",
+    "units": [
+      "variables"
+    ],
+    "level": 10,
+    "type": "write",
+    "title": "Canteen order",
+    "params": {
+      "item": {
+        "choice": [
+          "Cookie",
+          "Juice",
+          "Muffin",
+          "Toastie",
+          "Fruit pot"
+        ]
+      },
+      "price": {
+        "int": [
+          30,
+          150
+        ]
+      }
+    },
+    "description": "A {{item}} costs {{price}}p. Ask for the pupil's name and how many they want. Print, for example:\nAva ordered 3 x {{item}}\nTotal: {{price * 3}}p",
+    "starter": "# Write your program here",
+    "solution": "name = input(\"Name: \")\nqty = int(input(\"How many: \"))\nprint(name + \" ordered \" + str(qty) + \" x {{item}}\")\nprint(\"Total: \" + str(qty * {{price}}) + \"p\")",
+    "testParams": {
+      "who": {
+        "choice": [
+          "Ava",
+          "Leo",
+          "Priya",
+          "Kofi",
+          "Mia",
+          "Sam",
+          "Zara",
+          "Ollie",
+          "Amira",
+          "Chen"
+        ]
+      },
+      "q": {
+        "int": [
+          1,
+          6
+        ]
+      }
+    },
+    "testCount": 3,
+    "test": {
+      "inputs": [
+        "{{who}}",
+        "{{q}}"
+      ],
+      "expected": "{{who}} ordered {{q}} x {{item}}\nTotal: {{q * price}}p"
+    },
+    "hints": [
+      "The name stays as text, but the quantity needs int().",
+      "Use str() on numbers when joining them with +.",
+      "There's no space between the total and the p."
+    ],
+    "skills": [
+      "input",
+      "int()",
+      "str()"
+    ],
+    "tags": [
+      "money",
+      "type conversion"
+    ]
+  },
+  {
+    "id": "maths-t1",
+    "units": [
+      "maths"
+    ],
+    "level": 1,
+    "type": "predict",
+    "shuffleOptions": true,
+    "title": "Sharing out",
+    "description": "What will this program print?",
+    "params": {
+      "a": {
+        "int": [
+          11,
+          40
+        ]
+      },
+      "b": {
+        "int": [
+          3,
+          7
+        ]
+      }
+    },
+    "where": "a % b !== 0",
+    "solution": "sweets = {{a}}\nfriends = {{b}}\nprint(sweets // friends)",
+    "options": [
+      "{{idiv(a, b)}}",
+      "{{fl(a / b)}}",
+      "{{a % b}}",
+      "{{idiv(a, b) + 1}}"
+    ],
+    "answer": 0,
+    "hints": [
+      "// is integer division: how many WHOLE times does it go in?",
+      "It rounds down – it never rounds up."
+    ],
+    "skills": [
+      "integer-division"
+    ],
+    "tags": [
+      "integer division vs float division"
+    ]
+  },
+  {
+    "id": "maths-t2",
+    "units": [
+      "maths"
+    ],
+    "level": 2,
+    "type": "predict",
+    "shuffleOptions": true,
+    "title": "Order of operations",
+    "description": "What will this program print?",
+    "params": {
+      "a": {
+        "int": [
+          2,
+          9
+        ]
+      },
+      "b": {
+        "int": [
+          2,
+          9
+        ]
+      },
+      "c": {
+        "int": [
+          2,
+          9
+        ]
+      }
+    },
+    "solution": "print({{a}} + {{b}} * {{c}})",
+    "options": [
+      "{{a + b * c}}",
+      "{{(a + b) * c}}",
+      "{{a * b + c}}",
+      "{{a}} + {{b}} * {{c}}"
+    ],
+    "answer": 0,
+    "hints": [
+      "Python follows BIDMAS.",
+      "Multiplication happens before addition."
+    ],
+    "skills": [
+      "precedence"
+    ],
+    "tags": [
+      "operator precedence",
+      "BIDMAS"
+    ]
+  },
+  {
+    "id": "maths-t3",
+    "units": [
+      "maths"
+    ],
+    "level": 3,
+    "type": "fill",
+    "title": "Left over",
+    "params": {
+      "pupils": {
+        "int": [
+          20,
+          40
+        ]
+      },
+      "size": {
+        "int": [
+          3,
+          6
+        ]
+      }
+    },
+    "where": "pupils % size !== 0 && pupils % size !== idiv(pupils, size)",
+    "description": "{{pupils}} pupils are put into groups of {{size}}. Fill in the blank so the program prints how many are left over: Left over: {{pupils % size}}",
+    "starter": "pupils = {{pupils}}\nleft = pupils ____ {{size}}\nprint(\"Left over:\", left)",
+    "answers": [
+      "%"
+    ],
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "Left over: {{pupils % size}}"
+      }
+    ],
+    "hints": [
+      "You want the remainder.",
+      "Which operator gives the remainder?"
+    ],
+    "skills": [
+      "modulo"
+    ],
+    "tags": [
+      "modulo"
+    ]
+  },
+  {
+    "id": "maths-t4",
+    "units": [
+      "maths"
+    ],
+    "level": 4,
+    "type": "fill",
+    "title": "Hours and minutes",
+    "params": {
+      "m": {
+        "int": [
+          61,
+          299
+        ]
+      }
+    },
+    "where": "m % 60 !== 0",
+    "description": "Fill in the blanks so the program prints {{m}} minutes as: {{idiv(m, 60)}} hours and {{m % 60}} minutes",
+    "starter": "minutes = {{m}}\nhours = minutes ____ 60\nleft = minutes ____ 60\nprint(hours, \"hours and\", left, \"minutes\")",
+    "answers": [
+      "//",
+      "%"
+    ],
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "{{idiv(m, 60)}} hours and {{m % 60}} minutes"
+      }
+    ],
+    "hints": [
+      "Whole hours: integer division.",
+      "Minutes left over: the remainder."
+    ],
+    "skills": [
+      "integer-division",
+      "modulo"
+    ],
+    "tags": [
+      "time"
+    ]
+  },
+  {
+    "id": "maths-t5",
+    "units": [
+      "maths"
+    ],
+    "level": 5,
+    "type": "parsons",
+    "title": "Change due",
+    "params": {
+      "paid": {
+        "choice": [
+          200,
+          500,
+          1000
+        ]
+      },
+      "cost": {
+        "int": [
+          50,
+          190
+        ]
+      }
+    },
+    "description": "A pupil pays {{paid}}p for something costing {{cost}}p. Arrange the lines to print: Change: {{paid - cost}} p\nOne line is not needed.",
+    "solution": "paid = {{paid}}\ncost = {{cost}}\nchange = paid - cost\nprint(\"Change:\", change, \"p\")",
+    "distractors": [
+      "change = cost - paid"
+    ],
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "Change: {{paid - cost}} p"
+      }
+    ],
+    "hints": [
+      "Change is what you paid minus what it cost.",
+      "Create both variables before you use them."
+    ],
+    "skills": [
+      "arithmetic"
+    ],
+    "tags": [
+      "money"
+    ]
+  },
+  {
+    "id": "maths-t6",
+    "units": [
+      "maths"
+    ],
+    "level": 6,
+    "type": "parsons",
+    "title": "Test average",
+    "params": {
+      "subject": {
+        "choice": [
+          "Maths",
+          "Science",
+          "History",
+          "Art",
+          "Music",
+          "French",
+          "Geography",
+          "Drama"
+        ]
+      },
+      "dp": {
+        "choice": [
+          1,
+          2
+        ]
+      }
+    },
+    "description": "Arrange the lines so the program reads three {{subject}} test scores and prints their average to {{dp}} decimal place{{dp > 1 ? 's' : ''}}. Two lines are not needed.",
+    "solution": "a = int(input(\"{{subject}} test 1: \"))\nb = int(input(\"{{subject}} test 2: \"))\nc = int(input(\"{{subject}} test 3: \"))\naverage = (a + b + c) / 3\nprint(\"Average:\", round(average, {{dp}}))",
+    "distractors": [
+      "average = a + b + c / 3",
+      "a = input(\"{{subject}} test 1: \")"
+    ],
+    "testParams": {
+      "x": {
+        "int": [
+          0,
+          20
+        ]
+      },
+      "y": {
+        "int": [
+          0,
+          20
+        ]
+      },
+      "z": {
+        "int": [
+          0,
+          20
+        ]
+      }
+    },
+    "testCount": 3,
+    "test": {
+      "inputs": [
+        "{{x}}",
+        "{{y}}",
+        "{{z}}"
+      ],
+      "expected": "Average: {{fl(pyround((x + y + z) / 3, dp))}}"
+    },
+    "hints": [
+      "Without brackets, only c is divided by 3.",
+      "The scores must be numbers before you add them."
+    ],
+    "skills": [
+      "precedence",
+      "division",
+      "rounding"
+    ],
+    "tags": [
+      "operator precedence"
+    ]
+  },
+  {
+    "id": "maths-t7",
+    "units": [
+      "maths"
+    ],
+    "level": 7,
+    "type": "fill",
+    "title": "Whole groups and extras",
+    "params": {
+      "ctx": {
+        "choice": [
+          {
+            "thing": "days",
+            "group": "weeks",
+            "d": 7,
+            "phrase": "7 days in a week"
+          },
+          {
+            "thing": "months",
+            "group": "years",
+            "d": 12,
+            "phrase": "12 months in a year"
+          },
+          {
+            "thing": "eggs",
+            "group": "boxes",
+            "d": 6,
+            "phrase": "6 eggs in a box"
+          },
+          {
+            "thing": "minutes",
+            "group": "hours",
+            "d": 60,
+            "phrase": "60 minutes in an hour"
+          }
+        ]
+      }
+    },
+    "description": "There are {{ctx.phrase}}. Write the missing line so extra holds the {{ctx.thing}} left over after the whole {{ctx.group}}.",
+    "starter": "total = int(input(\"How many {{ctx.thing}}? \"))\ngroups = total // {{ctx.d}}\n____\nprint(groups, \"{{ctx.group}} and\", extra, \"{{ctx.thing}}\")",
+    "answers": [
+      "extra = total % {{ctx.d}}"
+    ],
+    "testParams": {
+      "n": {
+        "int": [
+          1,
+          200
+        ]
+      }
+    },
+    "testCount": 3,
+    "test": {
+      "inputs": [
+        "{{n}}"
+      ],
+      "expected": "{{idiv(n, ctx.d)}} {{ctx.group}} and {{n % ctx.d}} {{ctx.thing}}"
+    },
+    "hints": [
+      "The ones left over are the remainder.",
+      "Use % with {{ctx.d}}."
+    ],
+    "skills": [
+      "modulo",
+      "integer-division"
+    ],
+    "tags": [
+      "whole line"
+    ]
+  },
+  {
+    "id": "maths-t8",
+    "units": [
+      "maths"
+    ],
+    "level": 8,
+    "type": "write",
+    "title": "Powers",
+    "params": {
+      "k": {
+        "choice": [
+          2,
+          3,
+          4
+        ]
+      }
+    },
+    "values": {
+      "word": "k === 2 ? 'squared' : k === 3 ? 'cubed' : 'to the power of 4'"
+    },
+    "description": "The number has been read for you. Print it {{word}}.",
+    "starter": "n = int(input(\"Number: \"))\n# Print n {{word}}",
+    "solution": "n = int(input(\"Number: \"))\nprint(n ** {{k}})",
+    "testParams": {
+      "n": {
+        "int": [
+          2,
+          12
+        ]
+      }
+    },
+    "testCount": 3,
+    "test": {
+      "inputs": [
+        "{{n}}"
+      ],
+      "expected": "{{Math.pow(n, k)}}"
+    },
+    "hints": [
+      "** means to the power of.",
+      "n * {{k}} multiplies – that's not the same as n ** {{k}}."
+    ],
+    "skills": [
+      "power"
+    ],
+    "tags": [
+      "** vs *"
+    ]
+  },
+  {
+    "id": "maths-t9",
+    "units": [
+      "maths"
+    ],
+    "level": 9,
+    "type": "write",
+    "title": "Packs",
+    "params": {
+      "p": {
+        "int": [
+          6,
+          15
+        ]
+      },
+      "item": {
+        "choice": [
+          "pencils",
+          "rulers",
+          "glue sticks",
+          "exercise books"
+        ]
+      }
+    },
+    "description": "Packs of {{item}} hold {{p}} each. Ask how many {{item}} the department has. Print the full packs and the loose ones, for example:\nFull packs: 2\nLoose {{item}}: 3",
+    "starter": "# Write your program here",
+    "solution": "n = int(input(\"How many {{item}}? \"))\nprint(\"Full packs:\", n // {{p}})\nprint(\"Loose {{item}}:\", n % {{p}})",
+    "testParams": {
+      "n": {
+        "int": [
+          0,
+          100
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "n": "p * 2"
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        "{{n}}"
+      ],
+      "expected": "Full packs: {{idiv(n, p)}}\nLoose {{item}}: {{n % p}}"
+    },
+    "hints": [
+      "Full packs: integer division.",
+      "Loose ones: the remainder."
+    ],
+    "skills": [
+      "integer-division",
+      "modulo"
+    ],
+    "tags": [
+      "integer division vs float division"
+    ]
+  },
+  {
+    "id": "maths-t10",
+    "units": [
+      "maths"
+    ],
+    "level": 10,
+    "type": "write",
+    "title": "Coach planner",
+    "params": {
+      "cap": {
+        "int": [
+          40,
+          60
+        ]
+      },
+      "price": {
+        "int": [
+          200,
+          450
+        ]
+      }
+    },
+    "description": "Each coach holds {{cap}} pupils and costs £{{price}}. Ask how many pupils are going. Print the coaches needed (part-full coaches count), the total cost, and the cost per pupil using round(..., 2), for example:\nCoaches needed: 2\nCoach cost: £{{2 * price}}\nCost per pupil: £{{fl(pyround(2 * price / (cap + 5), 2))}}",
+    "starter": "# Write your program here",
+    "solution": "pupils = int(input(\"Pupils: \"))\ncoaches = (pupils + {{cap - 1}}) // {{cap}}\ncost = coaches * {{price}}\nprint(\"Coaches needed:\", coaches)\nprint(\"Coach cost: £\" + str(cost))\nprint(\"Cost per pupil: £\" + str(round(cost / pupils, 2)))",
+    "testParams": {
+      "n": {
+        "int": [
+          10,
+          150
+        ]
+      }
+    },
+    "testValues": {
+      "co": "idiv(n + cap - 1, cap)"
+    },
+    "testCases": [
+      {
+        "n": "cap"
+      },
+      {
+        "n": "cap + 1"
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        "{{n}}"
+      ],
+      "expected": "Coaches needed: {{co}}\nCoach cost: £{{co * price}}\nCost per pupil: £{{fl(pyround(co * price / n, 2))}}"
+    },
+    "hints": [
+      "pupils // {{cap}} rounds down, but a part-full coach still has to go.",
+      "Add {{cap - 1}} before dividing to round up.",
+      "Cost per pupil is the cost divided by the pupils, rounded to 2 places."
+    ],
+    "skills": [
+      "integer-division",
+      "arithmetic",
+      "rounding"
+    ],
+    "tags": [
+      "money"
+    ]
+  },
+  {
+    "id": "sel-t1",
+    "units": [
+      "selection"
+    ],
+    "level": 1,
+    "type": "predict",
+    "shuffleOptions": true,
+    "title": "Pass mark",
+    "description": "What will this program print?",
+    "params": {
+      "score": {
+        "int": [
+          20,
+          80
+        ]
+      },
+      "pass": {
+        "choice": [
+          40,
+          50,
+          60
+        ]
+      }
+    },
+    "solution": "score = {{score}}\nif score >= {{pass}}:\n    print(\"Pass\")\nelse:\n    print(\"Try again\")",
+    "options": [
+      "Pass",
+      "Try again",
+      "Pass\nTry again"
+    ],
+    "answer": "score >= pass ? 0 : 1",
+    "hints": [
+      "Is {{score}} greater than or equal to {{pass}}?",
+      "Only one of the two prints runs."
+    ],
+    "skills": [
+      "if/else",
+      "comparison"
+    ],
+    "tags": [
+      "trace"
+    ]
+  },
+  {
+    "id": "sel-t2",
+    "units": [
+      "selection"
+    ],
+    "level": 2,
+    "type": "predict",
+    "shuffleOptions": true,
+    "title": "Right on the line",
+    "description": "What will this program print?",
+    "params": {
+      "limit": {
+        "choice": [
+          12,
+          13,
+          15,
+          16,
+          18
+        ]
+      },
+      "d": {
+        "choice": [
+          -1,
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    "values": {
+      "age": "limit + d"
+    },
+    "solution": "age = {{age}}\nif age > {{limit}}:\n    print(\"Allowed in\")\nelse:\n    print(\"Too young\")",
+    "options": [
+      "Allowed in",
+      "Too young",
+      "Allowed in\nToo young",
+      ""
+    ],
+    "answer": "age > limit ? 0 : 1",
+    "hints": [
+      "> means strictly greater than.",
+      "Is {{age}} > {{limit}}? What if they are equal?"
+    ],
+    "skills": [
+      "comparison",
+      "boundary"
+    ],
+    "tags": [
+      ">= vs >"
+    ]
+  },
+  {
+    "id": "sel-t3",
+    "units": [
+      "selection"
+    ],
+    "level": 3,
+    "type": "fill",
+    "title": "Coat weather",
+    "params": {
+      "limit": {
+        "int": [
+          5,
+          15
+        ]
+      }
+    },
+    "description": "Fill in the blank so the program prints \"Coat needed\" only when the temperature is below {{limit}}.",
+    "starter": "temp = int(input(\"Temperature: \"))\nif temp ____ {{limit}}:\n    print(\"Coat needed\")",
+    "answers": [
+      "<"
+    ],
+    "testParams": {
+      "t": {
+        "int": [
+          -5,
+          30
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "t": "limit"
+      },
+      {
+        "t": "limit - 1"
+      },
+      {
+        "t": "limit + 5"
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        "{{t}}"
+      ],
+      "expected": "{{t < limit ? 'Coat needed' : ''}}"
+    },
+    "hints": [
+      "Below means less than.",
+      "Exactly {{limit}} is not below {{limit}}."
+    ],
+    "skills": [
+      "comparison",
+      "if",
+      "boundary"
+    ],
+    "tags": [
+      "boundary"
+    ]
+  },
+  {
+    "id": "sel-t4",
+    "units": [
+      "selection"
+    ],
+    "level": 4,
+    "type": "fill",
+    "title": "Merit award",
+    "params": {
+      "target": {
+        "int": [
+          10,
+          30
+        ]
+      }
+    },
+    "description": "Fill in the blanks so the program prints \"Gold award\" for {{target}} or more merits, and \"Keep going\" otherwise.",
+    "starter": "merits = int(input(\"Merits: \"))\nif merits >= ____:\n    print(\"Gold award\")\n____:\n    print(\"Keep going\")",
+    "answers": [
+      "{{target}}",
+      "else"
+    ],
+    "testParams": {
+      "m": {
+        "int": [
+          0,
+          50
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "m": "target"
+      },
+      {
+        "m": "target - 1"
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        "{{m}}"
+      ],
+      "expected": "{{m >= target ? 'Gold award' : 'Keep going'}}"
+    },
+    "hints": [
+      "The first blank is the number of merits needed.",
+      "Which keyword runs when the condition is False?"
+    ],
+    "skills": [
+      "if/else",
+      "boundary"
+    ],
+    "tags": [
+      "else"
+    ]
+  },
+  {
+    "id": "sel-t5",
+    "units": [
+      "selection"
+    ],
+    "level": 5,
+    "type": "parsons",
+    "title": "Results",
+    "params": {
+      "b1": {
+        "int": [
+          60,
+          80
+        ]
+      },
+      "b2": {
+        "int": [
+          30,
+          50
+        ]
+      }
+    },
+    "description": "Arrange the lines so {{b1}}+ prints Distinction, {{b2}}+ prints Pass, and anything lower prints Not yet. One line is not needed.",
+    "solution": "mark = int(input(\"Mark: \"))\nif mark >= {{b1}}:\n    print(\"Distinction\")\nelif mark >= {{b2}}:\n    print(\"Pass\")\nelse:\n    print(\"Not yet\")",
+    "distractors": [
+      "if mark >= {{b2}}:"
+    ],
+    "testParams": {
+      "m": {
+        "int": [
+          0,
+          100
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "m": "b1"
+      },
+      {
+        "m": "b2"
+      },
+      {
+        "m": "b2 - 1"
+      }
+    ],
+    "testCount": 5,
+    "test": {
+      "inputs": [
+        "{{m}}"
+      ],
+      "expected": "{{m >= b1 ? 'Distinction' : m >= b2 ? 'Pass' : 'Not yet'}}"
+    },
+    "hints": [
+      "Check the highest band first.",
+      "A second if would also run for a Distinction mark – use elif."
+    ],
+    "skills": [
+      "elif",
+      "boundary"
+    ],
+    "tags": [
+      "separate if vs elif"
+    ]
+  },
+  {
+    "id": "sel-t6",
+    "units": [
+      "selection"
+    ],
+    "level": 6,
+    "type": "parsons",
+    "title": "Museum entry",
+    "params": {
+      "low": {
+        "int": [
+          4,
+          8
+        ]
+      },
+      "high": {
+        "int": [
+          60,
+          70
+        ]
+      },
+      "price": {
+        "int": [
+          3,
+          9
+        ]
+      }
+    },
+    "description": "Children under {{low}} and adults aged {{high}} or over get in free. Everyone else pays £{{price}}. Arrange the lines. Two lines are not needed.",
+    "solution": "age = int(input(\"Age: \"))\nif age < {{low}} or age >= {{high}}:\n    print(\"Free entry\")\nelse:\n    print(\"£{{price}} please\")",
+    "distractors": [
+      "if age < {{low}} and age >= {{high}}:",
+      "age = input(\"Age: \")"
+    ],
+    "testParams": {
+      "a": {
+        "int": [
+          1,
+          90
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "a": "low"
+      },
+      {
+        "a": "low - 1"
+      },
+      {
+        "a": "high"
+      },
+      {
+        "a": "high - 1"
+      }
+    ],
+    "testCount": 6,
+    "test": {
+      "inputs": [
+        "{{a}}"
+      ],
+      "expected": "{{a < low || a >= high ? 'Free entry' : '£' + price + ' please'}}"
+    },
+    "hints": [
+      "Can someone be under {{low}} AND {{high}} or over at the same time?",
+      "The age must be a number to compare it."
+    ],
+    "skills": [
+      "and/or",
+      "boundary"
+    ],
+    "tags": [
+      "and vs or"
+    ]
+  },
+  {
+    "id": "sel-t7",
+    "units": [
+      "selection"
+    ],
+    "level": 7,
+    "type": "fill",
+    "title": "Valid score",
+    "params": {
+      "lo": {
+        "int": [
+          0,
+          10
+        ]
+      },
+      "hi": {
+        "int": [
+          90,
+          100
+        ]
+      }
+    },
+    "description": "A valid score is from {{lo}} to {{hi}}, including both. Write the whole condition.",
+    "starter": "score = int(input(\"Score: \"))\nif ____:\n    print(\"Valid\")\nelse:\n    print(\"Invalid\")",
+    "answers": [
+      "score >= {{lo}} and score <= {{hi}}"
+    ],
+    "testParams": {
+      "s": {
+        "int": [
+          -20,
+          120
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "s": "lo"
+      },
+      {
+        "s": "lo - 1"
+      },
+      {
+        "s": "hi"
+      },
+      {
+        "s": "hi + 1"
+      }
+    ],
+    "testCount": 6,
+    "test": {
+      "inputs": [
+        "{{s}}"
+      ],
+      "expected": "{{s >= lo && s <= hi ? 'Valid' : 'Invalid'}}"
+    },
+    "hints": [
+      "Two things must both be true.",
+      "score >= {{lo}} and score <= ..."
+    ],
+    "skills": [
+      "and/or",
+      "input-validation",
+      "boundary"
+    ],
+    "tags": [
+      "range check",
+      "whole line"
+    ]
+  },
+  {
+    "id": "sel-t8",
+    "units": [
+      "selection"
+    ],
+    "level": 8,
+    "type": "write",
+    "title": "Exact groups",
+    "params": {
+      "d": {
+        "int": [
+          3,
+          9
+        ]
+      }
+    },
+    "description": "The number of pupils has been read for you. Print \"Fits exactly\" if it is a multiple of {{d}}, otherwise print \"Not a multiple\".",
+    "starter": "n = int(input(\"Number of pupils: \"))\n# Print \"Fits exactly\" or \"Not a multiple\"",
+    "solution": "n = int(input(\"Number of pupils: \"))\nif n % {{d}} == 0:\n    print(\"Fits exactly\")\nelse:\n    print(\"Not a multiple\")",
+    "testParams": {
+      "n": {
+        "int": [
+          1,
+          60
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "n": "d * 3"
+      },
+      {
+        "n": "d * 3 + 1"
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        "{{n}}"
+      ],
+      "expected": "{{n % d === 0 ? 'Fits exactly' : 'Not a multiple'}}"
+    },
+    "hints": [
+      "A multiple of {{d}} has no remainder when divided by {{d}}.",
+      "n % {{d}} == 0"
+    ],
+    "skills": [
+      "modulo-conditions",
+      "if/else"
+    ],
+    "tags": [
+      "modulo"
+    ]
+  },
+  {
+    "id": "sel-t9",
+    "units": [
+      "selection"
+    ],
+    "level": 9,
+    "type": "write",
+    "title": "Bus fare",
+    "params": {
+      "age": {
+        "int": [
+          11,
+          16
+        ]
+      },
+      "child": {
+        "choice": [
+          1,
+          2
+        ]
+      },
+      "adult": {
+        "choice": [
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    "description": "Ask for the passenger's age. Under {{age}} pays £{{child}}; everyone else pays £{{adult}}. Print, for example: Fare: £{{adult}}",
+    "starter": "# Write your program here",
+    "solution": "a = int(input(\"Age: \"))\nif a < {{age}}:\n    print(\"Fare: £{{child}}\")\nelse:\n    print(\"Fare: £{{adult}}\")",
+    "testParams": {
+      "x": {
+        "int": [
+          5,
+          70
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "x": "age"
+      },
+      {
+        "x": "age - 1"
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        "{{x}}"
+      ],
+      "expected": "Fare: £{{x < age ? child : adult}}"
+    },
+    "hints": [
+      "Convert the age to a number.",
+      "Exactly {{age}} is not under {{age}}."
+    ],
+    "skills": [
+      "if/else",
+      "comparison",
+      "boundary"
+    ],
+    "tags": [
+      "boundary"
+    ]
+  },
+  {
+    "id": "sel-t10",
+    "units": [
+      "selection"
+    ],
+    "level": 10,
+    "type": "write",
+    "title": "Grade calculator",
+    "params": {
+      "g9": {
+        "int": [
+          80,
+          90
+        ]
+      },
+      "g7": {
+        "int": [
+          65,
+          75
+        ]
+      },
+      "g4": {
+        "int": [
+          40,
+          55
+        ]
+      }
+    },
+    "description": "Ask for a mark out of 100. Print \"Invalid\" if it is below 0 or above 100. Otherwise print \"Grade 9\" for {{g9}} or more, \"Grade 7\" for {{g7}} or more, \"Grade 4\" for {{g4}} or more, and \"Grade U\" below that.",
+    "starter": "# Write your program here",
+    "solution": "mark = int(input(\"Mark: \"))\nif mark < 0 or mark > 100:\n    print(\"Invalid\")\nelif mark >= {{g9}}:\n    print(\"Grade 9\")\nelif mark >= {{g7}}:\n    print(\"Grade 7\")\nelif mark >= {{g4}}:\n    print(\"Grade 4\")\nelse:\n    print(\"Grade U\")",
+    "testParams": {
+      "m": {
+        "int": [
+          -10,
+          110
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "m": "g9"
+      },
+      {
+        "m": "g9 - 1"
+      },
+      {
+        "m": "g7"
+      },
+      {
+        "m": "g4 - 1"
+      },
+      {
+        "m": 100
+      },
+      {
+        "m": 101
+      },
+      {
+        "m": -1
+      }
+    ],
+    "testCount": 8,
+    "test": {
+      "inputs": [
+        "{{m}}"
+      ],
+      "expected": "{{m < 0 || m > 100 ? 'Invalid' : m >= g9 ? 'Grade 9' : m >= g7 ? 'Grade 7' : m >= g4 ? 'Grade 4' : 'Grade U'}}"
+    },
+    "hints": [
+      "Check for an invalid mark first.",
+      "Then check the grades from the highest down, with elif.",
+      "Test the boundary marks: {{g9}}, {{g7}} and {{g4}}."
+    ],
+    "skills": [
+      "elif",
+      "input-validation",
+      "boundary"
+    ],
+    "tags": [
+      "validation"
+    ]
+  },
+  {
+    "id": "comb-badge",
+    "units": [
+      "output",
+      "variables"
+    ],
+    "level": 8,
+    "type": "write",
+    "title": "Visitor badge",
+    "params": {
+      "ch": {
+        "choice": [
+          "*",
+          "=",
+          "#",
+          "~"
+        ]
+      },
+      "n": {
+        "int": [
+          10,
+          16
+        ]
+      }
+    },
+    "values": {
+      "border": "ch.repeat(n)"
+    },
+    "description": "The name and form have been read for you. Print a badge with the name and form separated by \" | \" between two borders, for example:\n{{border}}\nAva | 7B\n{{border}}",
+    "starter": "name = input(\"Name: \")\nform = input(\"Form: \")\n# Print the badge",
+    "solution": "name = input(\"Name: \")\nform = input(\"Form: \")\nprint(\"{{border}}\")\nprint(name, form, sep=\" | \")\nprint(\"{{border}}\")",
+    "testParams": {
+      "who": {
+        "choice": [
+          "Ava",
+          "Leo",
+          "Priya",
+          "Kofi",
+          "Mia",
+          "Sam",
+          "Zara",
+          "Ollie",
+          "Amira",
+          "Chen"
+        ]
+      },
+      "f": {
+        "choice": [
+          "7B",
+          "7G",
+          "8R",
+          "8K",
+          "9C",
+          "9F",
+          "10T",
+          "11S"
+        ]
+      }
+    },
+    "testCount": 3,
+    "test": {
+      "inputs": [
+        "{{who}}",
+        "{{f}}"
+      ],
+      "expected": "{{border}}\n{{who}} | {{f}}\n{{border}}"
+    },
+    "hints": [
+      "Three print() calls: border, details, border.",
+      "print(name, form, sep=\" | \")"
+    ],
+    "skills": [
+      "sep/end",
+      "input"
+    ],
+    "tags": [
+      "sep="
+    ]
+  },
+  {
+    "id": "comb-sharing",
+    "units": [
+      "variables",
+      "maths"
+    ],
+    "level": 9,
+    "type": "write",
+    "title": "Sharing fairly",
+    "params": {
+      "food": {
+        "choice": [
+          "sweets",
+          "biscuits",
+          "stickers",
+          "marbles"
+        ]
+      }
+    },
+    "description": "Ask how many {{food}} there are, then how many friends are sharing them. Print how many each friend gets and how many are left over, for example:\nEach friend gets 6\nLeft over: 2",
+    "starter": "# Write your program here",
+    "solution": "total = int(input(\"How many {{food}}? \"))\nfriends = int(input(\"How many friends? \"))\nprint(\"Each friend gets\", total // friends)\nprint(\"Left over:\", total % friends)",
+    "testParams": {
+      "t": {
+        "int": [
+          10,
+          100
+        ]
+      },
+      "f": {
+        "int": [
+          2,
+          9
+        ]
+      }
+    },
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        "{{t}}",
+        "{{f}}"
+      ],
+      "expected": "Each friend gets {{idiv(t, f)}}\nLeft over: {{t % f}}"
+    },
+    "hints": [
+      "Both inputs need int().",
+      "// gives the whole share, % gives what's left."
+    ],
+    "skills": [
+      "int()",
+      "integer-division",
+      "modulo"
+    ],
+    "tags": [
+      "integer division vs float division"
+    ]
+  },
+  {
+    "id": "comb-multiple",
+    "units": [
+      "maths",
+      "selection"
+    ],
+    "level": 9,
+    "type": "write",
+    "title": "Multiple or remainder",
+    "params": {
+      "d": {
+        "int": [
+          3,
+          12
+        ]
+      }
+    },
+    "description": "Ask for a number. If it is a multiple of {{d}}, print \"Multiple of {{d}}\". Otherwise print the remainder, for example: Remainder 2",
+    "starter": "# Write your program here",
+    "solution": "n = int(input(\"Number: \"))\nif n % {{d}} == 0:\n    print(\"Multiple of {{d}}\")\nelse:\n    print(\"Remainder\", n % {{d}})",
+    "testParams": {
+      "n": {
+        "int": [
+          1,
+          100
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "n": "d * 4"
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        "{{n}}"
+      ],
+      "expected": "{{n % d === 0 ? 'Multiple of ' + d : 'Remainder ' + (n % d)}}"
+    },
+    "hints": [
+      "n % {{d}} is the remainder.",
+      "A remainder of 0 means it's a multiple."
+    ],
+    "skills": [
+      "modulo",
+      "modulo-conditions",
+      "if/else"
+    ],
+    "tags": [
+      "modulo"
+    ]
+  },
+  {
+    "id": "comb-club",
+    "units": [
+      "variables",
+      "selection"
+    ],
+    "level": 8,
+    "type": "write",
+    "title": "Old enough to join?",
+    "params": {
+      "club": {
+        "choice": [
+          "coding club",
+          "the choir",
+          "chess club",
+          "the climbing wall"
+        ]
+      },
+      "limit": {
+        "int": [
+          11,
+          14
+        ]
+      }
+    },
+    "description": "Pupils can join {{club}} at {{limit}} or over. The age has been read for you as text. Convert it, then print \"You can join {{club}}\" or, if they are too young, \"Years to wait:\" and how many years.",
+    "starter": "age = input(\"Age: \")\n# Convert age to a whole number, then print the message",
+    "solution": "age = input(\"Age: \")\nage = int(age)\nif age >= {{limit}}:\n    print(\"You can join {{club}}\")\nelse:\n    print(\"Years to wait:\", {{limit}} - age)",
+    "testParams": {
+      "a": {
+        "int": [
+          8,
+          16
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "a": "limit"
+      },
+      {
+        "a": "limit - 1"
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        "{{a}}"
+      ],
+      "expected": "{{a >= limit ? 'You can join ' + club : 'Years to wait: ' + (limit - a)}}"
+    },
+    "hints": [
+      "age = int(age) before you compare it.",
+      "Years to wait is {{limit}} - age."
+    ],
+    "skills": [
+      "int()",
+      "if/else",
+      "comparison"
+    ],
+    "tags": [
+      "int() on input",
+      "boundary"
+    ]
+  },
+  {
+    "id": "comb-welldone",
+    "units": [
+      "output",
+      "selection"
+    ],
+    "level": 7,
+    "type": "fill",
+    "title": "Well done message",
+    "params": {
+      "p": {
+        "int": [
+          50,
+          80
+        ]
+      }
+    },
+    "description": "Write the missing line so a score of {{p}} or more prints \"Well done,\" and the name, for example: Well done, Ava",
+    "starter": "name = input(\"Name: \")\nscore = int(input(\"Score: \"))\nif score >= {{p}}:\n    ____\nelse:\n    print(\"Keep practising,\", name)",
+    "answers": [
+      "print(\"Well done,\", name)"
+    ],
+    "testParams": {
+      "who": {
+        "choice": [
+          "Ava",
+          "Leo",
+          "Priya",
+          "Kofi",
+          "Mia",
+          "Sam",
+          "Zara",
+          "Ollie",
+          "Amira",
+          "Chen"
+        ]
+      },
+      "s": {
+        "int": [
+          0,
+          100
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "s": "p"
+      },
+      {
+        "s": "p - 1"
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        "{{who}}",
+        "{{s}}"
+      ],
+      "expected": "{{s >= p ? 'Well done, ' + who : 'Keep practising, ' + who}}"
+    },
+    "hints": [
+      "Look at the else line – it does something very similar.",
+      "A comma in print() adds a space."
+    ],
+    "skills": [
+      "print",
+      "if/else"
+    ],
+    "tags": [
+      "whole line",
+      "indentation"
+    ]
+  },
+  {
+    "id": "comb-receipt",
+    "units": [
+      "output",
+      "maths"
+    ],
+    "level": 6,
+    "type": "parsons",
+    "title": "Tuck shop receipt",
+    "params": {
+      "item": {
+        "choice": [
+          "flapjack",
+          "apple",
+          "water",
+          "pretzel"
+        ]
+      },
+      "price": {
+        "int": [
+          2,
+          6
+        ]
+      },
+      "qty": {
+        "int": [
+          3,
+          9
+        ]
+      }
+    },
+    "description": "Arrange the lines to print:\n{{qty}} x {{item}}\nTotal: £{{price * qty}}\nTwo lines are not needed.",
+    "solution": "price = {{price}}\nqty = {{qty}}\ncost = price * qty\nprint(qty, \"x {{item}}\")\nprint(\"Total\", cost, sep=\": £\")",
+    "distractors": [
+      "print(\"Total\", cost, end=\": £\")",
+      "cost = price + qty"
+    ],
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "{{qty}} x {{item}}\nTotal: £{{price * qty}}"
+      }
+    ],
+    "hints": [
+      "The cost is price × quantity.",
+      "sep=\": £\" goes between \"Total\" and the cost."
+    ],
+    "skills": [
+      "sep/end",
+      "arithmetic"
+    ],
+    "tags": [
+      "sep=",
+      "money"
+    ]
+  },
+  {
+    "id": "comb-revision",
+    "units": [
+      "variables",
+      "maths"
+    ],
+    "level": 10,
+    "type": "write",
+    "title": "Revision log",
+    "params": {
+      "subject": {
+        "choice": [
+          "Maths",
+          "Science",
+          "History",
+          "French"
+        ]
+      }
+    },
+    "description": "Ask how many minutes of {{subject}} revision were done on Monday, Tuesday and Wednesday, keeping a running total in ONE variable. Print the total in hours and minutes, for example: Total: 2 hours 15 minutes",
+    "starter": "# Write your program here",
+    "solution": "total = 0\ntotal = total + int(input(\"{{subject}} minutes on Monday: \"))\ntotal = total + int(input(\"{{subject}} minutes on Tuesday: \"))\ntotal = total + int(input(\"{{subject}} minutes on Wednesday: \"))\nprint(\"Total:\", total // 60, \"hours\", total % 60, \"minutes\")",
+    "testParams": {
+      "a": {
+        "int": [
+          0,
+          120
+        ]
+      },
+      "b": {
+        "int": [
+          0,
+          120
+        ]
+      },
+      "c": {
+        "int": [
+          0,
+          120
+        ]
+      }
+    },
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        "{{a}}",
+        "{{b}}",
+        "{{c}}"
+      ],
+      "expected": "Total: {{idiv(a + b + c, 60)}} hours {{(a + b + c) % 60}} minutes"
+    },
+    "hints": [
+      "Start with total = 0 and add each day.",
+      "Hours: total // 60. Minutes: total % 60."
+    ],
+    "skills": [
+      "reassignment",
+      "integer-division",
+      "modulo"
+    ],
+    "tags": [
+      "running total",
+      "time"
+    ]
+  },
+  {
+    "id": "comb-percent-grade",
+    "units": [
+      "maths",
+      "selection"
+    ],
+    "level": 10,
+    "type": "write",
+    "title": "Percentage and award",
+    "params": {
+      "total": {
+        "choice": [
+          40,
+          50,
+          60,
+          80
+        ]
+      },
+      "pass": {
+        "int": [
+          40,
+          60
+        ]
+      }
+    },
+    "values": {
+      "merit": "pass + 20"
+    },
+    "description": "A test is marked out of {{total}}. Ask for the score. Work out the percentage, rounded to a whole number with round(), and print it with a % sign. Then print \"Merit\" if it is {{merit}}% or more, \"Pass\" if it is {{pass}}% or more, otherwise \"Not yet\". For example:\n75%\nMerit",
+    "starter": "# Write your program here",
+    "solution": "score = int(input(\"Score: \"))\npercent = round(score / {{total}} * 100)\nprint(str(percent) + \"%\")\nif percent >= {{merit}}:\n    print(\"Merit\")\nelif percent >= {{pass}}:\n    print(\"Pass\")\nelse:\n    print(\"Not yet\")",
+    "testParams": {
+      "s": {
+        "int": [
+          0,
+          80
+        ]
+      }
+    },
+    "testWhere": "s <= total",
+    "testValues": {
+      "pc": "pyround(s / total * 100)"
+    },
+    "testCount": 5,
+    "test": {
+      "inputs": [
+        "{{s}}"
+      ],
+      "expected": "{{pc}}%\n{{pc >= merit ? 'Merit' : pc >= pass ? 'Pass' : 'Not yet'}}"
+    },
+    "hints": [
+      "percent = round(score / {{total}} * 100)",
+      "Use str() to join the % sign.",
+      "Check Merit before Pass."
+    ],
+    "skills": [
+      "division",
+      "rounding",
+      "elif"
+    ],
+    "tags": [
+      "percentages"
+    ]
+  },
+  {
+    "id": "comb-username",
+    "units": [
+      "output",
+      "variables"
+    ],
+    "level": 9,
+    "type": "write",
+    "title": "Email name",
+    "params": {
+      "domain": {
+        "choice": [
+          "oakfield",
+          "riverside",
+          "hillview"
+        ]
+      }
+    },
+    "description": "Ask for a first name and a surname. Print the email name with a dot between them, then a welcome line, for example:\nAva.Smith@{{domain}}.sch.uk\nWelcome, Ava!",
+    "starter": "# Write your program here",
+    "solution": "first = input(\"First name: \")\nlast = input(\"Surname: \")\nprint(first, last + \"@{{domain}}.sch.uk\", sep=\".\")\nprint(\"Welcome, \" + first + \"!\")",
+    "testParams": {
+      "f": {
+        "choice": [
+          "Ava",
+          "Leo",
+          "Priya",
+          "Kofi",
+          "Mia",
+          "Sam",
+          "Zara",
+          "Ollie",
+          "Amira",
+          "Chen"
+        ]
+      },
+      "s": {
+        "choice": [
+          "Smith",
+          "Khan",
+          "Okafor",
+          "Patel",
+          "Evans",
+          "Nowak",
+          "Brown",
+          "Ali"
+        ]
+      }
+    },
+    "testCount": 3,
+    "test": {
+      "inputs": [
+        "{{f}}",
+        "{{s}}"
+      ],
+      "expected": "{{f}}.{{s}}@{{domain}}.sch.uk\nWelcome, {{f}}!"
+    },
+    "hints": [
+      "sep=\".\" puts a dot between items.",
+      "Join the ! straight onto the name with +, so there's no space."
+    ],
+    "skills": [
+      "sep/end",
+      "input",
+      "concatenation"
+    ],
+    "tags": [
+      "sep=",
+      "concatenation"
+    ]
+  },
+  {
+    "id": "comb-pin",
+    "units": [
+      "variables",
+      "selection"
+    ],
+    "level": 6,
+    "type": "parsons",
+    "title": "Locker PIN",
+    "params": {
+      "pin": {
+        "int": [
+          1000,
+          9999
+        ]
+      }
+    },
+    "description": "Arrange the lines so the program prints \"Unlocked\" for the PIN {{pin}} and \"Wrong PIN\" for anything else. Two lines are not needed.",
+    "solution": "pin = int(input(\"PIN: \"))\nif pin == {{pin}}:\n    print(\"Unlocked\")\nelse:\n    print(\"Wrong PIN\")",
+    "distractors": [
+      "pin = input(\"PIN: \")",
+      "if pin = {{pin}}:"
+    ],
+    "testParams": {
+      "x": {
+        "int": [
+          1000,
+          9999
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "x": "pin"
+      },
+      {
+        "x": "pin + 1"
+      }
+    ],
+    "testCount": 3,
+    "test": {
+      "inputs": [
+        "{{x}}"
+      ],
+      "expected": "{{x === pin ? 'Unlocked' : 'Wrong PIN'}}"
+    },
+    "hints": [
+      "Text \"{{pin}}\" is not equal to the number {{pin}}.",
+      "= stores a value; == compares."
+    ],
+    "skills": [
+      "int()",
+      "if/else",
+      "comparison"
+    ],
+    "tags": [
+      "= vs ==",
+      "int() on input"
+    ]
+  },
+  {
+    "id": "comb-teams",
+    "units": [
+      "maths",
+      "selection"
+    ],
+    "level": 5,
+    "type": "parsons",
+    "title": "Even teams",
+    "params": {
+      "d": {
+        "int": [
+          3,
+          7
+        ]
+      }
+    },
+    "description": "Teams have {{d}} players. Arrange the lines so the program prints \"Even teams\" if the players split exactly, otherwise \"Uneven teams\". One line is not needed.",
+    "solution": "players = int(input(\"Players: \"))\nif players % {{d}} == 0:\n    print(\"Even teams\")\nelse:\n    print(\"Uneven teams\")",
+    "distractors": [
+      "if players / {{d}} == 0:"
+    ],
+    "testParams": {
+      "p": {
+        "int": [
+          5,
+          40
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "p": "d * 4"
+      },
+      {
+        "p": "d * 4 + 1"
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        "{{p}}"
+      ],
+      "expected": "{{p % d === 0 ? 'Even teams' : 'Uneven teams'}}"
+    },
+    "hints": [
+      "Splitting exactly means no remainder.",
+      "% gives the remainder; / gives a decimal."
+    ],
+    "skills": [
+      "modulo",
+      "modulo-conditions"
+    ],
+    "tags": [
+      "modulo"
+    ]
+  },
+  {
+    "id": "comb-fits",
+    "units": [
+      "maths",
+      "selection"
+    ],
+    "level": 2,
+    "type": "predict",
+    "shuffleOptions": true,
+    "title": "Does it fit?",
+    "description": "What will this program print?",
+    "params": {
+      "a": {
+        "int": [
+          10,
+          40
+        ]
+      },
+      "b": {
+        "int": [
+          3,
+          7
+        ]
+      }
+    },
+    "solution": "left = {{a}} % {{b}}\nif left == 0:\n    print(\"Fits\")\nelse:\n    print(\"Left over:\", left)",
+    "options": [
+      "{{a % b === 0 ? 'Fits' : 'Left over: ' + (a % b)}}",
+      "Left over: {{idiv(a, b)}}",
+      "Fits\nLeft over: {{a % b}}",
+      "Left over: {{fl(a / b)}}"
+    ],
+    "answer": 0,
+    "hints": [
+      "% gives the remainder.",
+      "Work out {{a}} % {{b}} first, then follow the if."
+    ],
+    "skills": [
+      "modulo",
+      "modulo-conditions"
+    ],
+    "tags": [
+      "trace"
+    ]
+  },
+  {
+    "level": 10,
+    "type": "scratch",
+    "starter": "",
+    "id": "scratch-out-notice",
+    "units": [
+      "output"
+    ],
+    "title": "Club noticeboard",
+    "params": {
+      "title": {
+        "choice": [
+          "CODING CLUB",
+          "CHESS CLUB",
+          "BOOK SWAP",
+          "ROBOTICS"
+        ]
+      },
+      "day": {
+        "choice": [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday"
+        ]
+      },
+      "room": {
+        "choice": [
+          "M4",
+          "S2",
+          "C12",
+          "L3"
+        ]
+      },
+      "ch": {
+        "choice": [
+          "*",
+          "=",
+          "-"
+        ]
+      }
+    },
+    "values": {
+      "border": "ch.repeat(title.length + 4)"
+    },
+    "description": "Write a program from scratch that prints this notice exactly. Use sep= for the last line.\n{{border}}\n  {{title}}\n{{border}}\nDay: {{day}} | Room: {{room}}",
+    "solution": "print(\"{{border}}\")\nprint(\"  {{title}}\")\nprint(\"{{border}}\")\nprint(\"Day: {{day}}\", \"Room: {{room}}\", sep=\" | \")",
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "{{border}}\n  {{title}}\n{{border}}\nDay: {{day}} | Room: {{room}}"
+      }
+    ],
+    "hints": [
+      "One print() per line.",
+      "The title line starts with two spaces.",
+      "print(\"Day: ...\", \"Room: ...\", sep=\" | \")"
+    ],
+    "skills": [
+      "print",
+      "sep/end",
+      "strings"
+    ],
+    "tags": [
+      "sep=",
+      "spacing"
+    ]
+  },
+  {
+    "level": 10,
+    "type": "scratch",
+    "starter": "",
+    "id": "scratch-out-bar",
+    "units": [
+      "output"
+    ],
+    "title": "Progress bar",
+    "params": {
+      "n": {
+        "int": [
+          4,
+          9
+        ]
+      },
+      "label": {
+        "choice": [
+          "Saving homework",
+          "Uploading project",
+          "Loading game",
+          "Printing worksheet"
+        ]
+      }
+    },
+    "values": {
+      "prints": "Array.from({ length: n }, () => 'print(\"#\", end=\"\")').join('\\n')"
+    },
+    "description": "Write a program from scratch that prints:\n{{label}}\n[{{'#'.repeat(n)}}] done\nPrint each # with its own print(), so the bar builds up on one line.",
+    "solution": "print(\"{{label}}\")\nprint(\"[\", end=\"\")\n{{prints}}\nprint(\"] done\")",
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "{{label}}\n[{{'#'.repeat(n)}}] done"
+      }
+    ],
+    "hints": [
+      "end=\"\" keeps the next print() on the same line.",
+      "You need {{n}} prints of #.",
+      "Only the last print() on the bar line should end the line."
+    ],
+    "skills": [
+      "sep/end",
+      "sequence"
+    ],
+    "tags": [
+      "end="
+    ]
+  },
+  {
+    "level": 10,
+    "type": "scratch",
+    "starter": "",
+    "id": "scratch-out-quote",
+    "units": [
+      "output"
+    ],
+    "title": "Quote of the day",
+    "params": {
+      "who": {
+        "choice": [
+          "Mr Khan",
+          "Ms Okafor",
+          "Mrs Patel",
+          "Mr Evans"
+        ]
+      },
+      "quote": {
+        "choice": [
+          "Practice makes progress",
+          "Mistakes help us learn",
+          "Be kind, work hard",
+          "Ask questions, check answers"
+        ]
+      }
+    },
+    "description": "Write a program from scratch that prints exactly:\nQuote of the day:\n\"{{quote}}\"\n- {{who}}'s favourite\nThat's all for today!",
+    "solution": "print(\"Quote of the day:\")\nprint('\"{{quote}}\"')\nprint(\"- {{who}}'s favourite\")\nprint(\"That's all for today!\")",
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "Quote of the day:\n\"{{quote}}\"\n- {{who}}'s favourite\nThat's all for today!"
+      }
+    ],
+    "hints": [
+      "Text with double quotes inside can go in single quotes.",
+      "Text with an apostrophe can go in double quotes."
+    ],
+    "skills": [
+      "strings",
+      "print"
+    ],
+    "tags": [
+      "quotes inside strings"
+    ]
+  },
+  {
+    "level": 10,
+    "type": "scratch",
+    "starter": "",
+    "id": "scratch-var-card",
+    "units": [
+      "variables"
+    ],
+    "title": "Student card",
+    "params": {
+      "sep": {
+        "choice": [
+          " | ",
+          " / ",
+          " - "
+        ]
+      }
+    },
+    "description": "Write a program from scratch that asks for a name, a form and a house, then prints them on one line with \"{{sep}}\" between them, for example:\nName: Ava{{sep}}Form: 7B{{sep}}House: Phoenix",
+    "solution": "name = input(\"Name: \")\nform = input(\"Form: \")\nhouse = input(\"House: \")\nprint(\"Name: \" + name, \"Form: \" + form, \"House: \" + house, sep=\"{{sep}}\")",
+    "testParams": {
+      "n": {
+        "choice": [
+          "Ava",
+          "Leo",
+          "Priya",
+          "Kofi",
+          "Mia",
+          "Sam",
+          "Zara",
+          "Ollie",
+          "Amira",
+          "Chen"
+        ]
+      },
+      "f": {
+        "choice": [
+          "7B",
+          "7G",
+          "8R",
+          "8K",
+          "9C",
+          "9F",
+          "10T",
+          "11S"
+        ]
+      },
+      "h": {
+        "choice": [
+          "Phoenix",
+          "Griffin",
+          "Dragon",
+          "Pegasus"
+        ]
+      }
+    },
+    "testCount": 3,
+    "test": {
+      "inputs": [
+        "{{n}}",
+        "{{f}}",
+        "{{h}}"
+      ],
+      "expected": "Name: {{n}}{{sep}}Form: {{f}}{{sep}}House: {{h}}"
+    },
+    "hints": [
+      "Ask three times and store each answer.",
+      "Join each label to its value with +.",
+      "Use sep= for the separator."
+    ],
+    "skills": [
+      "input",
+      "concatenation",
+      "sep/end"
+    ],
+    "tags": [
+      "sep="
+    ]
+  },
+  {
+    "level": 10,
+    "type": "scratch",
+    "starter": "",
+    "id": "scratch-var-swap",
+    "units": [
+      "variables"
+    ],
+    "title": "Swap the order",
+    "params": {
+      "thing": {
+        "choice": [
+          "lunch choices",
+          "favourite subjects",
+          "team names"
+        ]
+      }
+    },
+    "description": "Write a program from scratch that asks for two {{thing}}. Print \"Before: A then B\", swap the two variables, then print \"After: B then A\". For example:\nBefore: Pizza then Pasta\nAfter: Pasta then Pizza",
+    "solution": "a = input(\"First: \")\nb = input(\"Second: \")\nprint(\"Before: \" + a + \" then \" + b)\ntemp = a\na = b\nb = temp\nprint(\"After: \" + a + \" then \" + b)",
+    "testParams": {
+      "x": {
+        "choice": [
+          "Pizza",
+          "Pasta",
+          "Curry",
+          "Salad",
+          "Maths",
+          "Art",
+          "Lions",
+          "Tigers"
+        ]
+      },
+      "y": {
+        "choice": [
+          "Soup",
+          "Wrap",
+          "Music",
+          "PE",
+          "Eagles",
+          "Sharks"
+        ]
+      }
+    },
+    "testCount": 3,
+    "test": {
+      "inputs": [
+        "{{x}}",
+        "{{y}}"
+      ],
+      "expected": "Before: {{x}} then {{y}}\nAfter: {{y}} then {{x}}"
+    },
+    "hints": [
+      "Print the first line before you swap.",
+      "Use a third variable to swap."
+    ],
+    "skills": [
+      "reassignment",
+      "input",
+      "concatenation"
+    ],
+    "tags": [
+      "swap"
+    ]
+  },
+  {
+    "level": 10,
+    "type": "scratch",
+    "starter": "",
+    "id": "scratch-var-receipt",
+    "units": [
+      "variables"
+    ],
+    "title": "Two-item receipt",
+    "params": {
+      "items": {
+        "sample": [
+          [
+            "Cookie",
+            "Juice",
+            "Muffin",
+            "Toastie",
+            "Apple"
+          ],
+          2
+        ]
+      },
+      "p1": {
+        "int": [
+          40,
+          120
+        ]
+      },
+      "p2": {
+        "int": [
+          40,
+          120
+        ]
+      }
+    },
+    "description": "A {{items[0]}} costs {{p1}}p and a {{items[1]}} costs {{p2}}p. Write a program from scratch that asks how many of each, then prints, for example:\n2 x {{items[0]}} = {{2 * p1}}p\n1 x {{items[1]}} = {{p2}}p\nTotal: {{2 * p1 + p2}}p",
+    "solution": "a = int(input(\"How many {{items[0]}}? \"))\nb = int(input(\"How many {{items[1]}}? \"))\nprint(str(a) + \" x {{items[0]}} = \" + str(a * {{p1}}) + \"p\")\nprint(str(b) + \" x {{items[1]}} = \" + str(b * {{p2}}) + \"p\")\nprint(\"Total: \" + str(a * {{p1}} + b * {{p2}}) + \"p\")",
+    "testParams": {
+      "a": {
+        "int": [
+          0,
+          5
+        ]
+      },
+      "b": {
+        "int": [
+          0,
+          5
+        ]
+      }
+    },
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        "{{a}}",
+        "{{b}}"
+      ],
+      "expected": "{{a}} x {{items[0]}} = {{a * p1}}p\n{{b}} x {{items[1]}} = {{b * p2}}p\nTotal: {{a * p1 + b * p2}}p"
+    },
+    "hints": [
+      "Use int() on both inputs.",
+      "Use str() to join numbers onto text with +.",
+      "There's no space before each p."
+    ],
+    "skills": [
+      "int()",
+      "str()",
+      "concatenation"
+    ],
+    "tags": [
+      "money",
+      "type conversion"
+    ]
+  },
+  {
+    "level": 10,
+    "type": "scratch",
+    "starter": "",
+    "id": "scratch-maths-time",
+    "units": [
+      "maths"
+    ],
+    "title": "Time converter",
+    "params": {
+      "activity": {
+        "choice": [
+          "revision session",
+          "football match",
+          "school trip",
+          "film"
+        ]
+      }
+    },
+    "description": "Write a program from scratch that asks how many seconds a {{activity}} lasted, and prints it in hours, minutes and seconds, for example: 1 h 2 min 5 s",
+    "solution": "total = int(input(\"Seconds: \"))\nprint(total // 3600, \"h\", total % 3600 // 60, \"min\", total % 60, \"s\")",
+    "testParams": {
+      "s": {
+        "int": [
+          0,
+          20000
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "s": 3600
+      },
+      {
+        "s": 59
+      }
+    ],
+    "testCount": 5,
+    "test": {
+      "inputs": [
+        "{{s}}"
+      ],
+      "expected": "{{idiv(s, 3600)}} h {{idiv(s % 3600, 60)}} min {{s % 60}} s"
+    },
+    "hints": [
+      "3600 seconds in an hour, 60 in a minute.",
+      "Minutes: (total % 3600) // 60."
+    ],
+    "skills": [
+      "integer-division",
+      "modulo",
+      "int()"
+    ],
+    "tags": [
+      "time"
+    ]
+  },
+  {
+    "level": 10,
+    "type": "scratch",
+    "starter": "",
+    "id": "scratch-maths-bill",
+    "units": [
+      "maths"
+    ],
+    "title": "Splitting the cost",
+    "params": {
+      "event": {
+        "choice": [
+          "class party",
+          "end-of-term trip",
+          "leavers' hoodies",
+          "charity bake sale stall"
+        ]
+      }
+    },
+    "description": "Write a program from scratch for the {{event}}. Ask for the total cost in pence and the number of pupils. Each pupil pays the same whole number of pence and the teacher covers the rest. Print, for example:\nEach pupil pays 245p\nThe teacher pays 10p",
+    "solution": "cost = int(input(\"Total cost (p): \"))\npupils = int(input(\"Pupils: \"))\nprint(\"Each pupil pays \" + str(cost // pupils) + \"p\")\nprint(\"The teacher pays \" + str(cost % pupils) + \"p\")",
+    "testParams": {
+      "c": {
+        "int": [
+          500,
+          9000
+        ]
+      },
+      "p": {
+        "int": [
+          5,
+          32
+        ]
+      }
+    },
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        "{{c}}",
+        "{{p}}"
+      ],
+      "expected": "Each pupil pays {{idiv(c, p)}}p\nThe teacher pays {{c % p}}p"
+    },
+    "hints": [
+      "Each pupil's share: integer division.",
+      "The teacher pays the remainder.",
+      "Join the p on with + and str()."
+    ],
+    "skills": [
+      "integer-division",
+      "modulo",
+      "str()"
+    ],
+    "tags": [
+      "money"
+    ]
+  },
+  {
+    "level": 10,
+    "type": "scratch",
+    "starter": "",
+    "id": "scratch-maths-savings",
+    "units": [
+      "maths"
+    ],
+    "title": "Savings account",
+    "params": {
+      "start": {
+        "choice": [
+          50,
+          100,
+          200,
+          500
+        ]
+      },
+      "rate": {
+        "choice": [
+          2,
+          3,
+          4,
+          5
+        ]
+      }
+    },
+    "description": "£{{start}} is saved at {{rate}}% interest a year, so after n years it is worth {{start}} × (1 + {{rate}}/100)ⁿ. Write a program from scratch that asks for the number of years and prints the amount using round(..., 2), for example: After 2 years: £{{fl(pyround(start * (1 + rate / 100) ** 2, 2))}}",
+    "solution": "years = int(input(\"Years: \"))\namount = {{start}} * (1 + {{rate}} / 100) ** years\nprint(\"After\", years, \"years: £\" + str(round(amount, 2)))",
+    "testParams": {
+      "y": {
+        "int": [
+          1,
+          6
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "y": 0
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        "{{y}}"
+      ],
+      "expected": "After {{y}} years: £{{fl(pyround(start * (1 + rate / 100) ** y, 2))}}"
+    },
+    "hints": [
+      "Brackets make the 1 + {{rate}}/100 happen first.",
+      "** is worked out before *.",
+      "round(amount, 2) gives 2 decimal places."
+    ],
+    "skills": [
+      "power",
+      "precedence",
+      "rounding"
+    ],
+    "tags": [
+      "operator precedence",
+      "money"
+    ]
+  },
+  {
+    "level": 10,
+    "type": "scratch",
+    "starter": "",
+    "id": "scratch-sel-cinema",
+    "units": [
+      "selection"
+    ],
+    "title": "Cinema tickets",
+    "params": {
+      "child": {
+        "int": [
+          12,
+          16
+        ]
+      },
+      "cp": {
+        "int": [
+          4,
+          6
+        ]
+      },
+      "ap": {
+        "int": [
+          8,
+          11
+        ]
+      },
+      "disc": {
+        "choice": [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday"
+        ]
+      },
+      "off": {
+        "int": [
+          1,
+          3
+        ]
+      }
+    },
+    "description": "Write a program from scratch that asks for an age and a day. Under {{child}} pays £{{cp}}, everyone else pays £{{ap}}. On {{disc}}, every ticket is £{{off}} cheaper. Print, for example: Ticket: £{{ap}}",
+    "solution": "age = int(input(\"Age: \"))\nday = input(\"Day: \")\nif age < {{child}}:\n    price = {{cp}}\nelse:\n    price = {{ap}}\nif day == \"{{disc}}\":\n    price = price - {{off}}\nprint(\"Ticket: £\" + str(price))",
+    "testParams": {
+      "a": {
+        "int": [
+          5,
+          70
+        ]
+      },
+      "d": {
+        "choice": [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday"
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "a": "child",
+        "d": "disc"
+      },
+      {
+        "a": "child - 1",
+        "d": "'Saturday'"
+      }
+    ],
+    "testCount": 5,
+    "test": {
+      "inputs": [
+        "{{a}}",
+        "{{d}}"
+      ],
+      "expected": "Ticket: £{{(a < child ? cp : ap) - (d === disc ? off : 0)}}"
+    },
+    "hints": [
+      "Work out the normal price first with if/else.",
+      "Then a separate if takes off the discount.",
+      "Use str() to join the price onto the text."
+    ],
+    "skills": [
+      "if/else",
+      "comparison",
+      "str()"
+    ],
+    "tags": [
+      "separate if vs elif",
+      "money"
+    ]
+  },
+  {
+    "level": 10,
+    "type": "scratch",
+    "starter": "",
+    "id": "scratch-sel-grades",
+    "units": [
+      "selection"
+    ],
+    "title": "Test checker",
+    "params": {
+      "total": {
+        "choice": [
+          30,
+          40,
+          50,
+          60
+        ]
+      },
+      "pass": {
+        "int": [
+          40,
+          60
+        ]
+      }
+    },
+    "description": "A test is out of {{total}}. Write a program from scratch that asks for the score. If it is below 0 or above {{total}}, print \"Invalid score\". Otherwise print the percentage rounded with round(), then \"Pass\" if it is {{pass}}% or more, or \"Not yet\". For example:\n80%\nPass",
+    "solution": "score = int(input(\"Score: \"))\nif score < 0 or score > {{total}}:\n    print(\"Invalid score\")\nelse:\n    percent = round(score / {{total}} * 100)\n    print(str(percent) + \"%\")\n    if percent >= {{pass}}:\n        print(\"Pass\")\n    else:\n        print(\"Not yet\")",
+    "testParams": {
+      "s": {
+        "int": [
+          -5,
+          65
+        ]
+      }
+    },
+    "testValues": {
+      "pc": "pyround(s / total * 100)"
+    },
+    "testCases": [
+      {
+        "s": -1
+      },
+      {
+        "s": "total + 1"
+      },
+      {
+        "s": "total"
+      }
+    ],
+    "testCount": 6,
+    "test": {
+      "inputs": [
+        "{{s}}"
+      ],
+      "expected": "{{s < 0 || s > total ? 'Invalid score' : pc + '%\\n' + (pc >= pass ? 'Pass' : 'Not yet')}}"
+    },
+    "hints": [
+      "Check for an invalid score first.",
+      "percent = round(score / {{total}} * 100)",
+      "The pass check goes inside the else, indented."
+    ],
+    "skills": [
+      "input-validation",
+      "if/else",
+      "rounding"
+    ],
+    "tags": [
+      "validation",
+      "nested if"
+    ]
+  },
+  {
+    "level": 10,
+    "type": "scratch",
+    "starter": "",
+    "id": "scratch-sel-bulk",
+    "units": [
+      "selection"
+    ],
+    "title": "Bulk discount",
+    "params": {
+      "item": {
+        "choice": [
+          "exercise books",
+          "pens",
+          "calculators",
+          "glue sticks"
+        ]
+      },
+      "price": {
+        "int": [
+          30,
+          250
+        ]
+      },
+      "bulk": {
+        "int": [
+          5,
+          12
+        ]
+      },
+      "disc": {
+        "choice": [
+          10,
+          20,
+          25
+        ]
+      }
+    },
+    "description": "{{item}} cost {{price}}p each. Buying {{bulk}} or more gets {{disc}}% off. Write a program from scratch that asks how many are wanted and prints the total in whole pence (use // 100 when taking off the discount). If the discount was used, also print \"Discount applied\". For example:\nTotal: 900p\nDiscount applied",
+    "solution": "qty = int(input(\"How many? \"))\ntotal = qty * {{price}}\nif qty >= {{bulk}}:\n    total = total * {{100 - disc}} // 100\n    print(\"Total: \" + str(total) + \"p\")\n    print(\"Discount applied\")\nelse:\n    print(\"Total: \" + str(total) + \"p\")",
+    "testParams": {
+      "q": {
+        "int": [
+          1,
+          20
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "q": "bulk"
+      },
+      {
+        "q": "bulk - 1"
+      }
+    ],
+    "testCount": 5,
+    "test": {
+      "inputs": [
+        "{{q}}"
+      ],
+      "expected": "{{q >= bulk ? 'Total: ' + idiv(q * price * (100 - disc), 100) + 'p\\nDiscount applied' : 'Total: ' + q * price + 'p'}}"
+    },
+    "hints": [
+      "Work out the full price first: qty × {{price}}.",
+      "For {{disc}}% off, multiply by {{100 - disc}} then // 100.",
+      "Exactly {{bulk}} gets the discount too."
+    ],
+    "skills": [
+      "if/else",
+      "integer-division",
+      "str()"
+    ],
+    "tags": [
+      "percentages",
+      "boundary",
+      "money"
+    ]
+  },
+  {
+    "id": "while-t1",
+    "units": [
+      "loops-condition"
+    ],
+    "level": 1,
+    "type": "predict",
+    "shuffleOptions": true,
+    "title": "Counting up",
+    "description": "What will this program print?",
+    "params": {
+      "start": {
+        "int": [
+          1,
+          4
+        ]
+      },
+      "count": {
+        "int": [
+          3,
+          5
+        ]
+      },
+      "step": {
+        "choice": [
+          1,
+          2,
+          5,
+          10
+        ]
+      }
+    },
+    "values": {
+      "end": "start + step * (count - 1)",
+      "seq": "(n) => Array.from({ length: n }, (_, k) => start + step * k).join('\\n')",
+      "ok": "seq(count)",
+      "more": "seq(count + 1)",
+      "less": "seq(count - 1)"
+    },
+    "solution": "n = {{start}}\nwhile n <= {{end}}:\n    print(n)\n    n = n + {{step}}",
+    "options": [
+      "{{ok}}",
+      "{{more}}",
+      "{{less}}",
+      "{{start}}"
+    ],
+    "answer": 0,
+    "hints": [
+      "n starts at {{start}} and goes up by {{step}} each time.",
+      "The loop keeps going while n <= {{end}}, so {{end}} is printed."
+    ],
+    "skills": [
+      "while",
+      "counter"
+    ],
+    "tags": [
+      "trace"
+    ]
+  },
+  {
+    "id": "while-t2",
+    "units": [
+      "loops-condition"
+    ],
+    "level": 2,
+    "type": "predict",
+    "shuffleOptions": true,
+    "title": "Down to zero",
+    "description": "What will this program print?",
+    "params": {
+      "start": {
+        "int": [
+          2,
+          5
+        ]
+      },
+      "item": {
+        "choice": [
+          "Lives",
+          "Tickets",
+          "Sweets",
+          "Tries",
+          "Coins"
+        ]
+      }
+    },
+    "values": {
+      "row": "(n) => item + ': ' + n",
+      "ok": "Array.from({ length: start }, (_, k) => row(start - k)).concat(['None left']).join('\\n')",
+      "gte": "Array.from({ length: start + 1 }, (_, k) => row(start - k)).concat(['None left']).join('\\n')",
+      "once": "row(start) + '\\nNone left'",
+      "up": "Array.from({ length: start }, (_, k) => row(k + 1)).concat(['None left']).join('\\n')"
+    },
+    "solution": "n = {{start}}\nwhile n > 0:\n    print(\"{{item}}:\", n)\n    n = n - 1\nprint(\"None left\")",
+    "options": [
+      "{{ok}}",
+      "{{gte}}",
+      "{{once}}",
+      "{{up}}"
+    ],
+    "answer": 0,
+    "hints": [
+      "The loop repeats while n > 0.",
+      "When n is 0, is n > 0 True?"
+    ],
+    "skills": [
+      "while",
+      "counter"
+    ],
+    "tags": [
+      "trace",
+      ">= vs >"
+    ]
+  },
+  {
+    "id": "while-t3",
+    "units": [
+      "loops-condition"
+    ],
+    "level": 3,
+    "type": "fill",
+    "title": "Weekly savings",
+    "params": {
+      "weekly": {
+        "int": [
+          2,
+          8
+        ]
+      },
+      "weeks": {
+        "int": [
+          3,
+          6
+        ]
+      }
+    },
+    "description": "You save £{{weekly}} every week for {{weeks}} weeks. Fill in the blank so the loop runs once for each week, including week {{weeks}}.",
+    "starter": "saved = 0\nweek = 1\nwhile week ____ {{weeks}}:\n    saved = saved + {{weekly}}\n    week = week + 1\nprint(\"Saved: £\" + str(saved))",
+    "answers": [
+      "<="
+    ],
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "Saved: £{{weekly * weeks}}"
+      }
+    ],
+    "hints": [
+      "week goes 1, 2, 3 …",
+      "Week {{weeks}} must be counted too."
+    ],
+    "skills": [
+      "counter",
+      "accumulator"
+    ],
+    "tags": [
+      "pocket money",
+      "boundary"
+    ]
+  },
+  {
+    "id": "while-t4",
+    "units": [
+      "loops-condition"
+    ],
+    "level": 4,
+    "type": "fill",
+    "title": "Keep counting",
+    "params": {
+      "stopword": {
+        "choice": [
+          "stop",
+          "end",
+          "done",
+          "finish"
+        ]
+      },
+      "thing": {
+        "choice": [
+          "Goal",
+          "Merit",
+          "Book",
+          "Lap",
+          "Star"
+        ]
+      }
+    },
+    "description": "Count each {{thing.toLowerCase()}} typed in until {{stopword}} is typed. Fill in both blanks.",
+    "starter": "count = 0\nentry = input(\"{{thing}} (or {{stopword}}): \")\nwhile entry ____ \"{{stopword}}\":\n    count = count ____ 1\n    entry = input(\"{{thing}} (or {{stopword}}): \")\nprint(\"Total:\", count)",
+    "answers": [
+      "!=",
+      "+"
+    ],
+    "testParams": {
+      "k": {
+        "int": [
+          0,
+          5
+        ]
+      },
+      "word": {
+        "choice": [
+          "yes",
+          "x",
+          "1",
+          "ok"
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "k": 0
+      }
+    ],
+    "testCount": 3,
+    "test": {
+      "inputs": [
+        {
+          "list": "Array(k).fill(word).concat([stopword])"
+        }
+      ],
+      "expected": "Total: {{k}}"
+    },
+    "hints": [
+      "Keep going while the entry is NOT {{stopword}}.",
+      "Add 1 to the count."
+    ],
+    "skills": [
+      "sentinel",
+      "counter"
+    ],
+    "tags": [
+      "sentinel"
+    ]
+  },
+  {
+    "id": "while-t5",
+    "units": [
+      "loops-condition"
+    ],
+    "level": 5,
+    "type": "parsons",
+    "title": "In range",
+    "params": {
+      "lo": {
+        "int": [
+          1,
+          5
+        ]
+      },
+      "hi": {
+        "int": [
+          8,
+          20
+        ]
+      },
+      "what": {
+        "choice": [
+          "Seat number",
+          "Team number",
+          "Locker number",
+          "Table number"
+        ]
+      }
+    },
+    "description": "Keep asking until the {{what.toLowerCase()}} is from {{lo}} to {{hi}}. Arrange the lines. One line is not needed.",
+    "solution": "n = int(input(\"{{what}} ({{lo}}-{{hi}}): \"))\nwhile n < {{lo}} or n > {{hi}}:\n    print(\"Out of range\")\n    n = int(input(\"{{what}} ({{lo}}-{{hi}}): \"))\nprint(\"{{what}}\", n, \"saved\")",
+    "distractors": [
+      "if n < {{lo}} or n > {{hi}}:"
+    ],
+    "testParams": {
+      "nbad": {
+        "int": [
+          0,
+          2
+        ]
+      },
+      "a": {
+        "int": [
+          1,
+          3
+        ]
+      },
+      "b": {
+        "int": [
+          1,
+          10
+        ]
+      },
+      "g": {
+        "int": [
+          0,
+          50
+        ]
+      }
+    },
+    "testValues": {
+      "good": "lo + g % (hi - lo + 1)",
+      "bad": "[lo - a, hi + b].slice(0, nbad)"
+    },
+    "testCases": [
+      {
+        "nbad": 2
+      },
+      {
+        "nbad": 0,
+        "g": 0
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        {
+          "list": "bad.concat([good])"
+        }
+      ],
+      "expected": "{{'Out of range\\n'.repeat(nbad)}}{{what}} {{good}} saved"
+    },
+    "hints": [
+      "if only checks once – the number must be checked every time it's typed.",
+      "Ask again inside the loop."
+    ],
+    "skills": [
+      "validation",
+      "and-or"
+    ],
+    "tags": [
+      "validation"
+    ]
+  },
+  {
+    "id": "while-t6",
+    "units": [
+      "loops-condition"
+    ],
+    "level": 6,
+    "type": "parsons",
+    "title": "Running total",
+    "params": {
+      "sentinel": {
+        "choice": [
+          0,
+          -1
+        ]
+      },
+      "thing": {
+        "choice": [
+          "Price",
+          "Score",
+          "Distance",
+          "Points"
+        ]
+      }
+    },
+    "description": "Add up values until {{sentinel}} is entered, then print the total. Two lines are not needed.",
+    "solution": "total = 0\nvalue = int(input(\"{{thing}} ({{sentinel}} to stop): \"))\nwhile value != {{sentinel}}:\n    total = total + value\n    value = int(input(\"{{thing}} ({{sentinel}} to stop): \"))\nprint(\"Total:\", total)",
+    "distractors": [
+      "if value != {{sentinel}}:",
+      "while value == {{sentinel}}:"
+    ],
+    "testParams": {
+      "vals": {
+        "sample": [
+          [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            12,
+            15,
+            20
+          ],
+          4
+        ]
+      },
+      "k": {
+        "int": [
+          0,
+          4
+        ]
+      }
+    },
+    "testValues": {
+      "xs": "vals.slice(0, k)"
+    },
+    "testCases": [
+      {
+        "k": 0
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        {
+          "list": "xs.concat([sentinel])"
+        }
+      ],
+      "expected": "Total: {{xs.reduce((s, x) => s + x, 0)}}"
+    },
+    "hints": [
+      "The loop keeps going while the value is NOT {{sentinel}}.",
+      "Read the next value at the end of the loop."
+    ],
+    "skills": [
+      "sentinel",
+      "accumulator"
+    ],
+    "tags": [
+      "shop totals"
+    ]
+  },
+  {
+    "id": "while-t7",
+    "units": [
+      "loops-condition"
+    ],
+    "level": 7,
+    "type": "fill",
+    "title": "Make it stop",
+    "params": {
+      "start": {
+        "int": [
+          1,
+          3
+        ]
+      },
+      "step": {
+        "choice": [
+          1,
+          2,
+          3,
+          5
+        ]
+      },
+      "count": {
+        "int": [
+          3,
+          5
+        ]
+      }
+    },
+    "values": {
+      "end": "start + step * (count - 1)",
+      "expect": "Array.from({ length: count }, (_, k) => start + step * k).join('\\n')"
+    },
+    "description": "Print the numbers from {{start}} to {{end}}, going up in steps of {{step}}. Without the missing line the loop would never end. Write the whole missing line.",
+    "starter": "n = {{start}}\nwhile n <= {{end}}:\n    print(n)\n    ____",
+    "answers": [
+      "n = n + {{step}}"
+    ],
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "{{expect}}"
+      }
+    ],
+    "hints": [
+      "Something in the condition must change each time round.",
+      "n = n + ..."
+    ],
+    "skills": [
+      "infinite-loop",
+      "counter"
+    ],
+    "tags": [
+      "whole line"
+    ]
+  },
+  {
+    "id": "while-t8",
+    "units": [
+      "loops-condition"
+    ],
+    "level": 8,
+    "type": "write",
+    "title": "Password tries",
+    "params": {
+      "pw": {
+        "choice": [
+          "bluebell",
+          "oak42",
+          "river",
+          "maple7",
+          "comet"
+        ]
+      },
+      "tries": {
+        "int": [
+          2,
+          4
+        ]
+      }
+    },
+    "description": "The password is {{pw}}. Allow up to {{tries}} tries. Print \"Wrong password\" after each wrong try. Print \"Welcome\" if they get it right, or \"Locked out\" after {{tries}} wrong tries. The start is written for you.",
+    "starter": "attempts = 0\nlogged_in = False\n# Write the loop here\n",
+    "solution": "attempts = 0\nlogged_in = False\nwhile attempts < {{tries}} and not logged_in:\n    password = input(\"Password: \")\n    if password == \"{{pw}}\":\n        logged_in = True\n        print(\"Welcome\")\n    else:\n        print(\"Wrong password\")\n        attempts = attempts + 1\nif not logged_in:\n    print(\"Locked out\")",
+    "testParams": {
+      "wrong": {
+        "int": [
+          0,
+          4
+        ]
+      }
+    },
+    "testValues": {
+      "w": "Math.min(wrong, tries)",
+      "right": "wrong < tries"
+    },
+    "testCases": [
+      {
+        "wrong": 0
+      },
+      {
+        "wrong": "tries"
+      },
+      {
+        "wrong": "tries - 1"
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        {
+          "list": "Array(w).fill('guess').concat(right ? [pw] : [])"
+        }
+      ],
+      "expected": "{{'Wrong password\\n'.repeat(w)}}{{right ? 'Welcome' : 'Locked out'}}"
+    },
+    "hints": [
+      "Loop while attempts < {{tries}} and they haven't logged in.",
+      "Add 1 to attempts after each wrong try.",
+      "After the loop, print Locked out if they never logged in."
+    ],
+    "skills": [
+      "validation",
+      "and-or",
+      "counter"
+    ],
+    "tags": [
+      "password attempts"
+    ]
+  },
+  {
+    "id": "while-t9",
+    "units": [
+      "loops-condition"
+    ],
+    "level": 9,
+    "type": "write",
+    "title": "How many entered?",
+    "params": {
+      "thing": {
+        "choice": [
+          "book title",
+          "pupil name",
+          "song",
+          "team"
+        ]
+      },
+      "stopword": {
+        "choice": [
+          "stop",
+          "done",
+          "end"
+        ]
+      }
+    },
+    "description": "Keep asking for a {{thing}} until {{stopword}} is typed. Then print how many were entered, like: Entered: 3",
+    "starter": "# Write your program here",
+    "solution": "count = 0\nentry = input(\"Enter a {{thing}} ({{stopword}} to finish): \")\nwhile entry != \"{{stopword}}\":\n    count = count + 1\n    entry = input(\"Enter a {{thing}} ({{stopword}} to finish): \")\nprint(\"Entered:\", count)",
+    "testParams": {
+      "names": {
+        "sample": [
+          [
+            "Ava",
+            "Ben",
+            "Cal",
+            "Dev",
+            "Eli",
+            "Fin",
+            "Gus",
+            "Hal"
+          ],
+          4
+        ]
+      },
+      "k": {
+        "int": [
+          0,
+          4
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "k": 0
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        {
+          "list": "names.slice(0, k).concat([stopword])"
+        }
+      ],
+      "expected": "Entered: {{k}}"
+    },
+    "hints": [
+      "Ask once before the loop.",
+      "Loop while the entry is not {{stopword}}, adding 1 each time.",
+      "Ask again at the end of the loop."
+    ],
+    "skills": [
+      "sentinel",
+      "counter"
+    ],
+    "tags": [
+      "sentinel"
+    ]
+  },
+  {
+    "id": "while-t10",
+    "units": [
+      "loops-condition"
+    ],
+    "level": 10,
+    "type": "write",
+    "title": "Accept or ignore",
+    "params": {
+      "hi": {
+        "choice": [
+          10,
+          20,
+          50,
+          100
+        ]
+      },
+      "thing": {
+        "choice": [
+          "Score",
+          "Donation",
+          "Distance",
+          "Points"
+        ]
+      }
+    },
+    "description": "Read {{thing.toLowerCase()}} values until 0 is entered. A value must be from 1 to {{hi}}: for any other value print \"Ignored\". At the end print how many were accepted and their total, like:\nAccepted: 2\nTotal: 15",
+    "starter": "# Write your program here",
+    "solution": "accepted = 0\ntotal = 0\nvalue = int(input(\"{{thing}} (0 to finish): \"))\nwhile value != 0:\n    if value < 1 or value > {{hi}}:\n        print(\"Ignored\")\n    else:\n        accepted = accepted + 1\n        total = total + value\n    value = int(input(\"{{thing}} (0 to finish): \"))\nprint(\"Accepted:\", accepted)\nprint(\"Total:\", total)",
+    "testParams": {
+      "a": {
+        "int": [
+          1,
+          1000
+        ]
+      },
+      "b": {
+        "int": [
+          1,
+          1000
+        ]
+      },
+      "c": {
+        "choice": [
+          -5,
+          -1,
+          3,
+          7,
+          201,
+          500
+        ]
+      },
+      "k": {
+        "int": [
+          0,
+          3
+        ]
+      }
+    },
+    "testValues": {
+      "xs": "[a % hi + 1, b % (hi * 2) + 1, c].slice(0, k)",
+      "ok": "xs.filter((x) => x >= 1 && x <= hi)",
+      "ignored": "xs.length - ok.length",
+      "tot": "ok.reduce((s, x) => s + x, 0)"
+    },
+    "testCases": [
+      {
+        "k": 0
+      },
+      {
+        "k": 3,
+        "c": "hi + 1"
+      },
+      {
+        "k": 1,
+        "a": "hi - 1"
+      }
+    ],
+    "testCount": 5,
+    "test": {
+      "inputs": [
+        {
+          "list": "xs.concat([0])"
+        }
+      ],
+      "expected": "{{'Ignored\\n'.repeat(ignored)}}Accepted: {{ok.length}}\nTotal: {{tot}}"
+    },
+    "hints": [
+      "Loop until the value is 0.",
+      "Inside the loop, check the value is from 1 to {{hi}} before counting it.",
+      "Read the next value at the end of the loop, after the if/else."
+    ],
+    "skills": [
+      "validation",
+      "sentinel",
+      "accumulator"
+    ],
+    "tags": [
+      "validation"
+    ]
+  },
+  {
+    "id": "for-t1",
+    "units": [
+      "loops-count"
+    ],
+    "level": 1,
+    "type": "predict",
+    "shuffleOptions": true,
+    "title": "range(start, stop)",
+    "description": "What will this program print?",
+    "params": {
+      "a": {
+        "int": [
+          0,
+          5
+        ]
+      },
+      "len": {
+        "int": [
+          2,
+          4
+        ]
+      }
+    },
+    "values": {
+      "b": "a + len",
+      "seq": "(from, to) => Array.from({ length: to - from }, (_, k) => from + k).join('\\n')",
+      "ok": "seq(a, b)",
+      "incl": "seq(a, b + 1)",
+      "plus": "seq(a + 1, b + 1)"
+    },
+    "solution": "for i in range({{a}}, {{b}}):\n    print(i)",
+    "options": [
+      "{{ok}}",
+      "{{incl}}",
+      "{{plus}}",
+      "{{a}}\n{{b}}"
+    ],
+    "answer": 0,
+    "hints": [
+      "range starts at the first number.",
+      "It stops before the second number."
+    ],
+    "skills": [
+      "range",
+      "for"
+    ],
+    "tags": [
+      "trace"
+    ]
+  },
+  {
+    "id": "for-t2",
+    "units": [
+      "loops-count"
+    ],
+    "level": 2,
+    "type": "predict",
+    "shuffleOptions": true,
+    "title": "Adding up range(n)",
+    "description": "What will this program print?",
+    "params": {
+      "n": {
+        "int": [
+          4,
+          7
+        ]
+      },
+      "name": {
+        "choice": [
+          "total",
+          "score",
+          "points",
+          "tally"
+        ]
+      }
+    },
+    "values": {
+      "ok": "n * (n - 1) / 2",
+      "from1": "n * (n + 1) / 2"
+    },
+    "solution": "{{name}} = 0\nfor i in range({{n}}):\n    {{name}} = {{name}} + i\nprint({{name}})",
+    "options": [
+      "{{ok}}",
+      "{{from1}}",
+      "{{n}}",
+      "{{n - 1}}"
+    ],
+    "answer": 0,
+    "hints": [
+      "range({{n}}) starts at 0.",
+      "Add up 0, 1, 2 … {{n - 1}}."
+    ],
+    "skills": [
+      "accumulator",
+      "range"
+    ],
+    "tags": [
+      "trace",
+      "off-by-one"
+    ]
+  },
+  {
+    "id": "for-t3",
+    "units": [
+      "loops-count"
+    ],
+    "level": 3,
+    "type": "fill",
+    "title": "Going up in steps",
+    "params": {
+      "start": {
+        "int": [
+          0,
+          5
+        ]
+      },
+      "step": {
+        "choice": [
+          2,
+          3,
+          4,
+          5,
+          10
+        ]
+      },
+      "count": {
+        "int": [
+          3,
+          6
+        ]
+      }
+    },
+    "values": {
+      "end": "start + step * (count - 1)",
+      "expect": "Array.from({ length: count }, (_, k) => start + step * k).join('\\n')"
+    },
+    "description": "Print the numbers from {{start}} to {{end}}, going up in {{step}}s. Fill in the blank.",
+    "starter": "for n in range({{start}}, {{end + 1}}, ____):\n    print(n)",
+    "answers": [
+      "{{step}}"
+    ],
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "{{expect}}"
+      }
+    ],
+    "hints": [
+      "The third number in range() is the step.",
+      "How much does each number go up by?"
+    ],
+    "skills": [
+      "step"
+    ],
+    "tags": [
+      "step"
+    ]
+  },
+  {
+    "id": "for-t4",
+    "units": [
+      "loops-count"
+    ],
+    "level": 4,
+    "type": "fill",
+    "title": "Add them up",
+    "params": {
+      "a": {
+        "int": [
+          1,
+          5
+        ]
+      },
+      "b": {
+        "int": [
+          6,
+          12
+        ]
+      }
+    },
+    "values": {
+      "sum": "(a + b) * (b - a + 1) / 2"
+    },
+    "description": "Add up the whole numbers from {{a}} to {{b}}, including both. Fill in both blanks.",
+    "starter": "total = 0\nfor i in range({{a}}, ____):\n    total = total ____ i\nprint(\"Total:\", total)",
+    "answers": [
+      "{{b + 1}}",
+      "+"
+    ],
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "Total: {{sum}}"
+      }
+    ],
+    "hints": [
+      "range stops before the second number, so to include {{b}} …",
+      "Add i to the total."
+    ],
+    "skills": [
+      "range",
+      "accumulator"
+    ],
+    "tags": [
+      "off-by-one"
+    ]
+  },
+  {
+    "id": "for-t5",
+    "units": [
+      "loops-count"
+    ],
+    "level": 5,
+    "type": "parsons",
+    "title": "Cheer squad",
+    "params": {
+      "word": {
+        "choice": [
+          "Hip hip hooray!",
+          "Go team!",
+          "Well done!",
+          "Encore!"
+        ]
+      },
+      "last": {
+        "choice": [
+          "Finished",
+          "Done",
+          "The end",
+          "All done"
+        ]
+      }
+    },
+    "description": "Ask how many times, print \"{{word}}\" that many times, then \"{{last}}\". One line is not needed.",
+    "solution": "times = int(input(\"How many times? \"))\nfor i in range(times):\n    print(\"{{word}}\")\nprint(\"{{last}}\")",
+    "distractors": [
+      "for i in range(1, times):"
+    ],
+    "testParams": {
+      "t": {
+        "int": [
+          0,
+          5
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "t": 1
+      }
+    ],
+    "testCount": 3,
+    "test": {
+      "inputs": [
+        "{{t}}"
+      ],
+      "expected": "{{(word + '\\n').repeat(t)}}{{last}}"
+    },
+    "hints": [
+      "range(times) repeats exactly times times.",
+      "range(1, times) stops one short."
+    ],
+    "skills": [
+      "range",
+      "for"
+    ],
+    "tags": [
+      "input-driven"
+    ]
+  },
+  {
+    "id": "for-t6",
+    "units": [
+      "loops-count"
+    ],
+    "level": 6,
+    "type": "parsons",
+    "title": "Grid of symbols",
+    "params": {
+      "rows": {
+        "int": [
+          2,
+          4
+        ]
+      },
+      "cols": {
+        "int": [
+          3,
+          6
+        ]
+      },
+      "ch": {
+        "choice": [
+          "*",
+          "#",
+          "o",
+          "+"
+        ]
+      }
+    },
+    "values": {
+      "expect": "Array(rows).fill(ch.repeat(cols)).join('\\n')"
+    },
+    "description": "Print {{rows}} rows of {{cols}} {{ch}} symbols. Two lines are not needed.",
+    "solution": "for r in range({{rows}}):\n    line = \"\"\n    for c in range({{cols}}):\n        line = line + \"{{ch}}\"\n    print(line)",
+    "distractors": [
+      "for c in range(r):",
+      "for r in range({{rows + 1}}):"
+    ],
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "{{expect}}"
+      }
+    ],
+    "hints": [
+      "Every row has the same number of symbols.",
+      "range({{rows}}) already gives {{rows}} rows."
+    ],
+    "skills": [
+      "nested-loop"
+    ],
+    "tags": [
+      "patterns"
+    ]
+  },
+  {
+    "id": "for-t7",
+    "units": [
+      "loops-count"
+    ],
+    "level": 7,
+    "type": "fill",
+    "title": "Letter counter",
+    "params": {
+      "letter": {
+        "choice": [
+          "a",
+          "e",
+          "o",
+          "s",
+          "t"
+        ]
+      }
+    },
+    "description": "Count how many times the letter {{letter}} appears in a word. Write the whole missing line.",
+    "starter": "word = input(\"Word: \")\ncount = 0\n____\n    if letter == \"{{letter}}\":\n        count = count + 1\nprint(\"{{letter}}:\", count)",
+    "answers": [
+      "for letter in word:"
+    ],
+    "testParams": {
+      "w": {
+        "choice": [
+          "banana",
+          "assessment",
+          "cheese",
+          "teatime",
+          "toast",
+          "potato",
+          "sesame",
+          "football",
+          "seaside",
+          "tattoo"
+        ]
+      }
+    },
+    "testCount": 3,
+    "test": {
+      "inputs": [
+        "{{w}}"
+      ],
+      "expected": "{{letter}}: {{w.split(letter).length - 1}}"
+    },
+    "hints": [
+      "The loop variable must be called letter.",
+      "A for loop can go through the letters of a string."
+    ],
+    "skills": [
+      "for",
+      "counting"
+    ],
+    "tags": [
+      "strings",
+      "whole line"
+    ]
+  },
+  {
+    "id": "for-t8",
+    "units": [
+      "loops-count"
+    ],
+    "level": 8,
+    "type": "write",
+    "title": "Times table",
+    "params": {
+      "n": {
+        "int": [
+          2,
+          12
+        ]
+      },
+      "upto": {
+        "choice": [
+          5,
+          10,
+          12
+        ]
+      }
+    },
+    "values": {
+      "expect": "Array.from({ length: upto }, (_, k) => (k + 1) + ' x ' + n + ' = ' + (k + 1) * n).join('\\n')"
+    },
+    "description": "Print the {{n}} times table from 1 x {{n}} to {{upto}} x {{n}}, one per line, like: 1 x {{n}} = {{n}}",
+    "starter": "n = {{n}}\n# Print the table here\n",
+    "solution": "n = {{n}}\nfor i in range(1, {{upto + 1}}):\n    print(i, \"x\", n, \"=\", i * n)",
+    "tests": [
+      {
+        "inputs": [],
+        "expected": "{{expect}}"
+      }
+    ],
+    "hints": [
+      "range(1, {{upto + 1}}) gives 1 to {{upto}}.",
+      "print(i, \"x\", n, \"=\", i * n)"
+    ],
+    "skills": [
+      "range",
+      "loop-variable"
+    ],
+    "tags": [
+      "times tables"
+    ]
+  },
+  {
+    "id": "for-t9",
+    "units": [
+      "loops-count"
+    ],
+    "level": 9,
+    "type": "write",
+    "title": "How many reached it?",
+    "params": {
+      "limit": {
+        "int": [
+          30,
+          70
+        ]
+      },
+      "thing": {
+        "choice": [
+          "quiz score",
+          "test mark",
+          "reading score"
+        ]
+      }
+    },
+    "description": "Ask how many pupils there are. Then read each pupil's {{thing}} and count how many are {{limit}} or more. Print it like: {{limit}} or more: 2",
+    "starter": "# Write your program here",
+    "solution": "pupils = int(input(\"Pupils: \"))\ncount = 0\nfor p in range(pupils):\n    mark = int(input(\"Mark: \"))\n    if mark >= {{limit}}:\n        count = count + 1\nprint(\"{{limit}} or more:\", count)",
+    "testParams": {
+      "xs": {
+        "sample": [
+          [
+            5,
+            15,
+            25,
+            29,
+            30,
+            31,
+            40,
+            45,
+            49,
+            50,
+            51,
+            60,
+            69,
+            70,
+            71,
+            85,
+            99
+          ],
+          4
+        ]
+      },
+      "k": {
+        "int": [
+          0,
+          4
+        ]
+      }
+    },
+    "testValues": {
+      "ys": "xs.slice(0, k)"
+    },
+    "testCases": [
+      {
+        "k": 0
+      },
+      {
+        "k": 1,
+        "xs": "[limit]"
+      },
+      {
+        "k": 1,
+        "xs": "[limit - 1]"
+      }
+    ],
+    "testCount": 5,
+    "test": {
+      "inputs": [
+        {
+          "list": "[k].concat(ys)"
+        }
+      ],
+      "expected": "{{limit}} or more: {{ys.filter((x) => x >= limit).length}}"
+    },
+    "hints": [
+      "Read how many first, then loop that many times.",
+      "Is a mark of exactly {{limit}} counted?"
+    ],
+    "skills": [
+      "counting",
+      "range"
+    ],
+    "tags": [
+      "grades"
+    ]
+  },
+  {
+    "id": "for-t10",
+    "units": [
+      "loops-count"
+    ],
+    "level": 10,
+    "type": "write",
+    "title": "Online basket",
+    "params": {
+      "limit": {
+        "choice": [
+          100,
+          150,
+          200
+        ]
+      },
+      "target": {
+        "choice": [
+          500,
+          750,
+          1000
+        ]
+      }
+    },
+    "description": "Ask how many items are in a basket, then read each price in pence. Print the total, like: Total: 450p. Then print how many items cost more than {{limit}}p, like: Big buys: 1. Finally print \"Free delivery\" if the total is {{target}}p or more, otherwise \"Delivery: 299p\".",
+    "starter": "# Write your program here",
+    "solution": "items = int(input(\"Items: \"))\ntotal = 0\nbig = 0\nfor i in range(items):\n    price = int(input(\"Price: \"))\n    total = total + price\n    if price > {{limit}}:\n        big = big + 1\nprint(\"Total: \" + str(total) + \"p\")\nprint(\"Big buys:\", big)\nif total >= {{target}}:\n    print(\"Free delivery\")\nelse:\n    print(\"Delivery: 299p\")",
+    "testParams": {
+      "xs": {
+        "sample": [
+          [
+            50,
+            99,
+            100,
+            101,
+            150,
+            151,
+            199,
+            200,
+            201,
+            250,
+            300,
+            450
+          ],
+          5
+        ]
+      },
+      "k": {
+        "int": [
+          0,
+          5
+        ]
+      }
+    },
+    "testValues": {
+      "ys": "xs.slice(0, k)",
+      "tot": "ys.reduce((s, x) => s + x, 0)",
+      "big": "ys.filter((x) => x > limit).length"
+    },
+    "testCases": [
+      {
+        "k": 0
+      },
+      {
+        "k": 5
+      }
+    ],
+    "testCount": 5,
+    "test": {
+      "inputs": [
+        {
+          "list": "[k].concat(ys)"
+        }
+      ],
+      "expected": "Total: {{tot}}p\nBig buys: {{big}}\n{{tot >= target ? 'Free delivery' : 'Delivery: 299p'}}"
+    },
+    "hints": [
+      "Loop once for each item, adding to the total.",
+      "Count the big buys with an if inside the loop.",
+      "Decide on delivery after the loop."
+    ],
+    "skills": [
+      "accumulator",
+      "counting",
+      "range"
+    ],
+    "tags": [
+      "shop totals"
+    ]
+  },
+  {
+    "id": "scratch-while-guess",
+    "units": [
+      "loops-condition"
+    ],
+    "level": 10,
+    "type": "scratch",
+    "starter": "",
+    "title": "Guess the number",
+    "params": {
+      "secret": {
+        "int": [
+          10,
+          90
+        ]
+      }
+    },
+    "description": "The secret number is {{secret}}. Write a program from scratch that keeps reading guesses. For each wrong guess print \"Too high\" or \"Too low\". When the guess is right, print how many guesses it took, like: Got it in 3 guesses",
+    "solution": "secret = {{secret}}\nguesses = 1\nguess = int(input(\"Guess: \"))\nwhile guess != secret:\n    if guess > secret:\n        print(\"Too high\")\n    else:\n        print(\"Too low\")\n    guess = int(input(\"Guess: \"))\n    guesses = guesses + 1\nprint(\"Got it in\", guesses, \"guesses\")",
+    "testParams": {
+      "pool": {
+        "sample": [
+          [
+            1,
+            5,
+            9,
+            20,
+            33,
+            47,
+            50,
+            61,
+            75,
+            88,
+            95,
+            100
+          ],
+          4
+        ]
+      },
+      "k": {
+        "int": [
+          0,
+          4
+        ]
+      }
+    },
+    "testValues": {
+      "gs": "pool.filter((x) => x !== secret).slice(0, k)",
+      "said": "gs.map((g) => (g > secret ? 'Too high\\n' : 'Too low\\n')).join('')"
+    },
+    "testCases": [
+      {
+        "k": 0
+      },
+      {
+        "k": 2,
+        "pool": "[secret + 1, secret - 1]"
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        {
+          "list": "gs.concat([secret])"
+        }
+      ],
+      "expected": "{{said}}Got it in {{gs.length + 1}} guesses"
+    },
+    "hints": [
+      "Read the first guess before the loop, and count it.",
+      "Inside the loop: say high or low, then read the next guess.",
+      "Print the number of guesses after the loop."
+    ],
+    "skills": [
+      "sentinel",
+      "counter",
+      "elif"
+    ],
+    "tags": [
+      "game"
+    ]
+  },
+  {
+    "id": "scratch-while-fundraiser",
+    "units": [
+      "loops-condition"
+    ],
+    "level": 10,
+    "type": "scratch",
+    "starter": "",
+    "title": "Fundraiser",
+    "params": {
+      "target": {
+        "choice": [
+          20,
+          25,
+          30,
+          50,
+          100
+        ]
+      },
+      "cause": {
+        "choice": [
+          "the school trip",
+          "the library",
+          "a charity run",
+          "new PE kit"
+        ]
+      }
+    },
+    "description": "A class is raising money for {{cause}}. Write a program from scratch that reads donations in whole pounds until 0 is entered. A negative donation prints \"Not allowed\" and isn't added. At the end print the total, like: Raised: £35. If the total is £{{target}} or more, also print \"Target reached!\".",
+    "solution": "total = 0\ngift = int(input(\"Donation (0 to finish): \"))\nwhile gift != 0:\n    if gift < 0:\n        print(\"Not allowed\")\n    else:\n        total = total + gift\n    gift = int(input(\"Donation (0 to finish): \"))\nprint(\"Raised: £\" + str(total))\nif total >= {{target}}:\n    print(\"Target reached!\")",
+    "testParams": {
+      "xs": {
+        "sample": [
+          [
+            1,
+            2,
+            5,
+            10,
+            15,
+            20,
+            -3,
+            -10
+          ],
+          4
+        ]
+      },
+      "k": {
+        "int": [
+          0,
+          4
+        ]
+      }
+    },
+    "testValues": {
+      "ys": "xs.slice(0, k)",
+      "tot": "ys.filter((x) => x > 0).reduce((s, x) => s + x, 0)",
+      "bad": "ys.filter((x) => x < 0).length"
+    },
+    "testCases": [
+      {
+        "k": 0
+      },
+      {
+        "k": 1,
+        "xs": "[target]"
+      },
+      {
+        "k": 1,
+        "xs": "[target - 1]"
+      }
+    ],
+    "testCount": 5,
+    "test": {
+      "inputs": [
+        {
+          "list": "ys.concat([0])"
+        }
+      ],
+      "expected": "{{'Not allowed\\n'.repeat(bad)}}Raised: £{{tot}}{{tot >= target ? '\\nTarget reached!' : ''}}"
+    },
+    "hints": [
+      "Loop until the donation is 0.",
+      "Only add donations that aren't negative.",
+      "Use str() to join the total to the £ text."
+    ],
+    "skills": [
+      "validation",
+      "accumulator",
+      "str()"
+    ],
+    "tags": [
+      "money"
+    ]
+  },
+  {
+    "id": "scratch-while-tuckshop",
+    "units": [
+      "loops-condition"
+    ],
+    "level": 10,
+    "type": "scratch",
+    "starter": "",
+    "title": "Tuck shop menu",
+    "params": {
+      "crisps": {
+        "choice": [
+          45,
+          50,
+          60
+        ]
+      },
+      "drink": {
+        "choice": [
+          70,
+          80,
+          95
+        ]
+      },
+      "fruit": {
+        "choice": [
+          25,
+          30,
+          35
+        ]
+      }
+    },
+    "description": "Write a program from scratch for a tuck shop menu. Keep asking for a choice until Q is typed: C adds crisps ({{crisps}}p), D adds a drink ({{drink}}p), F adds fruit ({{fruit}}p), and anything else except Q prints \"Unknown choice\". When Q is typed, print the total, like: Total: 150p",
+    "solution": "total = 0\nchoice = input(\"C, D, F or Q: \")\nwhile choice != \"Q\":\n    if choice == \"C\":\n        total = total + {{crisps}}\n    elif choice == \"D\":\n        total = total + {{drink}}\n    elif choice == \"F\":\n        total = total + {{fruit}}\n    else:\n        print(\"Unknown choice\")\n    choice = input(\"C, D, F or Q: \")\nprint(\"Total: \" + str(total) + \"p\")",
+    "testParams": {
+      "xs": {
+        "sample": [
+          [
+            "C",
+            "D",
+            "F",
+            "C",
+            "D",
+            "X",
+            "c"
+          ],
+          4
+        ]
+      },
+      "k": {
+        "int": [
+          0,
+          4
+        ]
+      }
+    },
+    "testValues": {
+      "ys": "xs.slice(0, k)",
+      "price": "{ C: crisps, D: drink, F: fruit }",
+      "tot": "ys.reduce((s, x) => s + (price[x] || 0), 0)",
+      "unknown": "ys.filter((x) => !(x in price)).length"
+    },
+    "testCases": [
+      {
+        "k": 0
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        {
+          "list": "ys.concat(['Q'])"
+        }
+      ],
+      "expected": "{{'Unknown choice\\n'.repeat(unknown)}}Total: {{tot}}p"
+    },
+    "hints": [
+      "The menu repeats while the choice is not Q.",
+      "Use if/elif/else inside the loop.",
+      "Ask for the next choice at the end of the loop."
+    ],
+    "skills": [
+      "menu",
+      "accumulator",
+      "elif"
+    ],
+    "tags": [
+      "menu",
+      "money"
+    ]
+  },
+  {
+    "id": "scratch-for-table",
+    "units": [
+      "loops-count"
+    ],
+    "level": 10,
+    "type": "scratch",
+    "starter": "",
+    "title": "Times table sheet",
+    "params": {
+      "upto": {
+        "choice": [
+          5,
+          6,
+          8,
+          10
+        ]
+      }
+    },
+    "description": "Write a program from scratch that asks for a number, prints its times table from 1 x n to {{upto}} x n (like 3 x 4 = 12), then prints the total of all the answers, like: Total: 165",
+    "solution": "n = int(input(\"Number: \"))\ntotal = 0\nfor i in range(1, {{upto + 1}}):\n    print(i, \"x\", n, \"=\", i * n)\n    total = total + i * n\nprint(\"Total:\", total)",
+    "testParams": {
+      "n": {
+        "int": [
+          2,
+          12
+        ]
+      }
+    },
+    "testValues": {
+      "body": "Array.from({ length: upto }, (_, k) => (k + 1) + ' x ' + n + ' = ' + (k + 1) * n).join('\\n')"
+    },
+    "testCount": 3,
+    "test": {
+      "inputs": [
+        "{{n}}"
+      ],
+      "expected": "{{body}}\nTotal: {{n * upto * (upto + 1) / 2}}"
+    },
+    "hints": [
+      "range(1, {{upto + 1}}) gives 1 to {{upto}}.",
+      "Add each answer to a running total inside the loop.",
+      "Print the total after the loop."
+    ],
+    "skills": [
+      "range",
+      "loop-variable",
+      "accumulator"
+    ],
+    "tags": [
+      "times tables"
+    ]
+  },
+  {
+    "id": "scratch-for-triangle",
+    "units": [
+      "loops-count"
+    ],
+    "level": 10,
+    "type": "scratch",
+    "starter": "",
+    "title": "Number triangle",
+    "params": {
+      "sep": {
+        "choice": [
+          " ",
+          "-",
+          ","
+        ]
+      }
+    },
+    "description": "Write a program from scratch that asks for a size, then prints a number triangle. Row 1 is 1, row 2 is 1{{sep}}2, and so on, with \"{{sep}}\" between the numbers. For example, size 3:\n1\n1{{sep}}2\n1{{sep}}2{{sep}}3",
+    "solution": "size = int(input(\"Size: \"))\nfor row in range(1, size + 1):\n    line = \"1\"\n    for n in range(2, row + 1):\n        line = line + \"{{sep}}\" + str(n)\n    print(line)",
+    "testParams": {
+      "s": {
+        "int": [
+          1,
+          6
+        ]
+      }
+    },
+    "testValues": {
+      "body": "Array.from({ length: s }, (_, r) => Array.from({ length: r + 1 }, (_, k) => k + 1).join(sep)).join('\\n')"
+    },
+    "testCases": [
+      {
+        "s": 1
+      }
+    ],
+    "testCount": 3,
+    "test": {
+      "inputs": [
+        "{{s}}"
+      ],
+      "expected": "{{body}}"
+    },
+    "hints": [
+      "The outer loop counts the rows.",
+      "Here the inner loop's length depends on the row – it goes up to the row number.",
+      "str() turns a number into text so it can be joined."
+    ],
+    "skills": [
+      "nested-loop",
+      "range",
+      "str()"
+    ],
+    "tags": [
+      "patterns"
+    ]
+  },
+  {
+    "id": "scratch-for-marks",
+    "units": [
+      "loops-count"
+    ],
+    "level": 10,
+    "type": "scratch",
+    "starter": "",
+    "title": "Test results",
+    "params": {
+      "pass": {
+        "choice": [
+          40,
+          45,
+          50
+        ]
+      }
+    },
+    "description": "Write a program from scratch that asks how many marks there are (always at least 1), reads each mark, then prints the total, the mean rounded down with //, and how many marks are {{pass}} or more, like:\nTotal: 150\nMean: 50\nPasses: 2",
+    "solution": "count = int(input(\"How many marks? \"))\ntotal = 0\npasses = 0\nfor i in range(count):\n    mark = int(input(\"Mark: \"))\n    total = total + mark\n    if mark >= {{pass}}:\n        passes = passes + 1\nprint(\"Total:\", total)\nprint(\"Mean:\", total // count)\nprint(\"Passes:\", passes)",
+    "testParams": {
+      "xs": {
+        "sample": [
+          [
+            12,
+            25,
+            38,
+            39,
+            40,
+            44,
+            45,
+            49,
+            50,
+            51,
+            63,
+            77,
+            90
+          ],
+          4
+        ]
+      },
+      "k": {
+        "int": [
+          1,
+          4
+        ]
+      }
+    },
+    "testValues": {
+      "ys": "xs.slice(0, k)",
+      "tot": "ys.reduce((s, x) => s + x, 0)"
+    },
+    "testCases": [
+      {
+        "k": 1,
+        "xs": "[pass]"
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        {
+          "list": "[k].concat(ys)"
+        }
+      ],
+      "expected": "Total: {{tot}}\nMean: {{idiv(tot, k)}}\nPasses: {{ys.filter((x) => x >= pass).length}}"
+    },
+    "hints": [
+      "Loop count times, adding each mark to the total.",
+      "// divides and rounds down.",
+      "Is a mark of exactly {{pass}} a pass?"
+    ],
+    "skills": [
+      "accumulator",
+      "counting",
+      "integer-division"
+    ],
+    "tags": [
+      "grades"
+    ]
+  },
+  {
+    "id": "comb-tickets",
+    "units": [
+      "selection",
+      "loops-condition"
+    ],
+    "level": 9,
+    "type": "write",
+    "title": "Ticket checker",
+    "params": {
+      "adult": {
+        "choice": [
+          12,
+          16,
+          18
+        ]
+      }
+    },
+    "description": "Read ages until 0 is entered. For each age print \"Child\" if it is under {{adult}}, otherwise \"Adult\". At the end print how many tickets were sold, like: Tickets: 3",
+    "starter": "# Write your program here",
+    "solution": "tickets = 0\nage = int(input(\"Age (0 to finish): \"))\nwhile age != 0:\n    if age < {{adult}}:\n        print(\"Child\")\n    else:\n        print(\"Adult\")\n    tickets = tickets + 1\n    age = int(input(\"Age (0 to finish): \"))\nprint(\"Tickets:\", tickets)",
+    "testParams": {
+      "xs": {
+        "sample": [
+          [
+            4,
+            9,
+            11,
+            12,
+            13,
+            15,
+            16,
+            17,
+            18,
+            19,
+            35,
+            70
+          ],
+          4
+        ]
+      },
+      "k": {
+        "int": [
+          0,
+          4
+        ]
+      }
+    },
+    "testValues": {
+      "ys": "xs.slice(0, k)",
+      "said": "ys.map((a) => (a < adult ? 'Child\\n' : 'Adult\\n')).join('')"
+    },
+    "testCases": [
+      {
+        "k": 0
+      },
+      {
+        "k": 2,
+        "xs": "[adult, adult - 1]"
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        {
+          "list": "ys.concat([0])"
+        }
+      ],
+      "expected": "{{said}}Tickets: {{k}}"
+    },
+    "hints": [
+      "Loop until the age is 0.",
+      "Use if/else inside the loop.",
+      "Is someone aged exactly {{adult}} an adult?"
+    ],
+    "skills": [
+      "if/else",
+      "boundary",
+      "sentinel"
+    ],
+    "tags": [
+      "boundary"
+    ]
+  },
+  {
+    "id": "comb-share-out",
+    "units": [
+      "maths",
+      "loops-count"
+    ],
+    "level": 9,
+    "type": "write",
+    "title": "Sharing out",
+    "params": {
+      "thing": {
+        "choice": [
+          "sweets",
+          "stickers",
+          "cards",
+          "marbles"
+        ]
+      }
+    },
+    "description": "Ask how many friends there are. Then read how many {{thing}} each friend brings. Add them all up and share them out equally. Print the total, how many each friend gets and how many are left over, like:\nTotal: 23\nEach: 7\nLeft over: 2",
+    "starter": "# Write your program here",
+    "solution": "friends = int(input(\"Friends: \"))\ntotal = 0\nfor f in range(friends):\n    n = int(input(\"{{thing}}: \"))\n    total = total + n\nprint(\"Total:\", total)\nprint(\"Each:\", total // friends)\nprint(\"Left over:\", total % friends)",
+    "testParams": {
+      "xs": {
+        "sample": [
+          [
+            0,
+            3,
+            4,
+            5,
+            7,
+            8,
+            10,
+            11,
+            13,
+            20
+          ],
+          5
+        ]
+      },
+      "k": {
+        "int": [
+          1,
+          5
+        ]
+      }
+    },
+    "testValues": {
+      "ys": "xs.slice(0, k)",
+      "tot": "ys.reduce((s, x) => s + x, 0)"
+    },
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        {
+          "list": "[k].concat(ys)"
+        }
+      ],
+      "expected": "Total: {{tot}}\nEach: {{idiv(tot, k)}}\nLeft over: {{tot % k}}"
+    },
+    "hints": [
+      "Loop once for each friend, adding to the total.",
+      "// gives the whole share and % gives what's left."
+    ],
+    "skills": [
+      "integer-division",
+      "modulo",
+      "range"
+    ],
+    "tags": [
+      "integer division vs float division"
+    ]
+  },
+  {
+    "id": "comb-badges",
+    "units": [
+      "variables",
+      "loops-count"
+    ],
+    "level": 8,
+    "type": "write",
+    "title": "Name badges",
+    "params": {
+      "join": {
+        "choice": [
+          ". ",
+          ") ",
+          " - ",
+          ": "
+        ]
+      }
+    },
+    "description": "The name and number of copies are read for you. Print a numbered badge for each copy, like:\n1{{join}}Ava\n2{{join}}Ava",
+    "starter": "name = input(\"Name: \")\ncopies = int(input(\"Copies: \"))\n# Print the badges here\n",
+    "solution": "name = input(\"Name: \")\ncopies = int(input(\"Copies: \"))\nfor i in range(1, copies + 1):\n    print(str(i) + \"{{join}}\" + name)",
+    "testParams": {
+      "who": {
+        "choice": [
+          "Ava",
+          "Leo",
+          "Priya",
+          "Kofi",
+          "Mia",
+          "Zara",
+          "Chen"
+        ]
+      },
+      "c": {
+        "int": [
+          1,
+          4
+        ]
+      }
+    },
+    "testCount": 3,
+    "test": {
+      "inputs": [
+        "{{who}}",
+        "{{c}}"
+      ],
+      "expected": "{{Array.from({ length: c }, (_, k) => (k + 1) + join + who).join('\\n')}}"
+    },
+    "hints": [
+      "range(1, copies + 1) numbers the badges from 1.",
+      "str(i) turns the number into text so it can be joined with +."
+    ],
+    "skills": [
+      "str()",
+      "concatenation",
+      "range"
+    ],
+    "tags": [
+      "concatenation"
+    ]
+  },
+  {
+    "id": "comb-laps",
+    "units": [
+      "loops-condition",
+      "loops-count"
+    ],
+    "level": 10,
+    "type": "write",
+    "title": "Lap times",
+    "params": {
+      "most": {
+        "choice": [
+          5,
+          6,
+          8,
+          10
+        ]
+      }
+    },
+    "description": "Ask how many laps were run. It must be from 1 to {{most}}: while it isn't, print \"Try again\" and ask again. Then read each lap time in seconds and print the total and the fastest, like:\nTotal: 190\nFastest: 58",
+    "starter": "# Write your program here",
+    "solution": "laps = int(input(\"Laps (1-{{most}}): \"))\nwhile laps < 1 or laps > {{most}}:\n    print(\"Try again\")\n    laps = int(input(\"Laps (1-{{most}}): \"))\ntotal = 0\nfastest = 0\nfor lap in range(laps):\n    t = int(input(\"Time: \"))\n    total = total + t\n    if lap == 0 or t < fastest:\n        fastest = t\nprint(\"Total:\", total)\nprint(\"Fastest:\", fastest)",
+    "testParams": {
+      "times": {
+        "sample": [
+          [
+            55,
+            58,
+            60,
+            61,
+            64,
+            70,
+            72,
+            75,
+            80,
+            90
+          ],
+          4
+        ]
+      },
+      "k": {
+        "int": [
+          1,
+          4
+        ]
+      },
+      "nbad": {
+        "int": [
+          0,
+          2
+        ]
+      }
+    },
+    "testValues": {
+      "bad": "[0, most + 1].slice(0, nbad)",
+      "ys": "times.slice(0, k)"
+    },
+    "testCases": [
+      {
+        "nbad": 2
+      },
+      {
+        "k": 1,
+        "nbad": 0
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        {
+          "list": "bad.concat([k], ys)"
+        }
+      ],
+      "expected": "{{'Try again\\n'.repeat(nbad)}}Total: {{ys.reduce((s, x) => s + x, 0)}}\nFastest: {{Math.min(...ys)}}"
+    },
+    "hints": [
+      "A while loop checks the number of laps; a for loop reads the times.",
+      "Use a while loop when you don't know how many tries it will take, and a for loop when you do.",
+      "The first time is the fastest so far."
+    ],
+    "skills": [
+      "validation",
+      "range"
+    ],
+    "tags": [
+      "while vs for",
+      "sports day"
+    ]
+  }
+]

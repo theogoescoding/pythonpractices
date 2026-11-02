@@ -1,0 +1,82 @@
+[
+  {
+    "id": "EQUALS_VS_DOUBLE_EQUALS",
+    "name": "= instead of == (or the other way round)",
+    "description": "Uses a single = (which stores a value) where == (which compares two values) is needed, for example in an if condition, or uses == where a value should be stored."
+  },
+  {
+    "id": "SEPARATE_IF_VS_ELIF",
+    "name": "Separate ifs instead of elif",
+    "description": "Writes a chain of separate if statements where only one branch should run, so more than one message can be printed. Or expects separate if statements to behave like elif."
+  },
+  {
+    "id": "BOUNDARY_LT_VS_LTE",
+    "name": "< instead of <= (or the other way round)",
+    "description": "Gets the boundary value wrong with 'less than': uses < where <= is needed, or <= where < is needed, so the program is wrong for the value exactly on the boundary."
+  },
+  {
+    "id": "GT_VS_GTE",
+    "name": "> instead of >= (or the other way round)",
+    "description": "Gets the boundary value wrong with 'greater than': uses > where >= is needed, or >= where > is needed, so the program is wrong for the value exactly on the boundary."
+  },
+  {
+    "id": "MISSING_ELSE",
+    "name": "Missing else",
+    "description": "Leaves out the else branch, so nothing is printed when the if condition is False."
+  },
+  {
+    "id": "INPUT_NOT_INT",
+    "name": "Input not turned into a number",
+    "description": "Forgets that input() always gives text, so doesn't use int() before doing maths or comparing with a number. This causes an error, or text being repeated or joined instead of added."
+  },
+  {
+    "id": "PRECEDENCE",
+    "name": "Order of operations (BIDMAS)",
+    "description": "Expects Python to work left to right, or leaves out brackets that are needed, for example writing a + b / 2 for the mean of a and b."
+  },
+  {
+    "id": "INT_DIV_VS_DIV",
+    "name": "// mixed up with /",
+    "description": "Uses / (which always gives a decimal answer) where // (whole-number division) is needed, or expects / to give a whole number."
+  },
+  {
+    "id": "STRING_PLUS_INT",
+    "name": "Joining text and a number with +",
+    "description": "Uses + to join text and a number without str(), which causes an error. A comma in print() or str() around the number is needed."
+  },
+  {
+    "id": "LOOP_NO_UPDATE",
+    "name": "Loop variable never changes",
+    "description": "The value tested in a while loop's condition is never changed inside the loop (for example a counter isn't increased or the next input isn't read), so the loop never ends or runs out of input."
+  },
+  {
+    "id": "LOOP_TEST_ONCE",
+    "name": "if used where a loop is needed",
+    "description": "Uses if where while is needed, so the check only happens once instead of repeating until the condition is False."
+  },
+  {
+    "id": "LOOP_ZERO_RUNS",
+    "name": "Loop that never runs",
+    "description": "Sets up a while loop whose condition is already False at the start (for example the wrong comparison, or a starting value that stops it), or a for loop over an empty range (for example counting down with a positive step), so the loop body runs zero times."
+  },
+  {
+    "id": "RANGE_STOP_EXCLUSIVE",
+    "name": "Thinks range includes the stop value",
+    "description": "Thinks range(1, 5) includes 5, so expects one number too many, or writes a stop value one too small and the loop runs one time too few."
+  },
+  {
+    "id": "RANGE_START_DEFAULT",
+    "name": "Wrong start for range(n)",
+    "description": "Thinks range(5) starts at 5 or at 1, instead of 0 (it gives 0, 1, 2, 3, 4). So expects the numbers 1 to 5, or uses range(n) where the loop variable must start at 1."
+  },
+  {
+    "id": "LOOP_VAR_ASSIGNED_IN_BODY",
+    "name": "Changing the loop variable inside a for loop",
+    "description": "Changes the loop variable inside a for loop (for example i = i + 1) and expects that to change the loop. In Python, the for loop gives the variable its next value from the range each time round, so the change only affects the rest of that time round."
+  },
+  {
+    "id": "NESTED_LOOP_WRONG_INNER",
+    "name": "Inner loop runs the wrong number of times",
+    "description": "In nested loops, the inner loop runs the wrong number of times (for example range(row) instead of range(4), so each row is a different length), or the outer loop's variable is reset inside the inner loop."
+  }
+]

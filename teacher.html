@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Teacher View – Python Practice</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+  <script src="store.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#page-title">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <h1>Teacher view</h1>
+      <div class="header-tools" role="group" aria-label="Display settings">
+        <a href="index.html">Back to practice</a>
+        <span id="display-tools"></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap" style="padding-block: 1.25rem">
+    <p class="notice notice-down"><strong>Data is stored in this browser only. Results from other devices won't appear here.</strong></p>
+    <p id="storage-warning" class="problem" role="alert" hidden></p>
+
+    <nav class="tab-nav" aria-label="Teacher view pages">
+      <a href="#overview" data-page="overview">Overview</a>
+      <a href="#log" data-page="log">Detail log</a>
+      <a href="#workshop" data-page="workshop">Workshop</a>
+    </nav>
+
+    <!-- ===== Overview ===== -->
+    <section id="page-overview" aria-labelledby="page-title">
+      <h2 id="page-title" tabindex="-1">Overview</h2>
+      <div id="quick-look" class="quick-look" aria-live="polite"></div>
+
+      <h3>Students</h3>
+      <p class="small">One row per student, one column per unit. Each cell shows the current level, the placement result,
+        <span class="badge-complete">★ Complete</span> once a level 10 task is passed, and flags for the
+        "This is too easy" and "This is way too hard" buttons and for <span class="flag flag-alert">⚠ 2+ fails in a row</span>.</p>
+      <div class="teacher-controls">
+        <label>Filter by name <input type="search" id="name-filter" class="text-input" style="width:auto" autocomplete="off"></label>
+      </div>
+      <div class="table-wrap">
+        <table id="overview-table">
+          <caption class="small" style="text-align:left; padding:.5rem .7rem">Select a column heading to sort. Select it again to reverse the order. Unit columns sort by level.</caption>
+          <thead><tr id="overview-head"></tr></thead>
+          <tbody id="overview-rows"></tbody>
+        </table>
+      </div>
+
+      <h3 style="margin-top:1.5rem">Reset placement</h3>
+      <p class="small">The student takes the placement test once more, with different tasks, the next time they open the unit. Their other progress is kept. The reset is logged.</p>
+      <div class="teacher-controls">
+        <label>Student <select id="reset-student"></select></label>
+        <label>Unit <select id="reset-unit"></select></label>
+        <button type="button" id="reset-placement" class="secondary">Reset placement</button>
+        <span id="reset-confirm" hidden>Are you sure?
+          <button type="button" id="reset-yes" class="danger">Yes, reset</button>
+          <button type="button" id="reset-no" class="secondary">Cancel</button></span>
+      </div>
+      <p id="reset-status" class="small" role="status"></p>
+    </section>
+
+    <!-- ===== Detail log ===== -->
+    <section id="page-log" aria-labelledby="log-title" hidden>
+      <h2 id="log-title" tabindex="-1">Detail log</h2>
+      <p class="small">One row per attempt (every press of Check, and every skipped task) and per use of the "too easy" / "way too hard" buttons, newest first. Failure categories and misconception matches are worked out automatically.</p>
+      <div class="teacher-controls" id="log-filters">
+        <label>Student <select id="f-student"><option value="">All</option></select></label>
+        <label>Unit <select id="f-unit"><option value="">All</option></select></label>
+        <label>Task <select id="f-task"><option value="">All</option></select></label>
+        <label>Category <select id="f-category"><option value="">All</option></select></label>
+        <label>Misconception <select id="f-misconception"><option value="">All</option></select></label>
+        <button type="button" id="f-clear" class="secondary">Clear filters</button>
+      </div>
+      <p id="log-count" class="small" role="status"></p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th scope="col">Time</th><th scope="col">Student</th><th scope="col">Unit</th><th scope="col">Task</th><th scope="col">Level</th>
+              <th scope="col">Result</th><th scope="col">Failure category</th><th scope="col">Misconception matches</th><th scope="col">Hints</th>
+              <th scope="col">Button</th><th scope="col">Level change</th><th scope="col">Code and output</th></tr>
+          </thead>
+          <tbody id="log-rows"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== Workshop ===== -->
+    <section id="page-workshop" aria-labelledby="workshop-title" hidden>
+      <h2 id="workshop-title" tabindex="-1">Workshop</h2>
+      <p class="small">Misconceptions matched in failed attempts, to help plan small-group workshops. A match means the student's program gave exactly the same result as a short buggy program showing that mistake.</p>
+      <h3>Misconceptions</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th scope="col">Misconception</th><th scope="col">Attempts matched</th><th scope="col">Students affected</th>
+              <th scope="col">Tasks it shows up in</th><th scope="col">Failure rate on those tasks</th><th scope="col">Students</th></tr>
+          </thead>
+          <tbody id="ws-misconceptions"></tbody>
+        </table>
+      </div>
+      <p id="ws-unseen" class="small"></p>
+
+      <h3 style="margin-top:1.5rem">Failed attempts with no match, by task</h3>
+      <p class="small"><strong>Unmatched</strong> failed attempts didn't match any buggy example program for the task. A high unmatched rate suggests a mistake that the task's buggy variants don't cover yet. Tasks without buggy variants can never match.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th scope="col">Task</th><th scope="col">Failed attempts</th><th scope="col">Unmatched</th><th scope="col">Unmatched rate</th>
+              <th scope="col">Has buggy variants</th><th scope="col">Unmatched attempts</th></tr>
+          </thead>
+          <tbody id="ws-tasks"></tbody>
+        </table>
+      </div>
+      <div id="ws-unmatched" aria-live="polite"></div>
+    </section>
+
+    <!-- ===== Export (every page) ===== -->
+    <div class="export-bar">
+      <h3>Export</h3>
+      <div class="teacher-controls">
+        <button type="button" id="export-full" class="primary">Export full data</button>
+        <button type="button" id="export-filtered" class="secondary">Export filtered view</button>
+      </div>
+      <p class="small"><strong>Export full data</strong> downloads two files: a CSV of every attempt, level change, button use and placement result for the whole class,
+        and <code>data-dictionary.csv</code>, which explains every column in plain English. Your browser may ask whether to allow two downloads.
+        <strong>Export filtered view</strong> downloads only what is shown on this page now: <span id="filtered-help"></span></p>
+      <details style="margin-top:1rem">
+        <summary>All level changes</summary>
+        <div class="table-wrap" style="margin-top:.5rem">
+          <table>
+            <thead><tr><th scope="col">Time</th><th scope="col">Name</th><th scope="col">Unit</th><th scope="col">From</th><th scope="col">To</th><th scope="col">Why</th></tr></thead>
+            <tbody id="level-log"></tbody>
+          </table>
+        </div>
+      </details>
+    </div>
+  </main>
+
+  <script src="curriculum.js"></script>
+  <script src="checker.js"></script>
+  <script src="app.js"></script>
+  <script src="teacher-data.js"></script>
+  <script src="teacher.js"></script>
+</body>
+</html>

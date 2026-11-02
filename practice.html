@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Python Practice</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="store.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#task">Skip to task</a>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <h1><a href="index.html" class="home-link">Python Practice</a> <span class="unit-crumb">· <span id="unit-title"></span></span></h1>
+      <div class="header-tools" role="group" aria-label="Student and display settings">
+        <span class="student-chip">Hi, <strong id="student-name"></strong></span>
+        <a href="index.html">← All units</a>
+        <span id="display-tools"></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap layout">
+    <section id="task" class="task-card" tabindex="-1" aria-live="off">
+      <p class="loading">Loading tasks…</p>
+    </section>
+
+    <aside class="side-panel" aria-label="Your progress">
+      <h2 id="side-heading">Your level</h2>
+      <ul id="unit-levels" class="unit-levels"></ul>
+      <p class="small">The level decides how much help you get:
+        1–2 predict, 3–4 fill in the blanks, 5–6 Parsons, 7 complete a line, 8–10 write the code.</p>
+      <p id="streak-info" class="streak-info"></p>
+      <p class="py-status">Python: <span id="py-status">loading…</span></p>
+      <details class="keys-help">
+        <summary>Keyboard shortcuts</summary>
+        <ul>
+          <li><kbd>Ctrl</kbd>+<kbd>Enter</kbd> check your answer</li>
+          <li>In the code editor, <kbd>Tab</kbd> indents by 4 spaces. Press <kbd>Esc</kbd> then <kbd>Tab</kbd> to leave it.</li>
+          <li>Parsons lines: <kbd>Enter</kbd> moves a line between lists, <kbd>Alt</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd> reorders, <kbd>←</kbd>/<kbd>→</kbd> changes indentation.</li>
+        </ul>
+      </details>
+      <div class="reset-area" id="reset-area">
+        <button type="button" id="reset-btn" class="secondary">Reset my progress in this unit</button>
+        <p id="reset-confirm" class="reset-confirm" hidden>
+          This puts you back to your starting level in this unit.
+          <button type="button" id="reset-yes" class="danger">Yes, reset</button>
+          <button type="button" id="reset-no" class="secondary">Cancel</button>
+        </p>
+      </div>
+      <p class="privacy">Your progress is saved in this browser only. Nothing is sent anywhere.</p>
+    </aside>
+  </main>
+
+  <!-- Code editor. If the CDN can't be reached, the plain text editor is used instead. -->
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/python/python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/edit/matchbrackets.min.js"></script>
+  <script src="checker.js"></script>
+  <script src="curriculum.js"></script>
+  <script src="templates.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
