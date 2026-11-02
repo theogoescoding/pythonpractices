@@ -341,6 +341,45 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(stats.length === 0 || stats[0].attempts === 0, "A \"Show me how\" row isn't counted as an attempt in the teacher's task statistics");
   }
 
+  // ===================== "Reset this task" =====================
+  {
+    const ofType = (type) => tasks.find((x) => x.type === type && (type !== "fill" || x.starter.includes("____")));
+    const answered = {
+      fill: (t) => ({ blanks: App.initialDraft(t).blanks.map(() => "x") }),
+      parsons: (t) => { const d = App.initialDraft(t); return { available: d.available.slice(1), program: [{ id: d.available[0].id, indent: 0 }] }; },
+      predict: () => ({ choice: 1 }),
+      write: (t) => ({ code: (t.starter || "") + "\nprint('my answer')" }),
+    };
+    for (const type of Object.keys(answered)) {
+      const t = ofType(type);
+      const current = { taskId: t.id, started: true, hints: 1, attempts: 2, showHow: 0, finished: false, passed: false, draft: answered[type](t) };
+      App.resetTaskAnswer(current, t);
+      const fresh = App.initialDraft(t);
+      const same = type === "parsons"
+        ? current.draft.program.length === 0 && current.draft.available.map((l) => l.id).sort().join() === fresh.available.map((l) => l.id).sort().join()
+        : JSON.stringify(current.draft) === JSON.stringify(fresh);
+      check(same && current.hints === 1 && current.attempts === 2 && current.started && !current.finished,
+        "Reset this task (" + type + "): the answer goes back to the task's starter; hints and attempts on the task are kept");
+    }
+    const t = byId["maths-L9b"];
+    const s = App.freshUnitState(5);
+    App.noteFailedAttempt(s, t);
+    App.noteFailedAttempt(s, t);
+    s.passStreak = 1; s.failStreak = 2; s.failsInARow = 2; s.ceiling = 7; s.passedFingerprints = { "maths-L9a": "2026-11-01T10:00:00Z" };
+    s.current = { taskId: t.id, started: true, hints: 2, attempts: 2, showHow: 0, finished: false, passed: false, draft: { code: "print(1)" } };
+    const rec = App.attemptRecord({ task: t, unit: "maths", phase: "practice", kind: "attempt", attemptNumber: 2, hints: 2, result: "fail", levelBefore: 5, levelAfter: 5, code: "print(1)" });
+    const data = () => ({ students: { x: { name: "X" } }, progress: { x: { units: { maths: s } } }, attempts: [Object.assign({ id: "a-1", at: "2026-11-01T10:00:00Z", studentId: "x" }, rec)],
+      levelLog: [], buttonLog: [], placementLog: [], units: Curriculum.UNITS });
+    const before = JSON.stringify(Object.assign({}, s, { current: Object.assign({}, s.current, { draft: null }) }));
+    const exportBefore = JSON.stringify(TD.fullExportRows(data()));
+    App.resetTaskAnswer(s.current, t);
+    check(s.current.draft.code === (t.starter || ""), "Reset this task clears the student's code");
+    check(JSON.stringify(Object.assign({}, s, { current: Object.assign({}, s.current, { draft: null }) })) === before,
+      "Reset this task keeps the level, streaks, ceiling, hint count and passed tasks");
+    check(App.showHowAvailable(s, t) && s.failedAttempts[App.fingerprintOf(t)] === 2, "Reset this task keeps the failed-attempt count, so \"Show me how\" is still offered");
+    check(JSON.stringify(TD.fullExportRows(data())) === exportBefore, "Reset this task adds no record and doesn't change the export");
+  }
+
   // ===================== Simulated class: matching, export, recheck.py =====================
   const fillCode = (t, answers) => t.starter.split("____").reduce((acc, part, i) => acc + answers[i - 1] + part);
   const S = {};

@@ -220,6 +220,36 @@ function noteFailedAttempt(state, t) {
 
 const showHowAvailable = (state, t) => ((state && state.failedAttempts) || {})[fingerprintOf(t)] >= SHOW_HOW_AFTER_FAILS;
 
+// ---------- The answer box ----------
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// A task's answer as it starts: empty blanks, the Parsons lines shuffled and none used, no predict choice, or the starter code.
+function initialDraft(t) {
+  if (t.type === "fill") return { blanks: t.starter.split("____").slice(1).map(() => "") };
+  if (t.type === "parsons") {
+    const items = t.solution.split("\n").filter((l) => l.trim()).map((l, i) => ({ id: "s" + i, text: l.trim() }));
+    t.distractors.forEach((d, i) => items.push({ id: "d" + i, text: d.trim() }));
+    return { available: shuffle(items), program: [] };
+  }
+  if (t.type === "predict") return { choice: null };
+  return { code: t.starter || "" };
+}
+
+// "Reset this task": puts the answer back to the task's starter (current = the unit's current task).
+// It changes nothing else and logs nothing: the level, streaks, ceiling, hints used, passed tasks and the
+// failed-attempt count all stay, so "Show me how" still appears after two real failures.
+function resetTaskAnswer(current, t) {
+  current.draft = initialDraft(t);
+  return current;
+}
+
 // ---------- Placement test ----------
 // status: "pending" (to be taken: new unit, or reset by the teacher), "in-progress", "done",
 // "skipped" (level set in test mode) or "not-taken" (started before placement existed).
@@ -600,7 +630,7 @@ if (typeof module === "object" && module.exports) {
     SECURED_PASSES_IN_A_ROW, SECURED_MAX_HINTS, SCRATCH_EVERY_N_TASKS, ENDLESS_COMBINED_CHANCE,
     PLACEMENT_LEVELS, PLACEMENT_ATTEMPTS, PLACEMENT_MAX_LEVEL, PLACEMENT_TAG, BUTTON_JUMP_LEVELS,
     SHOW_HOW_AFTER_FAILS, MAX_NEW_VARIANT_TRIES, SKILL_RENAMES, PROGRESS_VERSION,
-    migrateProgress, fingerprintOf, hasPassed, recordTaskResult, noteFailedAttempt, showHowAvailable, isStrongPass,
+    migrateProgress, fingerprintOf, hasPassed, recordTaskResult, noteFailedAttempt, showHowAvailable, initialDraft, resetTaskAnswer, isStrongPass,
     chooseNextTask, chooseScratchTask, newVariant,
     newPlacement, isPlacementTask, needsPlacement, choosePlacementTasks, startPlacement, placementStartLevel,
     recordPlacementStep, resetPlacement, attemptRecord, levelButtonAvailable, applyLevelButton, levelButtonMessage, pressLevelButton,
@@ -760,15 +790,6 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     return out + esc(code.slice(last));
   }
 
-  function shuffle(arr) {
-    const a = arr.slice();
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
-
   const inputsText = (inputs) => (inputs.length ? inputs.map((v) => (v === "" ? "(nothing – just Enter)" : v)).join(", then ") : "(no input)");
   const describeInputs = (inputs) => (inputs.length ? "Input: " + inputsText(inputs) : "No input");
 
@@ -796,6 +817,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   let busy = false;
   let serving = false; // a new task is being made
   let skipArmed = false;
+  let resetArmed = false; // "Reset this task" was clicked once and asks to be clicked again
   let notice = null; // message carried over to the next task (e.g. level change)
   let activeEditor = null; // CodeMirror instance on a write task (null with the plain text box)
 
@@ -821,17 +843,6 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       entry.lastAttempt = now;
       us(u).lastAttempt = now;
     });
-  }
-
-  function initialDraft(t) {
-    if (t.type === "fill") return { blanks: t.starter.split("____").slice(1).map(() => "") };
-    if (t.type === "parsons") {
-      const items = t.solution.split("\n").filter((l) => l.trim()).map((l, i) => ({ id: "s" + i, text: l.trim() }));
-      t.distractors.forEach((d, i) => items.push({ id: "d" + i, text: d.trim() }));
-      return { available: shuffle(items), program: [] };
-    }
-    if (t.type === "predict") return { choice: null };
-    return { code: t.starter || "" };
   }
 
   async function nextTaskFor() {
@@ -867,6 +878,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       if (!entry.passes && !entry.fails) entry.lastResult = "in progress";
     });
     skipArmed = false;
+    resetArmed = false;
     save();
     return true;
   }
@@ -898,6 +910,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     if (!t) { p.status = "not-taken"; save(); return serveNewTask(); } // no placement tasks in this unit (a promise)
     s.current = { taskId: t.id, task: null, placement: true, started: false, hints: 0, attempts: 0, finished: false, passed: false, draft: initialDraft(t) };
     skipArmed = false;
+    resetArmed = false;
     save();
   }
 
@@ -1076,6 +1089,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
         '<button type="button" id="check-btn" class="primary">' + checkLabel + "</button>" +
         '<button type="button" id="hint-btn" class="secondary"></button>' +
         '<button type="button" id="show-how-btn" class="secondary" hidden>Show me how</button>' +
+        '<button type="button" id="reset-btn" class="secondary"></button>' +
         '<button type="button" id="next-btn" class="secondary"></button>' +
       "</div>" +
       '<ol id="hints" class="hints" aria-label="Hints"></ol>' +
@@ -1092,6 +1106,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     $("check-btn").addEventListener("click", check);
     $("hint-btn").addEventListener("click", showHint);
     $("show-how-btn").addEventListener("click", showHow);
+    $("reset-btn").addEventListener("click", resetTask);
     $("next-btn").addEventListener("click", nextTask);
     renderHints();
     renderShowHow();
@@ -1116,7 +1131,29 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     const howBtn = $("show-how-btn");
     howBtn.hidden = !!c.placement || (c.finished && c.passed) || !workedExampleFor(t) || !unitsOf(t).some((u) => showHowAvailable(us(u), t));
     howBtn.disabled = busy;
+    // "Reset this task": not in placement, and not once there is no answer left to change.
+    const resetBtn = $("reset-btn");
+    resetBtn.hidden = !!c.placement || (c.finished && (c.passed || t.type === "predict"));
+    resetBtn.textContent = resetArmed ? "Reset? Your answer will be cleared – click again" : "Reset this task";
+    resetBtn.className = resetArmed ? "danger" : "secondary";
+    resetBtn.disabled = busy;
     renderLevelButtons();
+  }
+
+  // ---------- "Reset this task" ----------
+  // The first click asks for confirmation; the second puts the answer box back to the task's starter.
+  // Nothing is logged and nothing else changes (see resetTaskAnswer).
+  function resetTask() {
+    if (busy) return;
+    if (!resetArmed) { resetArmed = true; skipArmed = false; renderButtons(); return; }
+    resetArmed = false;
+    resetTaskAnswer(cur(), task());
+    save();
+    renderTask();
+    $("results").insertAdjacentHTML("afterbegin", '<p class="small" role="status">Your answer has been reset to the start of the task.</p>');
+    if (activeEditor) { activeEditor.focus(); return; }
+    const first = $("task").querySelector("input.blank, textarea, .p-line, .option input");
+    if (first) first.focus();
   }
 
   // ---------- "Show me how" ----------
@@ -1172,6 +1209,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     eachLog((entry) => { entry.timesSet += 1; entry.lastResult = "in progress"; });
     notice = null;
     skipArmed = false;
+    resetArmed = false;
     save();
     renderTask();
     $("task").focus();
@@ -1237,7 +1275,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     const c = cur();
     const t = task();
     if (!c.finished) {
-      if (!skipArmed) { skipArmed = true; renderButtons(); return; }
+      if (!skipArmed) { skipArmed = true; resetArmed = false; renderButtons(); return; }
       if (c.placement) {
         recordAttempt(t, c, { kind: "skip", result: "skipped" });
         finishPlacementStep(false);

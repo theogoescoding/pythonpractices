@@ -130,15 +130,23 @@
     });
   }
 
+  // Shows the sign-in panel with the server's reason, so a failure is never silent.
+  function showAuthProblem(what, error) {
+    $("tb-auth").hidden = false;
+    $("tb-classes").hidden = true;
+    say("tb-auth-status", what + " (" + (error.message || error.code || "unknown error") + "). Please try again.", true);
+  }
+
   // The teachers row is made the first time a confirmed teacher signs in.
   async function afterSignIn() {
     const { data } = await sb.auth.getUser();
     user = data.user;
     if (!user) return showAuth();
     const mine = await sb.from("teachers").select("id, name").eq("id", user.id).maybeSingle();
+    if (mine.error) return showAuthProblem("Couldn't load your account", mine.error);
     if (!mine.data) {
       const made = await sb.from("teachers").insert({ id: user.id, name: (user.user_metadata && user.user_metadata.name) || user.email });
-      if (made.error) return say("tb-auth-status", "Couldn't finish setting up your account. Please try again.", true);
+      if (made.error) return showAuthProblem("Couldn't finish setting up your account", made.error);
     }
     $("tb-auth").hidden = true;
     $("tb-classes").hidden = false;
