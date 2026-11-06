@@ -40,7 +40,10 @@ const ATTEMPT: Spec = {
   student_error_type: { kind: "text", max: 100 },
   student_error_kind: { kind: "text", max: 100 },
   student_code: { kind: "text" },
+  assignment_id: { kind: "text", max: 40 }, // a class assignment (phase assignment); checked against the class by the caller
 };
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const EVENT: Spec = {
   record_id: { kind: "text", required: true, max: 60 },
@@ -90,9 +93,14 @@ function checkRows(spec: Spec, rows: unknown, extra: (r: Record<string, unknown>
 }
 
 // Attempts: the unit must be a real unit, and code and output are cut as store.js cuts them.
+// Only an assignment row may name an assignment (the database checks it is the student's class's). An assignment row
+// may have none: an imported one, or one whose assignment was deleted.
 export function checkAttempts(rows: unknown) {
   return checkRows(ATTEMPT, rows, (r) => {
     if (!UNITS.includes(r.unit as string)) return "bad unit";
+    const aid = r.assignment_id;
+    if (aid != null && !UUID.test(aid as string)) return "bad assignment_id";
+    if (aid != null && r.phase !== "assignment") return "bad assignment_id";
     if (typeof r.student_code === "string") r.student_code = clip(r.student_code);
     if (typeof r.student_output === "string") r.student_output = clip(r.student_output);
     return null;

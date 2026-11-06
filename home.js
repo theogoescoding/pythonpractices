@@ -141,9 +141,26 @@ Store.whenReady(function () {
     return s ? s.level : null;
   }
 
+  // ---------- Class assignments (backend mode) ----------
+  // The open assignments of the student's class, as a module above the unit cards. Practice only.
+  function renderAssignments(student) {
+    const list = Store.assignments(student.id);
+    const work = (id) => Store.loadAssignmentWork(student.id, id) || { tried: {} };
+    $("assignments").hidden = !list.length;
+    $("assignment-list").innerHTML = list.map((a) => {
+      const tried = work(a.id).tried || {};
+      const done = a.task_ids.filter((id) => tried[id] === "passed").length;
+      return '<li><a class="unit-card assignment-card" href="practice.html?assignment=' + encodeURIComponent(a.id) + '">' +
+        "<h3>" + esc(a.title) + "</h3>" + (a.description ? "<p>" + esc(a.description) + "</p>" : "") +
+        '<p class="unit-meta"><span>' + a.task_ids.length + " task" + (a.task_ids.length === 1 ? "" : "s") + "</span><span><strong>" +
+        (done ? done + " done" : "Not started") + "</strong></span></p></a></li>";
+    }).join("");
+  }
+
   function renderUnits() {
     const student = Store.currentStudent();
     if (!tasks || !student) return; // still loading, or waiting for a name
+    renderAssignments(student);
     const progress = Store.loadProgress(student.id);
     $("unit-list").innerHTML = UNITS.map((u) => {
       const count = tasks.filter((t) => t.unit === u.id).length;

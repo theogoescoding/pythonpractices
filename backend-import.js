@@ -42,7 +42,8 @@
   // old task id -> current id, from tasks.json former_ids (for example loops-L5a -> while-L5a, sel-L10d -> logic-L10b)
   function renames(tasks) {
     const map = {};
-    for (const t of tasks || []) for (const old of t.former_ids || []) map[old] = t.id;
+    // Not a replacement: that was a different task, so its rows keep their own id (and its passes stay its own).
+    for (const t of tasks || []) if (!t.former_ids_are_replacements) for (const old of t.former_ids || []) map[old] = t.id;
     return map;
   }
 
@@ -98,7 +99,8 @@
     const byKey = {};
     const key = (fid, unit) => fid + "\u0000" + unit;
     const get = (fid, unit) => byKey[key(fid, unit)] || (byKey[key(fid, unit)] = { file_id: fid, unit, attempts: [], events: [] });
-    planned.attempts.forEach((a) => get(a.file_id, a.unit).attempts.push(a));
+    // Assignment work is practice only, so it never rebuilds a level or a passed task.
+    planned.attempts.filter((a) => a.phase !== "assignment").forEach((a) => get(a.file_id, a.unit).attempts.push(a));
     planned.events.forEach((e) => get(e.file_id, e.unit).events.push(e));
     const time = (r) => Date.parse(r.timestamp);
     const progress = [];

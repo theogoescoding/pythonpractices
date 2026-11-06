@@ -17,7 +17,8 @@
   const ATTEMPT_COLUMNS = "id, student_id, record_id, record_type, timestamp, unit, task_units, task_id, template_id, phase, task_type, " +
     "task_level, student_level_before, student_level_after, attempt_number, result, failure_category, failure_details, " +
     "misconception_matches, hints_used, hint_type, variant_fingerprint, failed_test_number, failed_test_inputs, " +
-    "expected_output, student_output, student_error_type, student_error_kind, student_code";
+    "expected_output, student_output, student_error_type, student_error_kind, student_code, assignment_id";
+  const ASSIGNMENT_COLUMNS = "id, class_id, title, description, task_ids, status, created_at, updated_at";
   const EVENT_COLUMNS = "id, student_id, record_id, record_type, timestamp, unit, task_id, student_level_before, student_level_after, " +
     "level_change_reason, button, placement_start_level, placement_results";
 
@@ -202,15 +203,24 @@
     try {
       const inClass = (table, columns) => () => sb.from(table).select(columns + ", students!inner(class_id)")
         .eq("students.class_id", current.id).order("id");
-      const [st, progress, attempts, events] = await Promise.all([
+      // A server without migration 0005 has no assignments table or assignment_id column: the class still loads.
+      const noAssignments = (e) => e && (e.code === "42P01" || e.code === "42703" || e.code === "PGRST200" || e.code === "PGRST205" || /assignment/.test(e.message || ""));
+      const attemptsQuery = all(inClass("attempts", ATTEMPT_COLUMNS))
+        .catch((e) => { if (noAssignments(e)) return all(inClass("attempts", ATTEMPT_COLUMNS.replace(", assignment_id", ""))); throw e; });
+      const assignmentsQuery = all(() => sb.from("assignments").select(ASSIGNMENT_COLUMNS).eq("class_id", current.id).order("created_at", { ascending: false }).order("id"))
+        .catch((e) => { if (noAssignments(e)) return []; throw e; });
+      const [st, progress, attempts, events, assignments] = await Promise.all([
         all(() => sb.from("students").select("id, nickname, created_at, imported, locked_until").eq("class_id", current.id).order("created_at").order("id")),
         all(() => sb.from("progress").select("student_id, unit, state, students!inner(class_id)").eq("students.class_id", current.id).order("student_id").order("unit")),
-        all(inClass("attempts", ATTEMPT_COLUMNS)),
+        attemptsQuery,
         all(inClass("events", EVENT_COLUMNS)),
+        assignmentsQuery,
       ]);
       students = st;
       renderStudents();
-      onData(BackendRows.teacherData({ students: st, progress, attempts, events }, self.Curriculum.UNITS));
+      const data = BackendRows.teacherData({ students: st, progress, attempts, events }, self.Curriculum.UNITS);
+      data.assignments = assignments; // the class's assignments (teacher.js Assignments page)
+      onData(data);
     } catch (e) {
       say("tb-status", "Couldn't load this class's data. Please try again.", true);
     }
@@ -436,6 +446,23 @@
       return r;
     },
     api: teacherApi,
+    // Class assignments, straight to the table (row-level security: only this teacher's classes).
+    // a = { id?, title, description, task_ids, status }. Returns { error } (a message) or {}.
+    async saveAssignment(a) {
+      if (!current) return { error: "Choose a class first." };
+      const fields = { title: a.title, description: a.description || "", task_ids: a.task_ids, status: a.status || "open" };
+      const r = a.id ? await sb.from("assignments").update(fields).eq("id", a.id)
+        : await sb.from("assignments").insert(Object.assign({ class_id: current.id }, fields));
+      if (r.error) return { error: "Couldn't save the assignment (" + (r.error.message || r.error.code) + "). Please try again." };
+      await loadClassData();
+      return {};
+    },
+    async setAssignmentStatus(id, status) {
+      const r = await sb.from("assignments").update({ status }).eq("id", id);
+      if (r.error) return { error: "Couldn't change the assignment. Please try again." };
+      await loadClassData();
+      return {};
+    },
     currentClass: () => current,
     copy,
   };

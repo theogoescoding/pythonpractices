@@ -94,11 +94,11 @@
         return { title: "A value isn't right" + at, detail: "A function was given a value it can't work with." };
       case "TypeError":
         if (/not supported between instances of 'str' and 'int'|not supported between instances of 'int' and 'str'/.test(msg))
-          return { title: "Comparing text with a number" + at, detail: "input() always gives you text. Wrap it in int() to turn it into a number before comparing, e.g. age = int(input(\"Age: \"))." };
+          return { title: "Comparing text with a number" + at, detail: "input() always gives you text. Cast it to a number with int() before comparing, e.g. age = int(input(\"Age: \")). This is called casting." };
         if (/can only concatenate str/.test(msg))
           return { title: "Joining text and a number" + at, detail: "You can't use + to join text and a number. Use a comma in print() instead, or convert the number with str()." };
         if (/unsupported operand/.test(msg))
-          return { title: "Maths on the wrong type" + at, detail: "You're doing maths with something that isn't a number. Did you forget int() around input()?" };
+          return { title: "Maths on the wrong type" + at, detail: "You're doing maths with something that isn't a number. Did you forget to cast the input with int(input())?" };
         if (/argument|positional/.test(msg))
           return { title: "Wrong number of values passed to a function" + at, detail: "Check that you give the function the same number of values as it expects in its brackets." };
         if (/not callable/.test(msg))
@@ -225,7 +225,7 @@
 
   // A friendly, specific message for a failed attempt. Never includes Python's own error text.
   // Returns { message, tryNext }: what went wrong, and one thing to try next.
-  function failureParts(f) {
+  function failureParts(f, opts) {
     const d = f.details || {};
     const onLine = d.line ? " on line " + d.line : "";
     switch (f.category) {
@@ -255,6 +255,10 @@
       case "WRONG_OUTPUT":
         if (d.parsons) return { message: "Your program works, but it " + d.parsons + ". Check which lines you've used.",
           tryNext: "Compare each line in your program with the task description. Every line should be needed, and nothing the task asks for should be missing." };
+        // A hidden test (opts.exampleTests = how many tests the student can see): nothing about it is shown.
+        if (opts && opts.exampleTests != null && d.test > opts.exampleTests)
+          return { message: "Your program ran, but it didn't print the right thing for one of the hidden tests.",
+            tryNext: "Your program may only work for the example. Think of other inputs: the boundaries, 0, and every branch of your program, and check what it prints for each." };
         return { message: "Your program ran, but test " + d.test + " printed something different from what was expected. Compare the two below.",
           tryNext: "Find the first line where your output and the expected output differ, then follow your code with that test's input to see why." };
       case "WRONG_CHOICE":

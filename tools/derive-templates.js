@@ -79,7 +79,6 @@ const OVERRIDES = {
     ["Mon", "Wed", "Fri", "Sat", "Sun", "Club days", "the club days", "the five days"],
     ["Sep", "Oct", "Nov", "Dec", "Jan", "Autumn term", "the autumn term months", "the five months"],
     ["Ash", "Beech", "Cedar", "Elm", "Oak", "Form rooms", "the form rooms", "the five rooms"]]] },
-  "out-L10f": { swaps: [[["Pasta", "Curry", "Roast", "Tacos", "Fish"], ["Pizza", "Soup", "Stew", "Wraps", "Chips"], ["Salad", "Pie", "Rice", "Noodles", "Curry"], ["Burgers", "Pasta", "Fajitas", "Roast", "Fish"], ["Soup", "Lasagne", "Chilli", "Pizza", "Fish"], ["Jacket potato", "Risotto", "Roast", "Curry", "Fish"]]] },
   "out-L9c": { swaps: [[["7KM"], ["8RT"], ["9SB"], ["7AB"], ["8JH"], ["9LP"]]] },
   "out-L9d": { swaps: [[["She", "Well done!"], ["He", "Great work!"], ["Miss Patel", "Nice try!"], ["Mr Khan", "Good job!"], ["The coach", "Keep going!"], ["My tutor", "Spot on!"]]] },
   "out-L10b": { swaps: [[

@@ -53,17 +53,17 @@ const EXAMPLES = {
     problem: "A bakery asks how many cakes, then works out how many after 3 more are baked.",
     code: 'cakes = int(input("Cakes: "))\nprint(cakes + 3)',
     inputs: ["9"],
-    key_idea: "input() always gives text. int() turns that text into a whole number so you can do maths with it.",
+    key_idea: "input() always gives text. int() casts that text to a whole number so you can do maths with it: this is called casting.",
   },
   "variables:str()": {
     problem: "A garden centre joins a number of plants into a sentence.",
-    code: 'plants = 24\nprint("We have " + str(plants) + " plants")',
-    key_idea: "str() turns a number into text, so it can be joined to other text with +.",
+    code: 'plants = 24\nsign = "We have " + str(plants) + " plants"\nprint(sign)',
+    key_idea: "str() casts a number to text, so it can be joined to other text with +. The sign is built and stored in a variable first, which is when + is used; to print values straight away, use commas instead.",
   },
   "variables:concatenation": {
     problem: "A zoo makes a sign from a first name and a species.",
-    code: 'name = "Mo"\nspecies = "meerkat"\nprint(name + " is a " + species)',
-    key_idea: "+ joins pieces of text together exactly as they are, so you add any spaces yourself.",
+    code: 'name = "Mo"\nspecies = "meerkat"\nlabel = name + " is a " + species\nprint(label)',
+    key_idea: "+ joins pieces of text together exactly as they are, so you add any spaces yourself. Use + when you build text and store it in a variable; when you just print several values, commas are simpler.",
   },
   // ---------- Maths in Python ----------
   "maths:arithmetic": {
@@ -146,7 +146,7 @@ const EXAMPLES = {
     problem: "A garden centre compares the number of seeds typed in with 50.",
     code: 'seeds = int(input("Seeds: "))\nif seeds > 50:\n    print("Big packet")\nelse:\n    print("Small packet")',
     inputs: ["75"],
-    key_idea: "Turn the input into a number with int() before comparing it with a number.",
+    key_idea: "Cast the input to a number with int() before comparing it with a number (this is called casting).",
   },
   "selection:modulo-conditions": {
     problem: "A zoo feeds the lions on every 3rd day. Is today (day 12) a feeding day?",

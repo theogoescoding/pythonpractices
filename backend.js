@@ -72,6 +72,8 @@
     remove(Store.PROGRESS_PREFIX + sid);
     remove(Store.ATTEMPTS_PREFIX + sid);
     remove(SYNCED_PREFIX + sid);
+    remove(Store.ASSIGNMENTS_PREFIX + sid);
+    remove(Store.ASSIGNMENT_WORK_PREFIX + sid);
     for (const k of [Store.LEVEL_LOG_KEY, Store.BUTTON_LOG_KEY, Store.PLACEMENT_LOG_KEY]) {
       const log = read(k);
       if (Array.isArray(log)) write(k, log.filter((e) => e.studentId !== sid));
@@ -255,6 +257,7 @@
     const progress = Rows.rowsToProgress(r.body.progress);
     orig.saveProgress(s.sid, progress);
     write(Store.ATTEMPTS_PREFIX + s.sid, r.body.attempts.map((a) => Rows.rowToAttempt(a, s.sid)));
+    Store.saveAssignments(s.sid, r.body.assignments || []); // only the open ones of the student's class
     const synced = { units: {}, passed: {} };
     for (const row of r.body.progress) synced.units[row.unit] = JSON.stringify(row.state);
     for (const p of r.body.passed) synced.passed[p.unit + "|" + p.fingerprint] = 1;

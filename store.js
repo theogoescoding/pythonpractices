@@ -15,6 +15,8 @@
   const ATTEMPTS_PREFIX = "pyPractice.attempts.v1.";    // + student id → [ attempt, … ] (every Check press, skip)
   const BUTTON_LOG_KEY = "pyPractice.buttonLog.v1";     // [ "too easy" / "way too hard" use, … ] for every student
   const PLACEMENT_LOG_KEY = "pyPractice.placementLog.v1"; // [ placement result or teacher reset, … ] for every student
+  const ASSIGNMENTS_PREFIX = "pyPractice.assignments.v1."; // + student id → [ open assignment of their class, … ] (backend mode)
+  const ASSIGNMENT_WORK_PREFIX = "pyPractice.assignmentWork.v1."; // + student id → { assignment id: { index, current, tried, drafts } }
   const MAX_LOG_ENTRIES = 5000;
   const MAX_ATTEMPTS_PER_STUDENT = 3000;
   const MAX_STORED_TEXT = 2000;                         // code and output kept with an attempt are cut to this many characters
@@ -105,6 +107,19 @@
     return appendLog(PLACEMENT_LOG_KEY, Object.assign({ id: newRecordId("p"), at: new Date().toISOString() }, entry), MAX_LOG_ENTRIES);
   }
   const placementLog = () => readJson(PLACEMENT_LOG_KEY) || [];
+
+  // ---------- Class assignments (backend mode) ----------
+  // The open assignments of the student's class, as student-api get_progress sent them: [{ id, title, description,
+  // task_ids, updated_at }]. Always empty in local mode. Work on an assignment (which task is open, the answers so far,
+  // which tasks were tried) is kept in this browser only: it is practice, so it never touches the saved progress.
+  const assignments = (studentId) => readJson(ASSIGNMENTS_PREFIX + studentId) || [];
+  const saveAssignments = (studentId, list) => writeJson(ASSIGNMENTS_PREFIX + studentId, list);
+  const loadAssignmentWork = (studentId, assignmentId) => (readJson(ASSIGNMENT_WORK_PREFIX + studentId) || {})[assignmentId] || null;
+  function saveAssignmentWork(studentId, assignmentId, work) {
+    const all = readJson(ASSIGNMENT_WORK_PREFIX + studentId) || {};
+    all[assignmentId] = work;
+    return writeJson(ASSIGNMENT_WORK_PREFIX + studentId, all);
+  }
 
   // Rough number of bytes this site uses in localStorage (each character takes 2 bytes).
   function storageUsed() {
@@ -226,5 +241,6 @@
     readJson, writeJson, students, addStudent, setCurrent, currentStudent,
     loadProgress, saveProgress, logLevelChange, levelLog, setupDisplaySettings,
     logAttempt, attempts, logButton, buttonLog, logPlacement, placementLog, storageUsed,
+    ASSIGNMENTS_PREFIX, ASSIGNMENT_WORK_PREFIX, assignments, saveAssignments, loadAssignmentWork, saveAssignmentWork,
   };
 });

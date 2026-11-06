@@ -15,7 +15,7 @@
   // ---------- Attempts (Store.logAttempt records) ----------
   function attemptToRow(a) {
     const type = recordType(a);
-    return {
+    const row = {
       record_id: a.id, record_type: type, timestamp: a.at, unit: a.unit, task_units: orNull(a.units),
       task_id: a.taskId, template_id: orNull(a.templateId), phase: orNull(a.phase), task_type: orNull(a.taskType),
       task_level: orNull(a.taskLevel), student_level_before: orNull(a.levelBefore), student_level_after: orNull(a.levelAfter),
@@ -26,6 +26,10 @@
       expected_output: a.expected == null ? null : String(a.expected), student_output: orNull(a.output),
       student_error_type: orNull(a.errorType), student_error_kind: orNull(a.errorKind), student_code: orNull(a.code),
     };
+    // Only assignment rows carry assignment_id, so every other row is exactly what a server without migration 0005
+    // accepts (it would refuse a row with a column it doesn't know).
+    if (a.assignmentId) row.assignment_id = a.assignmentId;
+    return row;
   }
 
   // The record as app.js attemptRecord makes it: failure fields only on a failed attempt (one with a category).
@@ -38,6 +42,7 @@
     };
     if (r.variant_fingerprint != null) a.fingerprint = r.variant_fingerprint;
     if (kind === "hint") a.hintType = r.hint_type;
+    if (r.assignment_id != null) a.assignmentId = r.assignment_id;
     if (r.failure_category != null) {
       Object.assign(a, {
         category: r.failure_category, details: r.failure_details, misconceptions: r.misconception_matches || [],

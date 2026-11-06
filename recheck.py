@@ -128,7 +128,8 @@ def template_variants(rows, templates_path):
 class Matcher:
     def __init__(self, tasks, variants=None):
         # A task that was moved to another unit keeps its old ids in former_ids, so older exports still match.
-        self.tasks = {old: t for t in tasks for old in t.get("former_ids", [])}
+        # A task that replaced a different one (former_ids_are_replacements) is not the old task, so it isn't used.
+        self.tasks = {old: t for t in tasks for old in t.get("former_ids", []) if not t.get("former_ids_are_replacements")}
         self.tasks.update({t["id"]: t for t in tasks})
         # Template variants made again from their template and seed (they aren't in the tasks file).
         self.tasks.update(variants or {})

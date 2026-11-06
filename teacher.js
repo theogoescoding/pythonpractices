@@ -8,7 +8,7 @@
   const TD = self.TeacherData;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const PAGES = ["overview", "log", "workshop"];
+  const PAGES = ["overview", "log", "workshop", "assignments", "tasks"];
   const MAX_LOG_ROWS_SHOWN = 1000;
   const REASONS = {
     passes: "Moved up: 2 strong passes in a row",
@@ -28,6 +28,7 @@
   Store.setupDisplaySettings();
 
   let tasksById = {};
+  let bankTasks = []; // tasks.json as it is (the Task browser)
   let misconceptions = [];
   let sortKey = "name";
   let sortDir = 1;
@@ -37,7 +38,13 @@
   const when = (iso) => (iso ? new Date(iso).toLocaleString("en-GB", { dateStyle: "short", timeStyle: "short" }) : "–");
   const pct = (x) => Math.round(x * 100) + "%";
   const mName = (id) => (misconceptions.find((m) => m.id === id) || { name: id }).name;
-  const taskLabel = (id) => (tasksById[id] ? id + " – " + tasksById[id].title : id);
+  const taskLabel = (id) => {
+    const t = tasksById[id];
+    if (!t) return id;
+    // An old id of a task that was replaced by a different one (former_ids_are_replacements).
+    if (t.id !== id && t.former_ids_are_replacements) return id + " (a removed task, replaced by " + t.id + " – " + t.title + ")";
+    return id + " – " + t.title;
+  };
   const unitShort = (id) => (id ? unitTitle(id) : "–");
   const tb = self.TeacherBackend && self.TeacherBackend.enabled ? self.TeacherBackend : null;
   let classData = null; // backend mode: the chosen class, as teacher-backend.js loaded it
@@ -57,15 +64,19 @@
       $("storage-warning").textContent = "This browser's storage is nearly full (" + (used / 1048576).toFixed(1) +
         " MB used, about 5 MB allowed). Export the full data now. New attempts may stop being saved.";
     }
+    if (p === "tasks") renderTaskBrowser(); // needs no class
     const data = collect();
     if (!data) return; // backend mode: no class loaded yet
     if (p === "overview") renderOverview(data);
     else if (p === "log") renderLog(data);
-    else renderWorkshop(data);
+    else if (p === "workshop") renderWorkshop(data);
+    else if (p === "assignments") renderAssignments(data);
     $("filtered-help").textContent = {
       overview: "the student table, with the name filter applied.",
       log: "the attempts that match the filters, including code and output.",
       workshop: "the misconception table and the per-task unmatched table.",
+      assignments: "each assignment's tasks: how many students tried and passed each one, and the failed checks.",
+      tasks: "(nothing on this page: use Export full data).",
     }[p];
     renderLevelLog(data);
   }
@@ -197,7 +208,7 @@
       (rows.length > MAX_LOG_ROWS_SHOWN ? " Only the newest " + MAX_LOG_ROWS_SHOWN + " are shown; the filtered export has them all." : "");
     $("log-rows").innerHTML = rows.length ? rows.slice(0, MAX_LOG_ROWS_SHOWN).map((r) =>
       "<tr" + (r.result === "fail" ? ' class="row-alert"' : "") + "><td>" + esc(when(r.at)) + "</td><td>" + esc(r.name) + "</td><td>" + esc(unitShort(r.unit)) +
-      "</td><td>" + esc(r.taskId || "") + (r.phase === "placement" ? ' <span class="flag">placement</span>' : "") + '</td><td class="num">' + esc(r.level == null ? "" : r.level) +
+      "</td><td>" + esc(r.taskId || "") + (r.phase === "placement" ? ' <span class="flag">placement</span>' : r.phase === "assignment" ? ' <span class="flag">assignment</span>' : "") + '</td><td class="num">' + esc(r.level == null ? "" : r.level) +
       '</td><td class="res-' + (r.result === "pass" ? "pass" : r.result === "fail" ? "fail" : "none") + '">' + esc(r.result) +
       "</td><td>" + esc(r.category) + "</td><td>" + esc(r.misconceptions.map(mName).join("; ")) + '</td><td class="num">' + esc(r.hints) +
       "</td><td>" + esc(r.button) + "</td><td>" + esc(r.levelChange) + "</td><td>" + codeCell(r) + "</td></tr>").join("")
@@ -242,6 +253,132 @@
     unmatchedTask = b.dataset.unmatched;
     render();
     if ($("unmatched-h")) $("unmatched-h").focus();
+  });
+
+  // ---------- Assignments (backend mode) ----------
+  let editing = null; // { id?, title, description, task_ids } while the form is open
+  const parseTaskIds = (text) => [...new Set(String(text || "").split(/[\s,;]+/).map((s) => s.trim()).filter(Boolean))];
+  // The ids typed, each found in the bank (also by an old id), or not.
+  function checkTaskIds(ids) {
+    return ids.map((id) => {
+      const t = tasksById[id] || bankTasks.find((x) => x.id.toLowerCase() === id.toLowerCase());
+      if (!t) return { id, problem: "isn't a task in the bank" };
+      if ((t.tags || []).includes("placement")) return { id, problem: "is a placement task (placement tasks are only used in the placement test)" };
+      return { id: t.id, task: t };
+    });
+  }
+
+  function renderAssignmentCheck() {
+    const checked = checkTaskIds(parseTaskIds($("as-tasks").value));
+    $("as-task-check").innerHTML = checked.length ? '<ol class="small">' + checked.map((c) => c.task
+      ? "<li>" + esc(c.id) + " – " + esc(c.task.title) + " (" + esc(unitTitle(c.task.unit)) + ", level " + c.task.level + ", " + esc(c.task.type) + ")</li>"
+      : '<li class="problem">' + esc(c.id) + " " + esc(c.problem) + "</li>").join("") + "</ol>" : "";
+    return checked;
+  }
+
+  function openAssignmentForm(a) {
+    editing = a ? { id: a.id, status: a.status } : {};
+    $("as-form").hidden = false;
+    $("as-form-h").textContent = a ? "Change assignment" : "New assignment";
+    $("as-save").textContent = a ? "Save changes" : "Save and open it for students";
+    $("as-title").value = a ? a.title : "";
+    $("as-description").value = a ? a.description : "";
+    $("as-tasks").value = a ? a.task_ids.join("\n") : "";
+    $("as-form-status").hidden = true;
+    renderAssignmentCheck();
+    $("as-form-h").focus();
+  }
+
+  function closeAssignmentForm() { editing = null; $("as-form").hidden = true; }
+
+  function renderAssignments(data) {
+    $("as-local").hidden = !!tb;
+    $("as-main").hidden = !tb;
+    if (!tb) return;
+    const list = data.assignments || [];
+    $("as-list").innerHTML = list.length ? list.map((a) => {
+      const s = TD.assignmentStats(data, a);
+      const rows = s.tasks.map((t) => "<tr><th scope=\"row\">" + esc(taskLabel(t.taskId)) + '</th><td class="num">' + t.triedCount + '</td><td class="num">' + t.passedCount +
+        '</td><td class="num">' + t.checks + '</td><td class="num">' + t.fails + '</td><td class="num">' + t.showHow + "</td><td>" + esc(t.topCategory || "–") +
+        "</td><td>" + esc(t.topMisconception ? mName(t.topMisconception) : "–") + "</td></tr>").join("");
+      const hard = s.struggled.slice(0, 3).map((t) => "<li>" + esc(taskLabel(t.taskId)) + ": " + t.stuckCount + " of " + t.triedCount + " who tried haven't passed it yet, " +
+        t.fails + " failed check" + (t.fails === 1 ? "" : "s") + "</li>").join("");
+      return '<section class="assignment-card task-card" aria-labelledby="as-' + esc(a.id) + '">' +
+        '<h3 id="as-' + esc(a.id) + '">' + esc(a.title) + ' <span class="flag' + (a.status === "open" ? "" : " flag-alert") + '">' + (a.status === "open" ? "Open" : "Closed") + "</span></h3>" +
+        (a.description ? "<p>" + esc(a.description) + "</p>" : "") +
+        '<p class="small">' + a.task_ids.length + " task" + (a.task_ids.length === 1 ? "" : "s") + " · created " + esc(when(a.created_at)) + " · " + s.students + " student" + (s.students === 1 ? "" : "s") + " have tried it</p>" +
+        '<p class="teacher-controls"><button type="button" class="secondary" data-as-edit="' + esc(a.id) + '">Change</button>' +
+          '<button type="button" class="secondary" data-as-status="' + esc(a.id) + '" data-to="' + (a.status === "open" ? "closed" : "open") + '">' + (a.status === "open" ? "Close it" : "Open it again") + "</button></p>" +
+        "<h4>Struggled with most</h4>" + (hard ? "<ol>" + hard + "</ol>" : '<p class="small">No one has struggled with a task yet.</p>') +
+        '<div class="table-wrap"><table><thead><tr><th scope="col">Task</th><th scope="col">Students who tried</th><th scope="col">Students who passed</th>' +
+          '<th scope="col">Checks</th><th scope="col">Failed checks</th><th scope="col">"Show me how"</th><th scope="col">Most common failure</th><th scope="col">Top misconception</th></tr></thead>' +
+          "<tbody>" + rows + "</tbody></table></div></section>";
+    }).join("") : '<p class="small">No assignments for this class yet.</p>';
+  }
+
+  $("as-new").addEventListener("click", () => openAssignmentForm(null));
+  $("as-cancel").addEventListener("click", closeAssignmentForm);
+  $("as-tasks").addEventListener("input", renderAssignmentCheck);
+  $("as-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const fail = (msg) => { $("as-form-status").hidden = false; $("as-form-status").className = "problem"; $("as-form-status").textContent = msg; };
+    const title = $("as-title").value.trim();
+    const checked = renderAssignmentCheck();
+    if (!title) return fail("Please give the assignment a title.");
+    if (!checked.length) return fail("Please add at least one task.");
+    if (checked.some((c) => !c.task)) return fail("Some task ids need fixing (see the list above).");
+    if (checked.length > 50) return fail("An assignment can have up to 50 tasks.");
+    const r = await tb.saveAssignment({ id: editing && editing.id, status: (editing && editing.status) || "open", title,
+      description: $("as-description").value.trim(), task_ids: checked.map((c) => c.id) });
+    if (r.error) return fail(r.error);
+    closeAssignmentForm();
+  });
+  $("as-list").addEventListener("click", async (e) => {
+    const edit = e.target.closest("button[data-as-edit]");
+    const status = e.target.closest("button[data-as-status]");
+    const list = (collect() || {}).assignments || [];
+    if (edit) openAssignmentForm(list.find((a) => a.id === edit.dataset.asEdit));
+    if (status) {
+      const r = await tb.setAssignmentStatus(status.dataset.asStatus, status.dataset.to);
+      if (r.error) $("as-list").insertAdjacentHTML("afterbegin", '<p class="problem" role="alert">' + esc(r.error) + "</p>");
+    }
+  });
+
+  // ---------- Task browser ----------
+  let browsing = null; // id of the task on show
+  function renderTaskBrowser() {
+    const found = TaskView.searchTasks(bankTasks, $("tb-search").value, 25);
+    const q = $("tb-search").value.trim();
+    $("tb-results").innerHTML = !q ? "" : found.length ? found.map((t) =>
+      '<li><button type="button" class="secondary" data-browse="' + esc(t.id) + '"' + (t.id === browsing ? ' aria-current="true"' : "") + ">" +
+        esc(t.id) + " – " + esc(t.title) + ' <span class="small">(' + esc(unitTitle(t.unit)) + ", level " + t.level + ")</span></button></li>").join("")
+      : '<li class="small">No task matches "' + esc(q) + '".</li>';
+    const t = bankTasks.find((x) => x.id === browsing);
+    if (!t) { $("tb-view").innerHTML = ""; return; }
+    const canAdd = tb && !$("as-form").hidden && !(t.tags || []).includes("placement");
+    $("tb-view").innerHTML = TaskBrowser.html(t, self.initialDraft, unitTitle) +
+      (canAdd ? '<p><button type="button" id="tb-add" class="primary">Add ' + esc(t.id) + " to the assignment</button></p>" : "");
+    TaskBrowser.wire($("tb-view"));
+    if ($("tb-add")) $("tb-add").addEventListener("click", () => {
+      const ids = parseTaskIds($("as-tasks").value);
+      if (!ids.includes(t.id)) $("as-tasks").value = ids.concat(t.id).join("\n");
+      renderAssignmentCheck();
+      $("tb-add").textContent = "Added – go to Assignments to save it";
+      $("tb-add").disabled = true;
+    });
+  }
+  $("tb-search").addEventListener("input", () => {
+    const found = TaskView.searchTasks(bankTasks, $("tb-search").value, 1);
+    // An exact id opens straight away.
+    if (found[0] && found[0].id.toLowerCase() === $("tb-search").value.trim().toLowerCase()) browsing = found[0].id;
+    renderTaskBrowser();
+  });
+  $("tb-results").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-browse]");
+    if (!b) return;
+    browsing = b.dataset.browse;
+    renderTaskBrowser();
+    if ($("tb-task-h")) $("tb-task-h").focus();
   });
 
   // ---------- Level-change log ----------
@@ -335,6 +472,7 @@
   Promise.all([loadJson("tasks.json").catch(() => []), loadJson("misconceptions.json").catch(() => [])]).then(([tasks, ms]) => {
     // Attempts logged before a task moved unit use its old id (former_ids).
     tasksById = Object.fromEntries(tasks.flatMap((t) => (t.former_ids || []).map((old) => [old, t])).concat(tasks.map((t) => [t.id, t])));
+    bankTasks = tasks;
     misconceptions = ms;
     render();
   });

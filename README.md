@@ -4,19 +4,22 @@ A browser-based Python practice app for students aged 11–16, aligned to KS3 an
 
 | Unit | Covers | Practice tasks | Placement tasks |
 |---|---|---|---|
-| Output and sequence | `print`, comments, running a script, order of statements | 50 | 8 |
-| Variables and input | assignment, `input()`, `int()` and `str()` conversion | 50 | 8 |
+| Output and sequence | `print`, comments, running a script, order of statements | 51 | 8 |
+| Variables and input | assignment, `input()`, casting with `int()` and `str()` | 51 | 8 |
 | Maths in Python | `+ - * /`, `//`, `%`, `**`, operator precedence, rounding | 50 | 8 |
 | Selection | `if`, `if/else`, `elif`, comparison operators, `and`/`or` | 189 | 8 |
 | Condition-controlled loops | `while`: counters, running totals, sentinel values, input validation, menus, endless loops | 40 | 8 |
 | Count-controlled loops | `for` and `range()`: steps, the loop variable, counting, nested loops, looping over a string | 40 | 8 |
 
-On top of the task bank, `templates.json` holds 519 task templates with randomised values: one made from every practice task (419), plus 60 single-unit, 22 combined and 18 "Write from scratch" templates. A student never gets a task they have already passed: once the bank tasks at their level run out, they get new variants made from the templates.
+On top of the task bank, `templates.json` holds 521 task templates with randomised values: one made from every practice task (421), plus 60 single-unit, 22 combined and 18 "Write from scratch" templates. A student never gets a task they have already passed: once the bank tasks at their level run out, they get new variants made from the templates.
 
 - **Each unit has its own level (1–10) for each student.** Levels are about support, not topic: every unit runs from predicting the output (level 1) up to writing an extended program (level 10).
 - **A placement test** finds each student's starting level the first time they open a unit.
 - **Every failed attempt is classified automatically** (syntax error, wrong output, …) and matched against known **misconceptions**, so the teacher view can show who needs which workshop. The student sees the misconception's explanation and one thing to try next.
 - **"Show me how"** offers a worked example after 2 failed attempts on the same task.
+- **Every task shows its expected output** in a box, from one example test. The other tests are hidden.
+- **Class assignments** (backend mode): a teacher sets tasks for a class, as practice only. See [Class assignments](#class-assignments-backend-mode).
+- **A Task browser** in the teacher view shows any task's question, expected output, tests and model solution.
 - **Student code runs in the browser.** It uses [Pyodide](https://pyodide.org) inside a Web Worker. A run is stopped after 5 seconds, so infinite loops can't freeze the page.
 - **Two storage modes.** In **local mode** (the default) nothing leaves the browser: there is no backend or analytics, and names, progress and attempts are stored in `localStorage`. In **backend mode** (see [Backend mode](#backend-mode-supabase)) students join a class and their work is saved to a Supabase database, so they can carry on from any computer and the teacher sees the whole class. There are no analytics in either mode.
 
@@ -34,7 +37,7 @@ Then open:
 
 - Student app: http://localhost:8000/
 - Test mode (starting-level control): http://localhost:8000/?test=1
-- Teacher view: http://localhost:8000/teacher.html (pages: `#overview`, `#log`, `#workshop`)
+- Teacher view: http://localhost:8000/teacher.html (pages: `#overview`, `#log`, `#workshop`, `#assignments`, `#tasks`)
 - A student's progress summary: http://localhost:8000/progress.html
 - Endless mode: http://localhost:8000/endless.html
 
@@ -55,8 +58,9 @@ The pages stay static files (GitHub Pages). With `config.js` setting `BACKEND_EN
 | Part | Where |
 |---|---|
 | Tables, row-level security, server functions, nightly jobs | `supabase/migrations/0001_schema.sql` … `0004_retention.sql` |
+| Class assignments: the `assignments` table, its row-level security, `attempts.assignment_id` | `supabase/migrations/0005_assignments.sql` |
 | `join-class`, `resume` (no sign-in, 300 requests per IP per 10 minutes) | `supabase/functions/join-class/`, `resume/` |
-| `student-api` (student session token): get/save progress, add attempts and events, mark passed, delete my progress | `supabase/functions/student-api/` |
+| `student-api` (student session token): get/save progress (with the class's open assignments), get assignments, add attempts and events, mark passed, delete my progress | `supabase/functions/student-api/` |
 | `teacher-api` (teacher's Supabase sign-in): reveal codes, reset PIN, reset placement, import | `supabase/functions/teacher-api/` |
 | Shared function code: CORS, crypto, nickname filter, row checks | `supabase/functions/_shared/` |
 | Student side | `backend.js`, with `backend-rows.js` (local records ⇄ table rows) |
@@ -77,11 +81,33 @@ npx supabase functions serve --env-file <secrets file outside this folder>
 
 See `docs/SECRETS.md` for making the secrets file. `config.js` (committed) points at the test project. To use the local stack instead, change it on your computer only, without committing: set `BACKEND_ENABLED: true`, `SUPABASE_URL: "http://127.0.0.1:54321"` and the anon key from `npx supabase status`, and serve the folder on port 8000 as above. Confirmation emails go to the local Mailpit inbox (http://127.0.0.1:54324). With `BACKEND_ENABLED: false` the app is in local mode.
 
+### Class assignments (backend mode)
+
+A teacher can set a group of tasks for a whole class: a title, a short description, and any bank tasks, in order (predict, Parsons, fill in the blanks and write; not placement tasks).
+
+- **Students** see each open assignment as a card at the top of their home page, above the unit cards ("From your teacher"). Opening it shows the tasks one at a time, with the list down the side. They can go to any task in any order.
+- **Practice only.** Nothing in the student's progress changes:
+  - no score or pass count
+  - no change to their level, streaks, passed tasks, skill states, hint counts or progress
+  - unlimited tries, including on predict tasks: a wrong choice doesn't show the answer, so they can choose again
+  - hints are free, with no count shown, and never move them down
+  - "Show me how" is there on every task from the start, after any number of fails
+  - **Reset this task** works as it does in practice
+- **Recorded.** Every Check press and every use of "Show me how" goes into the same attempt log as practice, with `phase` = `assignment` and the assignment's id (`assignment_id`). The student's level is noted but never changed. Which task is open, the answers so far and the ✓ marks are kept in that browser only.
+- **Teacher view → Assignments**: a list of the class's assignments, with a button to create one. For each assignment it shows:
+  - which tasks have been tried, and by how many students
+  - how many passed each task, the failed checks, the uses of "Show me how", the most common failure and the top misconception
+  - the tasks students struggled with most (most students who tried without passing it yet, then most fails per student)
+  
+  The teacher can **change** an assignment (title, description, tasks) or **close** it. Students see only open ones. A closed one can be opened again, and its attempts are kept.
+- **Storage:** the `assignments` table (migration 0005). Under row-level security only the class's teacher can read, add, change or delete its assignments. Students never read the table: `student-api` sends them the open assignments of their own class. An attempt may name only an assignment of the student's own class, which both `student-api` and a database trigger check. Assignments are deleted with their class.
+- In local mode there are no assignments (the Assignments page says so), because students must see them on their own computers.
+
 ### Importing a full export
 
 "Import full export" in the teacher view takes a `python-practice-full-data-*.csv` made in local mode. It lists every student in the file. Names are only trimmed: any that break the nickname rules, are blocked, or appear twice in the file must be renamed by the teacher, and nothing is saved until they all pass. A name already in the class adds its rows to that student. New students get a code and PIN, shown once.
 
-It rebuilds each unit's level (the last level change, or the last attempt), the highest level, placement, passed tasks (by fingerprint, or task id when the export has none), units completed, level 10 passed and the buttons used. Old task ids are renamed with `former_ids` (for example `loops-L5a` → `while-L5a`, `sel-L10d` → `logic-L10b`); old skill names are renamed when the student next opens the unit. It can't rebuild streaks, the fast-move-up run, a recovery ceiling, skill states, the per-task log and history, the task in progress or Endless mode choices. Code older than 30 days arrives already cleared. Importing the same file twice adds nothing (rows are matched on student, task, time and record type).
+It rebuilds each unit's level (the last level change, or the last attempt), the highest level, placement, passed tasks (by fingerprint, or task id when the export has none), units completed, level 10 passed and the buttons used. Old task ids are renamed with `former_ids` (for example `loops-L5a` → `while-L5a`, `sel-L10d` → `logic-L10b`); old skill names are renamed when the student next opens the unit. Assignment rows (`phase` = `assignment`) are imported without their `assignment_id`, and never rebuild a level or a passed task. It can't rebuild streaks, the fast-move-up run, a recovery ceiling, skill states, the per-task log and history, the task in progress or Endless mode choices. Code older than 30 days arrives already cleared. Importing the same file twice adds nothing (rows are matched on student, task, time and record type).
 
 ## Display: themes and reading overlay
 
@@ -288,6 +314,20 @@ Each skill has one name everywhere. `accumulator` is in both loops units' lists,
 
 **Moved from Selection.** The 20 Selection tasks whose main idea was a `while` loop (`loops-L1a` … `loops-L10b`) and the placement task `sel-P9b` are now in Condition-controlled loops, renamed `while-L1a` … `while-L10b` and `while-P9a`. Each one keeps its old id in a `former_ids` field. A new Selection placement task, `sel-P9c`, replaces `sel-P9b`. `functions-L10a` stays in Selection, because its main idea is writing a function. Selection still has at least 18 tasks at every level.
 
+**Fewer repeated `sep=`/`end=` tasks.** At Output and sequence level 10, four tasks tested the same `sep=` or `end=` idea as a task kept at that level. They were replaced by comma tasks with the same level, type and skills, so the unit still has 14 tasks at level 10:
+
+| Removed | Repeated the idea of | Replaced by |
+|---|---|---|
+| `out-L10e` (`sep=" \| "`) | `out-L10a` | `out-L10o` Sports day results |
+| `out-L10k` (`sep=" - "`) | `out-L10a` | `out-L10p` Bus stop sign |
+| `out-L10f` (`end=" \| "`) | `out-L10c` | `out-L10q` Club list |
+| `out-L10h` (`end="... "`) | `out-L10c` | `out-L10r` Countdown in one print |
+
+- At levels 1 to 9, each pair of `sep=`/`end=` tasks tests different ideas (one `sep=`, one `end=`), so they were kept. So were all the placement tasks.
+- Each new task lists the old id in `former_ids`, with `former_ids_are_replacements: true`. The teacher view then shows an old attempt as "a removed task, replaced by …".
+- Because the old task was a different task, its saved progress is **not** moved onto the new one: a student who passed `out-L10e` can still be given `out-L10o`. Imports and `recheck.py` also keep the old id.
+- The tool that made this change is `tools/replace-sep-end.js`.
+
 **Removed duplicate.** `sel-L10d` was the same rock, paper, scissors task as `logic-L10b`, so it was removed. `logic-L10b` lists `sel-L10d` in its `former_ids`, so older attempts and exports still find it, and saved progress on `sel-L10d` (including a task in progress) is merged into `logic-L10b` when it loads.
 
 ### Adaptive rules
@@ -331,7 +371,8 @@ Every failed attempt gets one category, worked out by `Checker.classifyAttempt` 
 
 - **The student sees a friendly message for each category**, for example "Python couldn't find a name it expected ('scroe') on line 2. Check your spelling, and that you created it before using it." Every category message ends with one **"What to try"** line (`Checker.failureParts`). The existing plain-English error explanations are still shown underneath. A raw traceback is never shown.
 - **A matched misconception comes first.** If the attempt matches a misconception, its `explanation` is the main message, above the category message.
-- **Each failed test** shows the input used, the expected output and the student's output, each on its own labelled line ("Input", "Expected", "Your output"), with "(no output)" when nothing was printed.
+- **The example test, if it fails,** shows the input used, the expected output and the student's output, each on its own labelled line ("Input", "Expected", "Your output"), with "(no output)" when nothing was printed.
+- **A hidden test** shows only "Hidden test 2 passed" or "didn't pass", with the error explanation if the program stopped with one. Its input, its expected output and what the student's program printed for it are never shown, in any message, hint or explanation. A `WRONG_OUTPUT` failure on a hidden test gets its own message ("…didn't print the right thing for one of the hidden tests"). The attempt log still records the failing test's details for the teacher.
 - **Empty answers count.** Checking an empty answer is now a failed `NO_ANSWER` attempt instead of being blocked. A fill task with *some* blanks empty is still blocked with "Fill in every blank".
 - **What's stored.** With each failed attempt the app stores the category and details, the student's code, the output of the failing test (code and output cut to 2000 characters), that test's inputs and expected output, and any misconception matches.
 - **`OTHER_ERROR`** was added to the 8 categories in the brief, for runtime errors that aren't `NAME`, `TYPE` or `TIMEOUT`.
@@ -354,11 +395,11 @@ Every failed attempt gets one category, worked out by `Checker.classifyAttempt` 
 - **A task may have `buggy_variants`**: short programs that each show one misconception (`{ "misconception": "GT_VS_GTE", "code": "…", "outputs": [...] }`).
 - **How matching works.** When an attempt fails, the student's result on the first failing test is compared with each variant's result on the same test. A variant matches if both printed the same thing (ignoring trailing spaces) and ended the same way: no error, or the same kind of error (for example `TypeError:concat`, or a syntax error from `=` in a condition). Two runs that both went on forever also match, which is how `LOOP_NO_UPDATE` is found. If nothing matches, nothing is recorded: a misconception is never recorded without a match. `NO_ANSWER` attempts are never matched.
 - **Variant outputs are worked out in advance.** `node tools/build-variants.js` runs every variant through `harness.py` on each of its task's tests and stores the results in `outputs`. The app and `recheck.py` compare against these stored outputs, so their results are identical. **Run it after adding or changing a variant or a task's tests.** The test script fails if the stored outputs are out of date.
-- **Coverage now:** 128 tasks have misconception tags and buggy variants (177 variants in total):
+- **Coverage now:** 130 tasks have misconception tags and buggy variants (179 variants in total):
   - **39 of the 48 placement tasks.** The 9 without variants are:
     - 7 Output and sequence tasks and 1 Variables task, whose ideas (`sep=`, `end=`, the order of statements, reassignment) have no id in the list yet
     - `for-P7a` (looping over a string), which has no matching id
-  - **89 bank tasks:** 21 in Selection, 21 in Condition-controlled loops and 29 in Count-controlled loops, plus the earlier units.
+  - **91 bank tasks:** 21 in Selection, 21 in Condition-controlled loops and 29 in Count-controlled loops, plus 9 in Variables and input and 11 in Maths.
   - **Rules:** every id has variants on at least 3 bank tasks. Every id used in the loops units has variants on at least 3 bank tasks within those two units.
   - **Template variants:** a variant made from a bank task keeps its buggy variants, and their outputs are worked out when the variant is made (by running them), so mistakes on variants are matched too. The hand-written templates (Endless mode's single-unit and combined templates, write-from-scratch) have none.
 
@@ -392,9 +433,27 @@ All values are named constants at the top of `app.js`:
 | `SHOW_HOW_AFTER_FAILS` | 2 | Failed attempts on one task before "Show me how" is offered |
 | `MAX_NEW_VARIANT_TRIES` | 40 | Draws to find a template variant that hasn't been passed |
 
+## Expected output and example test
+
+- **Every task except predict** shows a box labelled **Expected output** under its description. It holds the exact output the program should print for the **example test** (the task's first test), with that test's input. It is the same text the checker compares (`Checker.normalise`: trailing spaces and trailing blank lines are ignored). A task that prints nothing says "No output – the program should not print anything."
+- The box also says how many **hidden tests** there are. Their inputs and outputs are never shown (see [Automatic failure classification](#automatic-failure-classification)). **Run** uses the example test's input.
+- **Predict tasks have no box**, because the output is the answer.
+- What counts as a pass hasn't changed: every test, hidden or not, must pass.
+- The box comes from `task-view.js`, which the practice page and the teacher's Task browser both use, so they always show the same thing.
+
+## Printing: commas and casting
+
+- **Commas, not +.** When a program prints several values, it uses commas in `print()`: `print("Total (£):", total)`. No task joins values with `+` and `str()` just to print them. Where the old output had no space (`Total: £6`), the line was reworded so commas still read well (`Total (£): 6`), and the tests were changed to match.
+- **+ only for text that is built and stored.** Where a task builds text with `+` and keeps it in a variable (a message, a badge, a row of a grid), a hint says why, in plain words. The same goes for an `input()` prompt built with `+`, because `input()` takes only one piece of text.
+- **Casting is named.** Every task that applies `int()`, `float()` or `bool()` to `input()` calls it *casting*: in the description when the task asks the student to do it, otherwise in a hint.
+- **Two predict tasks show why:**
+  - `out-L1e` shows that commas print a space between values, with a no-space wrong option.
+  - `var-L2e` shows text being joined (`"4" + "5"` is `45`) next to cast values being added (`9`).
+- `tools/print-commas.js`, `tools/print-commas-templates.js` and `tools/casting-words.js` made these changes once. Each one checks that every changed solution still prints its expected output.
+
 ## Teacher view
 
-`teacher.html` starts with the note "Data is stored in this browser only. Results from other devices won't appear here." It warns when the browser's storage is nearly full (about 4 of the 5 MB a site may use). It has three pages, each with its own link:
+`teacher.html` starts with the note "Data is stored in this browser only. Results from other devices won't appear here." It warns when the browser's storage is nearly full (about 4 of the 5 MB a site may use). It has five pages, each with its own link:
 
 **Overview (`#overview`, the default)**
 
@@ -419,9 +478,24 @@ All values are named constants at the top of `app.js`:
 - For each misconception matched: the tasks it shows up in, the number of attempts and students affected, the failure rate on those tasks, and the list of students, to plan a workshop.
 - For each task with failed attempts: the number of failed attempts with no misconception match ("unmatched"), the unmatched rate as a percentage of that task's failures, whether the task has buggy variants, and a **View** button. View shows those unmatched attempts with the code and output side by side, which helps when writing new buggy variants.
 
+**Assignments (`#assignments`, backend mode)**: see [Class assignments](#class-assignments-backend-mode).
+
+**Task browser (`#tasks`)**
+
+- A search box finds a task by its id (`var-L9d`, in any case; an old id from `former_ids`; a template variant id like `d-var-L9d#123`; or an id with a number on the end like `var-l9d-2`) or by words in its title.
+- For the chosen task it shows:
+  - the question as students see it (for Parsons tasks, the lines they get)
+  - the starter code
+  - the **Expected output** box exactly as students see it (on predict tasks, which students see without the box, the output on its own)
+  - every test, marked as the example or hidden (teacher only)
+  - the hints
+  - the **model solution** behind a Show / Hide button
+- In backend mode, while an assignment form is open, an **Add to the assignment** button adds the task to it.
+- Everything is read from `tasks.json`, the data the practice page uses. The browser is in `task-browser.js`, which only `teacher.html` loads, so no student page ever shows a model solution.
+
 **Export** (below every page)
 
-- **Export full data** downloads `python-practice-full-data-<date>.csv` with every attempt, skip, use of "Show me how", level change, button use and placement result (and reset) for the whole class, one row each. Two columns were added at the end: `hint_type` and `variant_fingerprint`; every earlier column and value is unchanged. The `record_type` column says which. It also downloads `data-dictionary.csv`, which explains every column and every coded value (record types, failure categories, error kinds, level-change reasons and misconception ids) in plain English, so an AI tool can analyse the data without other context. The browser may ask before allowing two downloads.
+- **Export full data** downloads `python-practice-full-data-<date>.csv` with every attempt, skip, use of "Show me how", level change, button use and placement result (and reset) for the whole class, one row each. Two columns were added at the end: `hint_type` and `variant_fingerprint`. Then `assignment_id` was added after them, with the new `phase` value `assignment` (backend mode). Every earlier column and value is unchanged. The `record_type` column says which. It also downloads `data-dictionary.csv`, which explains every column and every coded value (record types, failure categories, error kinds, level-change reasons and misconception ids) in plain English, so an AI tool can analyse the data without other context. The browser may ask before allowing two downloads.
 - **Export filtered view** downloads only what the current page shows: the student table with the name filter, the filtered detail log including code and output, or the two workshop tables.
 - **All level changes**: every level change, newest first, with the reason, under a fold below the export buttons.
 
@@ -461,7 +535,7 @@ python recheck.py export.csv tasks.json -o rechecked.csv --misconceptions miscon
 | `skills` | array of 1–3 strings | From the unit's skill list in `curriculum.js` |
 | `tags` | array of strings | Contexts and misconceptions, e.g. `"= vs =="`, `"int() on input"`, `"money"`. Up to 3 misconception ids from `misconceptions.json` (all capitals, e.g. `"GT_VS_GTE"`); every other tag is lower case. `"placement"` makes it a placement task |
 | `buggy_variants` | optional array | `[{ "misconception": "GT_VS_GTE", "code": "…" }]`. Each id must also be in `tags`. `outputs` is filled in by `node tools/build-variants.js` |
-| `former_ids` | optional array | Old ids of a task that was moved to another unit, or of a duplicate merged into it, e.g. `["loops-L5a"]`. They must not be used by any current task. Keep them: `recheck.py`, the teacher view and the loading of saved progress use them, so older attempts and exports still find the task |
+| `former_ids` | optional array | Old ids of a task that was moved to another unit, or of a duplicate merged into it, e.g. `["loops-L5a"]`. With `"former_ids_are_replacements": true` they are ids of different tasks this one replaced: the teacher view still finds them, but saved progress, imports and `recheck.py` don't treat them as this task. They must not be used by any current task. Keep them: `recheck.py`, the teacher view and the loading of saved progress use them, so older attempts and exports still find the task |
 | `worked_example` | object (practice tasks) | For "Show me how". Filled in by `node tools/add-worked-examples.js`; edit the examples in `tools/worked-examples.js` |
 
 Some types need extra fields:
@@ -558,6 +632,10 @@ This needs Node 18+ and Python 3 on the PATH (set `PYTHON=...` to use a differen
   - **"Show me how":** offered after the 2nd failure and every later one; a pass after it isn't strong; it isn't counted in the 3-hints move down; it's logged as a `show-me-how` hint and explained in the data dictionary.
   - **Matching:** an answer matching a buggy variant is tagged; one matching none is not.
   - **Data:** every misconception id used in tasks exists. The full export contains every attempt, level change, button use and placement result, and the data dictionary covers every column.
+  - **Printing rule:** no task joins values with `+` and `str()` inside `print()`; every task that builds and stores text with `+` says why in a hint; every task that casts `input()` says "casting"; the two new predict tasks exist.
+  - **Expected output:** every non-predict task's box shows the example test's output exactly as the checker compares it (or the "No output" line), never a hidden test's input or output, and says how many tests are hidden. A failed hidden test's message says nothing about it.
+  - **Task browser:** search by id, title, old id and variant id; every test's expected output is the checker's and every model solution passes against it; it shows the same box as the student's page; the model solution starts hidden; no student page loads the browser.
+  - **Assignments:** the assignment id goes into the attempt record, the row and the export (as the last column, with every earlier column unchanged) and the data dictionary; the per-task summary (tried, passed, struggled most); importing never rebuilds levels or passes from assignment work; assignment work is kept apart from the saved progress.
   - **`recheck.py`:** an unchanged export gives the same matches as the app (including an attempt on a template variant, made again from its template and seed); a new buggy variant changes the matches only for the attempts it applies to; an export that names a moved task by its old id keeps its matches.
 - **Simulation:** `tests/simulate.js` runs nine made-up students through the rules. It checks the fast move up, the normal move down and the recovery drop with its ceiling, and that a student who uses "Show me how" twice doesn't change level because of it (compared with the same student without it). Run it on its own to see each student's level task by task:
 
@@ -569,7 +647,7 @@ This needs Node 18+ and Python 3 on the PATH (set `PYTHON=...` to use a differen
 
 - `node tests/backend-client.js`: `backend.js` against a fake server in memory (outbox, offline, signed out, shared computers, deleting). No network needed.
 - The feature tests also check export parity: the same class exported in backend mode gives the same CSV, overview, quick look and detail log, and an imported export gives the same rows again.
-- `node tests/sql/run.js`: row-level security and the server functions, in the local database (`npx supabase start`). Each file runs in a transaction that is rolled back.
+- `node tests/sql/run.js`: row-level security and the server functions, in the local database (`npx supabase start`). Each file runs in a transaction that is rolled back. `assignments.sql` checks the assignments table: only the class's teacher can read or change its assignments, the table's checks, and that an attempt can only name an assignment of the student's own class.
 - `$env:TEST_BACKEND = "1"; node tests/backend/run.js`: the Edge Functions and the API on the local stack (also `npx supabase functions serve`). Set `FUNCTIONS_ENV_FILE` to the secrets file to test an expired token too. With `$env:TEST_BACKEND_TARGET = "test-project"` it runs against the test project named in `tests/backend/config.local.json` (git-ignored), and refuses any other project. It makes its own teachers and deletes them afterwards.
 
 **In-browser check (optional):** serve the folder and open `http://localhost:8000/tests/browser-check.html`. It runs every bank solution, and one variant of every template (derived ones made in Pyodide, as the app makes them), through the real Pyodide worker. It also checks that an infinite loop is stopped by the timeout and by the line limit. Making the variants takes a few minutes.
@@ -582,7 +660,10 @@ This needs Node 18+ and Python 3 on the PATH (set `PYTHON=...` to use a differen
 | `practice.html`, `app.js` | Practice session for one unit, or Endless mode: task types, hints, the editor, the adaptive rules and their constants |
 | `progress.html`, `progress.js` | Progress summary and skill drill-down |
 | `endless.html`, `endless.js` | Endless mode set-up: choosing units |
-| `teacher.html`, `teacher.js` | Teacher view (Overview, Detail log, Workshop) and export |
+| `teacher.html`, `teacher.js` | Teacher view (Overview, Detail log, Workshop, Assignments, Task browser) and export |
+| `task-view.js` | The Expected output box and example test (practice page and Task browser), and the task search |
+| `task-browser.js` | The teacher's Task browser, with the model solutions (loaded by `teacher.html` only) |
+| `tools/print-commas.js`, `tools/print-commas-templates.js`, `tools/casting-words.js`, `tools/replace-sep-end.js` | One-off rewrites for the printing rule (commas, casting), kept as a record; each checks its results |
 | `teacher-data.js` | Teacher view sums, filters, full export and data dictionary (no DOM, so it's tested in Node) |
 | `misconceptions.json` | The fixed list of misconception ids, names and descriptions |
 | `recheck.py` | Re-runs misconception matching over an exported full-data CSV |
@@ -642,7 +723,9 @@ This needs Node 18+ and Python 3 on the PATH (set `PYTHON=...` to use a differen
 - **Placement uses the highest level passed**, as the brief says, even if an earlier one was failed. For example, failing 2 but passing 5 starts at 5.
 - **Test mode is not protected.** Anyone who adds `?test=1` to the URL can set levels. Every change is logged in the teacher view.
 - **Internet is needed the first time.** Pyodide comes from cdn.jsdelivr.net. If it can't load, the page says so and code can't be run.
-- **Answers are visible to a determined student.** `tasks.json`, including the solutions, is downloaded to the browser (in backend mode too: answers are still checked in the browser).
+- **Answers are visible to a determined student.** `tasks.json`, including the solutions and the hidden tests, is downloaded to the browser (in backend mode too: answers are still checked in the browser). No student page *shows* a model solution or a hidden test, but the data is there for anyone who opens the browser's developer tools.
+- **Assignment work is kept per browser.** Which task is open, the answers so far and the ✓ marks on an assignment are kept in that browser only. The attempts themselves are saved to the server as usual, so the teacher sees everything, but a student who moves to another computer starts the assignment's tasks with empty answers.
+- **Assignments need backend mode.** In local mode there are none.
 - **Variants made from the bank need Python.** Their outputs are worked out by running them, so once a student has passed the bank tasks at a level, the next task waits for Pyodide to load (a few seconds on a first visit). If Pyodide can't load, only bank tasks and the hand-written templates can be set.
 - **Variants change numbers and context words, not the whole story.** A variant of "Bus fares" is still about bus fares, with different ages and prices, and perhaps a different name or day. Text about a fixed thing (a rock, paper, scissors game, a canteen receipt) changes only through the hand-written lists in `tools/derive-templates.js`. The tool checks every variant runs and is consistent with its tests, and lists text numbers it couldn't account for, but a teacher should still read some variants for wording.
 - **A passed task is never set again, even after a reset.** A student who resets their own progress gets new variants rather than the bank tasks they had passed.

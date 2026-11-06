@@ -132,7 +132,8 @@ function migrateProgress(progress, ctx) {
   const { tasks = [], templates = [], attempts = [], Templates } = ctx || {};
   const unitOfTask = Object.fromEntries(tasks.map((t) => [t.id, t.unit]));
   const renamedTo = {};
-  for (const t of tasks) for (const old of t.former_ids || []) renamedTo[old] = t.id;
+  // A replacement (former_ids_are_replacements) is a different task, so the old one's progress isn't moved onto it.
+  for (const t of tasks) if (!t.former_ids_are_replacements) for (const old of t.former_ids || []) renamedTo[old] = t.id;
   const tplById = Object.fromEntries(templates.map((t) => [t.id, t]));
   const currentId = (id, unitId) => (renamedTo[id] && unitOfTask[renamedTo[id]] === unitId ? renamedTo[id] : id);
   const renameSkills = (skills) => [...new Set((skills || []).map((s) => SKILL_RENAMES[s] || s))];
@@ -328,6 +329,7 @@ function attemptRecord(o) {
   };
   if (t.generated && t.fingerprint) rec.fingerprint = t.fingerprint;
   if (o.kind === "hint") rec.hintType = o.hintType;
+  if (o.assignmentId) rec.assignmentId = o.assignmentId; // an attempt on a class assignment (phase "assignment")
   const f = o.failure;
   if (f) {
     const test = f.failedTest == null ? null : t.tests[f.failedTest];
@@ -646,35 +648,47 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   // ---------- Who, and which unit or units ----------
   // practice.html?unit=maths              practise one unit
   // practice.html?mode=endless&units=a,b  endless mode over the ticked (and completed) units
+  // practice.html?assignment=<id>        a class assignment (backend mode): practice only, see ASSIGNMENT RULES below
   const params = new URLSearchParams(location.search);
-  const endless = params.get("mode") === "endless";
   const student = Store.currentStudent();
-  const unitId = endless ? null : params.get("unit");
-  const unit = endless ? null : unitById(unitId);
-  if (!student || (!endless && !unit)) { location.replace("index.html"); return; }
+  const assignmentId = params.get("assignment");
+  const assignment = assignmentId && student ? Store.assignments(student.id).find((a) => a.id === assignmentId) || null : null;
+  const inAssignment = !!assignmentId;
+  const endless = !inAssignment && params.get("mode") === "endless";
+  const unitId = endless || inAssignment ? null : params.get("unit");
+  const unit = unitId ? unitById(unitId) : null;
+  if (!student || (!endless && !inAssignment && !unit)) { location.replace("index.html"); return; }
 
+  // ASSIGNMENT RULES: an assignment is practice only. Nothing in the student's progress changes (no level, streaks,
+  // passed tasks, hint counts or skill states), tries are unlimited, hints are free, "Show me how" is always
+  // offered, and only the attempt log records what happened (phase "assignment", with the assignment id).
+  // Which task is open and what has been tried is kept in this browser (Store.loadAssignmentWork).
   const progress = Store.loadProgress(student.id);
   // First time in this unit: the placement test comes first.
-  if (!endless && !progress.units[unitId]) progress.units[unitId] = Object.assign(freshUnitState(), { placement: newPlacement() });
+  if (unitId && !progress.units[unitId]) progress.units[unitId] = Object.assign(freshUnitState(), { placement: newPlacement() });
   const endlessUnits = endless
     ? (params.get("units") || "").split(",").filter((u) => unitById(u) && progress.units[u] && progress.units[u].completedTop)
     : [];
   if (endless && !endlessUnits.length) { location.replace("endless.html"); return; }
   if (endless) progress.endless = Object.assign({ units: [], current: null, last: {} }, progress.endless, { units: endlessUnits });
+  const work = inAssignment ? Object.assign({ index: 0, current: null, tried: {} }, Store.loadAssignmentWork(student.id, assignmentId)) : null;
 
   const us = (u) => progress.units[u || unitId];
-  const holder = () => (endless ? progress.endless : us()); // where the current task is kept
-  const save = () => Store.saveProgress(student.id, progress);
+  const holder = () => (inAssignment ? work : endless ? progress.endless : us()); // where the current task is kept
+  const save = () => (inAssignment ? Store.saveAssignmentWork(student.id, assignmentId, work) : Store.saveProgress(student.id, progress));
+  // The student's level in a unit, or null if they haven't started it (assignments can use any unit).
+  const levelIn = (u) => (progress.units[u] ? progress.units[u].level : null);
 
   Store.setupDisplaySettings();
-  const pageTitle = endless ? "Endless mode" : unit.title;
+  const pageTitle = inAssignment ? "Assignment: " + (assignment ? assignment.title : "not found") : endless ? "Endless mode" : unit.title;
   document.title = pageTitle + " – Python Practice";
   document.getElementById("unit-title").textContent = pageTitle;
   document.getElementById("student-name").textContent = student.name;
-  if (endless) {
+  if (endless || inAssignment) {
     document.getElementById("reset-area").hidden = true;
-    document.getElementById("side-heading").textContent = "Your levels";
+    document.getElementById("side-heading").textContent = inAssignment ? "Assignment" : "Your levels";
   }
+  if (inAssignment) document.getElementById("level-help").hidden = true;
 
   // ---------- Python runner (Web Worker + timeout) ----------
   const pyStatus = document.getElementById("py-status");
@@ -802,7 +816,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   // then the category message and its "What to try" line.
   function failureHtml(t, failure, extra) {
     const matched = Checker.matchMisconceptions(t, failure).map((id) => misconceptionById[id]).filter((m) => m && m.explanation);
-    const parts = Checker.failureParts(failure);
+    const parts = Checker.failureParts(failure, { exampleTests: TaskView.EXAMPLE_TESTS }); // says nothing about a hidden test
     return '<div class="problem failure" role="alert">' +
       matched.map((m) => '<p class="misconception"><strong>' + esc(m.name) + ".</strong> " + esc(m.explanation) + "</p>").join("") +
       "<p>" + esc(parts.message + (extra ? " " + extra : "")) + "</p>" +
@@ -822,7 +836,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   let activeEditor = null; // CodeMirror instance on a write task (null with the plain text box)
 
   const cur = () => holder().current;
-  const inPlacement = () => !endless && needsPlacement(us());
+  const inPlacement = () => !endless && !inAssignment && needsPlacement(us());
   // Generated tasks (template variants) are kept whole in the current-task record.
   const task = () => cur().task || taskById[cur().taskId];
   const unitsOf = (t) => t.units || [t.unit];         // units whose levels this task counts towards
@@ -833,9 +847,11 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     if (!log[key]) log[key] = { timesSet: 0, attempts: 0, hintsUsed: 0, passes: 0, fails: 0, lastResult: "in progress", levelAtLastAttempt: us(u).level, lastAttempt: null };
     return log[key];
   }
-  const eachLog = (fn) => { const t = task(); unitsOf(t).forEach((u) => fn(logEntry(u, logKey(t)), u)); };
+  // The per-task log in each unit's saved state. An assignment changes nothing there.
+  const eachLog = (fn) => { if (inAssignment) return; const t = task(); unitsOf(t).forEach((u) => fn(logEntry(u, logKey(t)), u)); };
 
   function noteAttempt() {
+    if (inAssignment) return;
     const now = new Date().toISOString();
     eachLog((entry, u) => {
       entry.attempts += 1;
@@ -864,6 +880,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
 
   // Sets up the next task (a template variant may need Python to run first).
   async function serveNewTask() {
+    if (inAssignment) return serveAssignmentTask(work.current ? work.index + 1 : work.index);
     serving = true;
     if ($("results")) $("results").innerHTML = '<p class="running">Getting your next task ready…</p>';
     let t = null;
@@ -887,6 +904,14 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   // o = { kind: "attempt" | "skip", result: "pass" | "fail" | "skipped", failure (from Checker.classifyAttempt), code, levels }
   function recordAttempt(t, c, o) {
     const u = unitsOf(t)[0];
+    if (inAssignment) {
+      // The level is only noted (it doesn't change), and failed checks aren't counted for "Show me how".
+      if (!work.tried[t.id]) { work.tried[t.id] = "tried"; save(); renderSide(); }
+      return Store.logAttempt(student.id, attemptRecord({
+        task: t, unit: u, phase: "assignment", assignmentId, kind: o.kind, attemptNumber: c.attempts, hints: c.hints,
+        result: o.result, failure: o.failure, code: o.code, levelBefore: levelIn(u), levelAfter: levelIn(u),
+      }));
+    }
     const lv = (o.levels || {})[u] || { from: us(u).level, to: us(u).level };
     // Failed checks are counted per task in each unit (kept across visits) for "Show me how".
     if ((o.kind || "attempt") === "attempt" && o.result === "fail") { unitsOf(t).forEach((x) => noteFailedAttempt(us(x), t)); save(); }
@@ -894,6 +919,31 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       task: t, unit: u, phase: c.placement ? "placement" : endless ? "endless" : "practice", kind: o.kind,
       attemptNumber: c.attempts, hints: c.hints, result: o.result, failure: o.failure, code: o.code, levelBefore: lv.from, levelAfter: lv.to,
     }));
+  }
+
+  // ---------- Assignments ----------
+  // The assignment's tasks, in the teacher's order (old ids are found through former_ids; unknown ids are left out).
+  let assignmentTasks = [];
+  function resolveAssignmentTasks() {
+    const renamed = {};
+    for (const t of tasks) for (const old of t.former_ids || []) renamed[old] = t.id;
+    assignmentTasks = (assignment ? assignment.task_ids : []).map((id) => taskById[id] || taskById[renamed[id]]).filter(Boolean);
+  }
+
+  // Opens task number i (wrapping round). A task already open keeps its answer.
+  function serveAssignmentTask(i) {
+    if (!assignmentTasks.length) return false;
+    const index = ((i % assignmentTasks.length) + assignmentTasks.length) % assignmentTasks.length;
+    const t = assignmentTasks[index];
+    work.index = index;
+    work.drafts = work.drafts || {};
+    if (work.current && work.current.taskId !== t.id) work.drafts[work.current.taskId] = work.current; // keep the old answer
+    work.current = work.drafts[t.id] || { taskId: t.id, task: null, started: true, hints: 0, attempts: 0, showHow: 0, finished: false, passed: false, draft: initialDraft(t) };
+    delete work.drafts[t.id];
+    skipArmed = false;
+    resetArmed = false;
+    save();
+    return true;
   }
 
   // ---------- Placement ----------
@@ -946,6 +996,13 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     c.finished = true;
     c.passed = passed;
     const t = task();
+    if (inAssignment) {
+      // Practice only: the task is marked as done here, and nothing else changes.
+      work.tried[t.id] = passed ? "passed" : work.tried[t.id] || "tried";
+      save();
+      renderSide();
+      return {};
+    }
     const outcome = { passed, hints: c.hints, skills: t.skills, showHow: (c.showHow || 0) > 0 };
     const now = new Date().toISOString();
     const messages = [];
@@ -1003,7 +1060,20 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
 
   // ---------- Side panel ----------
   function renderSide() {
-    $("reset-area").hidden = endless || inPlacement();
+    $("reset-area").hidden = endless || inAssignment || inPlacement();
+    if (inAssignment) {
+      const c = cur();
+      $("unit-levels").innerHTML = '<li class="assignment-intro"><strong>' + esc(assignment.title) + "</strong>" +
+        (assignment.description ? '<span class="small">' + esc(assignment.description) + "</span>" : "") + "</li>" +
+        assignmentTasks.map((t, i) => {
+          const state = work.tried[t.id];
+          const mark = state === "passed" ? "✓ Done" : state ? "Tried" : "Not tried yet";
+          return '<li><button type="button" class="secondary assignment-task' + (c && c.taskId === t.id ? " current" : "") + '" data-assignment-task="' + i + '"' +
+            (c && c.taskId === t.id ? ' aria-current="step"' : "") + ">" + (i + 1) + ". " + esc(t.title) + ' <span class="small">· ' + esc(mark) + "</span></button></li>";
+        }).join("");
+      $("streak-info").textContent = "This is practice set by your teacher. It doesn't change your level or your progress: try as often as you like, and hints are free.";
+      return;
+    }
     if (inPlacement()) {
       const p = us().placement;
       $("unit-levels").innerHTML = '<li class="unit-progress"><span class="unit-level">Quick check</span>' +
@@ -1042,9 +1112,12 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
 
   function header(t) {
     return '<h2 id="task-title">' + esc(t.title) + "</h2>" +
-      '<p class="meta">' + unitsOf(t).map((u) => '<span class="cat-tag">' + esc(unitTitle(u)) + "</span>").join("") +
+      '<p class="meta">' + (inAssignment ? '<span class="cat-tag">Assignment · task ' + (work.index + 1) + " of " + assignmentTasks.length + "</span>" : "") +
+        unitsOf(t).map((u) => '<span class="cat-tag">' + esc(unitTitle(u)) + "</span>").join("") +
         " Level " + t.level + " · " + esc(t.type === "scratch" ? "Write from scratch" : levelName(t.level)) + " · Task " + esc(t.id) + "</p>" +
-      '<p class="description">' + esc(t.description) + "</p>";
+      '<p class="description">' + esc(t.description) + "</p>" +
+      // The exact output the checker expects for the example test (not on predict tasks: it is the answer).
+      (TaskView.showsExpectedOutput(t) ? TaskView.expectedBoxHtml(t) : "");
   }
 
   function renderTask() {
@@ -1081,7 +1154,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     else body = writeBody(t, c);
 
     const checkLabel = t.type === "predict" ? "Run to check my answer" : "Check my answer";
-    const showLevelButtons = !endless && !c.placement;
+    const showLevelButtons = !endless && !inAssignment && !c.placement;
     card.innerHTML = noticeHtml + (c.placement ? placementIntro : "") + banner(t, false) + header(t) +
       '<div class="task-body">' + body + "</div>" +
       '<div class="actions">' +
@@ -1119,17 +1192,21 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     const t = task();
     const left = Math.min(MAX_HINTS_PER_TASK, t.hints.length) - c.hints;
     const hintBtn = $("hint-btn");
-    hintBtn.textContent = left > 0 ? "Show a hint (" + left + " left)" : "No hints left";
-    hintBtn.disabled = left <= 0 || c.finished || busy;
+    // In an assignment hints are free: no count is shown and they never move the student down.
+    hintBtn.textContent = inAssignment ? (left > 0 ? "Show a hint" : "That's every hint") : left > 0 ? "Show a hint (" + left + " left)" : "No hints left";
+    hintBtn.disabled = left <= 0 || (c.finished && !inAssignment) || busy;
     const next = $("next-btn");
     const nextLabel = !c.placement ? "Next task →" : inPlacement() ? "Next question →" : "Start practising →";
-    next.textContent = c.finished ? nextLabel : skipArmed ? "Skip? This counts as not passed – click again" : c.placement ? "Skip this question" : "Skip this task";
+    if (inAssignment) next.textContent = "Next task →"; // moving on is never a fail here
+    else next.textContent = c.finished ? nextLabel : skipArmed ? "Skip? This counts as not passed – click again" : c.placement ? "Skip this question" : "Skip this task";
     next.className = c.finished ? "primary" : skipArmed ? "danger" : "secondary";
     $("check-btn").disabled = busy || (t.type === "predict" && c.finished);
     if ($("run-btn")) $("run-btn").disabled = busy;
     // "Show me how": after SHOW_HOW_AFTER_FAILS failed attempts on this task, and after every later failure.
+    // In an assignment it is there from the start, after any number of fails.
     const howBtn = $("show-how-btn");
-    howBtn.hidden = !!c.placement || (c.finished && c.passed) || !workedExampleFor(t) || !unitsOf(t).some((u) => showHowAvailable(us(u), t));
+    howBtn.hidden = !!c.placement || (c.finished && c.passed) || !workedExampleFor(t) ||
+      (!inAssignment && !unitsOf(t).some((u) => showHowAvailable(us(u), t)));
     howBtn.disabled = busy;
     // "Reset this task": not in placement, and not once there is no answer left to change.
     const resetBtn = $("reset-btn");
@@ -1172,8 +1249,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     eachLog((entry) => { entry.showHowUsed = (entry.showHowUsed || 0) + 1; });
     const u = unitsOf(t)[0];
     Store.logAttempt(student.id, attemptRecord({
-      task: t, unit: u, phase: endless ? "endless" : "practice", kind: "hint", hintType: "show-me-how",
-      attemptNumber: c.attempts, hints: c.hints, result: "show-me-how", levelBefore: us(u).level, levelAfter: us(u).level,
+      task: t, unit: u, phase: inAssignment ? "assignment" : endless ? "endless" : "practice", assignmentId: inAssignment ? assignmentId : null,
+      kind: "hint", hintType: "show-me-how", attemptNumber: c.attempts, hints: c.hints, result: "show-me-how", levelBefore: levelIn(u), levelAfter: levelIn(u),
     }));
     save();
     renderShowHow();
@@ -1260,7 +1337,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   function showHint() {
     const c = cur();
     const t = task();
-    if (c.finished || c.hints >= Math.min(MAX_HINTS_PER_TASK, t.hints.length)) return;
+    if ((c.finished && !inAssignment) || c.hints >= Math.min(MAX_HINTS_PER_TASK, t.hints.length)) return;
     c.hints += 1;
     eachLog((entry) => { entry.hintsUsed += 1; });
     save();
@@ -1274,6 +1351,10 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     if (serving) return;
     const c = cur();
     const t = task();
+    if (inAssignment) { // moving on records nothing: the task stays as it is, to come back to
+      openAssignmentTask(work.index + 1);
+      return;
+    }
     if (!c.finished) {
       if (!skipArmed) { skipArmed = true; resetArmed = false; renderButtons(); return; }
       if (c.placement) {
@@ -1298,6 +1379,19 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     renderTask();
     $("task").focus();
   }
+
+  function openAssignmentTask(i) {
+    if (busy || !serveAssignmentTask(i)) return;
+    notice = null;
+    renderSide();
+    renderTask();
+    $("task").focus();
+  }
+
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest && e.target.closest("button[data-assignment-task]");
+    if (b && inAssignment) openAssignmentTask(+b.dataset.assignmentTask);
+  });
 
   function setBusy(on, label) {
     busy = on;
@@ -1357,7 +1451,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     const r = results[0];
     const err = Checker.explainError(r.error);
     $("results").innerHTML =
-      '<h3>Output</h3><p class="inputs">' + esc(describeInputs(inputs)) + " (from test 1)</p>" +
+      '<h3>Output</h3><p class="inputs">' + esc(describeInputs(inputs)) + " (the example test's input)</p>" +
       '<pre class="output">' + showOutput(r.output) + "</pre>" +
       (err ? errorBox(err) : "");
   }
@@ -1459,11 +1553,23 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     html += '<ul class="test-results">';
     results.forEach((r, i) => {
       const test = t.tests[i];
-      if (passes[i]) {
-        html += '<li class="pass"><span class="mark" aria-hidden="true">✓</span> <strong>Test ' + (i + 1) + " passed</strong> <span class=\"inputs\">" + esc(describeInputs(test.inputs)) + "</span></li>";
+      // Hidden tests: only whether they passed. Their inputs, expected output and the student's output for them
+      // are never shown, so a hidden test can't be read off the screen.
+      if (TaskView.isHidden(i)) {
+        const label = "Hidden test " + (i + 1 - TaskView.EXAMPLE_TESTS);
+        if (passes[i]) { html += '<li class="pass"><span class="mark" aria-hidden="true">✓</span> <strong>' + label + " passed</strong></li>"; return; }
+        html += '<li class="fail"><span class="mark" aria-hidden="true">✗</span> <strong>' + label + (r.notRun ? " not run" : " didn't pass") + "</strong>";
+        if (r.notRun) html += "<p>This test didn't run because an earlier test was stopped.</p>";
+        else if (r.error) html += errorBox(Checker.explainError(r.error));
+        else html += '<p class="tip">Your program works for the example, but not for this input. Check every branch and the boundaries.</p>';
+        html += "</li>";
         return;
       }
-      html += '<li class="fail"><span class="mark" aria-hidden="true">✗</span> <strong>Test ' + (i + 1) + (r.notRun ? " not run" : " didn't pass") + "</strong>";
+      if (passes[i]) {
+        html += '<li class="pass"><span class="mark" aria-hidden="true">✓</span> <strong>Example test passed</strong> <span class="inputs">' + esc(describeInputs(test.inputs)) + "</span></li>";
+        return;
+      }
+      html += '<li class="fail"><span class="mark" aria-hidden="true">✗</span> <strong>Example test' + (r.notRun ? " not run" : " didn't pass") + "</strong>";
       if (r.notRun) { html += " <span class=\"inputs\">" + esc(describeInputs(test.inputs)) + "</span><p>This test didn't run because an earlier test was stopped.</p></li>"; return; }
       // Input, expected output and actual output, each on its own labelled line.
       html += '<dl class="io-lines">' +
@@ -1630,6 +1736,14 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     noteAttempt();
     const correct = c.draft.choice === t.answer;
     const failure = correct ? null : Checker.classifyAttempt({ type: "predict", choice: c.draft.choice, options: t.options, answer: t.answer });
+    if (inAssignment && !correct) {
+      // Unlimited tries: the answer isn't shown, so the student can think again and choose another option.
+      recordAttempt(t, c, { result: "fail", failure, code: "" });
+      save();
+      $("results").innerHTML = failureHtml(t, failure) + '<p class="small">Have another go: choose again, then press the button.</p>';
+      renderButtons();
+      return;
+    }
     if (c.placement) {
       recordAttempt(t, c, correct ? { result: "pass" } : { result: "fail", failure, code: "" });
       if (!correct && placementAfterFail()) {
@@ -1833,8 +1947,22 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       misconceptionById = Object.fromEntries(mis.map((m) => [m.id, m]));
       taskById = Object.fromEntries(tasks.map((t) => [t.id, t]));
       // Saved progress from earlier versions: renamed skills, removed duplicate tasks, and the new fields.
-      if (migrateProgress(progress, { tasks, templates, attempts: Store.attempts(student.id), Templates })) save();
+      if (migrateProgress(progress, { tasks, templates, attempts: Store.attempts(student.id), Templates }) && !inAssignment) save();
       ensureSkillStates(progress, (id) => taskById[id]);
+      if (inAssignment) {
+        resolveAssignmentTasks();
+        if (!assignment || !assignmentTasks.length) {
+          $("unit-levels").innerHTML = "";
+          $("task").innerHTML = '<p class="problem">' + (assignment ? "This assignment has no tasks yet." : "This assignment is closed, or it couldn't be found.") +
+            ' <a href="index.html">Back to your units</a></p>';
+          return;
+        }
+        const open = work.current && assignmentTasks.findIndex((t) => t.id === work.current.taskId);
+        if (open == null || open < 0) { work.current = null; serveAssignmentTask(0); } else work.index = open;
+        renderSide();
+        renderTask();
+        return;
+      }
       if (!endless && !tasks.some((t) => t.unit === unitId)) { location.replace("index.html"); return; }
       // Keep the task in progress if it still makes sense here.
       const c = holder().current;

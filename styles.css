@@ -549,3 +549,24 @@ td pre { white-space: pre-wrap; margin: .25rem 0; font-size: .85rem; }
   pointer-events: none; display: none;
 }
 #reading-overlay.on { display: block; }
+
+/* ---------- Expected output box (practice page and Task browser) ---------- */
+.expected-box { border: 2px solid var(--border); border-radius: 8px; background: var(--code-bg); padding: .6rem .9rem; margin: .75rem 0 1rem; }
+.expected-box h3 { margin: 0 0 .3rem; font-size: 1rem; }
+.expected-box p { margin: .25rem 0; }
+.expected-box pre.expected-output { margin: .35rem 0; background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: .45rem .7rem; white-space: pre-wrap; }
+.expected-none { font-style: italic; color: var(--muted); }
+
+/* ---------- Class assignments ---------- */
+.assignments { margin-bottom: 1.5rem; }
+.assignment-intro { display: flex; flex-direction: column; gap: .25rem; margin-bottom: .5rem; }
+.assignment-task { width: 100%; text-align: left; margin: .15rem 0; }
+.assignment-task.current { border-width: 3px; font-weight: 700; }
+.assignment-card h3 .flag { font-size: .8rem; vertical-align: middle; }
+
+/* ---------- Task browser (teacher view) ---------- */
+.tb-results { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem; }
+.tb-task { border-top: 1px solid var(--border); margin-top: 1rem; padding-top: .5rem; }
+.tb-task h4 { margin: 1.1rem 0 .4rem; }
+.tb-lines, .tb-options { padding-left: 1.4rem; }
+.tb-tests pre { margin: 0; white-space: pre-wrap; }

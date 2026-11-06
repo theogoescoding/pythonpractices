@@ -111,6 +111,8 @@
       <a href="#overview" data-page="overview">Overview</a>
       <a href="#log" data-page="log">Detail log</a>
       <a href="#workshop" data-page="workshop">Workshop</a>
+      <a href="#assignments" data-page="assignments">Assignments</a>
+      <a href="#tasks" data-page="tasks">Task browser</a>
     </nav>
 
     <!-- ===== Overview ===== -->
@@ -201,6 +203,46 @@
       <div id="ws-unmatched" aria-live="polite"></div>
     </section>
 
+    <!-- ===== Assignments (backend mode) ===== -->
+    <section id="page-assignments" aria-labelledby="assignments-title" hidden>
+      <h2 id="assignments-title" tabindex="-1">Assignments</h2>
+      <p class="small">An assignment is a set of tasks for the whole class. Every student sees the open ones at the top of their home page.
+        It is practice only: no score, no effect on their level or progress, unlimited tries, free hints, and "Show me how" on every task.
+        Their work is still recorded, so you can see below what happened.</p>
+      <p id="as-local" class="notice notice-down" hidden>Assignments need backend mode (the class server), because students must be able to see them on their own computers.</p>
+      <div id="as-main">
+        <p><button type="button" id="as-new" class="primary">Create an assignment</button></p>
+        <form id="as-form" class="task-card" hidden novalidate aria-labelledby="as-form-h">
+          <h3 id="as-form-h" tabindex="-1">New assignment</h3>
+          <label for="as-title" class="editor-label">Title</label>
+          <input type="text" id="as-title" class="text-input" maxlength="100" autocomplete="off">
+          <label for="as-description" class="editor-label">Short description (students see it)</label>
+          <textarea id="as-description" class="text-input" rows="2" maxlength="1000"></textarea>
+          <label for="as-tasks" class="editor-label">Task ids, in order (one per line, or separated by commas)</label>
+          <textarea id="as-tasks" class="text-input" rows="4" spellcheck="false" aria-describedby="as-tasks-help"></textarea>
+          <p id="as-tasks-help" class="small">Any bank task: predict, Parsons, fill in the blanks or write (not placement tasks). Find ids in the
+            <a href="#tasks">Task browser</a>, which also has an "Add to the assignment" button.</p>
+          <div id="as-task-check" aria-live="polite"></div>
+          <p id="as-form-status" role="alert" hidden></p>
+          <p><button type="submit" class="primary" id="as-save">Save and open it for students</button>
+            <button type="button" id="as-cancel" class="secondary">Cancel</button></p>
+        </form>
+        <div id="as-list" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- ===== Task browser ===== -->
+    <section id="page-tasks" aria-labelledby="tasks-title" hidden>
+      <h2 id="tasks-title" tabindex="-1">Task browser</h2>
+      <p class="small">Find a task by its id (for example var-L9d) or by words in its title. You'll see the question as students see it,
+        its expected output, all its tests and the model solution. Tests and solutions are shown here only, never to students.</p>
+      <div class="teacher-controls">
+        <label>Search <input type="search" id="tb-search" class="text-input" style="width:auto" autocomplete="off" spellcheck="false"></label>
+      </div>
+      <ul id="tb-results" class="tb-results" aria-label="Matching tasks"></ul>
+      <div id="tb-view" aria-live="polite"></div>
+    </section>
+
     <!-- ===== Export (every page) ===== -->
     <div class="export-bar">
       <h3>Export</h3>
@@ -228,6 +270,8 @@
   <script src="checker.js"></script>
   <script src="app.js"></script>
   <script src="teacher-data.js"></script>
+  <script src="task-view.js"></script>
+  <script src="task-browser.js"></script>
   <script src="config.js"></script>
   <script src="backend-rows.js"></script>
   <script src="backend-import.js"></script>

@@ -81,6 +81,190 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     return Rows.teacherData({ students, progress, attempts, events }, data.units);
   }
 
+  // ===================== Printing rule: commas, and casting named =====================
+  {
+    const plusStrPrint = /print\([^\n]*(\+\s*str\(|str\([^\n]*\)\s*\+)/;
+    const code = (t) => [t.solution, t.starter || ""].concat(t.answers || []);
+    const joined = tasks.filter((t) => code(t).some((c) => plusStrPrint.test(c)));
+    check(!joined.length, "No task joins values with + and str() inside print(): they use commas" + (joined.length ? " (" + joined.map((t) => t.id).join(", ") + ")" : ""));
+    // Where text is built with + and stored in a variable, a hint says why.
+    const stored = tasks.filter((t) => /^\s*\w+\s*=\s*[^\n]*(\+\s*str\(|"\s*\+|\+\s*")/m.test(t.solution) && !t.tags.includes("placement") && t.type !== "predict");
+    const noWhy = stored.filter((t) => !t.hints.some((h) => /stor|built|build/i.test(h)) && !/stor|build/i.test(t.description));
+    check(stored.length >= 5 && !noWhy.length, "Every task that builds text with + and stores it says why in a hint" + (noWhy.length ? " (" + noWhy.map((t) => t.id).join(", ") + ")" : ""));
+    const casts = tasks.filter((t) => /\b(int|float|bool)\(\s*input\(/.test(t.solution));
+    const unnamed = casts.filter((t) => !/\bcast/i.test(t.description + " " + t.hints.join(" ")));
+    check(casts.length > 200 && !unnamed.length, "Every task that converts input() with int(), float() or bool() calls it casting" + (unnamed.length ? " (" + unnamed.map((t) => t.id).join(", ") + ")" : ""));
+    const asked = casts.filter((t) => t.skills.includes("int()") && t.type !== "predict" && !/\bcast/i.test(t.description));
+    check(!asked.length, "Every task whose skill is int() says cast or casting in its description" + (asked.length ? " (" + asked.map((t) => t.id).join(", ") + ")" : ""));
+    const commas = byId["out-L1e"];
+    check(commas && commas.type === "predict" && commas.level === 1 && commas.options.includes("Score:10\nTeamRedwins") && commas.options[commas.answer] === "Score: 10\nTeam Red wins",
+      "Output and sequence has a predict task showing that commas in print() put a space between values (with a no-space wrong option)");
+    const cast = byId["var-L2e"];
+    check(cast && cast.type === "predict" && cast.level === 2 && cast.options.includes("Joined: 45\nAdded: 45") && cast.options.includes("Joined:45\nAdded:9") &&
+      cast.options[cast.answer] === "Joined: 45\nAdded: 9" && /cast/i.test(cast.description + cast.hints.join(" ")),
+      "Variables and input has a predict task showing why int(input()) is needed before maths, and the comma's space");
+  }
+
+  // ===================== Fewer repeated sep=/end= tasks (Output and sequence, level 10) =====================
+  {
+    const swaps = { "out-L10e": "out-L10o", "out-L10k": "out-L10p", "out-L10f": "out-L10q", "out-L10h": "out-L10r" };
+    const ok = Object.entries(swaps).every(([old, now]) => !byId[old] && byId[now] && byId[now].level === 10 && byId[now].type === "write" &&
+      byId[now].former_ids.join() === old && byId[now].former_ids_are_replacements === true && !/\b(sep|end)\s*=/.test(byId[now].solution) && /,/.test(byId[now].solution));
+    check(ok, "The four repeated sep=/end= tasks at Output level 10 are replaced by comma tasks, each listing the old id in former_ids");
+    const out = tasks.filter((t) => t.unit === "output" && !t.tags.includes("placement"));
+    const perLevel = Array.from({ length: 10 }, (_, i) => out.filter((t) => t.level === i + 1).length);
+    check(perLevel.every((n) => n >= 3) && perLevel[9] === 14 && ["predict", "fill", "parsons", "write"].every((ty) => out.some((t) => t.type === ty)) &&
+      tasks.filter((t) => t.unit === "output" && t.tags.includes("placement")).length === 8,
+      "Output and sequence keeps at least 3 tasks per level (14 at level 10), every task type and all 8 placement tasks (" + perLevel.join(",") + ")");
+    // A replacement is a different task: the old task's saved progress isn't moved onto it.
+    const progress = { units: { output: Object.assign(App.freshUnitState(10), { log: { "out-L10e": { timesSet: 1, attempts: 1, passes: 1, fails: 0, hintsUsed: 0 } },
+      passedFingerprints: { "out-L10e": "2026-11-01T10:00:00Z" } }) } };
+    App.migrateProgress(progress, { tasks, templates: [], attempts: [], Templates });
+    const s = progress.units.output;
+    check(s.log["out-L10e"] && !s.log["out-L10o"] && !s.passedFingerprints["out-L10o"], "Saved progress on a replaced task stays on its old id, so the new task can still be set");
+    const Import = require(path.join(ROOT, "backend-import.js"));
+    check(!Import.renames(tasks)["out-L10e"] && Import.renames(tasks)["loops-L5a"] === "while-L5a", "Import keeps a replaced task's old id (moved tasks are still renamed)");
+  }
+
+  // ===================== Expected output box and hidden tests =====================
+  {
+    const TaskView = require(path.join(ROOT, "task-view.js"));
+    const esc = TaskView.esc;
+    const shown = tasks.filter(TaskView.showsExpectedOutput);
+    const badBox = shown.filter((t) => {
+      const html = TaskView.expectedBoxHtml(t);
+      const out = Checker.normalise(t.tests[0].expected);
+      return !html.includes("Expected output") || !(out === "" ? html.includes(esc(TaskView.NO_OUTPUT)) : html.includes(esc(out)));
+    });
+    check(shown.length > 300 && !badBox.length, "Every non-predict task shows an Expected output box with exactly the example test's output, as the checker compares it" +
+      (badBox.length ? " (" + badBox.slice(0, 5).map((t) => t.id).join(", ") + ")" : ""));
+    check(!tasks.filter((t) => t.type === "predict").some(TaskView.showsExpectedOutput), "Predict tasks show no Expected output box (it would give the answer away)");
+    const empty = { type: "write", tests: [{ inputs: [], expected: "" }] };
+    check(TaskView.expectedBoxHtml(empty).includes("No output – the program should not print anything."), "A task that prints nothing says: No output – the program should not print anything.");
+    check(TaskView.expectedBoxHtml({ type: "write", tests: [{ inputs: [], expected: "Hi   \n\n" }] }).includes(">Hi</pre>"), "The box ignores trailing spaces and blank lines, as the checker does");
+    // Hidden tests: neither their inputs nor their outputs appear (unless the example shows the same text).
+    const leaks = shown.filter((t) => {
+      const html = TaskView.expectedBoxHtml(t);
+      const ex = t.tests[0];
+      return t.tests.slice(1).some((h) => {
+        const out = Checker.normalise(h.expected);
+        const outLeak = out && out !== Checker.normalise(ex.expected) && (html.match(/<pre[^>]*>([\s\S]*?)<\/pre>/g) || []).some((p) => p.includes(">" + esc(out) + "<"));
+        const inLeak = h.inputs.some((v) => !ex.inputs.includes(v) && html.includes("<kbd>" + esc(v) + "</kbd>"));
+        return outLeak || inLeak;
+      });
+    });
+    check(!leaks.length, "The Expected output box never shows a hidden test's input or output" + (leaks.length ? " (" + leaks.slice(0, 5).map((t) => t.id).join(", ") + ")" : ""));
+    check(TaskView.expectedBoxHtml({ type: "write", tests: [{ inputs: ["1"], expected: "a" }, { inputs: ["2"], expected: "b" }, { inputs: ["3"], expected: "c" }] }).includes("2 hidden tests"),
+      "The box says how many hidden tests there are");
+    const hiddenFail = { category: "WRONG_OUTPUT", details: { test: 2, inputs: ["7"], expected: "Secret", actual: "x" } };
+    const hp = Checker.failureParts(hiddenFail, { exampleTests: 1 });
+    const msg = hp.message + " " + hp.tryNext;
+    check(/hidden test/.test(msg) && !/Secret|test 2|7/.test(msg), "A failed hidden test's message says nothing about its input or expected output");
+    check(/test 1 printed/.test(Checker.failureParts({ category: "WRONG_OUTPUT", details: { test: 1 } }, { exampleTests: 1 }).message),
+      "A failed example test still says what to compare");
+    const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+    check(/TaskView\.isHidden\(i\)/.test(appSrc) && /failureParts\(failure, \{ exampleTests: TaskView\.EXAMPLE_TESTS \}\)/.test(appSrc),
+      "The practice page hides every test after the example one in its results and messages");
+  }
+
+  // ===================== Task browser (teacher view) =====================
+  {
+    const TaskView = require(path.join(ROOT, "task-view.js"));
+    const TaskBrowser = require(path.join(ROOT, "task-browser.js"));
+    const first = (q) => (TaskView.searchTasks(tasks, q, 5)[0] || {}).id;
+    check(first("var-L9d") === "var-L9d" && first("VAR-l9d") === "var-L9d", "Task browser: finds a task by its id, in any case");
+    check(first("var-l9d-2") === "var-L9d" && first("d-var-L9d#12345") === "var-L9d", "Task browser: var-l9d-2 and a template variant id find the bank task");
+    check(first("Trip cost") === "var-L9c" && TaskView.searchTasks(tasks, "trip", 25).some((t) => t.id === "var-L9c"), "Task browser: finds a task by words in its title");
+    check(first("loops-L5a") === "while-L5a", "Task browser: an old id (former_ids) finds the task it became");
+    check(TaskView.searchTasks(tasks, "", 5).length === 0 && TaskView.searchTasks(tasks, "zzzz-nothing", 5).length === 0, "Task browser: an empty or unknown search finds nothing");
+    // The browser's expected output is the checker's: the reference solution passes against exactly what is shown.
+    const jobs = [];
+    const where = [];
+    for (const t of tasks) {
+      const v = TaskBrowser.viewModel(t, App.initialDraft);
+      v.tests.forEach((x, i) => { jobs.push({ code: t.solution, inputs: x.inputs }); where.push([t, v, i]); });
+    }
+    const results = runPython(jobs);
+    const mismatch = where.filter(([t, v, i], j) => !Checker.outputsMatch(results[j].output, v.tests[i].expected) || v.tests[i].expected !== Checker.normalise(t.tests[i].expected));
+    check(!mismatch.length, "Task browser: every test's expected output is the checker's, and every model solution passes against it (" + jobs.length + " runs)" +
+      (mismatch.length ? " – " + mismatch.slice(0, 5).map(([t]) => t.id).join(", ") : ""));
+    check(tasks.every((t) => TaskBrowser.viewModel(t).expectedOutput === Checker.normalise(t.tests[0].expected)) &&
+      tasks.filter(TaskView.showsExpectedOutput).every((t) => TaskBrowser.html(t, App.initialDraft).includes(TaskView.expectedBoxHtml(t))),
+      "Task browser: shows the same Expected output box as the student's page");
+    const w = byId["var-L9c"];
+    const page = TaskBrowser.html(w, App.initialDraft);
+    const solAt = page.indexOf(esc(w.solution));
+    check(solAt > page.indexOf('<div id="tb-solution" hidden>') && page.indexOf('<div id="tb-solution" hidden>') > 0, "Task browser: the model solution starts hidden behind a Show button");
+    // A model solution is never sent to a student's page.
+    const studentPages = ["index.html", "practice.html", "progress.html", "endless.html"].map((f) => fs.readFileSync(path.join(ROOT, f), "utf8"));
+    check(studentPages.every((h) => !h.includes("task-browser.js")) && fs.readFileSync(path.join(ROOT, "teacher.html"), "utf8").includes("task-browser.js"),
+      "The Task browser (with the model solutions) is loaded by the teacher view only, never by a student page");
+    const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8") + fs.readFileSync(path.join(ROOT, "task-view.js"), "utf8");
+    check(!/TaskBrowser|model solution|tb-solution/i.test(appSrc), "The student page's code has no model-solution view");
+    const solutionShown = tasks.filter((t) => t.type !== "predict" && t.solution.trim().length > 20 && TaskView.expectedBoxHtml(t).includes(esc(t.solution)));
+    check(!solutionShown.length, "No student-facing box contains a task's model solution (predict tasks show their program by design)");
+    function esc(s) { return TaskView.esc(s); }
+  }
+
+  // ===================== Class assignments =====================
+  {
+    const t = byId["var-L9c"];
+    const rec = App.attemptRecord({ task: t, unit: "variables", phase: "assignment", assignmentId: "11111111-2222-3333-4444-555555555555", kind: "attempt",
+      attemptNumber: 1, hints: 2, result: "pass", levelBefore: null, levelAfter: null });
+    check(rec.assignmentId === "11111111-2222-3333-4444-555555555555" && rec.phase === "assignment", "An assignment attempt is recorded with phase assignment and its assignment id");
+    const row = Rows.attemptToRow(Object.assign({ id: "a-x1", at: "2026-11-06T10:00:00.000Z", studentId: "s1" }, rec));
+    check(row.assignment_id === rec.assignmentId && Rows.rowToAttempt(row, "s1").assignmentId === rec.assignmentId, "Backend mode: the assignment id goes to the attempts row and back");
+    const plain = Rows.attemptToRow(Object.assign({ id: "a-x2", at: "2026-11-06T10:00:00.000Z", studentId: "s1" }, App.attemptRecord({ task: t, unit: "variables", phase: "practice", result: "pass", levelBefore: 4, levelAfter: 4 })));
+    check(!("assignment_id" in plain) && !("assignmentId" in Rows.rowToAttempt(plain, "s1")),
+      "Other attempts have no assignment id, and their rows are unchanged (a server without migration 0005 still accepts them)");
+    // The export: the earlier columns are unchanged, and assignment_id is the one new column, at the end.
+    const EARLIER = ["record_type", "record_id", "timestamp", "student_id", "student_name", "unit", "task_id", "template_id", "phase", "task_type", "task_level",
+      "student_level_before", "student_level_after", "attempt_number", "result", "failure_category", "failure_details", "misconception_matches", "hints_used",
+      "failed_test_number", "failed_test_inputs", "expected_output", "student_output", "student_error_type", "student_error_kind", "student_code", "button",
+      "level_change_reason", "placement_start_level", "placement_results", "hint_type", "variant_fingerprint"];
+    const cols = TD.FULL_COLUMNS.map(([k]) => k);
+    check(JSON.stringify(cols.slice(0, EARLIER.length)) === JSON.stringify(EARLIER) && cols.length === EARLIER.length + 1 && cols[cols.length - 1] === "assignment_id",
+      "Full export: every earlier column is unchanged and in place, and assignment_id is added at the end");
+    const data = { students: { s1: { name: "Ava" }, s2: { name: "Ben" }, s3: { name: "Cal" } }, progress: {}, levelLog: [], buttonLog: [], placementLog: [], units: Curriculum.UNITS,
+      attempts: [
+        { id: "a-1", at: "2026-11-06T10:00:00Z", studentId: "s1", kind: "attempt", unit: "variables", taskId: "var-L9c", phase: "assignment", assignmentId: "A1", result: "fail", category: "WRONG_OUTPUT", misconceptions: ["INPUT_NOT_INT"] },
+        { id: "a-2", at: "2026-11-06T10:01:00Z", studentId: "s1", kind: "attempt", unit: "variables", taskId: "var-L9c", phase: "assignment", assignmentId: "A1", result: "pass" },
+        { id: "a-3", at: "2026-11-06T10:02:00Z", studentId: "s2", kind: "attempt", unit: "variables", taskId: "var-L9c", phase: "assignment", assignmentId: "A1", result: "fail", category: "TYPE" },
+        { id: "a-4", at: "2026-11-06T10:03:00Z", studentId: "s2", kind: "hint", hintType: "show-me-how", unit: "variables", taskId: "var-L9c", phase: "assignment", assignmentId: "A1", result: "show-me-how" },
+        { id: "a-5", at: "2026-11-06T10:04:00Z", studentId: "s3", kind: "attempt", unit: "maths", taskId: "maths-L4a", phase: "assignment", assignmentId: "A1", result: "pass" },
+        { id: "a-6", at: "2026-11-06T10:05:00Z", studentId: "s3", kind: "attempt", unit: "maths", taskId: "maths-L4a", phase: "practice", result: "fail", category: "SYNTAX" },
+      ] };
+    const s = TD.assignmentStats(data, { id: "A1", task_ids: ["var-L9c", "maths-L4a", "out-L1a"] });
+    const v = s.tasks[0], m = s.tasks[1], o = s.tasks[2];
+    check(v.triedCount === 2 && v.passedCount === 1 && v.stuckCount === 1 && v.fails === 2 && v.showHow === 1 && m.triedCount === 1 && m.fails === 0 && o.triedCount === 0,
+      "Assignment summary: per task, the students who tried and passed it, the failed checks and \"Show me how\" (other practice isn't counted)");
+    check(s.struggled.length === 1 && s.struggled[0].taskId === "var-L9c" && s.students === 3, "Assignment summary: lists the tasks students struggled with most");
+    const exported = TD.fullExportRows(data);
+    check(exported.filter((r) => r.assignment_id === "A1").length === 5 && exported.find((r) => r.record_id === "a-6").assignment_id === "",
+      "Full export: assignment rows carry their assignment id; other rows leave it empty");
+    const dict = TD.dataDictionaryCsv(misconceptions);
+    check(/assignment_id/.test(dict) && /value of phase,assignment/.test(dict), "data-dictionary.csv explains assignment_id and the assignment phase");
+    // Importing an export: assignment rows are kept, but never rebuild a level or a passed task.
+    const Import = require(path.join(ROOT, "backend-import.js"));
+    const planned = { students: [{ file_id: "f1" }], events: [], attempts: [
+      { file_id: "f1", record_type: "attempt", phase: "assignment", unit: "maths", task_id: "maths-L9a", task_level: 9, result: "pass", timestamp: "2026-11-06T10:00:00Z" },
+      { file_id: "f1", record_type: "attempt", phase: "practice", unit: "variables", task_id: "var-L3a", task_level: 3, student_level_after: 3, result: "pass", timestamp: "2026-11-06T10:01:00Z" }] };
+    const built = Import.rebuild(planned, App.freshUnitState);
+    check(!built.progress.some((p) => p.unit === "maths") && !built.passed.some((p) => p.fingerprint === "maths-L9a") && built.passed.some((p) => p.fingerprint === "var-L3a"),
+      "Import: assignment work doesn't rebuild a level or a passed task");
+    // What a student's browser keeps for an assignment (practice only, apart from the saved progress).
+    Store.saveAssignments("s9", [{ id: "A1", title: "Week 3", description: "", task_ids: ["var-L9c"] }]);
+    Store.saveAssignmentWork("s9", "A1", { index: 0, tried: { "var-L9c": "passed" } });
+    const progressBefore = JSON.stringify(Store.loadProgress("s9"));
+    check(Store.assignments("s9")[0].title === "Week 3" && Store.loadAssignmentWork("s9", "A1").tried["var-L9c"] === "passed" &&
+      JSON.stringify(Store.loadProgress("s9")) === progressBefore && Store.assignments("nobody").length === 0,
+      "A student's assignments and their work on them are kept apart from their saved progress");
+    const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+    check(/const eachLog = \(fn\) => \{ if \(inAssignment\) return;/.test(appSrc) && /if \(inAssignment\) \{\s*\/\/ Practice only/.test(appSrc) &&
+      /save = \(\) => \(inAssignment \? Store\.saveAssignmentWork/.test(appSrc),
+      "In an assignment the practice page never changes the unit's state, level, streaks, passed tasks or hint counts");
+  }
+
   // ===================== Placement =====================
   {
     const { PLACEMENT_LEVELS, PLACEMENT_MAX_LEVEL } = App;

@@ -155,7 +155,7 @@
       category: a.category || "", misconceptions: a.misconceptions || [], hints: a.hints == null ? "" : a.hints, button: "",
       levelChange: a.levelBefore != null && a.levelAfter != null && a.levelBefore !== a.levelAfter ? a.levelBefore + " → " + a.levelAfter : "",
       code: a.code || "", output: a.output || "", expected: a.expected == null ? "" : a.expected,
-      inputs: a.inputs || null, failedTest: a.failedTest == null ? "" : a.failedTest,
+      inputs: a.inputs || null, failedTest: a.failedTest == null ? "" : a.failedTest, assignmentId: a.assignmentId || "",
     }));
     for (const b of data.buttonLog) {
       rows.push({
@@ -189,6 +189,35 @@
     return { misconceptions: ms, tasks };
   }
 
+  // ---------- Class assignments ----------
+  // For one assignment ({ id, task_ids }): per task, how many students tried it (any Check press or "Show me how")
+  // and passed it, the checks and fails, and the most common failure category and misconception. struggled lists
+  // the tried tasks with the most students who tried without passing, then the most fails per student.
+  function assignmentStats(data, assignment) {
+    const rows = data.attempts.filter((a) => a.assignmentId === assignment.id);
+    const tasks = (assignment.task_ids || []).map((taskId) => {
+      const mine = rows.filter((a) => a.taskId === taskId);
+      const tried = new Set(mine.map((a) => a.studentId));
+      const passed = new Set(mine.filter((a) => (a.kind || "attempt") === "attempt" && a.result === "pass").map((a) => a.studentId));
+      const checksHere = mine.filter((a) => (a.kind || "attempt") === "attempt");
+      const fails = checksHere.filter((a) => a.result === "fail");
+      const categories = {};
+      const misconceptions = {};
+      for (const f of fails) {
+        if (f.category) count(categories, f.category);
+        (f.misconceptions || []).forEach((m) => count(misconceptions, m));
+      }
+      return {
+        taskId, triedCount: tried.size, passedCount: passed.size, stuckCount: [...tried].filter((s) => !passed.has(s)).length,
+        checks: checksHere.length, fails: fails.length, failsPerStudent: tried.size ? fails.length / tried.size : 0,
+        showHow: mine.filter((a) => a.kind === "hint").length, topCategory: topKey(categories), topMisconception: topKey(misconceptions),
+      };
+    });
+    const struggled = tasks.filter((t) => t.triedCount && (t.stuckCount || t.fails))
+      .sort((a, b) => b.stuckCount - a.stuckCount || b.failsPerStudent - a.failsPerStudent || a.taskId.localeCompare(b.taskId));
+    return { tasks, struggled, students: new Set(rows.map((a) => a.studentId)).size };
+  }
+
   // ---------- CSV ----------
   function csvCell(v) {
     const s = String(v == null ? "" : v);
@@ -211,7 +240,7 @@
     ["unit", "The unit: output (Output and sequence), variables (Variables and input), maths (Maths in Python), selection (Selection), loops-condition (Condition-controlled loops) or loops-count (Count-controlled loops)."],
     ["task_id", "The task. Bank tasks come from tasks.json (for example if-L3a). Placement tasks have P in the id (for example sel-P5a). Tasks made from a template have an id of the form <template id>#<seed>. An older export may name a task by an old id that tasks.json now lists in that task's former_ids."],
     ["template_id", "For a task made from a template (a variant with different values, in practice once the bank tasks at a level are passed, in Endless mode, and write-from-scratch tasks), the template it came from. Empty for bank tasks."],
-    ["phase", "Where it happened: placement (the starting test taken the first time a unit is opened), practice (normal practice in one unit) or endless (Endless mode)."],
+    ["phase", "Where it happened: placement (the starting test taken the first time a unit is opened), practice (normal practice in one unit), endless (Endless mode) or assignment (a class assignment set by the teacher, which is practice only: see assignment_id)."],
     ["task_type", "predict (choose the output), fill (fill in the blanks), parsons (put lines in order), write (write code) or scratch (write from a blank editor)."],
     ["task_level", "The difficulty level of the task, 1 to 10. Levels 1-2 predict, 3-4 fill in, 5-6 Parsons, 7 complete a line, 8-10 write code."],
     ["student_level_before", "The student's level in this unit before this event. For attempts: before the task was finished. For level changes and button uses: the old level."],
@@ -235,6 +264,7 @@
     ["placement_results", "For placement results: each placement task as JSON – its level, task id, whether it was passed, the number of attempts and the hints used."],
     ["hint_type", "For hint rows: which kind of help was used. show-me-how means the student pressed 'Show me how' and saw a worked example (see the hint_type values below). Ordinary hints are not separate rows: they are counted in hints_used."],
     ["variant_fingerprint", "For tasks made from a template: the template id and the values drawn for this variant. Two rows with the same fingerprint are the same task. A passed fingerprint is never given to that student again in that unit. Empty for bank tasks (their task_id is their fingerprint)."],
+    ["assignment_id", "For rows with phase assignment: the id of the class assignment the task was set in (backend mode only). Assignment work is practice only: it never changes the student's level, streaks, passed tasks or progress, tries are unlimited, hints are free and 'Show me how' is always offered, so student_level_before and student_level_after are the same (empty if the student hadn't started the unit). Empty for every other row, and for an assignment the teacher has since deleted."],
   ];
 
   const VALUE_NOTES = [
@@ -249,6 +279,7 @@
     ["phase", "placement", "The starting test (4 tasks at levels 2, 5, 7 and 9, up to 2 attempts each). It does not count towards moving up or down."],
     ["phase", "practice", "Normal practice in one unit."],
     ["phase", "endless", "Endless mode, open once a unit is completed."],
+    ["phase", "assignment", "A class assignment set by the teacher (assignment_id says which). Practice only: no effect on the level or progress, unlimited tries, free hints."],
     ["failure_category", "SYNTAX", "The code couldn't be understood by Python (a syntax or indentation error). failure_details gives the line."],
     ["failure_category", "NAME", "A variable or function name was used before it was defined (often a spelling mistake). failure_details gives the name."],
     ["failure_category", "TYPE", "An operation on values that don't go together, such as adding text and a number. failure_details gives the types."],
@@ -292,6 +323,7 @@
         failed_test_number: a.failedTest == null ? "" : a.failedTest, failed_test_inputs: a.inputs ? json(a.inputs) : "",
         expected_output: a.expected == null ? "" : a.expected, student_output: a.output == null ? "" : a.output,
         student_error_type: a.errorType || "", student_error_kind: a.errorKind || "", student_code: a.code || "",
+        assignment_id: a.assignmentId || "",
       }));
     }
     data.levelLog.forEach((e, i) => rows.push(Object.assign(base(e, "level_change", "l-" + (i + 1)), {
@@ -325,6 +357,6 @@
   return {
     FAILS_IN_A_ROW_ALERT, TOP_FAILED_TASKS, BUTTON_NAMES, PLACEMENT_STATUS, FULL_COLUMNS,
     collect, overviewRows, sortOverview, filterByName, taskStats, misconceptionStats, quickLook,
-    detailRows, filterDetail, workshop, toCsv, fullExportRows, fullExportCsv, dataDictionaryCsv,
+    detailRows, filterDetail, workshop, toCsv, fullExportRows, fullExportCsv, dataDictionaryCsv, assignmentStats,
   };
 });

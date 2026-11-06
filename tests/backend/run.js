@@ -13,7 +13,7 @@ const crypto = require("crypto");
 const L = require("./lib.js");
 const { T, call, fn, service, rest, makeTeacher, makeClass, join, deleteTeacher, clearRateLimits, test, assert, eq, results } = L;
 
-const TABLES = ["teachers", "classes", "students", "progress", "passed_tasks", "attempts", "events", "code_reveals"];
+const TABLES = ["teachers", "classes", "students", "progress", "passed_tasks", "attempts", "events", "code_reveals", "assignments"];
 const iso = (msAgo = 0) => new Date(Date.now() - msAgo).toISOString();
 const DAY = 86400000;
 let n = 0;
@@ -351,6 +351,30 @@ function attemptRow(extra) {
       const w = want.split("\r\n"), g = got.split("\r\n");
       const first = w.findIndex((line, i) => line !== g[i]);
       eq([w.length, first], [g.length, -1], "export lines (first difference: " + (first >= 0 ? w[first] + "  vs  " + g[first] : "none") + ")");
+    });
+
+    await test("assignments: a teacher sets them for their own class; students get only their class's open ones", async () => {
+      const made = await rest("/rest/v1/assignments", a, { body: { class_id: classA.id, title: "Week 3", description: "Commas", task_ids: ["out-L1e", "var-L9c"] } });
+      eq(made.status, 201, "teacher A makes an assignment");
+      const aid = made.body[0].id;
+      const other = await rest("/rest/v1/assignments", a, { body: { class_id: classB.id, title: "Not mine", task_ids: ["var-L9c"] } });
+      assert(other.status === 401 || other.status === 403, "teacher A made one for class B: " + other.status);
+      const bAs = await rest("/rest/v1/assignments", b, { body: { class_id: classB.id, title: "B's", task_ids: ["var-L9c"] } });
+      eq(bAs.status, 201, "teacher B makes one");
+      eq((await rest("/rest/v1/assignments?select=title", b, { method: "GET" })).body.map((x) => x.title), ["B's"], "teacher B sees only theirs");
+      const p1 = await fn("student-api", { token: s1.token, action: "get_progress" });
+      eq(p1.body.assignments.map((x) => [x.title, x.task_ids]), [["Week 3", ["out-L1e", "var-L9c"]]], "Ada gets her class's open assignment");
+      eq((await fn("student-api", { token: s2.token, action: "get_assignments" })).body.assignments.map((x) => x.title), ["B's"], "Grace gets only hers");
+      // Attempts: on her own class's assignment, saved with its id; on another class's, refused.
+      const ok = attemptRow({ phase: "assignment", assignment_id: aid, unit: "variables", task_id: "var-L9c", task_units: ["variables"] });
+      const wrong = attemptRow({ phase: "assignment", assignment_id: bAs.body[0].id, unit: "variables", task_id: "var-L9c", task_units: ["variables"] });
+      const sent = await fn("student-api", { token: s1.token, action: "add_attempts", rows: [ok, wrong] });
+      eq([sent.body.saved, sent.body.rejected.map((r) => r.reason)], [1, ["bad assignment_id"]], "add_attempts");
+      const seen = await rest("/rest/v1/attempts?select=assignment_id,phase&record_id=eq." + ok.record_id, a, { method: "GET" });
+      eq(seen.body, [{ assignment_id: aid, phase: "assignment" }], "the teacher reads the attempt with its assignment id");
+      // Closing it: students no longer get it.
+      eq((await rest("/rest/v1/assignments?id=eq." + aid, a, { method: "PATCH", body: { status: "closed" } })).status, 200, "close");
+      eq((await fn("student-api", { token: s1.token, action: "get_progress" })).body.assignments, [], "closed assignments aren't sent");
     });
 
     await test("delete_my_progress deletes the student and everything saved for them", async () => {
