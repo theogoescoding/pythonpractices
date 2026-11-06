@@ -453,6 +453,11 @@ All values are named constants at the top of `app.js`:
 
 ## Teacher view
 
+**No student page links to it.** The student pages (`index.html`, `practice.html`, `progress.html`, `endless.html`) have no "Teacher view" link. Teachers open `teacher.html` at the site's address directly. A feature test checks that no student page, and no script one loads, links to it.
+
+- **Backend mode:** `teacher.html` shows only the teacher sign-in form until a confirmed teacher signs in. A student who opens it sees that form and nothing else: no classes, no class data, and none of the student data cached in their browser. Their code and PIN don't work there, because students aren't Supabase users. A signed-in teacher sees only their own classes (row-level security). Teacher sign-up is still open, though: see Known limitations.
+- **Local mode:** `teacher.html` has no sign-in. **Anyone who opens it can see all the data saved in that browser**: every student's name, levels, attempts and code. Removing the link only hides the page. This is a limit of local mode, not a security control.
+
 `teacher.html` starts with the note "Data is stored in this browser only. Results from other devices won't appear here." It warns when the browser's storage is nearly full (about 4 of the 5 MB a site may use). It has five pages, each with its own link:
 
 **Overview (`#overview`, the default)**
@@ -635,6 +640,7 @@ This needs Node 18+ and Python 3 on the PATH (set `PYTHON=...` to use a differen
   - **Printing rule:** no task joins values with `+` and `str()` inside `print()`; every task that builds and stores text with `+` says why in a hint; every task that casts `input()` says "casting"; the two new predict tasks exist.
   - **Expected output:** every non-predict task's box shows the example test's output exactly as the checker compares it (or the "No output" line), never a hidden test's input or output, and says how many tests are hidden. A failed hidden test's message says nothing about it.
   - **Task browser:** search by id, title, old id and variant id; every test's expected output is the checker's and every model solution passes against it; it shows the same box as the student's page; the model solution starts hidden; no student page loads the browser.
+  - **No teacher link:** no student-facing page (`index.html`, `practice.html`, `progress.html`, `endless.html`), and no script one loads, links to `teacher.html`.
   - **Assignments:** the assignment id goes into the attempt record, the row and the export (as the last column, with every earlier column unchanged) and the data dictionary; the per-task summary (tried, passed, struggled most); importing never rebuilds levels or passes from assignment work; assignment work is kept apart from the saved progress.
   - **`recheck.py`:** an unchanged export gives the same matches as the app (including an attempt on a template variant, made again from its template and seed); a new buggy variant changes the matches only for the attempts it applies to; an export that names a moved task by its old id keeps its matches.
 - **Simulation:** `tests/simulate.js` runs nine made-up students through the rules. It checks the fast move up, the normal move down and the recovery drop with its ceiling, and that a student who uses "Show me how" twice doesn't change level because of it (compared with the same student without it). Run it on its own to see each student's level task by task:
@@ -709,6 +715,7 @@ This needs Node 18+ and Python 3 on the PATH (set `PYTHON=...` to use a differen
 
 - **Old progress is not carried over.** Progress saved by the previous version (per-category levels for Selection only) is ignored, so students start again.
 - **The name is not a login (local mode).** Anyone using the browser can pick any name from the "Change name" list. It is there to keep progress apart on a shared computer, not to secure it. Backend mode uses a code and PIN instead.
+- **The teacher view isn't protected in local mode.** Anyone who opens `teacher.html` in a browser can see all the data saved in that browser (names, levels, attempts and code), and reset placements. The student pages have no link to it, but that only hides it: it is not a security control. Backend mode needs a teacher sign-in.
 - **Progress is per browser, per computer (local mode).** Clearing browser data deletes it. To collect results, export the full data on each machine.
 - **Backend mode: the rate limit is per school network.** `join-class` and `resume` allow 300 requests every 10 minutes per IP address (`RATE_LIMIT_HITS` in `supabase/functions/_shared/limits.ts`). A whole school usually shares one public IP, so this is set for several classes signing in at once; the per-student PIN lock (5 wrong PINs, then 15 minutes) is the main protection.
 - **Backend mode: `config.js` is committed.** It holds only the project URL and the public anon key, which are safe to publish because row-level security protects the data. The service-role key and the three Edge Function secrets are never in the repository (see `docs/SECRETS.md`). `BACKEND_ENABLED` is `false` until the backend has been deployed and tested.

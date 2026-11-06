@@ -20,7 +20,6 @@
       <div class="header-tools" role="group" aria-label="Student and display settings">
         <span id="student-area" class="student-chip" hidden>Hi, <strong id="student-name"></strong>
           · <a href="#" id="change-name">Not you? Change name</a></span>
-        <a href="teacher.html">Teacher view</a>
         <span id="display-tools"></span>
       </div>
     </div>
@@ -35,9 +34,9 @@
         <ul class="known-list landing-choices">
           <li><button type="button" class="primary" data-show="join-form">New student</button></li>
           <li><button type="button" class="primary" data-show="resume-form">Returning student</button></li>
-          <li><a class="menu-link" href="teacher.html#signup">New teacher</a></li>
-          <li><a class="menu-link" href="teacher.html#signin">Returning teacher</a></li>
         </ul>
+        <!-- No link to the teacher view on student pages: teachers open teacher.html directly. -->
+        <p class="small">Teachers: open the teacher page at this site's address followed by /teacher.html.</p>
       </div>
 
       <form id="join-form" hidden novalidate aria-labelledby="join-h">

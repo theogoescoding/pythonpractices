@@ -206,6 +206,24 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     function esc(s) { return TaskView.esc(s); }
   }
 
+  // ===================== No link to the teacher view on student pages =====================
+  {
+    const pages = ["index.html", "practice.html", "progress.html", "endless.html"];
+    const linkRe = /href\s*=\s*["'][^"']*teacher\.html|location(\.href)?\s*=\s*["'][^"']*teacher\.html|>\s*Teacher view\s*</i;
+    const scriptsOf = (html) => [...html.matchAll(/<script src="([^"]+)"/g)].map((m) => m[1]).filter((s) => !/^https?:/.test(s));
+    const offenders = [];
+    for (const p of pages) {
+      const html = fs.readFileSync(path.join(ROOT, p), "utf8");
+      if (linkRe.test(html)) offenders.push(p);
+      // A script the page loads mustn't add one either (for example a shared top bar).
+      for (const s of scriptsOf(html)) {
+        const src = fs.readFileSync(path.join(ROOT, s), "utf8");
+        if (linkRe.test(src) || /["'][^"'\n]*teacher\.html[^"'\n]*["']/.test(src)) offenders.push(p + " → " + s);
+      }
+    }
+    check(!offenders.length, "No student-facing page (or a script it loads) links to teacher.html" + (offenders.length ? " (" + [...new Set(offenders)].join(", ") + ")" : ""));
+  }
+
   // ===================== Class assignments =====================
   {
     const t = byId["var-L9c"];
