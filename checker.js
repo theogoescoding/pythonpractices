@@ -89,11 +89,23 @@
         else if (/^(yes|no|[A-Z][a-z]+)$/.test(name)) detail += " If it's meant to be text, put it in quotes: \"" + name + "\".";
         return { title: "Unknown name '" + name + "'" + at, detail };
       }
+      case "FileNotFoundError":
+        return { title: "That file doesn't exist" + at, detail: "Python couldn't find the file to open for reading. Write it first with open(..., \"w\"), and check the file name is spelt the same both times." };
+      case "UnsupportedOperation":
+        if (/not readable/.test(msg)) return { title: "This file was opened for writing" + at, detail: "A file opened with mode \"w\" or \"a\" can't be read. Open it again with mode \"r\" to read it." };
+        if (/not writable/.test(msg)) return { title: "This file was opened for reading" + at, detail: "A file opened with mode \"r\" can't be written to. Open it with mode \"w\" (start again) or \"a\" (add to the end)." };
+        return { title: "That doesn't work on this file" + at, detail: "Check the mode you opened the file with: \"w\" to write, \"a\" to add, \"r\" to read." };
       case "ValueError":
+        if (/I\/O operation on closed file/.test(msg))
+          return { title: "The file is already closed" + at, detail: "The file was used after it was closed. With with open(...) as file:, use the file only on the indented lines under it." };
         if (/invalid literal for int|could not convert string to float/.test(msg))
           return { title: "Couldn't turn the input into a number" + at, detail: "int() only works on whole numbers like \"42\". If the input could have a decimal point, use float(). If it could be words, check it with .isdigit() first." };
         return { title: "A value isn't right" + at, detail: "A function was given a value it can't work with." };
       case "TypeError":
+        if (/write\(\) argument must be str/.test(msg))
+          return { title: "write() needs text" + at, detail: "file.write() only writes strings. Cast a number with str() first, for example file.write(str(score))." };
+        if (/NoneType/.test(msg))
+          return { title: "A value is None" + at, detail: "Something here is None. A function gives back None if it has no return line: check that it returns its result, and that you stored what it gave back." };
         if (/not supported between instances of 'str' and 'int'|not supported between instances of 'int' and 'str'/.test(msg))
           return { title: "Comparing text with a number" + at, detail: "input() always gives you text. Cast it to a number with int() before comparing, e.g. age = int(input(\"Age: \")). This is called casting." };
         if (/can only concatenate str/.test(msg))
@@ -111,7 +123,7 @@
         return { title: "A function keeps calling itself" + at, detail: "A function is calling itself over and over. Check that it returns a value instead." };
       case "AttributeError":
         if (/'NoneType' object has no attribute/.test(msg))
-          return { title: "This value is None" + at, detail: "A variable holds None. If you wrote something like scores = scores.append(5), write scores.append(5) on its own: append() changes the list and gives back None." };
+          return { title: "This value is None" + at, detail: "A variable holds None. If you wrote something like scores = scores.append(5), write scores.append(5) on its own: append() changes the list and gives back None. A function with no return line gives back None too." };
         return { title: "That doesn't work on this value" + at, detail: "You used a .method() on a value that doesn't have it. For example, .isdigit() works on text, not on numbers." };
       case "IndexError":
         return { title: "Position out of range" + at, detail: "You asked for a position that doesn't exist. Indexing counts from 0, so the last position is len() - 1." };

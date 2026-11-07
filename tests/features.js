@@ -168,8 +168,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
 
   // ===================== Strings, Random and Lists units =====================
   {
-    check(Curriculum.UNITS.map((u) => u.id).join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists",
-      "Unit order: Output, Variables, Data types, Maths, Selection, the two loops units, then Strings, Random and Lists");
+    check(Curriculum.UNITS.map((u) => u.id).join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d",
+      "Unit order: Output, Variables, Data types, Maths, Selection, the two loops units, Strings, Random, Lists, the two functions units, File handling and 2D arrays");
     const NEW = {
       strings: { title: "Strings", prefix: "str", skills: "length,indexing,slicing,upper/lower,find,replace,in" },
       random: { title: "Random", prefix: "rand", skills: "import,randint,choice,simulation" },
@@ -248,6 +248,80 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       /counts from 0/.test(Checker.explainError({ type: "IndexError", message: "string index out of range", line: 2 }).detail) &&
       /append\(\) changes the list/.test(Checker.explainError({ type: "AttributeError", message: "'NoneType' object has no attribute 'append'", line: 3 }).detail),
       "Error messages: a missing import random, an index out of range and items = items.append(...) each get their own advice");
+  }
+
+  // ===================== Functions, File handling and 2D arrays units =====================
+  {
+    const templatesAll = require(path.join(ROOT, "templates.json"));
+    const NEW = {
+      "functions-basic": { title: "Functions, no return value", prefix: "fb", skills: "def,call,parameter,argument,print-in-function" },
+      "functions-return": { title: "Functions, return values", prefix: "fr", skills: "return,call,parameter,store-result" },
+      "file-handling": { title: "File handling", prefix: "file", skills: "with-open,mode,write,read,lines,close" },
+      "arrays-2d": { title: "2D arrays", prefix: "grid", skills: "list-of-lists,indexing,nested-loop,length" },
+    };
+    const SKILL_WORDS = {
+      def: /\bdef\b/, call: /\bcall/i, parameter: /\bparameter/i, argument: /\bargument/i, return: /\breturn/i, "store-result": /\bstor(e|ed|es|ing)\b/i,
+      "with-open": /with open/, mode: /\bmode\b/i, write: /\bwrite\(/, read: /\bread(line)?\(/, lines: /\bline/i, close: /\bclose\(/,
+      "list-of-lists": /list of lists/i, indexing: /\bindex(es|ing)?\b|grid\[row\]\[col\]/i, "nested-loop": /nested loop/i, length: /\blen\(/,
+    };
+    const SYNONYMS = /\bprocedure\b|\bsubroutine\b|\boutput\(\)|\bmatrix\b|\btable of lists\b|\b2d list\b|\bfile pointer\b/i;
+    const codeOf = (t) => [t.solution, t.starter || ""].concat(t.distractors || [], t.answers || [], (t.buggy_variants || []).map((v) => v.code)).join("\n");
+    const recursive = (code) => [...code.matchAll(/^def ([a-z_]\w*)\(/gm)].some((m) => {
+      const body = code.slice(m.index).split("\n").slice(1);
+      const end = body.findIndex((l) => l.trim() && !/^\s/.test(l));
+      return (end < 0 ? body : body.slice(0, end)).some((l) => new RegExp("\\b" + m[1] + "\\(").test(l));
+    });
+    for (const [id, want] of Object.entries(NEW)) {
+      const unit = Curriculum.unitById(id);
+      const mine = tasks.filter((t) => t.unit === id);
+      const practice = mine.filter((t) => !t.tags.includes("placement"));
+      const perLevel = Array.from({ length: 10 }, (_, i) => practice.filter((t) => t.level === i + 1).length);
+      const placement = mine.filter((t) => t.tags.includes("placement"));
+      check(unit && unit.title === want.title && unit.skills.join() === want.skills, want.title + ": in curriculum.js with its skills (" + want.skills + ")");
+      check(perLevel.join() === "4,4,3,3,3,3,3,3,3,3" && [2, 5, 7, 9].map((lv) => placement.filter((t) => t.level === lv).length).join() === "2,2,2,2" && mine.length === 40,
+        want.title + ": 4 practice tasks at levels 1-2, 3 at levels 3-10, and 2 placement tasks at levels 2, 5, 7 and 9 (" + perLevel.join(",") + ")");
+      check(mine.every((t) => new RegExp("^" + want.prefix + "-[LP]\\d+[a-z]$").test(t.id) && t.skills.every((s) => unit.skills.includes(s)) && t.type === Curriculum.levelType(t.level, id)),
+        want.title + ": ids " + want.prefix + "-L…/" + want.prefix + "-P…, skills from the unit's list, and each task's type is its level's type");
+      const wrongWord = mine.filter((t) => t.hints.some((h) => SYNONYMS.test(h)) || t.skills.some((s) => SKILL_WORDS[s] && !SKILL_WORDS[s].test(t.hints.join(" ") + " " + t.description)));
+      check(!wrongWord.length, want.title + ": every task has hints, and they name each skill with the skill list's word" + (wrongWord.length ? " (" + wrongWord.map((t) => t.id).join(", ") + ")" : ""));
+      const outside = mine.filter((t) => { const c = codeOf(t); return /\bselect\s+[\w*]+\s+from\b|\bsql/i.test(c) || /^\s*class\s/m.test(c) || /\[[^\]\n]*\bfor\b[^\]\n]*\]/.test(c) || /^\s*(import|from)\s/m.test(c) || recursive(c); });
+      check(!outside.length, want.title + ": no SQL, recursion, classes, list comprehensions or imports" + (outside.length ? " (" + outside.map((t) => t.id).join(", ") + ")" : ""));
+    }
+    check(!/\breturn\b/.test(tasks.filter((t) => t.unit === "functions-basic").map(codeOf).join("\n")), "Functions, no return value: no task uses return");
+    const file = tasks.filter((t) => t.unit === "file-handling");
+    check(file.every((t) => ["predict", "fill", "parsons"].includes(t.type)) && !Curriculum.hasScratch("file-handling") &&
+      !templatesAll.some((tpl) => tpl.units.includes("file-handling") && !["predict", "fill", "parsons"].includes(tpl.type)) &&
+      [8, 9, 10].map((lv) => Curriculum.levelType(lv, "file-handling")).join() === "fill,parsons,parsons",
+      "File handling: only predict, Parsons and fill-in tasks and templates (levels 8-10 are fill-in and Parsons), and no write-from-scratch tasks");
+    check(file.every((t) => /open\("[^"]+", "w"\)|open\("[^"]+", "a"\)/.test(t.solution) && t.solution.indexOf('"w")') < t.solution.search(/"r"\)/) &&
+      !/open\([^)]*\binput\(/.test(t.solution)) && file.filter((t) => /with open\(/.test(t.solution)).length >= 35,
+      "File handling: every program writes its own file before reading it, never opens a file the student names, and most use with open(...)");
+    const runs = runPython([
+      { code: 'with open("a.txt", "w") as f:\n    f.write("x")\nprint(open("a.txt").read())', inputs: [] },
+      { code: 'print(open("a.txt").read())', inputs: [] },
+      { code: 'import os\nprint(os.listdir("."))', inputs: [] },
+    ]);
+    check(runs[0].output === "x\n" && runs[1].error && runs[1].error.type === "FileNotFoundError" && runs[2].output === "[]\n" && !fs.existsSync(path.join(ROOT, "a.txt")),
+      "harness.py runs each program in its own empty folder: a file written in one run is gone in the next, and nothing is left in the project folder");
+    check(/mode "r"/.test(Checker.explainError({ type: "UnsupportedOperation", message: "not readable", line: 2 }).detail) &&
+      /Write it first/.test(Checker.explainError({ type: "FileNotFoundError", message: "[Errno 2] No such file or directory: 'x.txt'", line: 1 }).detail) &&
+      /closed/.test(Checker.explainError({ type: "ValueError", message: "I/O operation on closed file.", line: 4 }).detail) &&
+      /str\(\)/.test(Checker.explainError({ type: "TypeError", message: "write() argument must be str, not int", line: 2 }).detail) &&
+      /return/.test(Checker.explainError({ type: "TypeError", message: "unsupported operand type(s) for +: 'NoneType' and 'int'", line: 5 }).detail),
+      "Error messages: a missing file, reading a file opened to write, a closed file, write() given a number, and a None from a missing return each get their own advice");
+    check(Curriculum.levelName(8, "file-handling") === "Fill in two whole lines" && Curriculum.levelName(8, "lists") === "Write part of the program",
+      "Level names: File handling's levels 8-10 have their own names; other units keep the ladder's");
+    for (const id of ["FUNCTION_NOT_CALLED", "ARGUMENT_IN_QUOTES", "RETURN_MISSING_NONE", "PRINT_INSTEAD_OF_RETURN", "RESULT_NOT_STORED",
+      "WRITE_MODE_OVERWRITES", "NEWLINE_NOT_WRITTEN", "LINE_NEWLINE_KEPT", "ROW_COL_SWAPPED", "ROWS_COLS_LEN_MIXED"]) {
+      const m = misconceptions.find((x) => x.id === id);
+      const sentences = m ? m.explanation.split(/(?<=[.!?])\s+/).length : 0;
+      const bank = tasks.filter((t) => !t.tags.includes("placement") && (t.buggy_variants || []).some((v) => v.misconception === id));
+      check(m && m.name && m.description && sentences >= 2 && sentences <= 3 && bank.length >= 3,
+        id + ": in misconceptions.json with a name, description and a 2-3 sentence explanation, and buggy variants on " + bank.length + " bank tasks (3 needed)");
+    }
+    const none = tasks.find((t) => t.id === "fr-L2a");
+    check(none && none.options[none.answer] === "None" && none.buggy_variants.some((v) => v.misconception === "RETURN_MISSING_NONE"),
+      "Functions, return values: a function that forgets return prints None (fr-L2a), with the RETURN_MISSING_NONE misconception");
   }
 
   // ===================== Expected output box and hidden tests =====================

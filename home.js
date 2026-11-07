@@ -174,7 +174,7 @@ Store.whenReady(function () {
       let levelText;
       if (level == null) levelText = "Not started – a quick check will find your starting level";
       else if (needsPlacement(s)) levelText = "Quick check to finish";
-      else levelText = "Your level: " + level + " (" + levelName(level) + ")" + (s.completedTop ? " ✓ completed" : "");
+      else levelText = "Your level: " + level + " (" + levelName(level, u.id) + ")" + (s.completedTop ? " ✓ completed" : "");
       // A unit glows once a level 10 task has been passed in it.
       const glow = s && (s.passedTop || s.completedTop);
       return '<li><a class="unit-card' + (glow ? " unit-complete" : "") + '" href="practice.html?unit=' + encodeURIComponent(u.id) + '">' + title +
@@ -212,7 +212,7 @@ Store.whenReady(function () {
     const progress = Store.loadProgress(Store.currentStudent().id);
     const level = unitLevel(progress, $("test-unit").value) || START_LEVEL;
     $("test-level").innerHTML = Array.from({ length: MAX_LEVEL }, (_, i) =>
-      '<option value="' + (i + 1) + '"' + (i + 1 === level ? " selected" : "") + ">" + (i + 1) + " – " + esc(levelName(i + 1)) + "</option>").join("");
+      '<option value="' + (i + 1) + '"' + (i + 1 === level ? " selected" : "") + ">" + (i + 1) + " – " + esc(levelName(i + 1, $("test-unit").value)) + "</option>").join("");
   }
 
   $("test-unit").addEventListener("change", syncTestLevel);

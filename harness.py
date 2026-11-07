@@ -3,6 +3,7 @@
 #   - worker.js loads it into Pyodide in the browser
 #   - tests/validate.js runs it with local Python to check the task bank
 #
+# Each run starts in its own empty temporary folder (see run_code), and random is seeded from the first input.
 # input() is replaced by a version that hands out the test's inputs in order.
 # Prompts passed to input() are NOT written to the output, so expected
 # outputs in tasks.json only contain what the program print()s.
@@ -10,8 +11,11 @@
 import builtins
 import io
 import json
+import os
 import random as _random
+import shutil
 import sys
+import tempfile
 
 MAX_OUTPUT_CHARS = 20000
 USER_FILENAME = "<your code>"
@@ -104,6 +108,11 @@ def run_code(src, inputs):
     g = {"__name__": "__main__", "__builtins__": builtins, "input": fake_input}
     err = None
     real_stdout = sys.stdout
+    # Files: each run starts in its own empty folder, deleted afterwards, so a program's files (File handling tasks
+    # write a file, then read it back) never last into the next run and never land in the project folder.
+    home = os.getcwd()
+    work = tempfile.mkdtemp(prefix="run-")
+    os.chdir(work)
     sys.stdout = out
     try:
         exec(compile(src, USER_FILENAME, "exec"), g)
@@ -124,6 +133,8 @@ def run_code(src, inputs):
         err = {"type": type(e).__name__, "message": str(e), "line": _user_line(e.__traceback__)}
     finally:
         sys.stdout = real_stdout
+        os.chdir(home)
+        shutil.rmtree(work, ignore_errors=True)
 
     try:
         output = out.getvalue()

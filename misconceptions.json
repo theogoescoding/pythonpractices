@@ -142,5 +142,65 @@
     "name": "Stores what append() gives back",
     "description": "Writes items = items.append(x), expecting the new list back. append() changes the list itself and gives back None, so the list is lost and items becomes None.",
     "explanation": "It looks like the result of append() was stored back in the list's variable. append() changes the list itself and gives back None, so the variable now holds None. Write items.append(x) on its own."
+  },
+  {
+    "id": "FUNCTION_NOT_CALLED",
+    "name": "Defines a function but never calls it",
+    "description": "Writes the function with def but never calls it (or writes its name without brackets), so its lines never run and nothing is printed. def only makes the function; a call such as greet() runs it.",
+    "explanation": "It looks like the function was defined but never called. def only makes the function: its lines run when you call it, with its name and brackets, such as menu(). Check that your program calls each function it needs."
+  },
+  {
+    "id": "ARGUMENT_IN_QUOTES",
+    "name": "Puts quotes round a variable passed to a function",
+    "description": "Calls a function with \"name\" instead of name, so the word itself is passed, not the variable's value (or doesn't notice the quotes when reading a call).",
+    "explanation": "It looks like a variable was passed with quotes round it. Quotes make it text, so the function gets the word itself, not what the variable holds. Pass the variable without quotes."
+  },
+  {
+    "id": "RETURN_MISSING_NONE",
+    "name": "Forgets return, so the function gives back None",
+    "description": "Works out a value inside the function but has no return line, so the call gives back None, and printing the result shows None.",
+    "explanation": "It looks like the function works out its answer but never returns it. A function with no return line gives back None, which is what gets printed or stored. Add a return line with the value."
+  },
+  {
+    "id": "PRINT_INSTEAD_OF_RETURN",
+    "name": "Prints the answer instead of returning it",
+    "description": "Uses print() inside the function instead of return, so the value is shown but the call gives back None to whatever stores or prints the result.",
+    "explanation": "It looks like the function prints its answer instead of returning it. print() only shows the value; the call still gives back None. Use return so the result can be stored and used."
+  },
+  {
+    "id": "RESULT_NOT_STORED",
+    "name": "Calls a function but doesn't store its result",
+    "description": "Calls a function that returns a value, such as bonus(score), on its own line, and expects a variable to change. The returned value is lost unless it is stored, for example score = bonus(score).",
+    "explanation": "It looks like the function's result was expected to change a variable by itself. A returned value is lost unless you store it, for example score = bonus(score). Check where each result goes."
+  },
+  {
+    "id": "WRITE_MODE_OVERWRITES",
+    "name": "Uses mode \"w\" to add to a file",
+    "description": "Opens a file with mode \"w\" to add more to it, but \"w\" starts the file again, empty. Mode \"a\" adds to the end.",
+    "explanation": "It looks like mode \"w\" was used to add to a file. \"w\" empties the file each time it is opened, so what was there before is lost. Use mode \"a\" to add to the end."
+  },
+  {
+    "id": "NEWLINE_NOT_WRITTEN",
+    "name": "Thinks write() starts a new line",
+    "description": "Writes several values with write() and expects each on its own line, but write() adds no new line, so they run together. + \"\\n\" is needed.",
+    "explanation": "It looks like write() was expected to start a new line by itself. write() writes exactly the text it is given, so the values run together on one line. Add + \"\\n\" to end each line."
+  },
+  {
+    "id": "LINE_NEWLINE_KEPT",
+    "name": "Forgets that each line read keeps its \\n",
+    "description": "Reads lines from a file and uses them without strip(), so each line still ends in \\n: printing gives blank lines between, and comparing with a word never matches.",
+    "explanation": "It looks like each line was used as if it had no \\n on the end. A line read from a file keeps its new line, so it prints a blank line after it and never equals a plain word. Use line.strip() first."
+  },
+  {
+    "id": "ROW_COL_SWAPPED",
+    "name": "Puts the column before the row",
+    "description": "Uses grid[col][row] instead of grid[row][col], or goes down the columns when reading row by row, so the wrong item is used.",
+    "explanation": "It looks like the row and column were swapped. In grid[row][col] the first index picks the row (the inner list) and the second picks the item in it. Check which index is the row."
+  },
+  {
+    "id": "ROWS_COLS_LEN_MIXED",
+    "name": "Mixes up len(grid) and len(grid[0])",
+    "description": "Uses len(grid) for the number of columns or len(grid[0]) for the number of rows, which only works when the grid is square.",
+    "explanation": "It looks like the number of rows and columns were mixed up. len(grid) counts the rows, and len(grid[0]) counts the items in one row, which is the number of columns. Check each len() against what you need."
   }
 ]

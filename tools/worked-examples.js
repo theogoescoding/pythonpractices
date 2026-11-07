@@ -366,6 +366,109 @@ const EXAMPLES = {
     code: 'laps = [62, 58, 65]\nall_laps = 0\nfor lap in laps:\n    all_laps = all_laps + lap\nprint("All laps (s):", all_laps)',
     key_idea: "for lap in laps: runs once for each item, with lap holding the next item each time. Use it to add up or check every item.",
   },
+
+  // ---------- Functions, no return value ----------
+  "functions-basic:def": {
+    problem: "A zookeeper makes a function that prints the feeding time.",
+    code: 'def feeding_time():\n    print("Penguins fed at noon")\n\nfeeding_time()',
+    key_idea: "def makes a function: the indented lines under it are what it does. Defining it doesn't run it; calling it does.",
+  },
+  "functions-basic:call": {
+    problem: "A rocket launch prints a beep, three times.",
+    code: 'def beep():\n    print("Beep")\n\nbeep()\nbeep()\nbeep()',
+    key_idea: "A call is the function's name with brackets, such as beep(). Each call runs the function's lines again.",
+  },
+  "functions-basic:parameter": {
+    problem: "A garden centre labels plants with a function that has a parameter.",
+    code: 'def label(plant):\n    print("Plant:", plant)\n\nlabel("Fern")\nlabel("Tulip")',
+    key_idea: "A parameter is the name in the brackets of def. Inside the function it holds whatever value the call gave it.",
+  },
+  "functions-basic:argument": {
+    problem: "A bus timetable passes two values to a function.",
+    code: 'def departs(route, time):\n    print("Route", route, "leaves at", time)\n\nstop = "9:15"\ndeparts(42, stop)',
+    key_idea: "Arguments are the values in the call's brackets. They go to the parameters in order. A variable is passed without quotes, so its value is used.",
+  },
+  "functions-basic:print-in-function": {
+    problem: "A function prints a frame round a word.",
+    code: 'def frame(word):\n    print("+" * (len(word) + 2))\n    print("|" + word + "|")\n    print("+" * (len(word) + 2))\n\nframe("Moon")',
+    key_idea: "A function can print as many lines as it needs, using its parameters. They appear each time the function is called.",
+  },
+
+  // ---------- Functions, return values ----------
+  "functions-return:return": {
+    problem: "A cinema works out the cost of tickets with a function that returns it.",
+    code: 'def ticket_cost(adults, children):\n    return adults * 9 + children * 5\n\nprint(ticket_cost(2, 3))',
+    key_idea: "return sends a value back to where the function was called, and ends the function. A function with no return gives back None.",
+  },
+  "functions-return:call": {
+    problem: "Two calls to the same function are added together.",
+    code: 'def stamps(letters):\n    return letters * 2\n\nprint(stamps(3) + stamps(4))',
+    key_idea: "A call to a function that returns a value can be used like the value itself: printed, added, or compared.",
+  },
+  "functions-return:parameter": {
+    problem: "A bakery's function uses its two parameters to work out the trays needed.",
+    code: 'def trays(cakes, per_tray):\n    return cakes // per_tray\n\nprint("Trays:", trays(36, 12))',
+    key_idea: "The parameters hold the arguments from the call, and the function returns a result made from them.",
+  },
+  "functions-return:store-result": {
+    problem: "A sports club stores what a function returns, then uses it twice.",
+    code: 'def laps_to_metres(laps):\n    return laps * 400\n\ndistance = laps_to_metres(5)\nprint("Metres:", distance)\nprint("Kilometres:", distance / 1000)',
+    key_idea: "Store a result in a variable, such as distance = laps_to_metres(5), to use it again. Calling the function without storing the result loses it.",
+  },
+
+  // ---------- File handling ----------
+  "file-handling:with-open": {
+    problem: "A weather station saves a reading to a file, then reads it back.",
+    code: 'with open("weather.txt", "w") as f:\n    f.write("Sunny")\n\nwith open("weather.txt", "r") as f:\n    print(f.read())',
+    key_idea: "with open(name, mode) as f: opens the file for the indented lines under it, and closes it again afterwards.",
+  },
+  "file-handling:mode": {
+    problem: "A garden diary is started with mode \"w\", then added to with mode \"a\".",
+    code: 'with open("garden.txt", "w") as f:\n    f.write("Planted beans\\n")\nwith open("garden.txt", "a") as f:\n    f.write("Watered beans\\n")\nwith open("garden.txt", "r") as f:\n    print(f.read())',
+    key_idea: "Mode \"w\" starts the file again, empty; \"a\" adds to the end; \"r\" reads it.",
+  },
+  "file-handling:write": {
+    problem: "A library writes three book titles, one per line.",
+    code: 'with open("books.txt", "w") as f:\n    f.write("Holes\\n")\n    f.write("Wonder\\n")\n    f.write("Matilda\\n")\nwith open("books.txt", "r") as f:\n    print(f.read())',
+    key_idea: "write() writes exactly the text it is given, with no new line: add \"\\n\" to end each line. It needs a string, so cast numbers with str().",
+  },
+  "file-handling:read": {
+    problem: "A planet's moon count is saved as text, then read back and used as a number.",
+    code: 'with open("moons.txt", "w") as f:\n    f.write("95")\nwith open("moons.txt", "r") as f:\n    moons = int(f.read())\nprint(moons + 1)',
+    key_idea: "read() gives back the whole file as one string. Cast it with int() or float() to use it as a number.",
+  },
+  "file-handling:lines": {
+    problem: "A train timetable is read one line at a time.",
+    code: 'with open("trains.txt", "w") as f:\n    f.write("York\\nDurham\\nNewcastle\\n")\nwith open("trains.txt", "r") as f:\n    for line in f:\n        print("Stop:", line.strip())',
+    key_idea: "for line in f: reads one line each time round; readline() reads the next line. Each line keeps its \\n, so strip() takes it off.",
+  },
+  "file-handling:close": {
+    problem: "A car park saves its spaces with open() and close() written out.",
+    code: 'f = open("spaces.txt", "w")\nf.write("Spaces left: 12")\nf.close()\nf = open("spaces.txt", "r")\nprint(f.read())\nf.close()',
+    key_idea: "Without with, open() the file, use it, then close() it. with open(...) closes the file for you.",
+  },
+
+  // ---------- 2D arrays ----------
+  "arrays-2d:list-of-lists": {
+    problem: "A cinema stores how many tickets each seat block sold, one row of blocks per list.",
+    code: 'sold = [[40, 35, 52], [18, 27, 30]]\nprint(sold[1])\nprint(len(sold))',
+    key_idea: "A 2D array is a list of lists: each inner list is one row. sold[1] is the whole second row.",
+  },
+  "arrays-2d:indexing": {
+    problem: "A minefield game picks out one square by row and column.",
+    code: 'field = [[0, 1, 0], [2, 0, 1], [0, 0, 3]]\nprint(field[0][1])\nfield[2][0] = 9\nprint(field[2])',
+    key_idea: "grid[row][col]: the first index picks the row, the second the item in it. Both count from 0.",
+  },
+  "arrays-2d:nested-loop": {
+    problem: "A greenhouse prints every tray's plant count, row by row.",
+    code: 'trays = [[6, 4], [5, 8], [7, 3]]\nfor shelf in trays:\n    for count in shelf:\n        print(count, end=" ")\n    print()',
+    key_idea: "A nested loop: the outer loop takes each row, and the inner loop each item in that row.",
+  },
+  "arrays-2d:length": {
+    problem: "A car park's grid of bays is measured.",
+    code: 'bays = [[0, 0, 1, 0], [1, 1, 0, 0]]\nprint("Rows of bays:", len(bays))\nprint("Bays per row:", len(bays[0]))',
+    key_idea: "len(grid) is the number of rows; len(grid[0]) is the number of columns (the length of one row).",
+  },
 };
 
 module.exports = { EXAMPLES };

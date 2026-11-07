@@ -60,7 +60,10 @@ for (const unit of unitsWithTasks) {
     const settable = App.tasksAt(tasks, unit, lv).length;
     check(settable >= MIN_PER_UNIT_LEVEL, `Unit "${unit}" level ${lv} has only ${settable} tasks that can be set (after skillMinLevel)`);
   }
-  for (const type of TYPES) check(mine.some((t) => t.type === type), `Unit "${unit}" has no tasks of type "${type}"`);
+  // Every task type its ladder uses (File handling has no write tasks).
+  const ladderTypes = new Set(Array.from({ length: 10 }, (_, i) => Curriculum.levelType(i + 1, unit)));
+  for (const type of TYPES.filter((ty) => ladderTypes.has(ty))) check(mine.some((t) => t.type === type), `Unit "${unit}" has no tasks of type "${type}"`);
+  check(mine.every((t) => t.type === Curriculum.levelType(t.level, unit)), `Unit "${unit}": every task's type is its level's type`);
 }
 check(tasks.filter((t) => t.unit === "selection").length >= MIN_SELECTION_TASKS, `Selection should keep at least ${MIN_SELECTION_TASKS} tasks`);
 const ids = tasks.map((t) => t.id);
@@ -166,8 +169,8 @@ for (const t of practiceTasks) {
 }
 
 // Unit order on the landing page, and a skill that is in two units' lists counting for the task's own unit.
-check(UNIT_IDS.join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists",
-  "Units are listed with Data types and casting between Variables and Maths, and Strings, Random and Lists after the two loops units");
+check(UNIT_IDS.join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d",
+  "Units are listed with Data types and casting between Variables and Maths; Strings, Random and Lists after the two loops units; then the two functions units, File handling and 2D arrays");
 check(App.unitOfSkill("accumulator", ["loops-condition"]) === "loops-condition" && App.unitOfSkill("accumulator", ["loops-count"]) === "loops-count" &&
   App.unitOfSkill("accumulator") === "loops-condition", "A skill in two units' lists belongs to the task's own unit");
 check(App.unitOfSkill("and/or", ["loops-condition"]) === "loops-condition" && App.unitOfSkill("and/or", ["selection"]) === "selection" &&
@@ -191,8 +194,10 @@ function checkTask(t) {
   check(Array.isArray(t.skills) && t.skills.length >= 1 && t.skills.length <= 3, `${name}: needs 1 to 3 skill tags in "skills" (a task with no skill tag fails)`);
   const okSkills = allowedSkills(t);
   for (const s of t.skills || []) check(okSkills.includes(s), `${name}: skill "${s}" is not in the skill list for its unit(s) (curriculum.js)`);
-  const ladder = Curriculum.LEVELS[t.level - 1];
+  // The ladder's task type for the level, or the unit's own (File handling's levels 8-10 are fill-in and Parsons).
+  const ladder = Curriculum.LEVELS[t.level - 1] && { type: Curriculum.levelType(t.level, t.unit), name: Curriculum.levelName(t.level, t.unit) };
   if (t.type === "scratch") {
+    check(Curriculum.hasScratch(t.unit), `${name}: unit "${t.unit}" has no write-from-scratch tasks`);
     check(t.level === Curriculum.SCRATCH_LEVEL, `${name}: write-from-scratch tasks are level ${Curriculum.SCRATCH_LEVEL}`);
     check(t.starter === "", `${name}: write-from-scratch tasks start with a blank editor (starter "")`);
     check(t.tests.length >= 1, `${name}: write-from-scratch tasks need tests`);
@@ -321,7 +326,7 @@ for (const tpl of templates) {
 // Endless mode never runs out: every unit has a single-unit template at every level, and a from-scratch template.
 for (const unit of UNIT_IDS) {
   for (let lv = 1; lv <= 10; lv++) check(App.singleTemplates(templates, unit, lv).length >= 1, `No template for unit "${unit}" at level ${lv} (endless mode would run out)`);
-  check(App.scratchTemplates(templates, unit).length >= 1, `No write-from-scratch template for unit "${unit}"`);
+  if (Curriculum.hasScratch(unit)) check(App.scratchTemplates(templates, unit).length >= 1, `No write-from-scratch template for unit "${unit}"`);
 }
 const combinedCount = templates.filter((t) => Array.isArray(t.units) && t.units.length >= 2).length;
 check(combinedCount >= MIN_COMBINED_TEMPLATES, `Need at least ${MIN_COMBINED_TEMPLATES} combined templates, found ${combinedCount}`);

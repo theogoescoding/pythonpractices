@@ -36,7 +36,7 @@ Store.whenReady(function () {
         esc(u.title + ": " + level + ", " + x.percent + "% of tasks passed, " + x.secured + " of " + u.skills.length + " skills secured. Show skills.") + '">' +
         "<h3>" + esc(u.title) + "</h3>" +
         '<div class="stat-row">' +
-          '<span class="stat"><strong>' + esc(level) + "</strong>" + (x.s ? esc(levelName(x.s.level)) : "&nbsp;") + "</span>" +
+          '<span class="stat"><strong>' + esc(level) + "</strong>" + (x.s ? esc(levelName(x.s.level, u.id)) : "&nbsp;") + "</span>" +
           '<span class="stat"><strong>' + x.percent + "%</strong>tasks passed (" + x.passed + " of " + x.total + ")</span>" +
           '<span class="stat"><strong>' + x.secured + " / " + u.skills.length + "</strong>skills secured</span>" +
         "</div>" +
@@ -48,7 +48,7 @@ Store.whenReady(function () {
   function renderDetail(u) {
     const x = summary(u);
     $("detail-h").textContent = u.title;
-    $("detail-summary").textContent = (x.s ? "Level " + x.s.level + " (" + levelName(x.s.level) + ")" : "Not started yet") +
+    $("detail-summary").textContent = (x.s ? "Level " + x.s.level + " (" + levelName(x.s.level, u.id) + ")" : "Not started yet") +
       " · " + x.percent + "% of tasks passed · " + x.secured + " of " + u.skills.length + " skills secured";
     $("skill-list").innerHTML = x.skills.map(({ skill, state }) => {
       const status = skillStatus(state);

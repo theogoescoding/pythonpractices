@@ -18,7 +18,7 @@ Store.whenReady(function () {
     $("endless-units").innerHTML = units.map((u) => {
       const s = progress.units[u.id];
       const open = !!(s && s.completedTop);
-      const level = s ? "Level " + s.level + " – " + levelName(s.level) : "Not started";
+      const level = s ? "Level " + s.level + " – " + levelName(s.level, u.id) : "Not started";
       const msg = s && s.level === 10
         ? "Get 2 strong passes in a row at Level 10 in " + u.title + " to unlock."
         : "Complete Level 10 in " + u.title + " to unlock." + (s ? " You're at Level " + s.level + "." : "");

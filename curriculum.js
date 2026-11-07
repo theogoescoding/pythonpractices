@@ -72,6 +72,34 @@
       description: "Make a list, use indexing, append() and len(), and loop over a list.",
       skills: ["list", "indexing", "append", "length", "list-loop"],
     },
+    {
+      id: "functions-basic",
+      title: "Functions, no return value",
+      description: "Define a function with def, call it, give it parameters, and print from inside it.",
+      skills: ["def", "call", "parameter", "argument", "print-in-function"],
+    },
+    {
+      id: "functions-return",
+      title: "Functions, return values",
+      description: "return a value from a function, use the result of a call, and store it in a variable.",
+      skills: ["return", "call", "parameter", "store-result"],
+    },
+    {
+      id: "file-handling",
+      title: "File handling",
+      description: "with open(...): write a file, then read it back, line by line or all at once.",
+      skills: ["with-open", "mode", "write", "read", "lines", "close"],
+      // No write or from-scratch tasks: every program makes its own file, so the top levels are puzzles too.
+      levelTypes: { 8: "fill", 9: "parsons", 10: "parsons" },
+      levelNames: { 8: "Fill in two whole lines", 9: "Parsons – longer", 10: "Parsons – extended" },
+      noScratch: true,
+    },
+    {
+      id: "arrays-2d",
+      title: "2D arrays",
+      description: "A list of lists: grid[row][col], len() for rows and columns, and nested loops to read and print a grid.",
+      skills: ["list-of-lists", "indexing", "nested-loop", "length"],
+    },
   ];
 
   // A level is how much support the task gives. It is the same in every unit.
@@ -101,7 +129,11 @@
 
   const unitById = (id) => UNITS.find((u) => u.id === id) || null;
   const unitTitle = (id) => (unitById(id) || { title: id }).title;
-  const levelName = (n) => (LEVELS[n - 1] || { name: "" }).name;
+  // A unit can set its own task type and name for a level (levelTypes, levelNames); otherwise the ladder's are used.
+  const levelName = (n, unitId) => ((unitById(unitId) || {}).levelNames || {})[n] || (LEVELS[n - 1] || { name: "" }).name;
+  const levelType = (n, unitId) => ((unitById(unitId) || {}).levelTypes || {})[n] || (LEVELS[n - 1] || { type: "" }).type;
+  // Units with noScratch never set "Write from scratch" tasks (File handling: its programs make their own files).
+  const hasScratch = (unitId) => !(unitById(unitId) || {}).noScratch;
 
-  return { UNITS, LEVELS, TYPE_INFO, SCRATCH_LEVEL, unitById, unitTitle, levelName };
+  return { UNITS, LEVELS, TYPE_INFO, SCRATCH_LEVEL, unitById, unitTitle, levelName, levelType, hasScratch };
 });

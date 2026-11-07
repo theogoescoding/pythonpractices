@@ -296,6 +296,33 @@
     { re: /\brandom\.choice\(([^()]*)\)/g, to: (m, a) => a },                           // thinks choice gives the whole thing
     { re: /\brandom\.randint\(([^(),]+),\s*([^(),]+)\)/g, to: (m, a, b) => "random.randint(" + a + ", " + b + " - 1)" }, // RANDINT_STOP_EXCLUSIVE
   ];
+  // Functions mistakes, only for the two functions units' templates.
+  const NOT_BUILTIN = "(?!print\\b|range\\b|len\\b|int\\b|str\\b|float\\b|input\\b|round\\b|type\\b)";
+  const FUNCTION_MUTATIONS = [
+    { re: /^([ \t]*)(?!print\(|def |for |if |elif |while |import |with |return )[a-z_]\w*\([^\n]*\)[ \t]*$/gm, to: (m, ind) => ind + "pass" }, // FUNCTION_NOT_CALLED
+    { re: /^([ \t]*)(?!print\(|def |for |if |elif |while |import |with |return )([a-z_]\w*)\(([^"'\n()]*)\)[ \t]*$/gm, to: (m, ind, f, a) => ind + "print(\"" + f + "(" + a + ")\")" }, // thinks the call itself is printed
+    { re: /^([ \t]*)(?!print\(|def |for |if |elif |while |import |with |return )[a-z_]\w*\([^\n]*\)[ \t]*$/gm, to: (m) => m + "\n" + m }, // thinks the body runs twice
+    { re: new RegExp("\\b" + NOT_BUILTIN + "([a-z_]\\w*)\\(([a-z_]\\w*)\\)", "g"), to: (m, f, a) => f + "(\"" + a + "\")" },  // ARGUMENT_IN_QUOTES
+    { re: /^(\s+)return (.+)$/gm, to: (m, ind, v) => ind + "print(" + v + ")" },  // PRINT_INSTEAD_OF_RETURN
+    { re: /^(\s+)return (.+)$/gm, to: (m, ind, v) => ind + v },                    // RETURN_MISSING_NONE
+    { re: /^(\s*)\w+ = ((?!input\()[a-z_]\w*\([^\n]*\))[ \t]*$/gm, to: (m, ind, call) => ind + call }, // RESULT_NOT_STORED
+  ];
+  // File handling mistakes, only for File handling templates.
+  const FILE_MUTATIONS = [
+    { re: /, "w"\)/g, to: () => ", \"a\")", anyPos: true },
+    { re: /, "a"\)/g, to: () => ", \"w\")", anyPos: true },                       // WRITE_MODE_OVERWRITES
+    { re: /\.strip\(\)/g, to: () => "" },                                          // LINE_NEWLINE_KEPT
+    { re: /\s*\+\s*"\\n"/g, to: () => "" },                                        // NEWLINE_NOT_WRITTEN
+    { re: /\.write\("((?:[^"\\]|\\.)*\\n(?:[^"\\]|\\.)*)"\)/g, to: (m, s) => ".write(\"" + s.replace(/\\n/g, "") + "\")", anyPos: true },
+    { re: /\.readline\(\)/g, to: () => ".read()" },
+    { re: /\.write\("([^"\\\n]*)"\)/g, to: (m, s) => ".write(\"" + s + "\\n\")" },          // thinks write() adds a new line
+  ];
+  // 2D array mistakes, only for 2D arrays templates (with the index rules above).
+  const GRID_MUTATIONS = [
+    { re: /\[(\w+)\]\[(\w+)\]/g, to: (m, a, b) => "[" + b + "][" + a + "]" },     // ROW_COL_SWAPPED
+    { re: /\blen\((\w+)\[0\]\)/g, to: (m, a) => "len(" + a + ")" },               // ROWS_COLS_LEN_MIXED
+    { re: /\blen\((\w+)\)/g, to: (m, a) => "len(" + a + "[0])" },
+  ];
   const MAX_PLACES_PER_RULE = 3;
 
   // Positions inside strings and comments, which mutations leave alone.
@@ -315,8 +342,12 @@
     const out = [];
     const add = (c) => { if (c !== code && !out.includes(c)) out.push(c); };
     let rules = /\btype\(/.test(code) ? MUTATIONS.concat(TYPE_MUTATIONS) : MUTATIONS;
-    if ((units || []).some((u) => u === "strings" || u === "lists")) rules = rules.concat(STRING_LIST_MUTATIONS);
-    if ((units || []).includes("random")) rules = rules.concat(RANDOM_MUTATIONS);
+    const us = units || [];
+    if (us.some((u) => u === "strings" || u === "lists" || u === "arrays-2d")) rules = rules.concat(STRING_LIST_MUTATIONS);
+    if (us.includes("random")) rules = rules.concat(RANDOM_MUTATIONS);
+    if (us.some((u) => u === "functions-basic" || u === "functions-return")) rules = rules.concat(FUNCTION_MUTATIONS);
+    if (us.includes("file-handling")) rules = rules.concat(FILE_MUTATIONS);
+    if (us.includes("arrays-2d")) rules = rules.concat(GRID_MUTATIONS);
     for (const rule of rules) {
       const re = new RegExp(rule.re.source, rule.re.flags);
       let m, n = 0;
@@ -329,6 +360,16 @@
     if (/^\s*(if|elif|else)\b/m.test(code)) BRANCH_MUTATIONS.forEach((f) => add(f(code)));
     const lines = code.split("\n");
     const ind = (l) => /^ */.exec(l)[0];
+    // Functions: thinks def runs a function straight away (a call added just after each def with no parameters).
+    if (us.some((u) => u === "functions-basic" || u === "functions-return")) {
+      for (let i = 0; i < lines.length; i++) {
+        const m = /^def ([a-z_]\w*)\(\):/.exec(lines[i]);
+        if (!m) continue;
+        let end = i + 1;
+        while (end < lines.length && (lines[end].trim() === "" || ind(lines[end]).length > 0)) end++;
+        add(lines.slice(0, end).concat([m[1] + "()"], lines.slice(end)).join("\n"));
+      }
+    }
     // The first line after an if/else/loop block, thought to be part of the block.
     for (let i = 1; i < lines.length; i++) {
       if (ind(lines[i]).length < ind(lines[i - 1]).length && /^\s*print\(/.test(lines[i])) {

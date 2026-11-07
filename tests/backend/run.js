@@ -413,8 +413,9 @@ function attemptRow(extra) {
       assert(p.body.attempts.some((r) => r.unit === "data-types" && r.task_id === "types-L3a"), "attempt came back");
     });
 
-    await test("the strings, random and lists units (0007): student-api saves their progress, attempts, events and passed tasks", async () => {
-      const units = { strings: "str-L3a", random: "rand-L3a", lists: "list-L3a" };
+    await test("the units added by 0007 and 0008: student-api saves their progress, attempts, events and passed tasks", async () => {
+      const units = { strings: "str-L3a", random: "rand-L3a", lists: "list-L3a",
+        "functions-basic": "fb-L3a", "functions-return": "fr-L3a", "file-handling": "file-L3a", "arrays-2d": "grid-L3a" };
       for (const [unit, task] of Object.entries(units)) {
         eq((await fn("student-api", { token: s1.token, action: "save_progress", unit, state: { level: 4, placement: { status: "done", used: [] } } })).status, 200, unit + " save_progress");
         const att = await fn("student-api", { token: s1.token, action: "add_attempts", rows: [attemptRow({ unit, task_units: [unit], task_id: task })] });

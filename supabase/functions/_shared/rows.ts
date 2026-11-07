@@ -4,8 +4,10 @@
 
 import { check, db } from "./http.ts";
 
-// Keep in step with the unit checks in the migrations (0006 added data-types; 0007 strings, random and lists).
-export const UNITS = ["output", "variables", "maths", "selection", "loops-condition", "loops-count", "data-types", "strings", "random", "lists"];
+// Keep in step with the unit checks in the migrations (0006 added data-types; 0007 strings, random and lists;
+// 0008 functions-basic, functions-return, file-handling and arrays-2d).
+export const UNITS = ["output", "variables", "maths", "selection", "loops-condition", "loops-count", "data-types", "strings", "random", "lists",
+  "functions-basic", "functions-return", "file-handling", "arrays-2d"];
 export const PROGRESS_UNITS = [...UNITS, "endless"];
 export const MAX_ROWS_PER_BATCH = 500;
 const MAX_STORED_TEXT = 2000; // as store.js: code and output are cut to this many characters

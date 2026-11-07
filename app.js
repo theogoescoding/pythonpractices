@@ -66,7 +66,7 @@ const MAX_NEW_VARIANT_TRIES = 40;          // draws to find a template variant t
 const MAX_HINTS_PER_TASK = 3;
 const RUN_TIMEOUT_MS = 5000;               // stop a run after this long (e.g. an infinite loop)
 
-const { UNITS, TYPE_INFO, unitById, unitTitle, levelName } =
+const { UNITS, TYPE_INFO, unitById, unitTitle, levelName, hasScratch } =
   typeof module === "object" && module.exports ? require("./curriculum.js") : self.Curriculum;
 
 // ===================== Adaptive logic (pure functions) =====================
@@ -1084,16 +1084,16 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     const shown = endless ? progress.endless.units : [unitId];
     $("unit-levels").innerHTML = shown.map((u) => {
       const s = us(u);
-      return '<li class="unit-progress" aria-label="' + esc(unitTitle(u) + ": level " + s.level + " of 10, " + levelName(s.level)) + '">' +
+      return '<li class="unit-progress" aria-label="' + esc(unitTitle(u) + ": level " + s.level + " of 10, " + levelName(s.level, u)) + '">' +
         (endless ? '<span class="unit-name">' + esc(unitTitle(u)) + "</span>" : "") +
         '<span class="unit-level">Level ' + s.level + "</span>" +
-        '<span class="small">' + esc(levelName(s.level)) + "</span>" +
+        '<span class="small">' + esc(levelName(s.level, u)) + "</span>" +
         '<span class="cat-bar" aria-hidden="true"><span style="width:' + s.level * 10 + '%"></span></span></li>';
     }).join("");
     let info = "";
     if (!endless) {
       const s = us();
-      if (s.level >= MAX_LEVEL) info = s.completedTop ? "You've completed this unit! Every " + SCRATCH_EVERY_N_TASKS + " tasks you'll get a write-from-scratch challenge." : "You're at the top level! " + PASSES_IN_A_ROW_TO_LEVEL_UP + " strong passes in a row here completes the unit.";
+      if (s.level >= MAX_LEVEL) info = s.completedTop ? (!hasScratch(unitId) ?"You've completed this unit!" : "You've completed this unit! Every " + SCRATCH_EVERY_N_TASKS + " tasks you'll get a write-from-scratch challenge.") :"You're at the top level! " + PASSES_IN_A_ROW_TO_LEVEL_UP + " strong passes in a row here completes the unit.";
       else if (s.ceiling != null && s.level >= s.ceiling) info = "You're settling in at this level for " + s.ceilingTasksLeft + " more task" + (s.ceilingTasksLeft === 1 ? "" : "s") + ".";
       else info = s.passStreak + " of " + PASSES_IN_A_ROW_TO_LEVEL_UP + " strong passes in a row needed to move up.";
     } else {
@@ -1114,7 +1114,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     return '<h2 id="task-title">' + esc(t.title) + "</h2>" +
       '<p class="meta">' + (inAssignment ? '<span class="cat-tag">Assignment · task ' + (work.index + 1) + " of " + assignmentTasks.length + "</span>" : "") +
         unitsOf(t).map((u) => '<span class="cat-tag">' + esc(unitTitle(u)) + "</span>").join("") +
-        " Level " + t.level + " · " + esc(t.type === "scratch" ? "Write from scratch" : levelName(t.level)) + " · Task " + esc(t.id) + "</p>" +
+        " Level " + t.level + " · " + esc(t.type === "scratch" ? "Write from scratch" : levelName(t.level, t.unit)) + " · Task " + esc(t.id) + "</p>" +
       '<p class="description">' + esc(t.description) + "</p>" +
       // The exact output the checker expects for the example test (not on predict tasks: it is the answer).
       (TaskView.showsExpectedOutput(t) ? TaskView.expectedBoxHtml(t) : "");
@@ -1371,7 +1371,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       if (c.placement) {
         // Placement just finished: show the result once, then straight into practice.
         const start = us().placement.startLevel;
-        notice = { kind: "up", text: "Quick check done – thank you! You'll start at Level " + start + " (" + levelName(start) + ")." };
+        notice = { kind: "up", text: "Quick check done – thank you! You'll start at Level " + start + " (" + levelName(start, unitId) + ")." };
       }
       if (!(await serveNewTask())) return;
     }
