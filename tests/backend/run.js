@@ -401,7 +401,7 @@ function attemptRow(extra) {
       const state = { level: 3, placement: { status: "done", used: [] } };
       eq((await fn("student-api", { token: s1.token, action: "save_progress", unit: "data-types", state })).status, 200, "save_progress");
       const att = await fn("student-api", { token: s1.token, action: "add_attempts", rows: [attemptRow({ unit: "data-types", task_units: ["data-types"], task_id: "types-L3a" }),
-        attemptRow({ unit: "strings", task_units: ["strings"], task_id: "x" })] });
+        attemptRow({ unit: "dictionaries", task_units: ["dictionaries"], task_id: "x" })] });
       eq([att.body.saved, att.body.rejected.map((r) => r.reason)], [1, ["bad unit"]], "add_attempts");
       const ev = await fn("student-api", { token: s1.token, action: "add_events", rows: [{ record_id: rid("l"), record_type: "level_change", timestamp: iso(),
         unit: "data-types", student_level_before: 2, student_level_after: 3, level_change_reason: "passes" }] });
@@ -411,6 +411,25 @@ function attemptRow(extra) {
       assert(p.body.progress.some((r) => r.unit === "data-types" && r.state.level === 3), "progress came back");
       assert(p.body.passed.some((r) => r.unit === "data-types" && r.fingerprint === "types-L3a"), "passed task came back");
       assert(p.body.attempts.some((r) => r.unit === "data-types" && r.task_id === "types-L3a"), "attempt came back");
+    });
+
+    await test("the strings, random and lists units (0007): student-api saves their progress, attempts, events and passed tasks", async () => {
+      const units = { strings: "str-L3a", random: "rand-L3a", lists: "list-L3a" };
+      for (const [unit, task] of Object.entries(units)) {
+        eq((await fn("student-api", { token: s1.token, action: "save_progress", unit, state: { level: 4, placement: { status: "done", used: [] } } })).status, 200, unit + " save_progress");
+        const att = await fn("student-api", { token: s1.token, action: "add_attempts", rows: [attemptRow({ unit, task_units: [unit], task_id: task })] });
+        eq([att.body.saved, att.body.rejected.length], [1, 0], unit + " add_attempts");
+        const ev = await fn("student-api", { token: s1.token, action: "add_events", rows: [{ record_id: rid("l"), record_type: "level_change", timestamp: iso(),
+          unit, student_level_before: 3, student_level_after: 4, level_change_reason: "passes" }] });
+        eq(ev.body.saved, 1, unit + " add_events");
+        eq((await fn("student-api", { token: s1.token, action: "mark_passed", unit, fingerprint: task })).status, 200, unit + " mark_passed");
+      }
+      const p = await fn("student-api", { token: s1.token, action: "get_progress" });
+      for (const [unit, task] of Object.entries(units)) {
+        assert(p.body.progress.some((r) => r.unit === unit && r.state.level === 4), unit + " progress came back");
+        assert(p.body.passed.some((r) => r.unit === unit && r.fingerprint === task), unit + " passed task came back");
+        assert(p.body.attempts.some((r) => r.unit === unit && r.task_id === task), unit + " attempt came back");
+      }
     });
 
     await test("delete_my_progress deletes the student and everything saved for them", async () => {

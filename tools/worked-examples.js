@@ -280,6 +280,92 @@ const EXAMPLES = {
     code: 'screen = 3              # a whole number: int\nprice = 7.5             # has a decimal part: float\nfilm = "Robot Rescue"   # text: str\nsubtitles = False       # yes or no: bool\nprint(type(screen), type(price))\nprint(type(film), type(subtitles))',
     key_idea: "Choose the type from what the value is like: counts are int, measurements with decimals are float, words are str, and yes/no facts are bool.",
   },
+
+  // ---------- Strings ----------
+  "strings:length": {
+    problem: "A cinema checks how many characters a film title has, to fit it on the sign.",
+    code: 'film = "Moonlight Express"\nprint(len(film))\nprint(len("Up"))',
+    key_idea: "len() gives the length of a string: how many characters it has. Every character counts, including spaces.",
+  },
+  "strings:indexing": {
+    problem: "A planet's name is broken into its characters.",
+    code: 'planet = "Jupiter"\nprint(planet[0])\nprint(planet[3])\nprint(planet[len(planet) - 1])',
+    key_idea: "Indexing counts from 0, so planet[0] is the first character and the last one is planet[len(planet) - 1].",
+  },
+  "strings:slicing": {
+    problem: "A sign says Thames Barrier, and each word is sliced out.",
+    code: 'sign = "Thames Barrier"\nprint(sign[0:6])\nprint(sign[7:14])',
+    key_idea: "Slicing [a:b] starts at index a and stops just BEFORE index b, so sign[0:6] gives the 6 characters at indexes 0 to 5.",
+  },
+  "strings:upper/lower": {
+    problem: "A library notice is shown in capitals, then stored in small letters.",
+    code: 'notice = "Quiet Please"\nprint(notice.upper())\nprint(notice)\nnotice = notice.lower()\nprint(notice)',
+    key_idea: "upper() and lower() give back a NEW string. The variable only changes if you store the result, as in notice = notice.lower().",
+  },
+  "strings:find": {
+    problem: "A delivery note is searched for two words.",
+    code: 'note = "pick up the parcel"\nprint(note.find("up"))\nprint(note.find("zebra"))',
+    key_idea: "find() gives the index where some text first starts, counting from 0, or -1 if it isn't there.",
+  },
+  "strings:replace": {
+    problem: "A recipe swaps one ingredient for another.",
+    code: 'recipe = "add salt, then more salt"\nrecipe = recipe.replace("salt", "pepper")\nprint(recipe)',
+    key_idea: "replace(old, new) gives back a new string with every copy of old swapped for new. Store it to keep the change.",
+  },
+  "strings:in": {
+    problem: "A café checks whether a soup is on today's board.",
+    code: 'board = "soup of the day: tomato"\nprint("tomato" in board)\nprint("Tomato" in board)\nprint("tomato" in board.lower())',
+    key_idea: "in gives True if one string is inside another. Capital letters count, so use lower() on both to ignore them.",
+  },
+
+  // ---------- Random ----------
+  "random:import": {
+    problem: "A board game needs the random module before it can spin.",
+    code: 'import random\nspin = random.randint(1, 8)\nprint(spin <= 8)',
+    key_idea: "import random at the top of the program lets you use random.randint() and random.choice(). Without it, Python doesn't know what random is.",
+  },
+  "random:randint": {
+    problem: "A spinner in a board game has the numbers 1 to 8.",
+    code: 'import random\nspin = random.randint(1, 8)\nprint("Spinner:", spin)\nprint(spin >= 1 and spin <= 8)',
+    key_idea: "random.randint(a, b) gives a random whole number from a to b, and both a and b can come up. That's different from range(), which stops before its end.",
+  },
+  "random:choice": {
+    problem: "An ice lolly van picks a flavour, and a letter, at random.",
+    code: 'import random\nflavour = random.choice(["mint", "lemon", "cherry"])\nprint("Ice lolly:", flavour)\nletter = random.choice("QRS")\nprint(len(letter))',
+    key_idea: "random.choice() picks ONE item: one item of a list, or one character of a string.",
+  },
+  "random:simulation": {
+    problem: "A darts player throws 5 darts, and each one has a 1 in 4 chance of a bullseye.",
+    code: 'import random\nbullseyes = 0\nfor throw in range(5):\n    if random.randint(1, 4) == 4:\n        bullseyes = bullseyes + 1\nprint("Bullseyes:", bullseyes)',
+    key_idea: "Call randint() inside the loop, so every go gets a new number. A random number stored in a variable stays the same until it is assigned again.",
+  },
+
+  // ---------- Lists ----------
+  "lists:list": {
+    problem: "A space club stores the first three planets in a list.",
+    code: 'planets = ["Mercury", "Venus", "Earth"]\nprint(planets)\nprint(len(planets))',
+    key_idea: "A list stores several values in order, inside square brackets with commas between them.",
+  },
+  "lists:indexing": {
+    problem: "A train's stops are kept in a list, and one is changed.",
+    code: 'stops = ["Selby", "Goole", "Hull"]\nprint(stops[0])\nprint(stops[2])\nstops[1] = "Howden"\nprint(stops)',
+    key_idea: "Indexing a list counts from 0, like a string. stops[1] = ... replaces the second item.",
+  },
+  "lists:append": {
+    problem: "A sticker book starts empty and gets two stickers.",
+    code: 'stickers = []\nstickers.append("comet")\nstickers.append("moon")\nprint(stickers)\nprint(len(stickers))',
+    key_idea: "append() adds an item to the END of a list and changes the list itself. Don't write stickers = stickers.append(...): append() gives back None.",
+  },
+  "lists:length": {
+    problem: "A box of crayons is counted, and the last one is found.",
+    code: 'crayons = ["teal", "rust", "gold", "lilac"]\nprint(len(crayons))\nprint(crayons[len(crayons) - 1])',
+    key_idea: "len() gives the length of a list. The last item is at index len() - 1, because indexing counts from 0.",
+  },
+  "lists:list-loop": {
+    problem: "A swimmer's lap times are added up.",
+    code: 'laps = [62, 58, 65]\nall_laps = 0\nfor lap in laps:\n    all_laps = all_laps + lap\nprint("All laps (s):", all_laps)',
+    key_idea: "for lap in laps: runs once for each item, with lap holding the next item each time. Use it to add up or check every item.",
+  },
 };
 
 module.exports = { EXAMPLES };

@@ -25,7 +25,7 @@ begin
   if n <> 4 then raise exception 'FAIL: data-types progress should read level 4'; end if;
   begin
     insert into public.attempts (record_id, student_id, record_type, "timestamp", unit, task_id, result)
-      values ('a-dt-2', 'dddddddd-0000-0000-0000-000000d057d1', 'attempt', now(), 'strings', 'x', 'pass');
+      values ('a-dt-2', 'dddddddd-0000-0000-0000-000000d057d1', 'attempt', now(), 'dictionaries', 'x', 'pass');
     raise exception 'FAIL: an unknown unit was accepted';
   exception when check_violation then null;
   end;

@@ -129,8 +129,9 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
   // ===================== Data types and casting unit =====================
   {
     const unit = Curriculum.unitById("data-types");
-    check(unit && unit.title === "Data types and casting" && Curriculum.UNITS[Curriculum.UNITS.length - 1].id === "data-types" &&
-      unit.skills.join() === "integer,real,boolean,string,casting,type-choice", "Data types and casting comes after Count-controlled loops, with its six skills");
+    const order = Curriculum.UNITS.map((u) => u.id);
+    check(unit && unit.title === "Data types and casting" && order.indexOf("data-types") === order.indexOf("variables") + 1 && order.indexOf("maths") === order.indexOf("data-types") + 1 &&
+      unit.skills.join() === "integer,real,boolean,string,casting,type-choice", "Data types and casting comes between Variables and Maths, with its six skills");
     const mine = tasks.filter((t) => t.unit === "data-types");
     const practice = mine.filter((t) => !t.tags.includes("placement"));
     const perLevel = Array.from({ length: 10 }, (_, i) => practice.filter((t) => t.level === i + 1).length);
@@ -150,6 +151,12 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(converts.length >= 25 && !noWord.length, "Data types: the word casting appears in every task that converts a value" + (noWord.length ? " (" + noWord.map((t) => t.id).join(", ") + ")" : ""));
     check(/\breal\b/i.test(mine.map((t) => t.description).join(" ")) && mine.some((t) => /real number[^.]*Python calls this type float/i.test(t.description)),
       "Data types: descriptions use the word real, and say that Python calls it float");
+    // It comes before Maths, Selection and the loops, so it uses none of their ideas.
+    const later = mine.filter((t) => /\bround\(|^\s*(if|elif|else|for|while)\b|\/\/|%/m.test([t.solution, t.starter].concat(t.distractors || [], t.answers || [], (t.buggy_variants || []).map((v) => v.code)).join("\n")));
+    const swapped = { "types-L5c": "types-L5d", "types-L8a": "types-L8d", "types-L8b": "types-L8e", "types-L9a": "types-L9d", "types-L9b": "types-L9e", "types-L9c": "types-L9f",
+      "types-L10a": "types-L10d", "types-L10b": "types-L10e", "types-L10c": "types-L10f", "types-P7a": "types-P7c", "types-P9b": "types-P9c" };
+    check(!later.length && Object.entries(swapped).every(([old, now]) => !byId[old] && byId[now] && byId[now].former_ids.join() === old && byId[now].former_ids_are_replacements === true),
+      "Data types uses no round(), if/else, loops, // or %; the 11 tasks that did are replaced, each listing the old id in former_ids" + (later.length ? " (" + later.map((t) => t.id).join(", ") + ")" : ""));
     for (const id of ["INT_OF_DECIMAL_STRING", "BOOL_CAST_TRAP"]) {
       const m = misconceptions.find((x) => x.id === id);
       const sentences = m ? m.explanation.split(/(?<=[.!?])\s+/).length : 0;
@@ -157,6 +164,90 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       check(m && m.name && m.description && sentences >= 2 && sentences <= 3 && bank.length >= 3,
         id + ": in misconceptions.json with a name, description and a 2-3 sentence explanation, and buggy variants on " + bank.length + " bank tasks (3 needed)");
     }
+  }
+
+  // ===================== Strings, Random and Lists units =====================
+  {
+    check(Curriculum.UNITS.map((u) => u.id).join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists",
+      "Unit order: Output, Variables, Data types, Maths, Selection, the two loops units, then Strings, Random and Lists");
+    const NEW = {
+      strings: { title: "Strings", prefix: "str", skills: "length,indexing,slicing,upper/lower,find,replace,in" },
+      random: { title: "Random", prefix: "rand", skills: "import,randint,choice,simulation" },
+      lists: { title: "Lists", prefix: "list", skills: "list,indexing,append,length,list-loop" },
+    };
+    // The word a hint must use when it names a skill (skills with no single word, such as simulation, are left out).
+    const SKILL_WORDS = {
+      length: /\blen\(|\blength\b/i, indexing: /\bindex(es|ing)?\b/i, slicing: /\bslic(e|es|ing)\b/i, "upper/lower": /\b(upper|lower)\(/,
+      find: /\bfind\(/, replace: /\breplace\(/, import: /\bimport\b/, randint: /\brandint\(/, choice: /\bchoice\(/, append: /\bappend\(/,
+      "list-loop": /\bloop\b|\bfor \w+ in\b/i,
+    };
+    // Other words for the same ideas, which hints must not use instead of the skill's word.
+    const SYNONYMS = /\bsub-?strings?\b|\bcapitali[sz]|\b(upper|lower) ?case\b|\bposition number|\bsize of\b|\barrays?\b|\bpush\b|\bsearch(es)? for\b|\bsubscript/i;
+    const NOT_IN_UNIT = {
+      strings: /\.(split|join|strip|count|title|capitalize|index|startswith|endswith|isdigit|isalpha)\(/,
+      random: /\brandom\.(?!randint\(|choice\(|_)\w+|\bfrom random import\b(?![^\n]*\b(randint|choice)\b)/,
+      lists: /\[[^\]\n]*\bfor\b[^\]\n]*\]|\.(sort|remove|pop|insert|index|count|extend|reverse)\(|\b(sum|max|min|sorted)\(|\w\[[^\]\n]*:[^\]\n]*\]/,
+    };
+    const codeOf = (t) => [t.solution, t.starter || ""].concat(t.distractors || [], t.answers || [], (t.buggy_variants || []).map((v) => v.code)).join("\n");
+    for (const [id, want] of Object.entries(NEW)) {
+      const unit = Curriculum.unitById(id);
+      const mine = tasks.filter((t) => t.unit === id);
+      const practice = mine.filter((t) => !t.tags.includes("placement"));
+      const perLevel = Array.from({ length: 10 }, (_, i) => practice.filter((t) => t.level === i + 1).length);
+      const placement = [2, 5, 7, 9].map((lv) => mine.filter((t) => t.tags.includes("placement") && t.level === lv).length);
+      check(unit && unit.title === want.title && unit.skills.join() === want.skills, want.title + ": in curriculum.js with its skills (" + want.skills + ")");
+      check(perLevel.join() === "4,4,3,3,3,3,3,3,3,3" && placement.join() === "2,2,2,2" && mine.length === 40,
+        want.title + ": 4 practice tasks at levels 1-2, 3 at levels 3-10, and 2 placement tasks at levels 2, 5, 7 and 9 (" + perLevel.join(",") + " | " + placement.join(",") + ")");
+      const badIds = mine.filter((t) => !new RegExp("^" + want.prefix + "-[LP]\\d+[a-z]$").test(t.id) || !t.skills.every((s) => unit.skills.includes(s)));
+      check(!badIds.length, want.title + ": ids " + want.prefix + "-L…/" + want.prefix + "-P…, and skills from the unit's list" + (badIds.length ? " (" + badIds.map((t) => t.id).join(", ") + ")" : ""));
+      const noHint = mine.filter((t) => !t.hints.length || t.hints.some((h) => !h.trim()));
+      check(!noHint.length, want.title + ": every task has hints" + (noHint.length ? " (" + noHint.map((t) => t.id).join(", ") + ")" : ""));
+      const wrongWord = mine.filter((t) => t.hints.some((h) => SYNONYMS.test(h)) ||
+        t.skills.some((s) => SKILL_WORDS[s] && !SKILL_WORDS[s].test(t.hints.join(" ") + " " + t.description)));
+      check(!wrongWord.length, want.title + ": hints name each skill with the skill list's word (len()/length, indexing, slicing, upper(), find(), replace(), import, randint(), choice(), append(), loop), never another word for it" +
+        (wrongWord.length ? " (" + wrongWord.map((t) => t.id).join(", ") + ")" : ""));
+      const outside = mine.filter((t) => NOT_IN_UNIT[id].test(codeOf(t)) || /\bopen\(|\bsql\b|\bselect\s+\w+\s+from\b|^\s*def\s/im.test(codeOf(t)));
+      check(!outside.length, want.title + ": only the Python this unit teaches (no file handling, SQL, functions or recursion)" + (outside.length ? " (" + outside.map((t) => t.id).join(", ") + ")" : ""));
+      const notThisBuild = mine.filter((t) => /password|log ?in\b|username|valid/i.test(t.title + " " + t.description + " " + t.hints.join(" ")));
+      check(!notThisBuild.length, want.title + ": no validation or authentication tasks (not in this build)" + (notThisBuild.length ? " (" + notThisBuild.map((t) => t.id).join(", ") + ")" : ""));
+      const scratch = Templates && require(path.join(ROOT, "templates.json")).filter((t) => t.type === "scratch" && t.units[0] === id);
+      check(scratch.length >= 1, want.title + ": has write-from-scratch templates (" + scratch.length + ")");
+    }
+    const randomCode = tasks.filter((t) => t.unit === "random");
+    check(randomCode.every((t) => /^import random$/m.test(t.solution) && !/random\.seed/.test(codeOf(t))), "Random: every solution starts with import random, and nothing sets a seed");
+    for (const id of ["INDEX_FROM_ONE", "SLICE_END_INCLUSIVE", "STRING_METHOD_NOT_SAVED", "RANDINT_STOP_EXCLUSIVE", "RANDOM_STORED_ONCE", "APPEND_ASSIGNED"]) {
+      const m = misconceptions.find((x) => x.id === id);
+      const sentences = m ? m.explanation.split(/(?<=[.!?])\s+/).length : 0;
+      const bank = tasks.filter((t) => !t.tags.includes("placement") && (t.buggy_variants || []).some((v) => v.misconception === id));
+      check(m && m.name && m.description && sentences >= 2 && sentences <= 3 && bank.length >= 3,
+        id + ": in misconceptions.json with a name, description and a 2-3 sentence explanation, and buggy variants on " + bank.length + " bank tasks (3 needed)");
+    }
+
+    // Random numbers when a program is checked: the same for the same test, different for a different first input, and
+    // exactly what templates.js pyRandom says (hand-written templates work out expected outputs with it).
+    const prog = 'import random\nfrom random import randint, choice\nout = []\nfor i in range(20):\n    out.append(random.randint(1, 6))\n    out.append(randint(0, 99))\n    out.append(choice(["a", "b", "c"]))\n    out.append(random.choice("XYZW"))\nprint(out)';
+    const sets = [[], ["Ava"], ["7", "x"], ["über"]];
+    const runs = runPython(sets.map((inputs) => ({ code: prog, inputs })).concat([{ code: prog, inputs: ["Ava"] }]));
+    const js = (inputs) => {
+      const R = Templates.HELPERS.pyRandom(inputs);
+      const out = [];
+      for (let i = 0; i < 20; i++) out.push(R.randint(1, 6), R.randint(0, 99), R.choice(["a", "b", "c"]), R.choice("XYZW"));
+      return Templates.HELPERS.pylist(out);
+    };
+    check(sets.every((inputs, k) => !runs[k].error && runs[k].output.trim() === js(inputs)), "Random: harness.py's numbers match templates.js pyRandom for the same first input");
+    check(runs[1].output === runs[4].output && runs[1].output !== runs[0].output && runs[1].output !== runs[2].output,
+      "Random: the same test gives the same numbers every run (so Run and Check agree); a different first input gives different ones");
+    const plain = runPython([{ code: "print(1 + 1)", inputs: ["Ava"] }]);
+    check(plain[0].output === "2\n" && plain[0].inputsLeft === 1, "Programs that don't use random run as before");
+    // A Random predict task prints the same whatever numbers come up: run it with several different seeds.
+    const predicts = tasks.filter((t) => t.unit === "random" && t.type === "predict");
+    const seedRuns = runPython(predicts.flatMap((t) => ["a", "b", "c", "d", "e", "f"].map((s) => ({ code: t.solution, inputs: [s] }))));
+    const unfair = predicts.filter((t, i) => new Set(seedRuns.slice(i * 6, i * 6 + 6).map((r) => r.output)).size !== 1 || seedRuns[i * 6].output.trim() !== t.options[t.answer]);
+    check(predicts.length === 10 && !unfair.length, "Random: every predict task's answer is the same whatever random numbers come up" + (unfair.length ? " (" + unfair.map((t) => t.id).join(", ") + ")" : ""));
+    check(/import random/.test(Checker.explainError({ type: "NameError", message: "name 'random' is not defined", line: 2 }).detail) &&
+      /counts from 0/.test(Checker.explainError({ type: "IndexError", message: "string index out of range", line: 2 }).detail) &&
+      /append\(\) changes the list/.test(Checker.explainError({ type: "AttributeError", message: "'NoneType' object has no attribute 'append'", line: 3 }).detail),
+      "Error messages: a missing import random, an index out of range and items = items.append(...) each get their own advice");
   }
 
   // ===================== Expected output box and hidden tests =====================

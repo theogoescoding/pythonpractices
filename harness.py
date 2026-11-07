@@ -10,10 +10,60 @@
 import builtins
 import io
 import json
+import random as _random
 import sys
 
 MAX_OUTPUT_CHARS = 20000
 USER_FILENAME = "<your code>"
+
+
+# ---------- Random numbers ----------
+# A program that uses random must print the same thing each time it is checked, or its output couldn't be compared
+# with the expected output. So before every run, the random module's functions are pointed at a generator seeded from
+# the test's first input: the same test always gives the same "random" numbers, and tests with different first
+# inputs give different ones. Run uses the example test's inputs, so it shows what the example test expects.
+# The generator is mulberry32, which templates.js also has (HELPERS.pyRandom), so a template can work out what a
+# program using random.randint or random.choice prints. Students never see or write a seed.
+_M32 = 0xFFFFFFFF
+_RANDOM_NAMES = ("seed", "random", "randint", "randrange", "choice", "choices", "shuffle", "sample", "uniform", "getrandbits")
+
+
+def random_seed_for(inputs):
+    """FNV-1a (32-bit) of the first input's characters ("" when there are no inputs)."""
+    h = 2166136261
+    for ch in (str(inputs[0]) if inputs else ""):
+        h = ((h ^ ord(ch)) * 16777619) & _M32
+    return h
+
+
+class _CheckRandom(_random.Random):
+    def seed(self, a=None, version=2):
+        self._state = a & _M32 if isinstance(a, int) else random_seed_for([str(a)])
+
+    def _next(self):
+        a = self._state = (self._state + 0x6D2B79F5) & _M32
+        t = ((a ^ (a >> 15)) * (1 | a)) & _M32
+        t = ((t + (((t ^ (t >> 7)) * (61 | t)) & _M32)) & _M32) ^ t
+        return ((t ^ (t >> 14)) & _M32) / 4294967296
+
+    def random(self):
+        return self._next()
+
+    # randint, randrange, choice, shuffle and sample all use this.
+    def _randbelow(self, n):
+        return int(self._next() * n)
+
+    def getrandbits(self, k):
+        n = 0
+        for i in range(0, k, 32):
+            n |= int(self._next() * 4294967296) << i
+        return n & ((1 << k) - 1)
+
+
+def _use_check_random(inputs):
+    inst = _CheckRandom(random_seed_for(inputs))
+    for name in _RANDOM_NAMES:
+        setattr(_random, name, getattr(inst, name))
 
 
 class _NoMoreInput(Exception):
@@ -50,6 +100,7 @@ def run_code(src, inputs):
             raise _NoMoreInput()
         return queue.pop(0)
 
+    _use_check_random(queue)
     g = {"__name__": "__main__", "__builtins__": builtins, "input": fake_input}
     err = None
     real_stdout = sys.stdout

@@ -56,14 +56,79 @@ const MIN_VARIANTS = 5;
 const OVERRIDES = {
   // Data types and casting.
   "types-L1b": { swaps: [[["42"], ["17"], ["8"], ["63"], ["25"], ["31"]]] },
-  "types-L9c": { swaps: [[
-    ["trip slip", "Slip signed?", "You can go on the trip", "Please bring your slip"],
-    ["consent form", "Form signed?", "You can go to the match", "Please bring your form"],
-    ["museum letter", "Letter signed?", "You can go to the museum", "Please bring your letter"],
-    ["swimming slip", "Slip signed?", "You can go swimming", "Please bring your slip"],
-    ["theatre form", "Form signed?", "You can go to the theatre", "Please bring your form"],
-    ["camp letter", "Letter signed?", "You can go to camp", "Please bring your letter"]]] },
-  "types-L10c": { fixed: [0.9] }, // 10% off: the 0.9 is a fact of the task
+  "types-L9f": { swaps: [[["trip slip", "Slip signed?"], ["consent form", "Form signed?"], ["museum letter", "Letter signed?"],
+    ["swimming slip", "Swim slip signed?"], ["theatre form", "Theatre form signed?"], ["camp letter", "Camp letter signed?"]]] },
+  "types-L8d": { fixed: [0.5] }, // half a litre: the 0.5 is a fact of the task
+  // Real-number sums and products: whole sets of halves and quarters, which add and multiply exactly (scaling them
+  // would give outputs such as 38.400000000000006).
+  "types-L5a": { noNumbers: true, testSets: [
+    [["1.5", "2.25"], ["0.5", "0.75"]], [["1.25", "0.5"], ["2.75", "1.5"]], [["0.75", "3.5"], ["1.5", "1.25"]],
+    [["2.5", "0.25"], ["0.5", "4.75"]], [["3.25", "1.5"], ["0.25", "0.75"]], [["1.75", "2.5"], ["2.25", "0.5"]]] },
+  "types-L6a": { noNumbers: true, testSets: [
+    [["3", "1.5"], ["2", "2.25"], ["4", "2"]], [["5", "1.25"], ["3", "2.5"], ["2", "3"]], [["4", "1.75"], ["6", "0.5"], ["3", "2"]],
+    [["2", "3.25"], ["5", "1.5"], ["7", "1"]], [["6", "1.25"], ["4", "2.75"], ["5", "2"]], [["3", "3.5"], ["8", "0.75"], ["2", "4"]]] },
+  "types-L7b": { noNumbers: true, hints: ["The temperature can have a decimal part.", "Casting with int() fails on text with a decimal point: use float()."], testSets: [
+    [["12.5"], ["-2"], ["20"]], [["8.5"], ["-4"], ["15"]], [["16.5"], ["-1.5"], ["9"]],
+    [["21.5"], ["0"], ["-3.5"]], [["5.5"], ["-6"], ["18"]], [["13.5"], ["-0.5"], ["24"]]] },
+  "types-L10e": { noNumbers: true, testSets: [
+    [["12.5", "13.25", "12.75"], ["10", "11", "12"], ["14.25", "13.75", "15"]],
+    [["11.5", "12.25", "13.75"], ["9.5", "10.5", "11"], ["15.25", "14.5", "13"]],
+    [["13", "12.5", "14.75"], ["10.25", "10.25", "10.5"], ["16", "15.5", "14.25"]],
+    [["12.75", "12.75", "13.5"], ["11", "9.5", "10.25"], ["14", "14", "14.5"]],
+    [["10.5", "13.5", "12"], ["12.25", "11.75", "9"], ["15.75", "15.25", "16.5"]],
+    [["11.25", "12", "13"], ["9.75", "10", "11.5"], ["13.5", "14.5", "15.5"]]] },
+  "types-L10f": { noNumbers: true, testSets: [
+    [["3", "5", "yes"], ["2", "4.5", "no"], ["4", "2.25", "no"]],
+    [["2", "7.5", "yes"], ["5", "1.25", "no"], ["3", "3.5", "yes"]],
+    [["4", "6", "no"], ["1", "8.75", "yes"], ["6", "2.5", "no"]],
+    [["5", "4", "yes"], ["3", "2.75", "no"], ["2", "9.5", "yes"]],
+    [["6", "1.5", "no"], ["4", "3.25", "yes"], ["1", "12", "no"]],
+    [["2", "5.25", "yes"], ["7", "2", "no"], ["3", "4.5", "no"]]] },
+
+  // Strings: mostly text, so the words change together (a word and the part found in it, a word and its slice).
+  "str-L1d": { swaps: [[["banana", "nan"], ["computer", "put"], ["elephant", "ant"], ["sandwich", "and"], ["carpet", "car"], ["teacher", "each"]]] },
+  "str-L2b": { swaps: [[["leeds"], ["york"], ["bath"], ["derby"], ["hull"], ["truro"]]] },
+  "str-L2c": { swaps: [[["see you at lunch", "you"], ["back in ten minutes", "ten"], ["on the bus now", "bus"], ["call me after school", "after"], ["running late today", "late"], ["at the front gate", "front"]]] },
+  "str-L3b": { swaps: [[["tigers", "TIGERS", "Lions", "eagles fc"], ["rovers", "ROVERS", "Owls", "city fc"], ["sharks", "SHARKS", "Hawks", "united"],
+    ["wolves", "WOLVES", "Bears", "town fc"], ["comets", "COMETS", "Foxes", "rangers"], ["giants", "GIANTS", "Bulls", "athletic"]]] },
+  "str-L3c": { noNumbers: true, swaps: [[
+    ["school trip photos", "school-trip-photos", "year 7 news", "sports day"], ["class blog posts", "class-blog-posts", "art club", "prom night"],
+    ["science fair winners", "science-fair-winners", "music room", "open evening"], ["lunch menu ideas", "lunch-menu-ideas", "book week", "cake sale"],
+    ["football match report", "football-match-report", "chess club", "quiz night"], ["school play tickets", "school-play-tickets", "drama club", "bake off"]]] },
+  "str-L4a": { noNumbers: true, swaps: [[["Leeds", "Bristol", "york", "LEE"], ["Derby", "Norwich", "bath", "DER"], ["Exeter", "Lincoln", "hull", "EXE"],
+    ["Oxford", "Swindon", "ely", "OXF"], ["Durham", "Cardiff", "wells", "DUR"], ["Preston", "Chester", "ripon", "PRE"]]] },
+  "str-L7b": { swaps: [[["hello", "see you soon", "Go Team"], ["good luck", "well done", "Happy Friday"], ["thank you", "on my way", "Big News"],
+    ["lunch time", "be right back", "Game On"], ["see you later", "nice one", "Top Marks"], ["welcome back", "no way", "Hat Trick"]]] },
+  "str-L7c": { noNumbers: true, swaps: [[["A12-7", "B-44", "CC9-01"], ["X3-55", "QQ-1", "M4N-2"], ["B7-9", "K-310", "LL2-08"],
+    ["Z-6", "R44-1", "T1Y-77"], ["P12-3", "G-2", "HH6-4"], ["D3-30", "W-91", "C8-500"]]] },
+  "str-L8b": { swaps: [[["fish & chips", "salt & pepper & vinegar", "no symbol here"], ["bread & butter", "cheese & ham & pickle", "just one thing"],
+    ["rock & roll", "black & white & grey", "nothing to change"], ["cats & dogs", "bat & ball & stumps", "plain text"],
+    ["Tom & Jerry", "red & blue & green", "no ampersand"], ["sun & sea", "pens & pencils & rulers", "all words"]]] },
+  "str-L9a": { swaps: [[["british", "broadcasting", "corporation", "BBC"], ["parent", "teacher", "association", "PTA"], ["very", "important", "person", "VIP"],
+    ["frequently", "asked", "questions", "FAQ"], ["unidentified", "flying", "object", "UFO"], ["random", "access", "memory", "RAM"]]] },
+  "str-L9b": { swaps: [[["python", "ytho", "bread", "sandwich"], ["planet", "lane", "cheese", "tomato"], ["window", "indo", "carrot", "pencil"],
+    ["garden", "arde", "biscuit", "rocket"], ["marble", "arbl", "orange", "guitar"], ["silver", "ilve", "bottle", "basket"]]] },
+
+  // Random: a letter string and what is printed about it change together; a guessing range that must stay 1 to 3.
+  "rand-L1d": { swaps: [[["AEIOU", "A vowel", "Not a vowel"], ["HT", "Heads or tails", "Something else"], ["RGB", "Red, green or blue", "Another colour"],
+    ["NESW", "A compass point", "Not a compass point"], ["ABCD", "A, B, C or D", "Another letter"], ["XYZ", "X, Y or Z", "Another letter"]]] },
+  "rand-L2b": { swaps: [[["ZZZ"], ["QQQ"], ["XXX"], ["MMM"], ["KKK"], ["BBB"]]] },
+  // Every word in a list has the same length, so the answer doesn't depend on which one is picked.
+  // Not 3 letters: len() of the whole 3-item list would then be the right answer too.
+  "rand-L1b": { swaps: [[["cat", "dog", "owl"], ["lion", "bear", "wolf"], ["apple", "mango", "lemon"], ["rose", "lily", "iris"],
+    ["robin", "eagle", "raven"], ["duck", "frog", "goat"], ["chair", "table", "shelf"], ["planet", "rocket", "galaxy"]]] },
+  "rand-L5c": { fixed: [3] },
+
+  // Lists: the items change together.
+  "list-L2a": { swaps: [[["Mon", "Tue", "Wed", "Thu"], ["Jan", "Feb", "Mar", "Apr"], ["Spring", "Summer", "Autumn", "Winter"],
+    ["North", "East", "South", "West"], ["Ant", "Bee", "Cat", "Dog"], ["One", "Two", "Three", "Four"]]] },
+  "list-L3a": { noNumbers: true, swaps: [[["crisps", "apple", "biscuit"], ["cake", "grapes", "flapjack"], ["popcorn", "banana", "cracker"],
+    ["yoghurt", "orange", "muffin"], ["pretzel", "pear", "toast"], ["cereal bar", "carrot", "rice cake"]]] },
+  "list-L5a": { swaps: [[["milk", "eggs", "bread", "pens", "glue", "card"], ["rice", "beans", "flour", "paint", "tape", "string"],
+    ["tea", "jam", "butter", "paper", "pins", "chalk"], ["cheese", "apples", "pasta", "ruler", "rubber", "stapler"],
+    ["soup", "oats", "honey", "folders", "crayons", "scissors"], ["juice", "lemons", "sugar", "notebook", "markers", "clips"]]] },
+  "list-L7b": { swaps: [[["apple", "pear", "plum", "kiwi"], ["mango", "lime", "peach", "fig"], ["cherry", "melon", "grape", "date"],
+    ["banana", "lemon", "orange", "papaya"], ["apricot", "guava", "lychee", "nectarine"], ["satsuma", "quince", "damson", "pomelo"]]] },
 
   // Calendar facts (days in each month, the leap-year rule) never change; only the test years do.
   "functions-L10b": { fixed: [4, 6, 9, 11, 28, 29, 30, 31, 400, 1900, 2000] },

@@ -23,6 +23,12 @@
       skills: ["assignment", "reassignment", "input", "int()", "str()", "concatenation"],
     },
     {
+      id: "data-types",
+      title: "Data types and casting",
+      description: "Choose the right type for a value, and change a value's type with casting.",
+      skills: ["integer", "real", "boolean", "string", "casting", "type-choice"],
+    },
+    {
       id: "maths",
       title: "Maths in Python",
       description: "+ - * /, //, %, **, operator precedence, rounding",
@@ -49,10 +55,22 @@
       skills: ["for", "range", "loop-variable", "step", "nested-loop", "counting", "accumulator"],
     },
     {
-      id: "data-types",
-      title: "Data types and casting",
-      description: "Choose the right type for a value, and change a value's type with casting.",
-      skills: ["integer", "real", "boolean", "string", "casting", "type-choice"],
+      id: "strings",
+      title: "Strings",
+      description: "len(), indexing, slicing, upper() and lower(), find(), replace() and in.",
+      skills: ["length", "indexing", "slicing", "upper/lower", "find", "replace", "in"],
+    },
+    {
+      id: "random",
+      title: "Random",
+      description: "import random, randint() and choice(), and simulations such as dice and coins. When your code is checked, the random numbers are the same each time, so the checker knows what to expect.",
+      skills: ["import", "randint", "choice", "simulation"],
+    },
+    {
+      id: "lists",
+      title: "Lists",
+      description: "Make a list, use indexing, append() and len(), and loop over a list.",
+      skills: ["list", "indexing", "append", "length", "list-loop"],
     },
   ];
 

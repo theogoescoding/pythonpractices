@@ -85,7 +85,8 @@
         const m = /name '([^']+)' is not defined/.exec(msg);
         const name = m ? m[1] : "a name";
         let detail = "Python doesn't know what '" + name + "' is. Check the spelling and capital letters, and that you created it before using it.";
-        if (/^(yes|no|[A-Z][a-z]+)$/.test(name)) detail += " If it's meant to be text, put it in quotes: \"" + name + "\".";
+        if (name === "random" || name === "randint" || name === "choice") detail = "Python doesn't know '" + name + "' yet. Put import random at the top of your program, then use random.randint() or random.choice().";
+        else if (/^(yes|no|[A-Z][a-z]+)$/.test(name)) detail += " If it's meant to be text, put it in quotes: \"" + name + "\".";
         return { title: "Unknown name '" + name + "'" + at, detail };
       }
       case "ValueError":
@@ -109,9 +110,11 @@
       case "RecursionError":
         return { title: "A function keeps calling itself" + at, detail: "A function is calling itself over and over. Check that it returns a value instead." };
       case "AttributeError":
+        if (/'NoneType' object has no attribute/.test(msg))
+          return { title: "This value is None" + at, detail: "A variable holds None. If you wrote something like scores = scores.append(5), write scores.append(5) on its own: append() changes the list and gives back None." };
         return { title: "That doesn't work on this value" + at, detail: "You used a .method() on a value that doesn't have it. For example, .isdigit() works on text, not on numbers." };
       case "IndexError":
-        return { title: "Position out of range" + at, detail: "You asked for a position that doesn't exist." };
+        return { title: "Position out of range" + at, detail: "You asked for a position that doesn't exist. Indexing counts from 0, so the last position is len() - 1." };
       case "UnboundLocalError":
         return { title: "Variable used before it has a value" + at, detail: "A variable is used before anything has been stored in it. Give it a starting value first." };
       default:

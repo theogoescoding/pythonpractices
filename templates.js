@@ -66,6 +66,17 @@
     dp(x, n) { return Number(x.toFixed(n)); },
     // A word with a capital first letter ("red" → "Red"), for a swapped word at the start of a sentence
     cap(s) { return String(s).charAt(0).toUpperCase() + String(s).slice(1); },
+    // The random numbers a program gets when it runs with these test inputs (harness.py seeds them from the first
+    // input), in the order the program asks for them: R = pyRandom(inputs); R.randint(1, 6); R.choice(["a", "b"]).
+    pyRandom(inputs) {
+      let h = 2166136261;
+      for (const ch of String(inputs && inputs.length ? inputs[0] : "")) h = Math.imul(h ^ ch.codePointAt(0), 16777619) >>> 0;
+      const next = mulberry32(h);
+      const below = (n) => Math.floor(next() * n);
+      return { randint: (a, b) => a + below(b - a + 1), choice: (seq) => seq[below(seq.length)], random: next };
+    },
+    // How Python prints a list: [3, 5] or ['red', 'blue']
+    pylist(xs) { return "[" + xs.map((x) => (typeof x === "string" ? "'" + x + "'" : String(x))).join(", ") + "]"; },
     Math,
   };
 
@@ -264,6 +275,27 @@
     { re: /"(\d+(?:\.\d+)?)"/g, to: (m, a) => a, anyPos: true },              // thinks quotes don't change the type
     { re: /\btype\(([^()]*)\)/g, to: (m, a) => a },                            // thinks type() shows the value
   ];
+  // Strings and Lists mistakes, only for templates of those units (so no other task's options change).
+  const NOT_FOR = /(?<!\bfor\s+\w+\s+)\bin\b/g;
+  const STRING_LIST_MUTATIONS = [
+    { re: /\[(\d+)\]/g, to: (m, a) => "[" + (Number(a) + 1) + "]" },                    // INDEX_FROM_ONE
+    { re: /\[([1-9]\d*)\]/g, to: (m, a) => "[" + (Number(a) - 1) + "]" },
+    { re: /\[(\d*):(\d+)\]/g, to: (m, a, b) => "[" + a + ":" + (Number(b) + 1) + "]" },   // SLICE_END_INCLUSIVE
+    { re: /\[([1-9]\d*):(\d*)\]/g, to: (m, a, b) => "[" + (Number(a) - 1) + ":" + b + "]" },
+    { re: /\.upper\(\)/g, to: () => ".lower()" },
+    { re: /\.lower\(\)/g, to: () => ".upper()" },
+    { re: /^(\s*)(\w+)\.(upper|lower|replace)\(/gm, to: (m, ind, v, f) => ind + v + " = " + v + "." + f + "(" }, // thinks the method changes the string
+    { re: /\blen\(([^()]+)\)/g, to: (m, a) => "(len(" + a + ") - 1)" },
+    { re: /\blen\(([^()]+)\)/g, to: (m, a) => "(len(" + a + ") + 1)" },
+    { re: /\blen\((\w+)\)/g, to: (m, a) => "len(" + a + ".replace(\" \", \"\"))" },      // thinks spaces don't count
+    { re: /\b(\w+)\.find\(([^()]*)\)/g, to: (m, a, b) => "(" + a + ".find(" + b + ") + 1)" },
+    { re: NOT_FOR, to: () => "not in" },
+  ];
+  // Random mistakes, only for Random templates.
+  const RANDOM_MUTATIONS = [
+    { re: /\brandom\.choice\(([^()]*)\)/g, to: (m, a) => a },                           // thinks choice gives the whole thing
+    { re: /\brandom\.randint\(([^(),]+),\s*([^(),]+)\)/g, to: (m, a, b) => "random.randint(" + a + ", " + b + " - 1)" }, // RANDINT_STOP_EXCLUSIVE
+  ];
   const MAX_PLACES_PER_RULE = 3;
 
   // Positions inside strings and comments, which mutations leave alone.
@@ -276,12 +308,16 @@
   }
 
   // Programs that differ from `code` by one common mistake (each different from the original and from each other).
-  function mutate(code) {
+  // units: the template's units, which switch on the Strings, Lists and Random rules.
+  function mutate(code, units) {
     const masked = maskedRanges(code);
     const inMask = (i) => masked.some(([a, b]) => i >= a && i < b);
     const out = [];
     const add = (c) => { if (c !== code && !out.includes(c)) out.push(c); };
-    for (const rule of /\btype\(/.test(code) ? MUTATIONS.concat(TYPE_MUTATIONS) : MUTATIONS) {
+    let rules = /\btype\(/.test(code) ? MUTATIONS.concat(TYPE_MUTATIONS) : MUTATIONS;
+    if ((units || []).some((u) => u === "strings" || u === "lists")) rules = rules.concat(STRING_LIST_MUTATIONS);
+    if ((units || []).includes("random")) rules = rules.concat(RANDOM_MUTATIONS);
+    for (const rule of rules) {
       const re = new RegExp(rule.re.source, rule.re.flags);
       let m, n = 0;
       while ((m = re.exec(code)) && n < MAX_PLACES_PER_RULE) {
@@ -340,7 +376,7 @@
     variants.forEach((v) => parts.variants.push(tests.map((t) => add(v.code, t.inputs))));
     let mutants = [];
     if (tpl.type === "predict") {
-      mutants = variants.map((v) => v.code).concat(mutate(task.solution)).filter((c, i, a) => a.indexOf(c) === i);
+      mutants = variants.map((v) => v.code).concat(mutate(task.solution, tpl.units)).filter((c, i, a) => a.indexOf(c) === i);
       mutants.forEach((c) => parts.mutants.push(add(c, tests[0].inputs)));
     }
     task.tests = tests;

@@ -106,5 +106,41 @@
     "name": "Inner loop runs the wrong number of times",
     "description": "In nested loops, the inner loop runs the wrong number of times (for example range(row) instead of range(4), so each row is a different length), or the outer loop's variable is reset inside the inner loop.",
     "explanation": "The inner loop seems to run the wrong number of times. With nested loops, the whole inner loop runs once for every time round the outer loop. Check what the inner loop's range uses, and that the outer loop's variable isn't changed inside it."
+  },
+  {
+    "id": "INDEX_FROM_ONE",
+    "name": "Counting positions from 1",
+    "description": "Treats the first character of a string or the first item of a list as index 1, so it uses [1] for the first, [len()] for the last, or adds 1 to what find() gives. Indexing in Python counts from 0.",
+    "explanation": "It looks like the positions were counted from 1. In Python, indexing counts from 0, so the first character or item is [0] and the last is [len() - 1]. Check each index you used against that."
+  },
+  {
+    "id": "SLICE_END_INCLUSIVE",
+    "name": "Thinks a slice includes its end index",
+    "description": "Writes text[0:4] to get 3 characters, or expects text[0:3] to include the character at index 3. A slice stops just BEFORE its end index, like range().",
+    "explanation": "It looks like the slice was expected to include its end index. A slice such as text[0:3] stops just before index 3, so it gives the characters at 0, 1 and 2. Count how many characters you want, then check where the slice stops."
+  },
+  {
+    "id": "STRING_METHOD_NOT_SAVED",
+    "name": "Thinks upper(), lower() or replace() change the string",
+    "description": "Calls a string method such as text.upper() or text.replace(...) on its own line and expects text to change. Strings can't be changed: the method gives back a new string, which must be stored, for example text = text.upper().",
+    "explanation": "It looks like a string method was expected to change the variable by itself. upper(), lower() and replace() give back a NEW string and leave the old one as it was. Store the result, for example text = text.replace(\"a\", \"b\")."
+  },
+  {
+    "id": "RANDINT_STOP_EXCLUSIVE",
+    "name": "Thinks randint() leaves out the top number",
+    "description": "Writes random.randint(1, 7) for a dice, or randint(low, high - 1), as if randint worked like range(). random.randint(a, b) can give a, b or any whole number between.",
+    "explanation": "It looks like randint() was treated like range(), which stops before its end. random.randint(1, 6) can give 6, so a dice is randint(1, 6). Check the lowest and highest numbers you want, and use exactly those."
+  },
+  {
+    "id": "RANDOM_STORED_ONCE",
+    "name": "Thinks a stored random number changes each time it is used",
+    "description": "Picks a random number once and stores it (often before a loop), then uses that variable as if it gave a new random number each time. A variable keeps the same value until it is assigned again, so randint() must run again for each new roll.",
+    "explanation": "It looks like a stored random number was expected to change by itself. randint() picks a number when that line runs, and the variable keeps it. To get a new number each time, call randint() again, for example inside the loop."
+  },
+  {
+    "id": "APPEND_ASSIGNED",
+    "name": "Stores what append() gives back",
+    "description": "Writes items = items.append(x), expecting the new list back. append() changes the list itself and gives back None, so the list is lost and items becomes None.",
+    "explanation": "It looks like the result of append() was stored back in the list's variable. append() changes the list itself and gives back None, so the variable now holds None. Write items.append(x) on its own."
   }
 ]
