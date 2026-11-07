@@ -307,7 +307,7 @@
     }
     el.hidden = what === "saved";
     el.innerHTML = what === "signed-out"
-      ? 'You\'ve been signed out. Your work is kept on this computer. <a href="index.html">Sign in again</a> with your code and PIN to save it.'
+      ? 'You\'ve been signed out. Your work is kept on this computer. <a href="app.html#signin">Sign in again</a> with your code and PIN to save it.'
       : "Saving… Your work is kept on this computer until it reaches the server.";
   }
 

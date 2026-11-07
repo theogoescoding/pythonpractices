@@ -9,7 +9,7 @@ Store.whenReady(function () {
   const STATUS_TEXT = { secured: "Secured", "in-progress": "In progress", "not-started": "Not started" };
 
   const student = Store.currentStudent();
-  if (!student) { location.replace("index.html"); return; }
+  if (!student) { location.replace("app.html"); return; }
   Store.setupDisplaySettings();
   $("student-name").textContent = student.name;
   $("secured-rule").textContent = SECURED_PASSES_IN_A_ROW + " tasks in a row that use it, with " +

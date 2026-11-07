@@ -1,5 +1,5 @@
 // Units, skills and the difficulty ladder.
-// Shared by index.html, practice.html, teacher.html and the tests.
+// Shared by app.html, practice.html, teacher.html and the tests.
 
 (function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory();
@@ -102,6 +102,17 @@
     },
   ];
 
+  // How the unit menu groups the units, under headings. Layout only: unit ids, their order and saved progress are
+  // unchanged. A group with no units yet lists what is coming, shown as "Coming soon".
+  const UNIT_GROUPS = [
+    { id: "fundamentals", title: "Programming fundamentals",
+      units: ["output", "variables", "data-types", "maths", "selection", "loops-condition", "loops-count"] },
+    { id: "advanced", title: "Advanced programming",
+      units: ["strings", "random", "lists", "functions-basic", "functions-return", "file-handling", "arrays-2d"] },
+    { id: "validation", title: "Validation", units: [], comingSoon: ["Validation", "Authentication"] },
+    { id: "searching-sorting", title: "Searching and sorting", units: [], comingSoon: ["Searching", "Sorting"] },
+  ];
+
   // A level is how much support the task gives. It is the same in every unit.
   const LEVELS = [
     { level: 1,  type: "predict", name: "Predict the output" },
@@ -135,5 +146,5 @@
   // Units with noScratch never set "Write from scratch" tasks (File handling: its programs make their own files).
   const hasScratch = (unitId) => !(unitById(unitId) || {}).noScratch;
 
-  return { UNITS, LEVELS, TYPE_INFO, SCRATCH_LEVEL, unitById, unitTitle, levelName, levelType, hasScratch };
+  return { UNITS, UNIT_GROUPS, LEVELS, TYPE_INFO, SCRATCH_LEVEL, unitById, unitTitle, levelName, levelType, hasScratch };
 });

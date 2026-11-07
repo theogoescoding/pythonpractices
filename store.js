@@ -1,4 +1,4 @@
-// Everything saved in localStorage. Shared by index.html, practice.html and teacher.html.
+// Everything saved in localStorage. Shared by app.html, practice.html and teacher.html (and index.html, for the display settings).
 // In local mode nothing is sent anywhere: all data stays in this browser. In backend mode (config.js), backend.js
 // sends every write to the server too, and these keys become a cache of the signed-in student's data.
 
@@ -154,9 +154,12 @@
     const saved = readJson(SETTINGS_KEY) || {};
     const s = Object.assign({ fontScale: 1, tint: "off", overlayOpacity: OVERLAY_DEFAULT }, saved);
     if (!THEMES.some((t) => t.id === s.theme)) {
-      // First visit follows the system setting; the first version stored only highContrast.
+      // First visit follows the page's own default if it sets one (the home page sets self.DEFAULT_THEME = "dark"),
+      // otherwise the system setting; the first version stored only highContrast. A theme the visitor chooses is
+      // saved and always wins.
       const prefersDark = typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: dark)").matches;
-      s.theme = saved.highContrast ? "contrast" : prefersDark ? "dark" : "light";
+      const pageDefault = typeof self !== "undefined" ? self.DEFAULT_THEME : null;
+      s.theme = saved.highContrast ? "contrast" : THEMES.some((t) => t.id === pageDefault) ? pageDefault : prefersDark ? "dark" : "light";
     }
     delete s.highContrast;
     if (!TINTS.some((t) => t.id === s.tint)) s.tint = "off";
@@ -176,7 +179,14 @@
   function setupDisplaySettings() {
     const settings = loadSettings();
     const host = document.getElementById("display-tools");
-    const save = () => writeJson(SETTINGS_KEY, settings);
+    // The theme is saved only once the visitor has chosen one, so a page's own default (the home page opens in
+    // Dark) never becomes the theme of every other page.
+    let themeChosen = THEMES.some((t) => t.id === (readJson(SETTINGS_KEY) || {}).theme);
+    const save = () => {
+      const out = Object.assign({}, settings);
+      if (!themeChosen) delete out.theme;
+      writeJson(SETTINGS_KEY, out);
+    };
     host.classList.add("display-tools");
     host.innerHTML =
       '<button type="button" data-font="-1" aria-label="Make text smaller">A−</button>' +
@@ -221,7 +231,7 @@
       settings.fontScale = Math.min(1.75, Math.max(0.85, +(settings.fontScale + 0.15 * b.dataset.font).toFixed(2)));
       apply();
     }));
-    themeSelect.addEventListener("change", () => { settings.theme = themeSelect.value; apply(); });
+    themeSelect.addEventListener("change", () => { settings.theme = themeSelect.value; themeChosen = true; apply(); });
     host.querySelectorAll('input[name="overlay-tint"]').forEach((r) => r.addEventListener("change", () => { settings.tint = r.value; apply(); }));
     slider.addEventListener("input", () => { settings.overlayOpacity = slider.value / 100; apply(); });
     // Close the overlay panel with Escape or a click elsewhere.

@@ -1,6 +1,7 @@
 "use strict";
 
-// Landing page: student name, unit menu and (with ?test=1) the starting-level control.
+// The student view (app.html): student name, unit menu and (with ?test=1) the starting-level control.
+// index.html is the public home page; its student buttons open app.html#join and app.html#signin.
 // In backend mode (config.js), the name screen is replaced by joining a class or signing in with a code and PIN.
 Store.whenReady(function () {
   const { UNITS, levelName } = self.Curriculum;
@@ -91,8 +92,11 @@ Store.whenReady(function () {
   }
 
   // ---------- Name screen ----------
+  // The home page's buttons open app.html#join (New student) or app.html#signin (Returning student).
+  const formFromHash = () => ({ "#join": "join-form", "#signin": "resume-form" })[location.hash] || null;
+
   function showNameScreen() {
-    if (backend) return showLanding(null);
+    if (backend) return showLanding(formFromHash());
     const known = Object.entries(Store.students());
     const current = Store.currentStudent();
     $("units-screen").hidden = true;
@@ -157,30 +161,75 @@ Store.whenReady(function () {
     }).join("");
   }
 
+  // ---------- Unit groups ----------
+  // Groups a student has collapsed, remembered on this device only. Storage can be blocked: then every group
+  // simply starts expanded again next time.
+  const COLLAPSED_KEY = "pythonPractice.collapsedGroups";
+  function collapsedGroups() {
+    try { const v = JSON.parse(localStorage.getItem(COLLAPSED_KEY) || "[]"); return Array.isArray(v) ? v : []; } catch (e) { return []; }
+  }
+  function saveCollapsed(ids) {
+    try { localStorage.setItem(COLLAPSED_KEY, JSON.stringify(ids)); } catch (e) { /* blocked: not remembered */ }
+  }
+
+  // The units under their group headings (Curriculum.UNIT_GROUPS), in the same order as UNITS. A unit missing from
+  // every group is still shown, in a last group, so no unit can disappear from the menu.
+  function groupsToShow() {
+    const listed = new Set(self.Curriculum.UNIT_GROUPS.flatMap((g) => g.units));
+    const groups = self.Curriculum.UNIT_GROUPS.map((g) => Object.assign({}, g, { units: UNITS.filter((u) => g.units.includes(u.id)) }));
+    const others = UNITS.filter((u) => !listed.has(u.id));
+    if (others.length) groups.push({ id: "other", title: "More units", units: others });
+    return groups;
+  }
+
   function renderUnits() {
     const student = Store.currentStudent();
     if (!tasks || !student) return; // still loading, or waiting for a name
     renderAssignments(student);
     const progress = Store.loadProgress(student.id);
-    $("unit-list").innerHTML = UNITS.map((u) => {
-      const count = tasks.filter((t) => t.unit === u.id).length;
-      const title = "<h3>" + esc(u.title) + "</h3><p>" + esc(u.description) + "</p>";
-      if (!count) {
-        return '<li><div class="unit-card unavailable" aria-disabled="true">' + title +
-          '<p class="unit-meta"><span class="soon">Coming soon</span></p></div></li>';
-      }
-      const s = progress.units[u.id];
-      const level = unitLevel(progress, u.id);
-      let levelText;
-      if (level == null) levelText = "Not started – a quick check will find your starting level";
-      else if (needsPlacement(s)) levelText = "Quick check to finish";
-      else levelText = "Your level: " + level + " (" + levelName(level, u.id) + ")" + (s.completedTop ? " ✓ completed" : "");
-      // A unit glows once a level 10 task has been passed in it.
-      const glow = s && (s.passedTop || s.completedTop);
-      return '<li><a class="unit-card' + (glow ? " unit-complete" : "") + '" href="practice.html?unit=' + encodeURIComponent(u.id) + '">' + title +
-        '<p class="unit-meta"><span>' + count + " tasks</span><span><strong>" + esc(levelText) + "</strong></span></p>" +
-        (glow ? '<p class="complete-note">★ Level 10 passed</p>' : "") + "</a></li>";
+    const collapsed = collapsedGroups();
+    $("unit-list").innerHTML = groupsToShow().map((g) => {
+      const open = !collapsed.includes(g.id);
+      const body = g.units.length
+        ? '<ul class="unit-list">' + g.units.map((u) => unitCard(u, progress)).join("") + "</ul>"
+        : '<p class="group-soon"><span class="soon">Coming soon</span> ' + esc((g.comingSoon || []).join(" and ")) + "</p>";
+      return '<section class="unit-group" aria-labelledby="group-' + g.id + '-h">' +
+        '<h3 class="group-heading" id="group-' + g.id + '-h"><button type="button" class="group-toggle" data-group="' + g.id + '"' +
+        ' aria-expanded="' + open + '" aria-controls="group-' + g.id + '"><span class="group-arrow" aria-hidden="true"></span>' + esc(g.title) +
+        '<span class="group-count">' + (g.units.length ? g.units.length + " unit" + (g.units.length === 1 ? "" : "s") : "Coming soon") + "</span></button></h3>" +
+        '<div class="group-body" id="group-' + g.id + '"' + (open ? "" : " hidden") + ">" + body + "</div></section>";
     }).join("");
+  }
+
+  $("unit-list").addEventListener("click", (e) => {
+    const b = e.target.closest("button.group-toggle");
+    if (!b) return;
+    const open = b.getAttribute("aria-expanded") !== "true";
+    b.setAttribute("aria-expanded", String(open));
+    $("group-" + b.dataset.group).hidden = !open;
+    const ids = collapsedGroups().filter((id) => id !== b.dataset.group);
+    saveCollapsed(open ? ids : ids.concat([b.dataset.group]));
+  });
+
+  // One unit's card (a link to practise it, or "Coming soon" if it has no tasks yet).
+  function unitCard(u, progress) {
+    const count = tasks.filter((t) => t.unit === u.id).length;
+    const title = "<h4>" + esc(u.title) + "</h4><p>" + esc(u.description) + "</p>";
+    if (!count) {
+      return '<li><div class="unit-card unavailable" aria-disabled="true">' + title +
+        '<p class="unit-meta"><span class="soon">Coming soon</span></p></div></li>';
+    }
+    const s = progress.units[u.id];
+    const level = unitLevel(progress, u.id);
+    let levelText;
+    if (level == null) levelText = "Not started – a quick check will find your starting level";
+    else if (needsPlacement(s)) levelText = "Quick check to finish";
+    else levelText = "Your level: " + level + " (" + levelName(level, u.id) + ")" + (s.completedTop ? " ✓ completed" : "");
+    // A unit glows once a level 10 task has been passed in it.
+    const glow = s && (s.passedTop || s.completedTop);
+    return '<li><a class="unit-card' + (glow ? " unit-complete" : "") + '" href="practice.html?unit=' + encodeURIComponent(u.id) + '">' + title +
+      '<p class="unit-meta"><span>' + count + " tasks</span><span><strong>" + esc(levelText) + "</strong></span></p>" +
+      (glow ? '<p class="complete-note">★ Level 10 passed</p>' : "") + "</a></li>";
   }
 
   function showUnits() {
@@ -266,7 +315,7 @@ Store.whenReady(function () {
     })
     .catch(() => {
       tasks = [];
-      $("unit-list").innerHTML = '<li class="problem">Couldn\'t load the tasks. Open this site through a local web server (see README.md) rather than double-clicking index.html.</li>';
+      $("unit-list").innerHTML = '<p class="problem">Couldn\'t load the tasks. Open this site through a local web server (see README.md) rather than double-clicking the file.</p>';
     });
   if (Store.currentStudent()) showUnits();
 });

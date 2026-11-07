@@ -33,7 +33,7 @@ On top of the task bank, `templates.json` holds 831 task templates with randomis
 
 ## Running it locally
 
-The app must be served over HTTP. Opening `index.html` by double-clicking it won't work, because browsers block `fetch()` and Web Workers on `file://` pages.
+The app must be served over HTTP. Opening `index.html` or `app.html` by double-clicking it won't work, because browsers block `fetch()` and Web Workers on `file://` pages.
 
 From this folder:
 
@@ -150,9 +150,13 @@ If CodeMirror can't be loaded, the page falls back to the plain text editor, whi
 
 ## Students and units
 
+- **Home page (`index.html`).** The first page every visitor sees. It shows the logo (`assets/logo/`) and the tagline "Climb through the units of Python programming, one rung at a time, with practice that adapts to you.", with **New student** and **Returning student** on the left and **New teacher** and **Returning teacher** on the right. On narrow screens it stacks as logo, student buttons, then teacher buttons.
+  - The buttons only open the existing screens: `app.html#join` (join a class), `app.html#signin` (code and PIN), `teacher.html#signup` and `teacher.html#signin`. The home page has no sign-in code of its own. In local mode both student buttons open the name screen.
+  - **It opens in the Dark theme** (with the dark logo) unless the visitor has chosen a theme. That default isn't saved, so the other pages still follow the system setting until the visitor picks a theme, which then applies everywhere.
+- **The student view is `app.html`** (it used to be `index.html`). Its header shows the wordmark logo (the dark version in the Dark and High contrast themes), which links to the home page. Every page's tab icon is `assets/logo/icon-light.png`. Once signed in, a student's pages never link to the teacher view; only the home page does.
 - **Name first.** On a student's first visit they are asked for their name (at least one character) before anything else. A stable student id is generated once and stored with the name.
 - **"Not you? Change name"** in the top bar lists the students already saved in this browser, or lets a new student enter their name. Each name gets its own id, so two students called Sam don't share progress.
-- **Unit menu.** `index.html` shows a card for each unit, in the order of `UNITS` in `curriculum.js` (the order in the table at the top), with its description, number of tasks and the student's level. Units with no tasks in `tasks.json` are greyed out as "Coming soon". Clicking a card opens `practice.html?unit=<id>`.
+- **Unit menu.** `app.html` shows a card for each unit, with its description, number of tasks and the student's level, under four headings (`UNIT_GROUPS` in `curriculum.js`): **Programming fundamentals** (Output to Count-controlled loops), **Advanced programming** (Strings to 2D arrays), **Validation** and **Searching and sorting**. The last two show "Coming soon" until their units are built. Within a group the units keep the order of `UNITS`. Each heading is a button that collapses or expands its group; groups start expanded, and a collapsed group is remembered on that device (`localStorage`, ignored if storage is blocked). Unit ids and saved progress don't depend on the groups. Units with no tasks in `tasks.json` are greyed out as "Coming soon". Clicking a card opens `practice.html?unit=<id>`.
 - **Progress is stored per student, per unit.**
 
 ### Test mode (`?test=1`)
@@ -558,7 +562,7 @@ All values are named constants at the top of `app.js`:
 
 ## Teacher view
 
-**No student page links to it.** The student pages (`index.html`, `practice.html`, `progress.html`, `endless.html`) have no "Teacher view" link. Teachers open `teacher.html` at the site's address directly. A feature test checks that no student page, and no script one loads, links to it.
+**Teachers start from the home page.** Its **New teacher** and **Returning teacher** buttons open `teacher.html#signup` and `teacher.html#signin`. The student pages (`app.html`, `practice.html`, `progress.html`, `endless.html`) have no "Teacher view" link, so a signed-in student is never pointed at it. A feature test checks that no student page, and no script one loads, links to it.
 
 - **Backend mode:** `teacher.html` shows only the teacher sign-in form until a confirmed teacher signs in. A student who opens it sees that form and nothing else: no classes, no class data, and none of the student data cached in their browser. Their code and PIN don't work there, because students aren't Supabase users. A signed-in teacher sees only their own classes (row-level security). Teacher sign-up is still open, though: see Known limitations.
 - **Local mode:** `teacher.html` has no sign-in. **Anyone who opens it can see all the data saved in that browser**: every student's name, levels, attempts and code. Removing the link only hides the page. This is a limit of local mode, not a security control.
@@ -751,7 +755,8 @@ This needs Node 18+ and Python 3 on the PATH (set `PYTHON=...` to use a differen
   - **Printing rule:** no task joins values with `+` and `str()` inside `print()`; every task that builds and stores text with `+` says why in a hint; every task that casts `input()` says "casting"; the two new predict tasks exist.
   - **Expected output:** every non-predict task's box shows the example test's output exactly as the checker compares it (or the "No output" line), never a hidden test's input or output, and says how many tests are hidden. A failed hidden test's message says nothing about it.
   - **Task browser:** search by id, title, old id and variant id; every test's expected output is the checker's and every model solution passes against it; it shows the same box as the student's page; the model solution starts hidden; no student page loads the browser.
-  - **No teacher link:** no student-facing page (`index.html`, `practice.html`, `progress.html`, `endless.html`), and no script one loads, links to `teacher.html`.
+  - **No teacher link:** no student page (`app.html`, `practice.html`, `progress.html`, `endless.html`), and no script one loads, links to `teacher.html`.
+  - **Home page and unit groups:** the home page's four buttons and their targets, its logo, tagline and Dark default (not used by the other pages); `#join` and `#signin` open the right form; the header wordmark and the tab icon on every page; back links go to `app.html`; the four groups hold every unit once, in order, with Coming soon for Validation and Searching and sorting; the collapse buttons, remembered with storage errors caught.
   - **Assignments:** the assignment id goes into the attempt record, the row and the export (as the last column, with every earlier column unchanged) and the data dictionary; the per-task summary (tried, passed, struggled most); importing never rebuilds levels or passes from assignment work; assignment work is kept apart from the saved progress.
   - **`recheck.py`:** an unchanged export gives the same matches as the app (including an attempt on a template variant, made again from its template and seed); a new buggy variant changes the matches only for the attempts it applies to; an export that names a moved task by its old id keeps its matches.
 - **Simulation:** `tests/simulate.js` runs nine made-up students through the rules. It checks the fast move up, the normal move down and the recovery drop with its ceiling, and that a student who uses "Show me how" twice doesn't change level because of it (compared with the same student without it). Run it on its own to see each student's level task by task:
@@ -773,7 +778,9 @@ This needs Node 18+ and Python 3 on the PATH (set `PYTHON=...` to use a differen
 
 | File | Purpose |
 |---|---|
-| `index.html`, `home.js` | Landing page: name screen, unit menu, links to My progress and Endless mode, test-mode controls |
+| `index.html` | Home page: logo, tagline, and the student and teacher buttons (opens in the Dark theme) |
+| `app.html`, `home.js` | Student view: joining or signing in (or the name screen), the grouped unit menu, links to My progress and Endless mode, test-mode controls |
+| `assets/logo/` | The logos (main, wordmark and icon, each in a light and a dark version) |
 | `practice.html`, `app.js` | Practice session for one unit, or Endless mode: task types, hints, the editor, the adaptive rules and their constants |
 | `progress.html`, `progress.js` | Progress summary and skill drill-down |
 | `endless.html`, `endless.js` | Endless mode set-up: choosing units |

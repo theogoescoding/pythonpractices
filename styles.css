@@ -422,7 +422,7 @@ pre.code, pre.output, .compare pre, .io-lines pre, .option pre, .worked pre {
 }
 a.unit-card { color: var(--text); }
 a.unit-card:hover { border-color: var(--primary); }
-.unit-card h3 { margin: 0 0 .25rem; font-size: 1.25rem; }
+.unit-card h3, .unit-card h4 { margin: 0 0 .25rem; font-size: 1.25rem; }
 .unit-card p { margin: .25rem 0; }
 .unit-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .25rem 1rem; font-size: .9rem; margin-top: .75rem !important; }
 .unit-card.unavailable { color: var(--muted); border-top-color: var(--border); border-style: dashed; opacity: .75; }
@@ -570,3 +570,56 @@ td pre { white-space: pre-wrap; margin: .25rem 0; font-size: .85rem; }
 .tb-task h4 { margin: 1.1rem 0 .4rem; }
 .tb-lines, .tb-options { padding-left: 1.4rem; }
 .tb-tests pre { margin: 0; white-space: pre-wrap; }
+
+/* ---------- Logos: the light artwork, or the dark artwork in the Dark and High contrast themes ---------- */
+.logo-for-dark { display: none; }
+:root[data-theme="dark"] .logo-for-light, :root[data-theme="contrast"] .logo-for-light { display: none; }
+:root[data-theme="dark"] .logo-for-dark, :root[data-theme="contrast"] .logo-for-dark { display: inline-block; }
+.brand { margin: 0; line-height: 0; }
+.brand-link { display: inline-block; }
+.brand img { height: 2.75rem; width: auto; max-width: 100%; }
+@media (max-width: 480px) { .brand img { height: 2.25rem; } }
+
+/* ---------- Home page (index.html): logo in the middle, students left, teachers right ---------- */
+.landing-tools { display: flex; justify-content: flex-end; padding: .75rem 16px; }
+.landing {
+  box-sizing: border-box; max-width: 1100px; margin: 0 auto; padding: 1rem 16px 2.5rem;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
+  grid-template-areas: "students logo teachers"; align-items: center; gap: 2rem;
+}
+.landing:focus { outline: none; }
+.landing-logo { grid-area: logo; margin: 0; text-align: center; }
+.landing-logo-h { margin: 0; line-height: 0; }
+.landing-logo img { max-width: 100%; width: auto; height: auto; max-height: 60vh; }
+.landing-tagline { margin: 1rem auto 0; max-width: 28rem; font-size: 1.15rem; line-height: 1.45; }
+.landing-students { grid-area: students; }
+.landing-teachers { grid-area: teachers; }
+.landing-buttons { display: flex; flex-direction: column; gap: .9rem; min-width: 0; }
+.landing-label { font-size: 1.1rem; margin: 0; color: var(--muted); }
+.landing-button {
+  display: block; box-sizing: border-box; text-align: center; font-weight: 700; font-size: 1.15rem; text-decoration: none;
+  padding: .9rem 1.25rem; border-radius: 10px; border: 2px solid var(--primary);
+  background: var(--primary); color: var(--primary-text);
+}
+.landing-teachers .landing-button { background: var(--card); color: var(--link); }
+.landing-button:hover { text-decoration: underline; }
+/* Narrow screens: logo, then the student buttons, then the teacher buttons. */
+@media (max-width: 760px) {
+  .landing { grid-template-columns: minmax(0, 1fr); grid-template-areas: "logo" "students" "teachers"; gap: 1.5rem; }
+  .landing-logo img { max-height: 40vh; }
+}
+
+/* ---------- Unit menu groups (app.html): each heading opens and closes its group ---------- */
+.unit-groups { display: grid; gap: 1rem; }
+.unit-group { border: 2px solid var(--border); border-radius: 12px; background: var(--card); padding: .25rem 1rem .5rem; }
+.unit-group .unit-list { margin: .25rem 0 .75rem; }
+.group-heading { margin: 0; font-size: 1.25rem; }
+.group-toggle {
+  width: 100%; display: flex; align-items: center; gap: .6rem; padding: .6rem 0; margin: 0;
+  background: none; border: none; color: var(--text); font: inherit; font-weight: 700; text-align: left; cursor: pointer;
+}
+.group-arrow::before { content: "▾"; display: inline-block; transition: transform .15s; }
+.group-toggle[aria-expanded="false"] .group-arrow::before { transform: rotate(-90deg); }
+.group-count { margin-left: auto; font-size: .9rem; font-weight: 400; color: var(--muted); }
+.group-soon { margin: .25rem 0 .75rem; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .group-arrow::before { transition: none; } }

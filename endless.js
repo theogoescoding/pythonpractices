@@ -7,7 +7,7 @@ Store.whenReady(function () {
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
   const student = Store.currentStudent();
-  if (!student) { location.replace("index.html"); return; }
+  if (!student) { location.replace("app.html"); return; }
   Store.setupDisplaySettings();
   $("student-name").textContent = student.name;
   const progress = Store.loadProgress(student.id);

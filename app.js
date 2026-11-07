@@ -657,7 +657,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   const endless = !inAssignment && params.get("mode") === "endless";
   const unitId = endless || inAssignment ? null : params.get("unit");
   const unit = unitId ? unitById(unitId) : null;
-  if (!student || (!endless && !inAssignment && !unit)) { location.replace("index.html"); return; }
+  if (!student || (!endless && !inAssignment && !unit)) { location.replace("app.html"); return; }
 
   // ASSIGNMENT RULES: an assignment is practice only. Nothing in the student's progress changes (no level, streaks,
   // passed tasks, hint counts or skill states), tries are unlimited, hints are free, "Show me how" is always
@@ -1954,7 +1954,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
         if (!assignment || !assignmentTasks.length) {
           $("unit-levels").innerHTML = "";
           $("task").innerHTML = '<p class="problem">' + (assignment ? "This assignment has no tasks yet." : "This assignment is closed, or it couldn't be found.") +
-            ' <a href="index.html">Back to your units</a></p>';
+            ' <a href="app.html">Back to your units</a></p>';
           return;
         }
         const open = work.current && assignmentTasks.findIndex((t) => t.id === work.current.taskId);
@@ -1963,7 +1963,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
         renderTask();
         return;
       }
-      if (!endless && !tasks.some((t) => t.unit === unitId)) { location.replace("index.html"); return; }
+      if (!endless && !tasks.some((t) => t.unit === unitId)) { location.replace("app.html"); return; }
       // Keep the task in progress if it still makes sense here.
       const c = holder().current;
       const t = c && (c.task || taskById[c.taskId]);
@@ -1983,6 +1983,6 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     })
     .catch((e) => {
       if (typeof console !== "undefined") console.error(e);
-      $("task").innerHTML = '<p class="problem">Couldn\'t load the tasks. Open this site through a local web server (see README.md) rather than double-clicking index.html.</p>';
+      $("task").innerHTML = '<p class="problem">Couldn\'t load the tasks. Open this site through a local web server (see README.md) rather than double-clicking the file.</p>';
     });
 });

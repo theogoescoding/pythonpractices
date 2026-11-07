@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Python Practice</title>
+  <link rel="icon" type="image/png" href="assets/logo/icon-light.png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="store.js"></script>
+  <script src="config.js"></script>
+  <script src="backend-rows.js"></script>
+  <script src="backend.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <!-- The wordmark: the dark version is shown in the Dark and High contrast themes (styles.css). -->
+      <h1 class="brand"><a href="index.html" class="brand-link">
+        <img class="logo-for-light" src="assets/logo/logo-wordmark-light.png" width="649" height="239" alt="Python Practice">
+        <img class="logo-for-dark" src="assets/logo/logo-wordmark-dark.png" width="677" height="289" alt="Python Practice">
+      </a></h1>
+      <div class="header-tools" role="group" aria-label="Student and display settings">
+        <span id="student-area" class="student-chip" hidden>Hi, <strong id="student-name"></strong>
+          · <a href="#" id="change-name">Not you? Change name</a></span>
+        <span id="display-tools"></span>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="wrap home" tabindex="-1">
+    <!-- Backend mode only: sign in or join a class (replaces the name screen) -->
+    <section id="landing" class="task-card name-card" hidden aria-labelledby="landing-h">
+      <h2 id="landing-h">Welcome to Python Practice</h2>
+      <div id="landing-choices">
+        <p>Who are you?</p>
+        <ul class="known-list landing-choices">
+          <li><button type="button" class="primary" data-show="join-form">New student</button></li>
+          <li><button type="button" class="primary" data-show="resume-form">Returning student</button></li>
+        </ul>
+        <!-- No link to the teacher view on student pages: teachers use the buttons on the home page (index.html). -->
+        <p class="small">Teachers: use the teacher buttons on the <a href="index.html">home page</a>.</p>
+      </div>
+
+      <form id="join-form" hidden novalidate aria-labelledby="join-h">
+        <h3 id="join-h">Join your class</h3>
+        <label for="join-class" class="editor-label">Class code (from your teacher)</label>
+        <input type="text" id="join-class" class="text-input" autocomplete="off" autocapitalize="characters" maxlength="6" spellcheck="false">
+        <label for="join-nickname" class="editor-label">Choose a nickname</label>
+        <input type="text" id="join-nickname" class="text-input" autocomplete="off" maxlength="20" aria-describedby="join-rules">
+        <p id="join-rules" class="small">2 to 20 letters or numbers, with single spaces between words. Don't use your full name.</p>
+        <p id="join-error" class="problem" role="alert" hidden></p>
+        <p><button type="submit" class="primary">Join</button> <button type="button" class="secondary" data-back>Back</button></p>
+      </form>
+
+      <form id="resume-form" hidden novalidate aria-labelledby="resume-h">
+        <h3 id="resume-h">Sign in</h3>
+        <label for="resume-code" class="editor-label">Your 8-digit code</label>
+        <input type="text" id="resume-code" class="text-input" autocomplete="off" inputmode="numeric" maxlength="9" spellcheck="false">
+        <label for="resume-pin" class="editor-label">Your 4-digit PIN</label>
+        <input type="password" id="resume-pin" class="text-input" autocomplete="off" inputmode="numeric" maxlength="4">
+        <p id="resume-error" class="problem" role="alert" hidden></p>
+        <p><button type="submit" class="primary">Sign in</button> <button type="button" class="secondary" data-back>Back</button></p>
+        <p class="small">Forgotten your code or PIN? Ask your teacher.</p>
+      </form>
+
+      <div id="new-login" hidden tabindex="-1" aria-labelledby="new-login-h">
+        <h3 id="new-login-h">Write these down</h3>
+        <p>You need both to sign in next time. Keep them somewhere safe and don't share them. This is the only time your PIN is shown.</p>
+        <dl class="login-details">
+          <dt>Your code</dt><dd><strong id="new-code"></strong></dd>
+          <dt>Your PIN</dt><dd><strong id="new-pin"></strong></dd>
+        </dl>
+        <p><button type="button" id="new-login-done" class="primary">I've written them down</button></p>
+      </div>
+    </section>
+
+    <!-- Name screen: shown before anything else until a name is entered -->
+    <section id="name-screen" class="task-card name-card" hidden aria-labelledby="name-h">
+      <h2 id="name-h">Welcome! What's your name?</h2>
+      <div id="known-students" hidden>
+        <p>Are you one of these students?</p>
+        <ul id="known-list" class="known-list"></ul>
+        <p>Or enter a new name:</p>
+      </div>
+      <form id="name-form" novalidate>
+        <label for="name-input" class="editor-label">Your name</label>
+        <input type="text" id="name-input" class="text-input" autocomplete="off" maxlength="40" aria-describedby="name-error">
+        <p id="name-error" class="problem" role="alert" hidden>Please type your name (at least one character).</p>
+        <p><button type="submit" class="primary">Continue</button>
+          <button type="button" id="name-cancel" class="secondary" hidden>Cancel</button></p>
+      </form>
+    </section>
+
+    <!-- Unit menu -->
+    <section id="units-screen" hidden aria-labelledby="units-h">
+      <nav class="menu-links" aria-label="More">
+        <a href="progress.html" class="menu-link">My progress</a>
+        <a href="endless.html" class="menu-link">Endless mode</a>
+      </nav>
+      <!-- Backend mode: the class's open assignments, above the unit cards -->
+      <section id="assignments" class="assignments" hidden aria-labelledby="assignments-h">
+        <h2 id="assignments-h">From your teacher</h2>
+        <p class="small">Practice set for your class. It doesn't change your level or progress: try as often as you like, and hints are free.</p>
+        <ul id="assignment-list" class="unit-list"></ul>
+      </section>
+
+      <h2 id="units-h">Choose a unit</h2>
+      <p class="small">Each unit has its own level, from 1 (predict the output) to 10 (write an extended program).</p>
+
+      <div id="test-panel" class="test-panel" hidden>
+        <h3>Test mode: starting level</h3>
+        <p class="small">Sets the level for <strong id="test-student"></strong> in one unit. Only that unit's level is reset; the change is logged in the teacher view.</p>
+        <div class="teacher-controls">
+          <label>Unit <select id="test-unit"></select></label>
+          <label>Level <select id="test-level"></select></label>
+          <button type="button" id="test-set" class="primary">Set level</button>
+          <button type="button" id="test-complete" class="secondary">Mark unit completed (unlocks endless mode)</button>
+        </div>
+        <p id="test-status" class="small" role="status"></p>
+      </div>
+
+      <!-- The units, grouped under headings that can be collapsed (Curriculum.UNIT_GROUPS, home.js) -->
+      <div id="unit-list" class="unit-groups"><p class="loading">Loading units…</p></div>
+      <p class="privacy" id="privacy-note">Your progress is saved in this browser only. Nothing is sent anywhere.</p>
+      <div id="delete-area" hidden>
+        <p><button type="button" id="delete-mine" class="secondary">Delete everything saved for me</button></p>
+        <div id="delete-confirm" class="problem" hidden>
+          <p>This deletes your progress, attempts and nickname for good. You'll need to join your class again. Are you sure?</p>
+          <p><button type="button" id="delete-yes" class="danger">Yes, delete it all</button> <button type="button" id="delete-no" class="secondary">No, keep it</button></p>
+        </div>
+        <p id="delete-status" role="status" class="small"></p>
+      </div>
+    </section>
+  </main>
+
+  <script src="curriculum.js"></script>
+  <script src="app.js"></script>
+  <script src="home.js"></script>
+</body>
+</html>

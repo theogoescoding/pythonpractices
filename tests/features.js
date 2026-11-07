@@ -394,7 +394,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const solAt = page.indexOf(esc(w.solution));
     check(solAt > page.indexOf('<div id="tb-solution" hidden>') && page.indexOf('<div id="tb-solution" hidden>') > 0, "Task browser: the model solution starts hidden behind a Show button");
     // A model solution is never sent to a student's page.
-    const studentPages = ["index.html", "practice.html", "progress.html", "endless.html"].map((f) => fs.readFileSync(path.join(ROOT, f), "utf8"));
+    const studentPages = ["index.html", "app.html", "practice.html", "progress.html", "endless.html"].map((f) => fs.readFileSync(path.join(ROOT, f), "utf8"));
     check(studentPages.every((h) => !h.includes("task-browser.js")) && fs.readFileSync(path.join(ROOT, "teacher.html"), "utf8").includes("task-browser.js"),
       "The Task browser (with the model solutions) is loaded by the teacher view only, never by a student page");
     const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8") + fs.readFileSync(path.join(ROOT, "task-view.js"), "utf8");
@@ -405,8 +405,10 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
   }
 
   // ===================== No link to the teacher view on student pages =====================
+  // The student pages are app.html (the student view), practice, progress and endless. index.html is the public home
+  // page, which links to the teacher sign-up and sign-in on purpose (checked in the next section).
   {
-    const pages = ["index.html", "practice.html", "progress.html", "endless.html"];
+    const pages = ["app.html", "practice.html", "progress.html", "endless.html"];
     const linkRe = /href\s*=\s*["'][^"']*teacher\.html|location(\.href)?\s*=\s*["'][^"']*teacher\.html|>\s*Teacher view\s*</i;
     const scriptsOf = (html) => [...html.matchAll(/<script src="([^"]+)"/g)].map((m) => m[1]).filter((s) => !/^https?:/.test(s));
     const offenders = [];
@@ -420,6 +422,43 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       }
     }
     check(!offenders.length, "No student-facing page (or a script it loads) links to teacher.html" + (offenders.length ? " (" + [...new Set(offenders)].join(", ") + ")" : ""));
+  }
+
+  // ===================== Home page, student view and unit groups =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const home = read("index.html");
+    const hrefs = [...home.matchAll(/<a [^>]*href="([^"]+)"/g)].map((m) => m[1]).filter((h) => !h.startsWith("#"));
+    check(hrefs.join() === "app.html#join,app.html#signin,teacher.html#signup,teacher.html#signin" &&
+      /New student[\s\S]*Returning student[\s\S]*New teacher[\s\S]*Returning teacher/.test(home.replace(/<[^>]+>/g, " ")),
+      "Home page (index.html): New and Returning student open the student join and sign-in screens; New and Returning teacher open teacher sign-up and sign-in");
+    check(home.includes('src="assets/logo/logo-main-light.png"') && home.includes('src="assets/logo/logo-main-dark.png"') && !/<script src="(backend|teacher-backend|app|home)\.js"/.test(home),
+      "Home page: shows the main logo and has no sign-in code of its own (it only links to the existing screens)");
+    check(home.includes("Climb through the units of Python programming, one rung at a time, with practice that adapts to you."), "Home page: shows the tagline");
+    check(/self\.DEFAULT_THEME = "dark";<\/script>\s*<script src="store\.js">/.test(home) &&
+      ["app.html", "practice.html", "progress.html", "endless.html", "teacher.html"].every((p) => !read(p).includes("DEFAULT_THEME")),
+      "Home page: opens in the Dark theme unless the visitor has chosen one; the other pages keep following the system setting");
+    const homeSrc = read("home.js");
+    check(/"#join": "join-form", "#signin": "resume-form"/.test(homeSrc), "Student view: app.html#join opens the join form and app.html#signin the sign-in form");
+    const app = read("app.html");
+    check(app.includes("logo-wordmark-light.png") && app.includes("logo-wordmark-dark.png") && read("styles.css").includes(':root[data-theme="dark"] .logo-for-dark'),
+      "Student view (app.html): the header shows the wordmark, with the dark version in the dark themes");
+    const pages = ["index.html", "app.html", "practice.html", "progress.html", "endless.html", "teacher.html"];
+    check(pages.every((p) => read(p).includes('<link rel="icon" type="image/png" href="assets/logo/icon-light.png">')), "Every page uses icon-light.png as its tab icon");
+    check(["practice.html", "progress.html", "endless.html"].every((p) => !read(p).includes('href="index.html"') && read(p).includes('href="app.html"')) &&
+      !/location\.replace\("index\.html"\)/.test(read("app.js") + read("progress.js") + read("endless.js")),
+      "Every \"back to your units\" link and redirect goes to the student view, app.html");
+    const G = Curriculum.UNIT_GROUPS;
+    const grouped = G.flatMap((g) => g.units);
+    check(G.map((g) => g.title).join() === "Programming fundamentals,Advanced programming,Validation,Searching and sorting" &&
+      grouped.join() === Curriculum.UNITS.map((u) => u.id).join() && new Set(grouped).size === grouped.length,
+      "Unit menu: four groups in order, holding every unit exactly once, in the units' own order");
+    check(G[0].units.join() === "output,variables,data-types,maths,selection,loops-condition,loops-count" &&
+      G[1].units.join() === "strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d" &&
+      G[2].comingSoon.join() === "Validation,Authentication" && G[3].comingSoon.join() === "Searching,Sorting" && !G[2].units.length && !G[3].units.length,
+      "Unit menu: fundamentals and advanced units as listed; Validation and Searching and sorting show Coming soon");
+    check(/aria-expanded/.test(homeSrc) && /try \{[^}]*localStorage\.getItem\(COLLAPSED_KEY/.test(homeSrc) && /try \{[^}]*localStorage\.setItem\(COLLAPSED_KEY/.test(homeSrc),
+      "Unit menu: each group heading is a button that opens and closes it, remembered on this device (storage errors are caught)");
   }
 
   // ===================== Class assignments =====================
