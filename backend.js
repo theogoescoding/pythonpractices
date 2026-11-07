@@ -81,8 +81,19 @@
     remove(Store.STUDENTS_KEY);
   }
 
+  // A sign-in can fail with a 5xx when the server is briefly overloaded: Supabase answers 546 when a function worker
+  // hits its limit, as can happen when a whole class signs in at once. resume is safe to send again, so it is retried
+  // up to SIGN_IN_RETRIES times after a short random pause (so a class's retries don't all arrive together).
+  // join-class is not retried: a join that failed after the student was made would come back as a taken nickname.
+  const RETRY_STATUSES = [500, 502, 503, 504, 546];
+  const SIGN_IN_RETRIES = 2;
+  const wait = deps.sleep || ((ms) => new Promise((res) => setTimeout(res, ms)));
   async function signIn(fn, body) {
-    const r = await api(fn, body);
+    let r = await api(fn, body);
+    for (let i = 0; fn === "resume" && i < SIGN_IN_RETRIES && RETRY_STATUSES.includes(r.status); i++) {
+      await wait(400 + Math.random() * 800);
+      r = await api(fn, body);
+    }
     if (r.status === 200) setSession(r.body);
     return r;
   }

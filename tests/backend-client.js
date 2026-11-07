@@ -19,7 +19,8 @@ function memoryStorage() {
 
 // A fake of join-class, resume and student-api, close enough to the real ones for the client.
 function fakeServer() {
-  const s = { offline: false, signOutAll: false, students: {}, progress: {}, passed: {}, attempts: {}, events: {}, calls: [] };
+  // failNext: { "resume": [546, 546] } answers the next calls to that function with those statuses (an overloaded server).
+  const s = { offline: false, signOutAll: false, students: {}, progress: {}, passed: {}, attempts: {}, events: {}, calls: [], failNext: {} };
   const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
   const token = (sid) => b64({ sid, exp: Math.floor(Date.now() / 1000) + 8 * 3600 }) + ".sig";
   const sidOf = (t) => { try { return JSON.parse(Buffer.from(String(t).split(".")[0], "base64url").toString()).sid; } catch (e) { return null; } };
@@ -31,6 +32,7 @@ function fakeServer() {
     const body = JSON.parse(opts.body);
     if (s.offline) throw new TypeError("Failed to fetch");
     s.calls.push(fn + (body.action ? ":" + body.action : ""));
+    if ((s.failNext[fn] || []).length) return reply(s.failNext[fn].shift(), { error: "Worker limit" });
     if (fn === "join-class") {
       const sid = "stu-" + (++n);
       s.students[sid] = { nickname: body.nickname, code: String(10000000 + n), pin: "1234" };
@@ -76,7 +78,7 @@ function openPage(server, storage) {
   const Rows = require(path.join(ROOT, "backend-rows.js"));
   const Backend = require(path.join(ROOT, "backend.js"))({
     config: { BACKEND_ENABLED: true, SUPABASE_URL: "https://fake.example", SUPABASE_ANON_KEY: "anon" },
-    Store, Rows, fetch: server.fetch, storage,
+    Store, Rows, fetch: server.fetch, storage, sleep: async () => {}, // retries without real waiting
   });
   return { storage, Store, Backend };
 }
@@ -195,6 +197,33 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
   await page.Backend.resume(server.students[gid].code, "1234");
   const del = await page.Backend.deleteMyProgress();
   check(del.status === 200 && !server.students[gid] && !page.Store.currentStudent() && !page.Backend.session(), "Deleting my progress deletes it on the server and signs out");
+
+  // ---------- An overloaded server (status 546 when a whole class signs in at once) ----------
+  {
+    const p = openPage(server);
+    await p.Backend.join("ABC234", "Hana");
+    const hid = p.Store.currentStudent().id;
+    await p.Backend.signOut();
+    const count = (fn) => server.calls.filter((c) => c === fn).length;
+    let before = count("resume");
+    server.failNext.resume = [546, 503];
+    const r = await p.Backend.resume(server.students[hid].code, "1234");
+    check(r.status === 200 && count("resume") - before === 3 && p.Store.currentStudent().id === hid,
+      "Sign-in is retried after a 546 or 503 and then succeeds, so the student doesn't see the error");
+    await p.Backend.signOut();
+    before = count("resume");
+    server.failNext.resume = [546, 546, 546];
+    const gaveUp = await p.Backend.resume(server.students[hid].code, "1234");
+    check(gaveUp.status === 546 && count("resume") - before === 3 && !p.Backend.session(), "Sign-in gives up after 2 retries and reports the error");
+    before = count("resume");
+    await p.Backend.resume(server.students[hid].code, "9999");
+    check(count("resume") - before === 1, "A wrong PIN (401) is never retried");
+    before = count("join-class");
+    server.failNext["join-class"] = [546];
+    const j = await p.Backend.join("ABC234", "Ivo");
+    check(j.status === 546 && count("join-class") - before === 1, "Joining a class is never retried (a retry could find its own new nickname taken)");
+    server.failNext = {};
+  }
 
   const failed = out.filter((ok) => !ok).length;
   console.log(failed ? "\n" + failed + " of " + out.length + " backend client checks failed." : "\nAll " + out.length + " backend client checks passed.");

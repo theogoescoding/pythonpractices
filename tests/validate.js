@@ -166,7 +166,7 @@ for (const t of practiceTasks) {
 }
 
 // Unit order on the landing page, and a skill that is in two units' lists counting for the task's own unit.
-check(UNIT_IDS.join() === "output,variables,maths,selection,loops-condition,loops-count", "Units are listed with Selection, then the two loops units");
+check(UNIT_IDS.join() === "output,variables,maths,selection,loops-condition,loops-count,data-types", "Units are listed with Selection, then the two loops units, then Data types and casting");
 check(App.unitOfSkill("accumulator", ["loops-condition"]) === "loops-condition" && App.unitOfSkill("accumulator", ["loops-count"]) === "loops-count" &&
   App.unitOfSkill("accumulator") === "loops-condition", "A skill in two units' lists belongs to the task's own unit");
 check(App.unitOfSkill("and/or", ["loops-condition"]) === "loops-condition" && App.unitOfSkill("and/or", ["selection"]) === "selection" &&

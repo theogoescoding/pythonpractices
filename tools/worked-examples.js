@@ -248,6 +248,38 @@ const EXAMPLES = {
     inputs: ["4", "7", "2"],
     key_idea: "Set the total to 0 before the loop; inside the loop, add each value to it.",
   },
+  // ---------- Data types and casting ----------
+  "data-types:integer": {
+    problem: "A zoo counts its penguins, a whole number, and checks what type Python gives it.",
+    code: 'penguins = 14\nprint(type(penguins))\nprint(penguins + 3)',
+    key_idea: "An integer is a whole number with no decimal point. Python calls this type int, and you can do maths with it.",
+  },
+  "data-types:real": {
+    problem: "A bakery weighs flour in kilograms, which can have a decimal part.",
+    code: 'flour = 0.75\nprint(type(flour))\nprint(flour * 2)\nprint(8 / 2)',
+    key_idea: "A real number has a decimal point. Python calls this type float. Dividing with / always gives a float, even 8 / 2 (4.0).",
+  },
+  "data-types:boolean": {
+    problem: "A cinema works out whether a screening is sold out.",
+    code: 'seats_left = 12\nsold_out = seats_left == 0\nprint(sold_out)\nprint(type(sold_out))\nprint(bool("No"))',
+    key_idea: "A Boolean is True or False, and a comparison gives one. Python calls this type bool. bool() of any text that isn't empty is True, even \"No\".",
+  },
+  "data-types:string": {
+    problem: "A garden centre stores a plant's shelf number as text.",
+    code: 'shelf = "7"\nprint(type(shelf))\nprint(shelf * 3)\nprint(int(shelf) * 3)',
+    key_idea: "Anything in quotes is a string (str), even if it looks like a number. * repeats a string; cast it to a number first to do maths.",
+  },
+  "data-types:casting": {
+    problem: "A zoo reads how many visitors came and the ticket price, then works out the takings.",
+    code: 'visitors = int(input("Visitors: "))\nticket = float(input("Ticket price: "))\nprint("Takings:", visitors * ticket)',
+    inputs: ["20", "4.5"],
+    key_idea: "Casting changes a value's type: int() for a whole number, float() for a real number, str() for text and bool() for True or False. input() always gives a string, so cast it before doing maths.",
+  },
+  "data-types:type-choice": {
+    problem: "A cinema stores four facts about a film, each in the type that suits it.",
+    code: 'screen = 3              # a whole number: int\nprice = 7.5             # has a decimal part: float\nfilm = "Robot Rescue"   # text: str\nsubtitles = False       # yes or no: bool\nprint(type(screen), type(price))\nprint(type(film), type(subtitles))',
+    key_idea: "Choose the type from what the value is like: counts are int, measurements with decimals are float, words are str, and yes/no facts are bool.",
+  },
 };
 
 module.exports = { EXAMPLES };

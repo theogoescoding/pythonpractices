@@ -126,6 +126,39 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(!Import.renames(tasks)["out-L10e"] && Import.renames(tasks)["loops-L5a"] === "while-L5a", "Import keeps a replaced task's old id (moved tasks are still renamed)");
   }
 
+  // ===================== Data types and casting unit =====================
+  {
+    const unit = Curriculum.unitById("data-types");
+    check(unit && unit.title === "Data types and casting" && Curriculum.UNITS[Curriculum.UNITS.length - 1].id === "data-types" &&
+      unit.skills.join() === "integer,real,boolean,string,casting,type-choice", "Data types and casting comes after Count-controlled loops, with its six skills");
+    const mine = tasks.filter((t) => t.unit === "data-types");
+    const practice = mine.filter((t) => !t.tags.includes("placement"));
+    const perLevel = Array.from({ length: 10 }, (_, i) => practice.filter((t) => t.level === i + 1).length);
+    check(practice.length >= 30 && perLevel.every((n) => n >= 3) && ["predict", "fill", "parsons", "write"].every((ty) => practice.some((t) => t.type === ty)),
+      "Data types: at least 30 practice tasks, 3 or more at every level, and every task type (" + perLevel.join(",") + ")");
+    check([2, 5, 7, 9].every((lv) => mine.filter((t) => t.tags.includes("placement") && t.level === lv).length >= 2) &&
+      mine.every((t) => /^types-[LP]\d+[a-z]$/.test(t.id) && t.skills.every((s) => unit.skills.includes(s)) && t.skills.length >= 1 && t.skills.length <= 3),
+      "Data types: 2+ placement tasks at levels 2, 5, 7 and 9; ids types-L…/types-P…; 1 to 3 skills from the unit's list");
+    // input() for a number must be cast. A task reads a number if its tests type digits.
+    const readsNumber = (t) => /input\(/.test(t.solution) && t.tests.some((x) => x.inputs.some((v) => /^-?\d+(\.\d+)?$/.test(v)));
+    const uncast = mine.filter((t) => readsNumber(t) && !/\b(int|float|bool)\(/.test(t.solution));
+    check(!uncast.length, "Data types: every task that reads a number with input() casts it with int(), float() or bool()" + (uncast.length ? " (" + uncast.map((t) => t.id).join(", ") + ")" : ""));
+    const plusPrint = mine.filter((t) => [t.solution, t.starter].concat(t.answers || []).some((c) => /print\([^\n]*(\+\s*str\(|str\([^\n]*\)\s*\+)/.test(c)));
+    check(!plusPrint.length, "Data types: no task joins values with + and str() inside print()" + (plusPrint.length ? " (" + plusPrint.map((t) => t.id).join(", ") + ")" : ""));
+    const converts = mine.filter((t) => /\b(int|float|str|bool)\(/.test(t.solution));
+    const noWord = converts.filter((t) => !/casting/i.test(t.description + " " + t.hints.join(" ")));
+    check(converts.length >= 25 && !noWord.length, "Data types: the word casting appears in every task that converts a value" + (noWord.length ? " (" + noWord.map((t) => t.id).join(", ") + ")" : ""));
+    check(/\breal\b/i.test(mine.map((t) => t.description).join(" ")) && mine.some((t) => /real number[^.]*Python calls this type float/i.test(t.description)),
+      "Data types: descriptions use the word real, and say that Python calls it float");
+    for (const id of ["INT_OF_DECIMAL_STRING", "BOOL_CAST_TRAP"]) {
+      const m = misconceptions.find((x) => x.id === id);
+      const sentences = m ? m.explanation.split(/(?<=[.!?])\s+/).length : 0;
+      const bank = tasks.filter((t) => !t.tags.includes("placement") && (t.buggy_variants || []).some((v) => v.misconception === id));
+      check(m && m.name && m.description && sentences >= 2 && sentences <= 3 && bank.length >= 3,
+        id + ": in misconceptions.json with a name, description and a 2-3 sentence explanation, and buggy variants on " + bank.length + " bank tasks (3 needed)");
+    }
+  }
+
   // ===================== Expected output box and hidden tests =====================
   {
     const TaskView = require(path.join(ROOT, "task-view.js"));

@@ -7,7 +7,7 @@ supabase/functions/.env
 tests/backend/config.local.json
 backups/
 
-# Exports and other CSV files in the project root (student data)
-/*.csv
+# Exports and other CSV files anywhere in the project (student data)
+*.csv
 
 __pycache__/

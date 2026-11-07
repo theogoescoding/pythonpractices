@@ -48,6 +48,12 @@
       description: "Repeat code a set number of times, using a counter.",
       skills: ["for", "range", "loop-variable", "step", "nested-loop", "counting", "accumulator"],
     },
+    {
+      id: "data-types",
+      title: "Data types and casting",
+      description: "Choose the right type for a value, and change a value's type with casting.",
+      skills: ["integer", "real", "boolean", "string", "casting", "type-choice"],
+    },
   ];
 
   // A level is how much support the task gives. It is the same in every unit.

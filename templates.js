@@ -257,6 +257,13 @@
     (code) => code.replace(/^(\s*)(?:if|elif) .+:[ \t]*$/gm, "$1if True:").replace(/^(\s*)else:[ \t]*$/gm, "$1if True:"),
     (code) => code.replace(/^(\s*)(?:if|elif) .+:[ \t]*$/gm, "$1if False:").replace(/^(\s*)else:[ \t]*$/gm, "$1if False:"),
   ];
+  // Type mistakes (Data types and casting), only for programs that call type(), so no other task's options change.
+  const TYPE_MUTATIONS = [
+    { re: /(?<![\w."'])(\d+)(?![\w.])/g, to: (m, a) => a + ".0" },             // thinks a whole number is a real number
+    { re: /(?<![\w."'])(\d+)\.(\d+)(?![\w.])/g, to: (m, a) => a },             // thinks a real number is a whole number
+    { re: /"(\d+(?:\.\d+)?)"/g, to: (m, a) => a, anyPos: true },              // thinks quotes don't change the type
+    { re: /\btype\(([^()]*)\)/g, to: (m, a) => a },                            // thinks type() shows the value
+  ];
   const MAX_PLACES_PER_RULE = 3;
 
   // Positions inside strings and comments, which mutations leave alone.
@@ -274,7 +281,7 @@
     const inMask = (i) => masked.some(([a, b]) => i >= a && i < b);
     const out = [];
     const add = (c) => { if (c !== code && !out.includes(c)) out.push(c); };
-    for (const rule of MUTATIONS) {
+    for (const rule of /\btype\(/.test(code) ? MUTATIONS.concat(TYPE_MUTATIONS) : MUTATIONS) {
       const re = new RegExp(rule.re.source, rule.re.flags);
       let m, n = 0;
       while ((m = re.exec(code)) && n < MAX_PLACES_PER_RULE) {

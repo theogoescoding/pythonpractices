@@ -1,6 +1,6 @@
 # Python Practice (prototype)
 
-A browser-based Python practice app for students aged 11–16, aligned to KS3 and OCR GCSE Computer Science J277 (section 2.2, programming fundamentals). It has six units:
+A browser-based Python practice app for students aged 11–16, aligned to KS3 and OCR GCSE Computer Science J277 (section 2.2, programming fundamentals). It has seven units:
 
 | Unit | Covers | Practice tasks | Placement tasks |
 |---|---|---|---|
@@ -10,8 +10,9 @@ A browser-based Python practice app for students aged 11–16, aligned to KS3 an
 | Selection | `if`, `if/else`, `elif`, comparison operators, `and`/`or` | 189 | 8 |
 | Condition-controlled loops | `while`: counters, running totals, sentinel values, input validation, menus, endless loops | 40 | 8 |
 | Count-controlled loops | `for` and `range()`: steps, the loop variable, counting, nested loops, looping over a string | 40 | 8 |
+| Data types and casting | integer, real (`float`), Boolean and string; choosing a type; casting with `int()`, `float()`, `str()` and `bool()` | 32 | 8 |
 
-On top of the task bank, `templates.json` holds 521 task templates with randomised values: one made from every practice task (421), plus 60 single-unit, 22 combined and 18 "Write from scratch" templates. A student never gets a task they have already passed: once the bank tasks at their level run out, they get new variants made from the templates.
+On top of the task bank, `templates.json` holds 561 task templates with randomised values: one made from every practice task (453), plus 60 single-unit, 27 combined and 21 "Write from scratch" templates. A student never gets a task they have already passed: once the bank tasks at their level run out, they get new variants made from the templates.
 
 - **Each unit has its own level (1–10) for each student.** Levels are about support, not topic: every unit runs from predicting the output (level 1) up to writing an extended program (level 10).
 - **A placement test** finds each student's starting level the first time they open a unit.
@@ -49,6 +50,8 @@ The pages stay static files (GitHub Pages). With `config.js` setting `BACKEND_EN
 
 - **Teachers** sign up with an email and password (the email must be confirmed), create classes, and see only their own classes. Each class has a 6-character class code and an end date (31 August at the end of the school year). On that date the class and all its data are deleted.
 - **Students** are not Supabase users. A new student joins with the class code and a nickname (2–20 letters or numbers, checked against `backend/nickname-filter.json`) and is shown an **8-digit code and a 4-digit PIN** once. A returning student signs in with them on any computer. Five wrong PINs in a row lock the account for 15 minutes.
+  - PINs are stored as PBKDF2-SHA256 hashes (50,000 iterations, built into the function runtime). They used to be bcrypt (bcryptjs), but that was pure JavaScript and about 6 times slower: a class of 30 signing in at once on the test project made some requests hit the function's limit (status 546). A PIN hashed the old way still works and is re-hashed at the student's next correct sign-in. A 4-digit PIN has only 10,000 values, so the real protection is that the hash is never readable and the 5-try lock.
+  - If the server answers a sign-in with a 5xx (for example 546 when it is briefly overloaded), the app tries again up to twice, after a short random pause. Joining a class is never retried, because a join that failed after the student was made would come back as a taken nickname.
 - **Saving:** `Store` (store.js) keeps its synchronous API. Its localStorage keys become a cache of the signed-in student's data, filled when a page opens. Every write also goes into an outbox, which `backend.js` sends 1.5 seconds after it changes and then retries until it arrives. Work done offline is kept and sent later. On a shared computer, the next student signing in removes the last student's cached data, but anything they hadn't sent yet is still sent, with their own token.
 - **Teacher view:** sign-in, classes, the class code and end date, classes ending within 30 days, "Show codes" (logged), "Reset PIN", "Reset placement", deleting a student or a class, "Import full export", and a note on what is kept and for how long. The class's data is turned into the same object local mode uses, so the Overview, Detail log, Workshop and both exports are the same.
 - **Retention:** program code and output are cleared after 30 days (the hash, category, details and matches stay); classes are deleted after their end date. Both run nightly with pg_cron.
@@ -59,6 +62,7 @@ The pages stay static files (GitHub Pages). With `config.js` setting `BACKEND_EN
 |---|---|
 | Tables, row-level security, server functions, nightly jobs | `supabase/migrations/0001_schema.sql` … `0004_retention.sql` |
 | Class assignments: the `assignments` table, its row-level security, `attempts.assignment_id` | `supabase/migrations/0005_assignments.sql` |
+| The Data types and casting unit (`data-types`) in every table's unit check | `supabase/migrations/0006_data_types_unit.sql` |
 | `join-class`, `resume` (no sign-in, 300 requests per IP per 10 minutes) | `supabase/functions/join-class/`, `resume/` |
 | `student-api` (student session token): get/save progress (with the class's open assignments), get assignments, add attempts and events, mark passed, delete my progress | `supabase/functions/student-api/` |
 | `teacher-api` (teacher's Supabase sign-in): reveal codes, reset PIN, reset placement, import | `supabase/functions/teacher-api/` |
@@ -249,10 +253,10 @@ A template is a task in the `tasks.json` format with `{{expression}}` placeholde
 - **Same seed, same variant.** The same template and seed always give the same task.
 - **Every variant has a fingerprint:** its template id plus the values drawn for it (including the values drawn for its tests). A passed fingerprint is never served to that student again in that unit.
 - **What's in the file:**
-  - 419 derived templates, one made from each practice task (see below)
-  - 60 single-unit templates, one per unit per level
-  - 22 combined templates. Every pair of units taught one after the other has at least 3: Output + Variables, Variables + Maths, Maths + Selection, Selection + Condition-controlled loops, and both loops units together
-  - 18 from-scratch templates, three per unit
+  - 453 derived templates, one made from each practice task (see below)
+  - 60 single-unit templates, one per unit per level for the first six units (Data types and casting relies on its derived templates)
+  - 27 combined templates. Every pair of units taught one after the other has at least 3: Output + Variables, Variables + Maths, Maths + Selection, Selection + Condition-controlled loops, both loops units together, and Count-controlled loops + Data types (3). Data types also has one with Variables and one with Maths. (There is no Strings unit yet, so there is no Data types + Strings template.)
+  - 21 from-scratch templates, three per unit
 
 Templates are expanded by `templates.js`, which both the browser and the test script use.
 
@@ -301,6 +305,7 @@ Every task has 1–3 **skills** (the `skills` field), chosen from a fixed list f
 | Selection | if, if/else, elif, comparison, boundary, and/or, not, input-conversion, modulo-conditions, input-validation, selection-in-functions |
 | Condition-controlled loops | while, counter, accumulator, sentinel, input-validation, menu, and/or, infinite-loop |
 | Count-controlled loops | for, range, loop-variable, step, nested-loop, counting, accumulator |
+| Data types and casting | integer, real, boolean, string, casting, type-choice |
 
 In Selection, `selection-in-functions` tasks are only set from level 5 upwards (`skillMinLevel` in `curriculum.js`).
 
@@ -313,6 +318,23 @@ Each skill has one name everywhere. `accumulator` is in both loops units' lists,
 - **Contexts** are UK school ones: bus fares, library fines, game lives, shop totals, password attempts, quiz scores and register counts.
 
 **Moved from Selection.** The 20 Selection tasks whose main idea was a `while` loop (`loops-L1a` … `loops-L10b`) and the placement task `sel-P9b` are now in Condition-controlled loops, renamed `while-L1a` … `while-L10b` and `while-P9a`. Each one keeps its old id in a `former_ids` field. A new Selection placement task, `sel-P9c`, replaces `sel-P9b`. `functions-L10a` stays in Selection, because its main idea is writing a function. Selection still has at least 18 tasks at every level.
+
+**Data types and casting** (unit id `data-types`, task ids `types-L…`, placement `types-P…`) comes after the loops units.
+
+- **What it teaches:** the four types in the spec: integer (`int`), real (Python's `float`), Boolean (`bool`) and string (`str`); choosing the right type for a value (a shoe size, a weight, a yes/no flag); and casting with `int()`, `float()`, `str()` and `bool()`.
+- **The usual rules apply:** every task that reads a number casts it and says so; printing uses commas; the word *casting* appears in every task that converts a value.
+- **Its levels follow the same ladder:**
+  - Levels 1 and 2 predict `type()` and `7` vs `7.0`, the float a `/` gives, the comma's space, `int(input())`, and `bool("False")`.
+  - Levels 3, 4 and 7 fill in a casting function or a whole casting line.
+  - Levels 5 and 6 are Parsons puzzles where the distractors cast to the wrong type.
+  - Levels 8 to 10 read values and cast each to a suitable type. Level 9 asks for a comment saying why a type was chosen, which the checker can't test.
+- **Misconceptions:** two new ids, `INT_OF_DECIMAL_STRING` and `BOOL_CAST_TRAP`, alongside `INPUT_NOT_INT` and `STRING_PLUS_INT`.
+- **Templates:** derived templates for predict tasks about `type()` get wrong options from four type mistakes, which apply only to programs that call `type()`:
+  - a whole number read as a real number
+  - a real number read as a whole number
+  - quotes ignored
+  - `type()` thought to show the value
+- The tools that made the unit are `tools/add-data-types-unit.js` and `tools/add-data-types-templates.js`.
 
 **Fewer repeated `sep=`/`end=` tasks.** At Output and sequence level 10, four tasks tested the same `sep=` or `end=` idea as a task kept at that level. They were replaced by comma tasks with the same level, type and skills, so the unit still has 14 tasks at level 10:
 
@@ -379,7 +401,7 @@ Every failed attempt gets one category, worked out by `Checker.classifyAttempt` 
 
 ### Misconceptions
 
-`misconceptions.json` holds a fixed list of 16 misconception ids, each with a plain-English name, a short description (for teachers) and an `explanation` for students: 2 or 3 sentences saying what the mistake is and what to try next, without giving the answer.
+`misconceptions.json` holds a fixed list of 18 misconception ids, each with a plain-English name, a short description (for teachers) and an `explanation` for students: 2 or 3 sentences saying what the mistake is and what to try next, without giving the answer.
 
 - **Selection, maths and variables:** `EQUALS_VS_DOUBLE_EQUALS`, `SEPARATE_IF_VS_ELIF`, `BOUNDARY_LT_VS_LTE`, `GT_VS_GTE`, `MISSING_ELSE`, `INPUT_NOT_INT`, `PRECEDENCE`, `INT_DIV_VS_DIV`, `STRING_PLUS_INT`
 - **Loops:** `LOOP_NO_UPDATE`, `LOOP_TEST_ONCE`, `LOOP_ZERO_RUNS`
@@ -388,6 +410,9 @@ Every failed attempt gets one category, worked out by `Checker.classifyAttempt` 
   - `RANGE_START_DEFAULT`: thinks `range(5)` starts at 5 (or at 1) rather than 0
   - `LOOP_VAR_ASSIGNED_IN_BODY`: changes the loop variable inside a `for` loop and expects that to change the loop
   - `NESTED_LOOP_WRONG_INNER`: the inner loop runs the wrong number of times, or the outer variable is reset inside it
+- **Data types and casting (new):**
+  - `INT_OF_DECIMAL_STRING`: casts text like `"3.5"` with `int()`, which stops with a `ValueError` (`float()` is needed)
+  - `BOOL_CAST_TRAP`: expects `bool("False")` or `bool("no")` to be False, but any non-empty text is True
 
 `LOOP_ZERO_RUNS` now also covers a `for` loop over an empty range, such as counting down with a positive step.
 
@@ -395,11 +420,12 @@ Every failed attempt gets one category, worked out by `Checker.classifyAttempt` 
 - **A task may have `buggy_variants`**: short programs that each show one misconception (`{ "misconception": "GT_VS_GTE", "code": "…", "outputs": [...] }`).
 - **How matching works.** When an attempt fails, the student's result on the first failing test is compared with each variant's result on the same test. A variant matches if both printed the same thing (ignoring trailing spaces) and ended the same way: no error, or the same kind of error (for example `TypeError:concat`, or a syntax error from `=` in a condition). Two runs that both went on forever also match, which is how `LOOP_NO_UPDATE` is found. If nothing matches, nothing is recorded: a misconception is never recorded without a match. `NO_ANSWER` attempts are never matched.
 - **Variant outputs are worked out in advance.** `node tools/build-variants.js` runs every variant through `harness.py` on each of its task's tests and stores the results in `outputs`. The app and `recheck.py` compare against these stored outputs, so their results are identical. **Run it after adding or changing a variant or a task's tests.** The test script fails if the stored outputs are out of date.
-- **Coverage now:** 130 tasks have misconception tags and buggy variants (179 variants in total):
-  - **39 of the 48 placement tasks.** The 9 without variants are:
+- **Coverage now:** 160 tasks have misconception tags and buggy variants (212 variants in total):
+  - **43 of the 56 placement tasks.** The 13 without variants are:
     - 7 Output and sequence tasks and 1 Variables task, whose ideas (`sep=`, `end=`, the order of statements, reassignment) have no id in the list yet
     - `for-P7a` (looping over a string), which has no matching id
-  - **91 bank tasks:** 21 in Selection, 21 in Condition-controlled loops and 29 in Count-controlled loops, plus 9 in Variables and input and 11 in Maths.
+    - 4 Data types tasks (`types-P2a`, `types-P2b`, `types-P7a`, `types-P7b`), whose mistakes (`/` giving a float, `*` on a string, a forgotten line) have no id
+  - **117 bank tasks:** 21 in Selection, 21 in Condition-controlled loops, 29 in Count-controlled loops, 26 in Data types and casting, 9 in Variables and input and 11 in Maths.
   - **Rules:** every id has variants on at least 3 bank tasks. Every id used in the loops units has variants on at least 3 bank tasks within those two units.
   - **Template variants:** a variant made from a bank task keeps its buggy variants, and their outputs are worked out when the variant is made (by running them), so mistakes on variants are matched too. The hand-written templates (Endless mode's single-unit and combined templates, write-from-scratch) have none.
 
@@ -570,7 +596,10 @@ How outputs are compared:
 To add a new unit:
 
 1. Add it to `UNITS` in `curriculum.js`, with its skill list.
-2. Add at least 30 tasks, with at least 3 for each of its 10 levels and every task type used.
+2. Add at least 30 tasks, with at least 3 for each of its 10 levels and every task type used, and 2 placement tasks at each of levels 2, 5, 7 and 9.
+3. Add a worked example for each of its skills to `tools/worked-examples.js`, 3 from-scratch templates, and 3 combined templates with the unit before it.
+4. **Backend mode:** add the unit id to `UNITS` in `supabase/functions/_shared/rows.ts` and to the unit checks in a new migration (as `0006_data_types_unit.sql` does). Deploy both before publishing the website, or the server refuses the new unit's work for good.
+5. Add the unit id to the unit list checked in `tests/validate.js`.
 
 Placement tasks are ordinary tasks with the `placement` tag, at level 2, 5, 7 or 9. Their ids use `P` instead of `L`, e.g. `sel-P7a` or `while-P2a`. Keep at least 2 per placement level in each unit.
 
@@ -626,7 +655,7 @@ This needs Node 18+ and Python 3 on the PATH (set `PYTHON=...` to use a differen
   - stored variant outputs are up to date, every variant fails at least one test, and predict variants give one of the wrong options
   - every id has variants on at least 3 bank tasks, and on at least 3 within the loops units for every id those units use
   - `former_ids` are unique and not used by a current task
-- **Units and skills:** the units are listed with Selection followed by the two loops units, and a skill in two units' lists (`accumulator`) counts for the task's own unit.
+- **Units and skills:** the units are listed with Selection followed by the two loops units and then Data types and casting, and a skill in two units' lists (`accumulator`) counts for the task's own unit.
 - **Glow:** every theme has `--glow` and `--glow-outer`, and the glow doesn't pulse with reduced motion.
 - **Feature tests** (`tests/features.js`, also runnable on their own with `node tests/features.js`):
   - **Placement:** passes 2 and 5, fails 7 → starts at 5; passes 9 → 8; fails everything → 1. It can't be repeated, and a teacher reset allows it once more with different tasks.
@@ -669,6 +698,7 @@ This needs Node 18+ and Python 3 on the PATH (set `PYTHON=...` to use a differen
 | `teacher.html`, `teacher.js` | Teacher view (Overview, Detail log, Workshop, Assignments, Task browser) and export |
 | `task-view.js` | The Expected output box and example test (practice page and Task browser), and the task search |
 | `task-browser.js` | The teacher's Task browser, with the model solutions (loaded by `teacher.html` only) |
+| `tools/add-data-types-unit.js`, `tools/add-data-types-templates.js` | One-off: the Data types and casting unit's tasks and templates (each checks its results) |
 | `tools/print-commas.js`, `tools/print-commas-templates.js`, `tools/casting-words.js`, `tools/replace-sep-end.js` | One-off rewrites for the printing rule (commas, casting), kept as a record; each checks its results |
 | `teacher-data.js` | Teacher view sums, filters, full export and data dictionary (no DOM, so it's tested in Node) |
 | `misconceptions.json` | The fixed list of misconception ids, names and descriptions |
@@ -733,6 +763,7 @@ This needs Node 18+ and Python 3 on the PATH (set `PYTHON=...` to use a differen
 - **Answers are visible to a determined student.** `tasks.json`, including the solutions and the hidden tests, is downloaded to the browser (in backend mode too: answers are still checked in the browser). No student page *shows* a model solution or a hidden test, but the data is there for anyone who opens the browser's developer tools.
 - **Assignment work is kept per browser.** Which task is open, the answers so far and the ✓ marks on an assignment are kept in that browser only. The attempts themselves are saved to the server as usual, so the teacher sees everything, but a student who moves to another computer starts the assignment's tasks with empty answers.
 - **Assignments need backend mode.** In local mode there are none.
+- **Backend mode: deploy before publishing.** Migrations 0005 (assignments) and 0006 (the Data types unit) and the updated Edge Functions must be on the server before the website that uses them is published. Until 0006 is deployed, the server refuses all work in Data types and casting.
 - **Variants made from the bank need Python.** Their outputs are worked out by running them, so once a student has passed the bank tasks at a level, the next task waits for Pyodide to load (a few seconds on a first visit). If Pyodide can't load, only bank tasks and the hand-written templates can be set.
 - **Variants change numbers and context words, not the whole story.** A variant of "Bus fares" is still about bus fares, with different ages and prices, and perhaps a different name or day. Text about a fixed thing (a rock, paper, scissors game, a canteen receipt) changes only through the hand-written lists in `tools/derive-templates.js`. The tool checks every variant runs and is consistent with its tests, and lists text numbers it couldn't account for, but a teacher should still read some variants for wording.
 - **A passed task is never set again, even after a reset.** A student who resets their own progress gets new variants rather than the bank tasks they had passed.

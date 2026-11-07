@@ -2,7 +2,7 @@
 // Checks a returning student's 8-digit code and 4-digit PIN and returns a session token valid for 8 hours.
 // 5 wrong PINs in a row lock the account for 15 minutes; the right PIN doesn't open it early.
 
-import { comparePinWithNobody, lookupHash, pinMatches, signToken } from "../_shared/crypto.ts";
+import { comparePinWithNobody, hashPin, lookupHash, pinMatches, pinNeedsRehash, signToken } from "../_shared/crypto.ts";
 import { check, db, HttpError, serve } from "../_shared/http.ts";
 import { rateLimit } from "../_shared/limits.ts";
 
@@ -35,6 +35,12 @@ serve(async (body, req) => {
   if (!(await pinMatches(pin, s.pin_hash))) throw t.locked_until ? lockedError(t.locked_until) : new HttpError(401, WRONG);
 
   check(await db().rpc("pin_try_succeeded", { p_student: s.id }), "pin ok");
+  // A PIN hashed the old way (bcrypt) is saved in the new format now that it is known to be right. If that fails, the
+  // student is still signed in, and it is tried again next time.
+  if (pinNeedsRehash(s.pin_hash)) {
+    const r = await db().from("students").update({ pin_hash: await hashPin(pin) }).eq("id", s.id);
+    if (r.error) console.error("pin rehash: " + (r.error.code || "") + " " + r.error.message);
+  }
   const cls = s.classes as unknown as { name: string } | null;
   return { nickname: s.nickname, class_name: cls?.name ?? "", ...(await signToken(s.id)) };
 });

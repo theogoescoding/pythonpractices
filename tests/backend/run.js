@@ -96,6 +96,24 @@ function attemptRow(extra) {
       eq([nobody.status, nobody.body.error], [401, "That code or PIN isn't right."], "unknown code");
     });
 
+    await test("PINs are hashed with PBKDF2; a PIN hashed with bcrypt before still works and is re-hashed at sign-in", async () => {
+      const pinHashOf = async (id) => (await service("/rest/v1/students?select=pin_hash&id=eq." + id, { method: "GET" })).body[0].pin_hash;
+      const s = await join(classA, "Hashcheck");
+      const sid = (await rest("/rest/v1/students?select=id&nickname=eq.Hashcheck", a, { method: "GET" })).body[0].id;
+      assert(/^pbkdf2-sha256\$50000\$[A-Za-z0-9+/=]+\$[A-Za-z0-9+/=]+$/.test(await pinHashOf(sid)), "a new student's PIN hash is PBKDF2");
+      if (T.kind === "local") {
+        // Make it an old (bcrypt) hash, as every student who joined before the change has.
+        L.localSql("update public.students set pin_hash = extensions.crypt('" + s.pin + "', extensions.gen_salt('bf', 10)) where id = '" + sid + "';");
+        assert((await pinHashOf(sid)).startsWith("$2a$"), "the hash is now bcrypt");
+        await clearRateLimits();
+        eq((await fn("resume", { code: s.code, pin: s.pin })).status, 200, "sign-in with a bcrypt-hashed PIN");
+        assert((await pinHashOf(sid)).startsWith("pbkdf2-sha256$50000$"), "re-hashed with PBKDF2 after a correct PIN");
+        eq((await fn("resume", { code: s.code, pin: s.pin })).status, 200, "sign-in with the re-hashed PIN");
+        const wrong = String((Number(s.pin) + 1) % 10000).padStart(4, "0");
+        eq((await fn("resume", { code: s.code, pin: wrong })).status, 401, "a wrong PIN is still refused");
+      }
+    });
+
     await test("5 wrong PINs lock the account for 15 minutes, and the right PIN doesn't unlock it early", async () => {
       const s = await join(classA, "Lock Test");
       const wrong = String((Number(s.pin) + 1) % 10000).padStart(4, "0");
@@ -242,6 +260,8 @@ function attemptRow(extra) {
       assert(r.status === 200 && /^\d{4}$/.test(r.body.pin), "reset_pin");
       await clearRateLimits();
       eq((await fn("resume", { code: s1.code, pin: r.body.pin })).status, 200, "new PIN works");
+      const stored = (await service("/rest/v1/students?select=pin_hash&id=eq." + ada.id, { method: "GET" })).body[0].pin_hash;
+      assert(stored.startsWith("pbkdf2-sha256$50000$"), "a reset PIN is hashed with PBKDF2");
       s1.pin = r.body.pin;
     });
 
@@ -377,6 +397,22 @@ function attemptRow(extra) {
       eq((await fn("student-api", { token: s1.token, action: "get_progress" })).body.assignments, [], "closed assignments aren't sent");
     });
 
+    await test("the data-types unit: student-api saves its progress, attempts, events and passed tasks (unknown units are refused)", async () => {
+      const state = { level: 3, placement: { status: "done", used: [] } };
+      eq((await fn("student-api", { token: s1.token, action: "save_progress", unit: "data-types", state })).status, 200, "save_progress");
+      const att = await fn("student-api", { token: s1.token, action: "add_attempts", rows: [attemptRow({ unit: "data-types", task_units: ["data-types"], task_id: "types-L3a" }),
+        attemptRow({ unit: "strings", task_units: ["strings"], task_id: "x" })] });
+      eq([att.body.saved, att.body.rejected.map((r) => r.reason)], [1, ["bad unit"]], "add_attempts");
+      const ev = await fn("student-api", { token: s1.token, action: "add_events", rows: [{ record_id: rid("l"), record_type: "level_change", timestamp: iso(),
+        unit: "data-types", student_level_before: 2, student_level_after: 3, level_change_reason: "passes" }] });
+      eq(ev.body.saved, 1, "add_events");
+      eq((await fn("student-api", { token: s1.token, action: "mark_passed", unit: "data-types", fingerprint: "types-L3a" })).status, 200, "mark_passed");
+      const p = await fn("student-api", { token: s1.token, action: "get_progress" });
+      assert(p.body.progress.some((r) => r.unit === "data-types" && r.state.level === 3), "progress came back");
+      assert(p.body.passed.some((r) => r.unit === "data-types" && r.fingerprint === "types-L3a"), "passed task came back");
+      assert(p.body.attempts.some((r) => r.unit === "data-types" && r.task_id === "types-L3a"), "attempt came back");
+    });
+
     await test("delete_my_progress deletes the student and everything saved for them", async () => {
       const s = await join(classA, "Leaver");
       await fn("student-api", { token: s.token, action: "add_attempts", rows: [attemptRow({})] });
@@ -402,19 +438,50 @@ function attemptRow(extra) {
       }
     });
 
-    // The limit is read from the function code, so this test follows it if it changes.
+    // The limit and its window are read from the function code, so this test follows them if they change.
     const LIMIT = Number(fs.readFileSync(require("path").join(L.ROOT, "supabase", "functions", "_shared", "limits.ts"), "utf8")
       .match(/RATE_LIMIT_HITS = (\d+)/)[1]);
+    // The limiter counts in fixed windows of RATE_LIMIT_WINDOW_SECONDS that start on the clock. A burst is only a fair
+    // test if every request reaches the limiter (the local runtime sometimes drops requests under load with a 5xx,
+    // before they are counted) and the whole burst falls in one window. So: warm the function up first, never start
+    // within 30 seconds of a window's end, and repeat a round (up to 3 times) that had a 5xx. On the local stack the
+    // database counter is read too: every request answered normally must have been counted, and exactly the requests
+    // over the limit refused.
+    const WINDOW_MS = 1000 * Number(fs.readFileSync(require("path").join(L.ROOT, "supabase", "functions", "_shared", "limits.ts"), "utf8")
+      .match(/RATE_LIMIT_WINDOW_SECONDS = (\d+)/)[1]);
+    const BATCH = 10;
+    const ROUNDS = 3;
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     await test("join-class and resume allow " + LIMIT + " requests per IP every 10 minutes", async () => {
       for (const name of ["resume", "join-class"]) {
-        await clearRateLimits();
         const body = name === "resume" ? { code: "00000000", pin: "0000" } : { class_code: "ZZZZZZ", nickname: "Nobody" };
-        const statuses = [];
-        for (let i = 0; i < LIMIT + 1; i += 20) {
-          const n = Math.min(20, LIMIT + 1 - i);
-          statuses.push(...(await Promise.all(Array.from({ length: n }, () => fn(name, body)))).map((r) => r.status));
+        await Promise.all(Array.from({ length: 5 }, () => fn(name, body))); // warm-up: workers started before the burst
+        let passed = false;
+        const notes = [];
+        for (let round = 1; round <= ROUNDS && !passed; round++) {
+          const left = WINDOW_MS - (Date.now() % WINDOW_MS);
+          if (left < 30000) await sleep(left + 2000); // start in a fresh window, so the burst can't straddle two
+          await clearRateLimits();
+          const statuses = [];
+          for (let i = 0; i < LIMIT + 1; i += BATCH) {
+            const n = Math.min(BATCH, LIMIT + 1 - i);
+            statuses.push(...(await Promise.all(Array.from({ length: n }, () => fn(name, body).then((r) => r.status, () => 0)))));
+          }
+          const refused = statuses.filter((s) => s === 429).length;
+          const dropped = statuses.filter((s) => s === 0 || s >= 500).length;
+          const answered = statuses.length - refused - dropped;
+          if (T.kind === "local") {
+            const hits = Number(L.localSql("select coalesce(sum(hits), 0) from private.rate_limits;"));
+            // Never wrong, even in a round with dropped requests: nothing answered went uncounted, and the limiter
+            // refused exactly the requests it counted beyond the limit.
+            assert(hits >= answered + refused, name + ": " + (answered + refused) + " requests reached the limiter but only " + hits + " were counted");
+            eq([name, refused], [name, Math.max(0, hits - LIMIT)], "requests refused for " + hits + " counted");
+          }
+          notes.push("round " + round + ": " + refused + " refused, " + dropped + " dropped (5xx)");
+          passed = dropped === 0 && refused === 1 && statuses.length === LIMIT + 1;
         }
-        eq([name, statuses.filter((s) => s === 429).length, statuses.length], [name, 1, LIMIT + 1], "only request " + (LIMIT + 1) + " is refused");
+        console.log("       (" + name + " " + notes.join("; ") + ")");
+        assert(passed, name + ": no round of " + (LIMIT + 1) + " requests had every request reach the limiter with exactly 1 refused (" + notes.join("; ") + ")");
       }
       await clearRateLimits();
     });

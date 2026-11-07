@@ -6553,6 +6553,540 @@
     ]
   },
   {
+    "id": "comb-types-club-card",
+    "units": [
+      "data-types",
+      "variables"
+    ],
+    "source": "types-L8c",
+    "level": 8,
+    "type": "write",
+    "title": "Club card",
+    "params": {
+      "club": {
+        "choice": [
+          "chess club",
+          "choir",
+          "coding club",
+          "drama club",
+          "football team",
+          "art club"
+        ]
+      }
+    },
+    "description": "Make a card for the {{club}}. Ask for a pupil's name, their age (a whole number) and their height in metres (a real number). Cast each number to the right type. Print, for example:\nName: Ava\nAge next year: 13\nHeight (cm): 152",
+    "starter": "# Write your program here",
+    "solution": "name = input(\"Name: \")\nage = int(input(\"Age: \"))\nheight = float(input(\"Height (m): \"))\nprint(\"Name:\", name)\nprint(\"Age next year:\", age + 1)\nprint(\"Height (cm):\", round(height * 100))",
+    "testParams": {
+      "who": {
+        "choice": [
+          "Ava",
+          "Ben",
+          "Zara",
+          "Omar",
+          "Isla",
+          "Kofi"
+        ]
+      },
+      "a": {
+        "int": [
+          11,
+          16
+        ]
+      },
+      "h": {
+        "int": [
+          130,
+          185
+        ]
+      }
+    },
+    "testCount": 3,
+    "test": {
+      "inputs": [
+        "{{who}}",
+        "{{a}}",
+        "{{fl(h / 100)}}"
+      ],
+      "expected": "Name: {{who}}\nAge next year: {{a + 1}}\nHeight (cm): {{h}}"
+    },
+    "hints": [
+      "The name stays a string. Casting: int() for the age, float() for the height.",
+      "Height in centimetres is round(height * 100).",
+      "Print each label and value with a comma."
+    ],
+    "skills": [
+      "casting",
+      "input"
+    ],
+    "tags": [
+      "heights"
+    ]
+  },
+  {
+    "id": "comb-types-trip-share",
+    "units": [
+      "data-types",
+      "maths"
+    ],
+    "source": "types-L9b",
+    "level": 9,
+    "type": "write",
+    "title": "Sharing the cost",
+    "params": {
+      "thing": {
+        "choice": [
+          "minibus",
+          "museum trip",
+          "class party",
+          "cinema trip",
+          "bowling trip"
+        ]
+      }
+    },
+    "description": "The {{thing}} costs an amount in pounds (it can have pence), shared between some pupils. Read the cost and the number of pupils, casting each to a suitable type. Print what each pupil pays, rounded to 2 places, for example:\nEach pays (£): 4.17",
+    "starter": "# Write your program here",
+    "solution": "cost = float(input(\"Cost (£): \"))\npupils = int(input(\"Pupils: \"))\nprint(\"Each pays (£):\", round(cost / pupils, 2))",
+    "testParams": {
+      "p": {
+        "int": [
+          150,
+          999
+        ]
+      },
+      "n": {
+        "int": [
+          3,
+          30
+        ]
+      }
+    },
+    "testValues": {
+      "c": "n * p"
+    },
+    "testCount": 3,
+    "test": {
+      "inputs": [
+        "{{fl(c / 100)}}",
+        "{{n}}"
+      ],
+      "expected": "Each pays (£): {{fl(pyround(c / 100 / n, 2))}}"
+    },
+    "hints": [
+      "The cost has pence, so casting with float(); pupils are counted, so int().",
+      "Divide with /, then round(..., 2)."
+    ],
+    "skills": [
+      "real",
+      "type-choice",
+      "rounding"
+    ],
+    "tags": [
+      "money",
+      "rounding"
+    ]
+  },
+  {
+    "id": "comb-types-basket",
+    "units": [
+      "data-types",
+      "loops-count"
+    ],
+    "source": "types-L8a",
+    "level": 10,
+    "type": "write",
+    "title": "Basket total",
+    "params": {
+      "shop": {
+        "choice": [
+          "tuck shop",
+          "book fair",
+          "school shop",
+          "cake sale",
+          "uniform shop"
+        ]
+      }
+    },
+    "description": "At the {{shop}}, ask how many items there are, then read each price in pounds (prices can have pence). Cast each value to a suitable type. Print the total rounded to 2 places, for example:\nTotal (£): 4.75",
+    "starter": "# Write your program here",
+    "solution": "items = int(input(\"Items: \"))\ntotal = 0\nfor i in range(items):\n    price = float(input(\"Price (£): \"))\n    total = total + price\nprint(\"Total (£):\", round(total, 2))",
+    "testParams": {
+      "pence": {
+        "sample": [
+          [
+            45,
+            80,
+            99,
+            120,
+            135,
+            150,
+            199,
+            250,
+            275
+          ],
+          4
+        ]
+      },
+      "k": {
+        "int": [
+          1,
+          4
+        ]
+      }
+    },
+    "testValues": {
+      "ys": "pence.slice(0, k)"
+    },
+    "testCount": 3,
+    "test": {
+      "inputs": [
+        {
+          "list": "[k].concat(ys.map((x) => fl(x / 100)))"
+        }
+      ],
+      "expected": "Total (£): {{fl(pyround(ys.reduce((s, x) => s + x / 100, 0), 2))}}"
+    },
+    "hints": [
+      "The number of items is a whole number (int); each price is a real number (float).",
+      "Start the total at 0 and add each price inside the loop.",
+      "Round the total to 2 places when you print it."
+    ],
+    "skills": [
+      "real",
+      "accumulator",
+      "range"
+    ],
+    "tags": [
+      "shop prices"
+    ]
+  },
+  {
+    "id": "comb-types-register",
+    "units": [
+      "data-types",
+      "loops-count"
+    ],
+    "source": "types-L9c",
+    "level": 9,
+    "type": "write",
+    "title": "Register check",
+    "params": {
+      "group": {
+        "choice": [
+          "form group",
+          "football squad",
+          "choir",
+          "trip group",
+          "science club"
+        ]
+      }
+    },
+    "description": "Take the register for a {{group}}. Ask how many pupils are on the list, then ask \"Present? (yes/no)\" once for each. Each answer counts as present only if it is yes (store it as a Boolean, not with bool() casting). Print, for example:\nPresent: 3\nAbsent: 1",
+    "starter": "# Write your program here",
+    "solution": "pupils = int(input(\"Pupils: \"))\npresent = 0\nfor p in range(pupils):\n    here = input(\"Present? (yes/no): \") == \"yes\"\n    if here:\n        present = present + 1\nprint(\"Present:\", present)\nprint(\"Absent:\", pupils - present)",
+    "testParams": {
+      "n": {
+        "int": [
+          2,
+          6
+        ]
+      },
+      "mask": {
+        "int": [
+          0,
+          63
+        ]
+      }
+    },
+    "testValues": {
+      "ys": "Array.from({ length: n }, (_, i) => ((mask >> i) & 1 ? 'yes' : 'no'))",
+      "here": "ys.filter((y) => y === 'yes').length"
+    },
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        {
+          "list": "[n].concat(ys)"
+        }
+      ],
+      "expected": "Present: {{here}}\nAbsent: {{n - here}}"
+    },
+    "hints": [
+      "Cast the number of pupils with int().",
+      "answer == \"yes\" gives a Boolean. Casting with bool() would make no count as True too.",
+      "Count with present = present + 1."
+    ],
+    "skills": [
+      "boolean",
+      "counting",
+      "range"
+    ],
+    "tags": [
+      "register counts"
+    ]
+  },
+  {
+    "id": "comb-types-tall",
+    "units": [
+      "data-types",
+      "loops-count"
+    ],
+    "source": "types-L6c",
+    "level": 8,
+    "type": "write",
+    "title": "Tall enough",
+    "params": {
+      "limit": {
+        "choice": [
+          1.2,
+          1.3,
+          1.4,
+          1.5
+        ]
+      },
+      "ride": {
+        "choice": [
+          "climbing wall",
+          "zip wire",
+          "go-karts",
+          "high ropes"
+        ]
+      }
+    },
+    "description": "The {{ride}} on the trip needs pupils to be at least {{limit}} m tall. Ask how many pupils there are, then read each height in metres. Cast each value to a suitable type. Print how many are tall enough, for example:\nTall enough: 3",
+    "starter": "# Write your program here",
+    "solution": "pupils = int(input(\"Pupils: \"))\ntall = 0\nfor p in range(pupils):\n    height = float(input(\"Height (m): \"))\n    if height >= {{limit}}:\n        tall = tall + 1\nprint(\"Tall enough:\", tall)",
+    "testParams": {
+      "cms": {
+        "sample": [
+          [
+            110,
+            118,
+            120,
+            125,
+            130,
+            133,
+            140,
+            145,
+            150,
+            162
+          ],
+          5
+        ]
+      },
+      "k": {
+        "int": [
+          1,
+          5
+        ]
+      }
+    },
+    "testValues": {
+      "ys": "cms.slice(0, k)",
+      "tall": "ys.filter((c) => c / 100 >= limit).length"
+    },
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        {
+          "list": "[k].concat(ys.map((c) => fl(c / 100)))"
+        }
+      ],
+      "expected": "Tall enough: {{tall}}"
+    },
+    "hints": [
+      "Pupils are counted (int); a height has a decimal part (float).",
+      "Count with an if inside the loop: >= includes the limit itself."
+    ],
+    "skills": [
+      "real",
+      "counting",
+      "range"
+    ],
+    "tags": [
+      "heights"
+    ]
+  },
+  {
+    "id": "scratch-types-trip",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L10a",
+    "level": 10,
+    "type": "scratch",
+    "starter": "",
+    "title": "Trip planner",
+    "params": {
+      "place": {
+        "choice": [
+          "science museum",
+          "castle",
+          "zoo",
+          "theatre",
+          "farm"
+        ]
+      }
+    },
+    "description": "Write a program from scratch for a trip to the {{place}}. Ask for the number of pupils, the cost per pupil in pounds, and whether the coach is booked (yes or no). Cast each value to a suitable type. Print, for example:\nTotal (£): 255.0\nCoach booked: True\nRound the total to 2 places. Coach booked is True only for yes.",
+    "solution": "pupils = int(input(\"Pupils: \"))\ncost = float(input(\"Cost per pupil (£): \"))\nbooked = input(\"Coach booked? (yes/no): \") == \"yes\"\nprint(\"Total (£):\", round(pupils * cost, 2))\nprint(\"Coach booked:\", booked)",
+    "testParams": {
+      "n": {
+        "int": [
+          10,
+          40
+        ]
+      },
+      "p": {
+        "int": [
+          250,
+          2500
+        ]
+      },
+      "b": {
+        "choice": [
+          "yes",
+          "no"
+        ]
+      }
+    },
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        "{{n}}",
+        "{{fl(p / 100)}}",
+        "{{b}}"
+      ],
+      "expected": "Total (£): {{fl(pyround(n * (p / 100), 2))}}\nCoach booked: {{b === 'yes' ? 'True' : 'False'}}"
+    },
+    "hints": [
+      "Casting: int() for pupils, float() for the cost.",
+      "booked = answer == \"yes\" (casting with bool() would be True even for no)."
+    ],
+    "skills": [
+      "type-choice",
+      "casting",
+      "boolean"
+    ],
+    "tags": [
+      "school trip"
+    ]
+  },
+  {
+    "id": "scratch-types-height",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L9b",
+    "level": 10,
+    "type": "scratch",
+    "starter": "",
+    "title": "Height check",
+    "params": {
+      "limit": {
+        "choice": [
+          1.4,
+          1.45,
+          1.5,
+          1.55,
+          1.6
+        ]
+      }
+    },
+    "description": "Write a program from scratch that asks for a height in metres, casts it to a suitable type, and prints the height in centimetres as a whole number (use round()) and whether it is at least {{limit}} m, for example:\nHeight (cm): 152\nAt least {{limit}} m: True",
+    "solution": "height = float(input(\"Height (m): \"))\nprint(\"Height (cm):\", round(height * 100))\nprint(\"At least {{limit}} m:\", height >= {{limit}})",
+    "testParams": {
+      "c": {
+        "int": [
+          120,
+          190
+        ]
+      }
+    },
+    "testCases": [
+      {
+        "c": "Math.round(limit * 100)"
+      }
+    ],
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        "{{fl(c / 100)}}"
+      ],
+      "expected": "Height (cm): {{c}}\nAt least {{limit}} m: {{c / 100 >= limit ? 'True' : 'False'}}"
+    },
+    "hints": [
+      "A height has a decimal part, so casting with float().",
+      "A comparison like height >= 1.5 gives a Boolean you can print."
+    ],
+    "skills": [
+      "real",
+      "boolean",
+      "casting"
+    ],
+    "tags": [
+      "heights"
+    ]
+  },
+  {
+    "id": "scratch-types-receipt",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L10c",
+    "level": 10,
+    "type": "scratch",
+    "starter": "",
+    "title": "One-line receipt",
+    "params": {
+      "item": {
+        "choice": [
+          "pencil",
+          "notebook",
+          "ruler",
+          "glue stick",
+          "calculator"
+        ]
+      }
+    },
+    "description": "Write a program from scratch that asks how many of an item are bought and the price of one in pounds. Cast each value to a suitable type. Print one line with commas, then the type of the total, for example:\n3 x {{item}} = 2.25\nType: <class 'float'>\nRound the total to 2 places.",
+    "solution": "qty = int(input(\"How many? \"))\nprice = float(input(\"Price (£): \"))\ntotal = round(qty * price, 2)\nprint(qty, \"x {{item}} =\", total)\nprint(\"Type:\", type(total))",
+    "testParams": {
+      "q": {
+        "int": [
+          1,
+          9
+        ]
+      },
+      "p": {
+        "int": [
+          20,
+          450
+        ]
+      }
+    },
+    "testCount": 4,
+    "test": {
+      "inputs": [
+        "{{q}}",
+        "{{fl(p / 100)}}"
+      ],
+      "expected": "{{q}} x {{item}} = {{fl(pyround(q * (p / 100), 2))}}\nType: <class 'float'>"
+    },
+    "hints": [
+      "Casting: int() for the number bought, float() for the price.",
+      "print(qty, \"x pencil =\", total) uses commas, so each comma adds a space."
+    ],
+    "skills": [
+      "integer",
+      "real",
+      "casting"
+    ],
+    "tags": [
+      "shop prices"
+    ]
+  },
+  {
     "id": "d-out-L1a",
     "units": [
       "output"
@@ -43006,6 +43540,2672 @@
     "fingerprintVars": [
       "a0",
       "a1"
+    ]
+  },
+  {
+    "id": "d-types-L1a",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L1a",
+    "derived": true,
+    "level": 1,
+    "type": "predict",
+    "title": "Whole numbers",
+    "description": "type() tells you a value's type. What will this program print?",
+    "starter": "",
+    "solution": "pupils = {{a0}}\nprint(type(pupils))",
+    "optionCount": 3,
+    "tests": [
+      {
+        "inputs": []
+      }
+    ],
+    "hints": [
+      "{{a0}} has no decimal point and no quotes.",
+      "A whole number is an integer: Python calls this type int."
+    ],
+    "tags": [
+      "type()",
+      "register counts"
+    ],
+    "skills": [
+      "integer"
+    ],
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 28)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j0": {
+        "int": [
+          -6,
+          6
+        ]
+      }
+    },
+    "values": {
+      "a0": "Math.round(28 * f) + j0"
+    },
+    "fingerprintVars": [
+      "a0"
+    ]
+  },
+  {
+    "id": "d-types-L1b",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L1b",
+    "derived": true,
+    "level": 1,
+    "type": "predict",
+    "title": "Number or text?",
+    "description": "type() tells you a value's type. What will this program print?",
+    "starter": "",
+    "solution": "locker = \"{{[\"42\",\"17\",\"8\",\"63\",\"25\",\"31\"][p0]}}\"\nprint(type(locker))",
+    "optionCount": 3,
+    "tests": [
+      {
+        "inputs": []
+      }
+    ],
+    "hints": [
+      "Look carefully: is there anything around the {{[\"42\",\"17\",\"8\",\"63\",\"25\",\"31\"][p0]}}?",
+      "Anything in quotes is a string (str), even if it looks like a number."
+    ],
+    "tags": [
+      "type()",
+      "quotes"
+    ],
+    "skills": [
+      "string"
+    ],
+    "where": "(p0 !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          5
+        ]
+      }
+    },
+    "fingerprintVars": [
+      "p0"
+    ]
+  },
+  {
+    "id": "d-types-L1c",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L1c",
+    "derived": true,
+    "level": 1,
+    "type": "predict",
+    "title": "Real numbers",
+    "description": "A real number has a decimal point, and Python calls this type float. What will this program print?",
+    "starter": "",
+    "solution": "height = {{(a0).toFixed(2)}}\nprint(type(height))",
+    "optionCount": 3,
+    "tests": [
+      {
+        "inputs": []
+      }
+    ],
+    "hints": [
+      "{{(a0).toFixed(2)}} has a decimal point.",
+      "Python's name for a real number is float."
+    ],
+    "tags": [
+      "type()",
+      "heights"
+    ],
+    "skills": [
+      "real"
+    ],
+    "where": "a0 > 0 && (a0 !== 1.65)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      }
+    },
+    "values": {
+      "a0": "dp(1.65 * f, 2)"
+    },
+    "fingerprintVars": [
+      "a0"
+    ]
+  },
+  {
+    "id": "d-types-L1d",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L1d",
+    "derived": true,
+    "level": 1,
+    "type": "predict",
+    "title": "True or False",
+    "description": "A comparison gives a Boolean: True or False. What will this program print?",
+    "starter": "",
+    "solution": "late = {{a0}} > {{a0 - 1}}\nprint(late)\nprint(type(late))",
+    "optionCount": 3,
+    "tests": [
+      {
+        "inputs": []
+      }
+    ],
+    "hints": [
+      "Work out {{a0}} > {{a0 - 1}} first: is it true?",
+      "Python calls the True/False type bool, short for Boolean."
+    ],
+    "tags": [
+      "type()",
+      "comparison"
+    ],
+    "skills": [
+      "boolean"
+    ],
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 9)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j0": {
+        "int": [
+          -3,
+          3
+        ]
+      }
+    },
+    "values": {
+      "a0": "Math.round(9 * f) + j0"
+    },
+    "fingerprintVars": [
+      "a0"
+    ]
+  },
+  {
+    "id": "d-types-L2a",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L2a",
+    "derived": true,
+    "level": 2,
+    "type": "predict",
+    "title": "{{a0}} or {{a0}}?",
+    "description": "Integers and real numbers print differently. What will this program print?",
+    "starter": "",
+    "solution": "print({{a0}})\nprint({{a0}})\nprint({{a1}} / 2)",
+    "optionCount": 3,
+    "tests": [
+      {
+        "inputs": []
+      }
+    ],
+    "hints": [
+      "{{a0}} is a real number (float), so Python shows the .0.",
+      "Dividing with / always gives a float, even when it divides exactly."
+    ],
+    "tags": [
+      "int vs float",
+      "division"
+    ],
+    "skills": [
+      "integer",
+      "real"
+    ],
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && a1 > 0 && ![0, 1, 2].includes(Math.abs(a1)) && a0 + 2 < a1 && (a0 !== 7 || a1 !== 14)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j0": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j1": {
+        "int": [
+          -3,
+          3
+        ]
+      }
+    },
+    "values": {
+      "a0": "Math.round(7 * f) + j0",
+      "a1": "Math.round(14 * f) + j1"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1"
+    ]
+  },
+  {
+    "id": "d-types-L2b",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L2b",
+    "derived": true,
+    "level": 2,
+    "type": "predict",
+    "title": "Sharing into groups",
+    "description": "{{a1}} pupils are split into {{a0}} groups. What will this program print?",
+    "starter": "",
+    "solution": "pupils = {{a1}}\ngroups = {{a0}}\nper_group = pupils / groups\nprint(\"Per group:\", per_group)\nprint(type(per_group))",
+    "optionCount": 3,
+    "tests": [
+      {
+        "inputs": []
+      }
+    ],
+    "hints": [
+      "What type does / give?",
+      "/ always gives a real number (float). The comma in print() puts a space after the label."
+    ],
+    "tags": [
+      "division",
+      "int vs float"
+    ],
+    "skills": [
+      "real",
+      "type-choice"
+    ],
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && a1 > 0 && ![0, 1, 2].includes(Math.abs(a1)) && a0 + 2 < a1 && (a0 !== 5 || a1 !== 30)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j0": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j1": {
+        "int": [
+          -6,
+          6
+        ]
+      }
+    },
+    "values": {
+      "a0": "Math.round(5 * f) + j0",
+      "a1": "Math.round(30 * f) + j1"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1"
+    ]
+  },
+  {
+    "id": "d-types-L2c",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L2c",
+    "derived": true,
+    "level": 2,
+    "type": "predict",
+    "title": "Joined or added?",
+    "description": "The user types {{a1}}, then {{a0}}. What will this program print?\nUsing int() on the input is called casting.",
+    "starter": "",
+    "solution": "monday = input(\"Books on {{w0}}: \")\ntuesday = input(\"Books on {{w1}}: \")\nprint(\"Total:\", monday + tuesday)\nprint(\"Total:\", int(monday) + int(tuesday))",
+    "optionCount": 4,
+    "tests": [
+      {
+        "inputs": [
+          "{{a1}}",
+          "{{a0}}"
+        ]
+      }
+    ],
+    "hints": [
+      "input() always gives back a string, even when the user types digits.",
+      "+ on two strings joins them. Casting with int() first makes + add them.",
+      "The comma in print() puts one space between the label and the value."
+    ],
+    "tags": [
+      "int() on input",
+      "library books",
+      "INPUT_NOT_INT"
+    ],
+    "skills": [
+      "casting",
+      "string"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "INPUT_NOT_INT",
+        "code": "monday = input(\"Books on {{w0}}: \")\ntuesday = input(\"Books on {{w1}}: \")\nprint(\"Total:\", int(monday) + int(tuesday))\nprint(\"Total:\", int(monday) + int(tuesday))"
+      }
+    ],
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && a1 > 0 && ![0, 1, 2].includes(Math.abs(a1)) && a0 + 2 < a1 && new Set([w0, w1]).size === 2 && (a0 !== 3 || a1 !== 12 || w0 !== \"Monday\" || w1 !== \"Tuesday\")",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j0": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j1": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "w0": {
+        "choice": [
+          "Monday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday"
+        ]
+      },
+      "w1": {
+        "choice": [
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday"
+        ]
+      }
+    },
+    "values": {
+      "a0": "Math.round(3 * f) + j0",
+      "a1": "Math.round(12 * f) + j1"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1",
+      "w0",
+      "w1"
+    ]
+  },
+  {
+    "id": "d-types-L2d",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L2d",
+    "derived": true,
+    "level": 2,
+    "type": "predict",
+    "title": "Is the {{w0}} open?",
+    "description": "This program casts the input with bool(). The user types False. What will it print?",
+    "starter": "",
+    "solution": "open_now = bool(input(\"Is the {{w0}} open? (True/False): \"))\nprint(\"Open:\", open_now)",
+    "optionCount": 3,
+    "tests": [
+      {
+        "inputs": [
+          "False"
+        ]
+      }
+    ],
+    "hints": [
+      "input() gives the string \"False\": five letters, not the value False.",
+      "bool() casting only checks whether the text is empty."
+    ],
+    "tags": [
+      "bool() casting",
+      "library",
+      "BOOL_CAST_TRAP"
+    ],
+    "skills": [
+      "boolean",
+      "casting"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "BOOL_CAST_TRAP",
+        "code": "open_now = input(\"Is the {{w0}} open? (True/False): \") == \"True\"\nprint(\"Open:\", open_now)"
+      }
+    ],
+    "where": "(w0 !== \"library\")",
+    "params": {
+      "w0": {
+        "choice": [
+          "library",
+          "canteen",
+          "sports hall",
+          "music room",
+          "science lab",
+          "playground"
+        ]
+      }
+    },
+    "fingerprintVars": [
+      "w0"
+    ]
+  },
+  {
+    "id": "d-types-L3a",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L3a",
+    "derived": true,
+    "level": 3,
+    "type": "fill",
+    "title": "Next shoe size",
+    "description": "Fill in the blank so the program casts the shoe size to an integer, then prints the next size up.",
+    "starter": "size = ____(input(\"Shoe size: \"))\nprint(\"Next size up:\", size + 1)",
+    "answers": [
+      "int"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          "{{a0}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{a1}}"
+        ]
+      },
+      {
+        "inputs": [
+          "2"
+        ]
+      }
+    ],
+    "hints": [
+      "A shoe size here is a whole number.",
+      "Which casting function turns text into an integer?"
+    ],
+    "tags": [
+      "shoe sizes",
+      "INPUT_NOT_INT"
+    ],
+    "skills": [
+      "integer",
+      "casting"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "INPUT_NOT_INT",
+        "code": "size = input(\"Shoe size: \")\nprint(\"Next size up:\", size + 1)"
+      }
+    ],
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && a1 > 0 && ![0, 1, 2].includes(Math.abs(a1)) && a0 + 2 < a1 && (a0 !== 5 || a1 !== 11)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j0": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j1": {
+        "int": [
+          -3,
+          3
+        ]
+      }
+    },
+    "values": {
+      "a0": "Math.round(5 * f) + j0",
+      "a1": "Math.round(11 * f) + j1"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1"
+    ]
+  },
+  {
+    "id": "d-types-L3b",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L3b",
+    "derived": true,
+    "level": 3,
+    "type": "fill",
+    "title": "Return bus fare",
+    "description": "Fill in the blank so the program casts the fare to a real number (a float), then prints the return fare.",
+    "starter": "fare = ____(input(\"Fare (£): \"))\nprint(\"Return fare (£):\", fare * 2)",
+    "answers": [
+      "float"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          "{{(a0).toFixed(1)}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{(a1).toFixed(2)}}"
+        ]
+      },
+      {
+        "inputs": [
+          "2"
+        ]
+      }
+    ],
+    "hints": [
+      "The fare can have pence after a decimal point.",
+      "Casting with int() fails on \"{{(a0).toFixed(1)}}\". Which casting function takes a decimal?"
+    ],
+    "tags": [
+      "bus fares",
+      "INT_OF_DECIMAL_STRING"
+    ],
+    "skills": [
+      "real",
+      "casting"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "INT_OF_DECIMAL_STRING",
+        "code": "fare = int(input(\"Fare (£): \"))\nprint(\"Return fare (£):\", fare * 2)"
+      }
+    ],
+    "where": "a0 > 0 && a1 > 0 && a0 < a1 && (a0 !== 1.5 || a1 !== 2.25)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      }
+    },
+    "values": {
+      "a0": "dp(1.5 * f, 1)",
+      "a1": "dp(2.25 * f, 2)"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1"
+    ]
+  },
+  {
+    "id": "d-types-L3c",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L3c",
+    "derived": true,
+    "level": 3,
+    "type": "fill",
+    "title": "Open or closed",
+    "description": "Fill in the blank so is_open is True only when the user types yes.",
+    "starter": "answer = input(\"Is the {{w0}} open? (yes/no): \")\nis_open = answer ____ \"yes\"\nprint(\"Open:\", is_open)",
+    "answers": [
+      "=="
+    ],
+    "tests": [
+      {
+        "inputs": [
+          "yes"
+        ]
+      },
+      {
+        "inputs": [
+          "no"
+        ]
+      }
+    ],
+    "hints": [
+      "A comparison gives a Boolean, True or False.",
+      "Casting with bool(answer) would be True for any word, even no. Compare the text instead."
+    ],
+    "tags": [
+      "library",
+      "BOOL_CAST_TRAP"
+    ],
+    "skills": [
+      "boolean"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "BOOL_CAST_TRAP",
+        "code": "answer = input(\"Is the {{w0}} open? (yes/no): \")\nis_open = bool(answer)\nprint(\"Open:\", is_open)"
+      }
+    ],
+    "where": "(w0 !== \"library\")",
+    "params": {
+      "w0": {
+        "choice": [
+          "library",
+          "canteen",
+          "sports hall",
+          "music room",
+          "science lab",
+          "playground"
+        ]
+      }
+    },
+    "fingerprintVars": [
+      "w0"
+    ]
+  },
+  {
+    "id": "d-types-L4a",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L4a",
+    "derived": true,
+    "level": 4,
+    "type": "fill",
+    "title": "Price tag",
+    "description": "Fill in both blanks: cast the price to a real number, then cast it back to a string to build the price tag.",
+    "starter": "price = ____(input(\"Price (£): \"))\nlabel = \"£\" + ____(price)\nprint(\"Price tag:\", label)",
+    "answers": [
+      "float",
+      "str"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          "{{(a1).toFixed(1)}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{(a0).toFixed(2)}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{a2}}"
+        ]
+      }
+    ],
+    "hints": [
+      "The label is built with + and stored before it is printed, so its pieces must all be strings. That is why str() casting is needed there.",
+      "float() casts text to a real number; str() casts a number back to text."
+    ],
+    "tags": [
+      "shop prices",
+      "STRING_PLUS_INT"
+    ],
+    "skills": [
+      "real",
+      "string",
+      "casting"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "STRING_PLUS_INT",
+        "code": "price = float(input(\"Price (£): \"))\nlabel = \"£\" + price\nprint(\"Price tag:\", label)"
+      }
+    ],
+    "where": "a0 > 0 && a1 > 0 && a0 < a1 && a2 > 0 && ![0, 1, 2].includes(Math.abs(a2)) && a1 < a2 && (a0 !== 0.99 || a1 !== 2.5 || a2 !== 3)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j2": {
+        "int": [
+          -3,
+          3
+        ]
+      }
+    },
+    "values": {
+      "a0": "dp(0.99 * f, 2)",
+      "a1": "dp(2.5 * f, 1)",
+      "a2": "Math.round(3 * f) + j2"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1",
+      "a2"
+    ]
+  },
+  {
+    "id": "d-types-L4b",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L4b",
+    "derived": true,
+    "level": 4,
+    "type": "fill",
+    "title": "Bag weight",
+    "description": "Fill in both blanks: cast the weight to a real number, then print its type with commas.",
+    "starter": "weight = ____(input(\"Bag weight (kg): \"))\nprint(\"Weight (kg):\", weight, \"Type:\", ____(weight))",
+    "answers": [
+      "float",
+      "type"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          "{{(a1).toFixed(1)}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{a0}}"
+        ]
+      }
+    ],
+    "hints": [
+      "A weight can have a decimal part, so it needs float() casting.",
+      "Which function tells you a value's type?"
+    ],
+    "tags": [
+      "weights",
+      "INT_OF_DECIMAL_STRING"
+    ],
+    "skills": [
+      "real",
+      "type-choice"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "INT_OF_DECIMAL_STRING",
+        "code": "weight = int(input(\"Bag weight (kg): \"))\nprint(\"Weight (kg):\", weight, \"Type:\", type(weight))"
+      }
+    ],
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && a1 > 0 && a0 < a1 && (a0 !== 3 || a1 !== 4.5)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j0": {
+        "int": [
+          -3,
+          3
+        ]
+      }
+    },
+    "values": {
+      "a0": "Math.round(3 * f) + j0",
+      "a1": "dp(4.5 * f, 1)"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1"
+    ]
+  },
+  {
+    "id": "d-types-L4c",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L4c",
+    "derived": true,
+    "level": 4,
+    "type": "fill",
+    "title": "{{cap(w1)}} code",
+    "description": "Fill in both blanks: cast the number of books to an integer, then cast it to a string to build the code.",
+    "starter": "books = ____(input(\"Books borrowed: \"))\ncode = \"B\" + ____(books)\nprint(\"Code:\", code)\nprint(\"Books next week:\", books + 1)",
+    "answers": [
+      "int",
+      "str"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          "{{a0}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{a1}}"
+        ]
+      }
+    ],
+    "hints": [
+      "The code is built with + and stored, so each piece must be a string: that's why it needs str() casting.",
+      "books is used for {{w0}} on the last line, so it must be cast to an integer first."
+    ],
+    "tags": [
+      "library books",
+      "INPUT_NOT_INT"
+    ],
+    "skills": [
+      "integer",
+      "string",
+      "casting"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "INPUT_NOT_INT",
+        "code": "books = input(\"Books borrowed: \")\ncode = \"B\" + books\nprint(\"Code:\", code)\nprint(\"Books next week:\", books + 1)"
+      }
+    ],
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && a1 > 0 && ![0, 1, 2].includes(Math.abs(a1)) && a0 + 2 < a1 && (a0 !== 3 || a1 !== 12 || w0 !== \"maths\" || w1 !== \"library\")",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j0": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j1": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "w0": {
+        "choice": [
+          "maths",
+          "science",
+          "history",
+          "geography",
+          "art",
+          "music",
+          "French",
+          "drama",
+          "computing"
+        ]
+      },
+      "w1": {
+        "choice": [
+          "library",
+          "canteen",
+          "sports hall",
+          "music room",
+          "science lab",
+          "playground"
+        ]
+      }
+    },
+    "values": {
+      "a0": "Math.round(3 * f) + j0",
+      "a1": "Math.round(12 * f) + j1"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1",
+      "w0",
+      "w1"
+    ]
+  },
+  {
+    "id": "d-types-L5a",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L5a",
+    "derived": true,
+    "level": 5,
+    "type": "parsons",
+    "title": "Two snacks",
+    "description": "Arrange the lines so the program reads two prices, casts them to real numbers and prints the total with commas.\nOne line is not needed.",
+    "starter": "",
+    "solution": "a = float(input(\"First snack (£): \"))\nb = float(input(\"Second snack (£): \"))\nprint(\"Total (£):\", a + b)",
+    "distractors": [
+      "a = input(\"First snack (£): \")"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          "{{(a2).toFixed(1)}}",
+          "{{(a3).toFixed(2)}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{(a0).toFixed(1)}}",
+          "{{(a1).toFixed(2)}}"
+        ]
+      }
+    ],
+    "hints": [
+      "Both prices need casting before they can be added.",
+      "Without float(), a would be a string and + would fail."
+    ],
+    "tags": [
+      "shop prices",
+      "INPUT_NOT_INT"
+    ],
+    "skills": [
+      "real",
+      "casting"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "INPUT_NOT_INT",
+        "code": "a = input(\"First snack (£): \")\nb = float(input(\"Second snack (£): \"))\nprint(\"Total (£):\", a + b)"
+      }
+    ],
+    "where": "a0 > 0 && a1 > 0 && a0 < a1 && a2 > 0 && a1 < a2 && a3 > 0 && a2 < a3 && (a0 !== 0.5 || a1 !== 0.75 || a2 !== 1.5 || a3 !== 2.25)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      }
+    },
+    "values": {
+      "a0": "dp(0.5 * f, 1)",
+      "a1": "dp(0.75 * f, 2)",
+      "a2": "dp(1.5 * f, 1)",
+      "a3": "dp(2.25 * f, 2)"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1",
+      "a2",
+      "a3"
+    ]
+  },
+  {
+    "id": "d-types-L5b",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L5b",
+    "derived": true,
+    "level": 5,
+    "type": "parsons",
+    "title": "Class size",
+    "description": "Arrange the lines so the program reads two whole numbers, casts them and prints the class size with commas.\nOne line is not needed.",
+    "starter": "",
+    "solution": "boys = int(input(\"Boys: \"))\ngirls = int(input(\"Girls: \"))\nprint(\"Class size:\", boys + girls)",
+    "distractors": [
+      "print(\"Class size:\" + boys + girls)"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          "{{a2}}",
+          "{{a1}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{a0}}",
+          "{{a3}}"
+        ]
+      }
+    ],
+    "hints": [
+      "Cast each input with int(), because a count is a whole number: this is called casting.",
+      "Print with a comma: + can't join text to a number."
+    ],
+    "tags": [
+      "register counts",
+      "STRING_PLUS_INT"
+    ],
+    "skills": [
+      "integer",
+      "casting"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "STRING_PLUS_INT",
+        "code": "boys = int(input(\"Boys: \"))\ngirls = int(input(\"Girls: \"))\nprint(\"Class size:\" + boys + girls)"
+      }
+    ],
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && a1 > 0 && ![0, 1, 2].includes(Math.abs(a1)) && a0 + 2 < a1 && a2 > 0 && ![0, 1, 2].includes(Math.abs(a2)) && a1 < a2 && a3 > 0 && ![0, 1, 2].includes(Math.abs(a3)) && a2 + 1 < a3 && (a0 !== 9 || a1 !== 13 || a2 !== 14 || a3 !== 16)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j0": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j1": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j2": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j3": {
+        "int": [
+          -3,
+          3
+        ]
+      }
+    },
+    "values": {
+      "a0": "Math.round(9 * f) + j0",
+      "a1": "Math.round(13 * f) + j1",
+      "a2": "Math.round(14 * f) + j2",
+      "a3": "Math.round(16 * f) + j3"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1",
+      "a2",
+      "a3"
+    ]
+  },
+  {
+    "id": "d-types-L5c",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L5c",
+    "derived": true,
+    "level": 5,
+    "type": "parsons",
+    "title": "Height difference",
+    "description": "Arrange the lines so the program reads two heights in metres, casts them and prints the difference, rounded to 2 places.\nOne line is not needed.",
+    "starter": "",
+    "solution": "h1 = float(input(\"Height 1 (m): \"))\nh2 = float(input(\"Height 2 (m): \"))\nprint(\"Difference (m):\", round(h1 - h2, 2))",
+    "distractors": [
+      "h1 = int(input(\"Height 1 (m): \"))"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          "{{(a1).toFixed(2)}}",
+          "{{(a0).toFixed(1)}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{(a3).toFixed(1)}}",
+          "{{(a2).toFixed(2)}}"
+        ]
+      }
+    ],
+    "hints": [
+      "Heights in metres have a decimal part.",
+      "Casting \"{{(a1).toFixed(2)}}\" with int() stops with an error: use float()."
+    ],
+    "tags": [
+      "heights",
+      "INT_OF_DECIMAL_STRING"
+    ],
+    "skills": [
+      "real",
+      "casting"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "INT_OF_DECIMAL_STRING",
+        "code": "h1 = int(input(\"Height 1 (m): \"))\nh2 = float(input(\"Height 2 (m): \"))\nprint(\"Difference (m):\", round(h1 - h2, 2))"
+      }
+    ],
+    "where": "a0 > 0 && a1 > 0 && a0 < a1 && a2 > 0 && a1 < a2 && a3 > 0 && a2 < a3 && (a0 !== 1.5 || a1 !== 1.62 || a2 !== 1.75 || a3 !== 1.8)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      }
+    },
+    "values": {
+      "a0": "dp(1.5 * f, 1)",
+      "a1": "dp(1.62 * f, 2)",
+      "a2": "dp(1.75 * f, 2)",
+      "a3": "dp(1.8 * f, 1)"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1",
+      "a2",
+      "a3"
+    ]
+  },
+  {
+    "id": "d-types-L6a",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L6a",
+    "derived": true,
+    "level": 6,
+    "type": "parsons",
+    "title": "Bus journeys",
+    "description": "Arrange the lines so the program reads the number of journeys (a whole number) and the fare (a real number), casting each to the right type, then prints the cost.\nTwo lines are not needed.",
+    "starter": "",
+    "solution": "journeys = int(input(\"Journeys: \"))\nfare = float(input(\"Fare (£): \"))\nprint(\"Cost (£):\", journeys * fare)",
+    "distractors": [
+      "fare = int(input(\"Fare (£): \"))",
+      "print(\"Cost (£): \" + journeys * fare)"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          "{{a2}}",
+          "{{(a0).toFixed(1)}}"
+        ]
+      },
+      {
+        "inputs": [
+          "2",
+          "{{(a1).toFixed(2)}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{a3}}",
+          "2"
+        ]
+      }
+    ],
+    "hints": [
+      "Journeys are counted, so int. A fare has pence, so float.",
+      "Print with a comma: + can't join text to a number."
+    ],
+    "tags": [
+      "bus fares",
+      "INT_OF_DECIMAL_STRING",
+      "STRING_PLUS_INT"
+    ],
+    "skills": [
+      "type-choice",
+      "casting"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "INT_OF_DECIMAL_STRING",
+        "code": "journeys = int(input(\"Journeys: \"))\nfare = int(input(\"Fare (£): \"))\nprint(\"Cost (£):\", journeys * fare)"
+      },
+      {
+        "misconception": "STRING_PLUS_INT",
+        "code": "journeys = int(input(\"Journeys: \"))\nfare = float(input(\"Fare (£): \"))\nprint(\"Cost (£): \" + journeys * fare)"
+      }
+    ],
+    "where": "a0 > 0 && a1 > 0 && a0 < a1 && a2 > 0 && ![0, 1, 2].includes(Math.abs(a2)) && a1 < a2 && a3 > 0 && ![0, 1, 2].includes(Math.abs(a3)) && a2 < a3 && (a0 !== 1.5 || a1 !== 2.25 || a2 !== 3 || a3 !== 4)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j2": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j3": {
+        "int": [
+          -3,
+          3
+        ]
+      }
+    },
+    "values": {
+      "a0": "dp(1.5 * f, 1)",
+      "a1": "dp(2.25 * f, 2)",
+      "a2": "Math.round(3 * f) + j2",
+      "a3": "Math.round(4 * f) + j3"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1",
+      "a2",
+      "a3"
+    ]
+  },
+  {
+    "id": "d-types-L6b",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L6b",
+    "derived": true,
+    "level": 6,
+    "type": "parsons",
+    "title": "{{cap(w0)}} flag",
+    "description": "Arrange the lines so the program stores whether the {{w0}} is open as a Boolean (True only for yes), then prints it and its type.\nTwo lines are not needed.",
+    "starter": "",
+    "solution": "answer = input(\"Is the {{w0}} open? (yes/no): \")\nis_open = answer == \"yes\"\nprint(\"{{cap(w0)}} open:\", is_open)\nprint(\"Type:\", type(is_open))",
+    "distractors": [
+      "is_open = bool(answer)",
+      "is_open = \"answer\" == \"yes\""
+    ],
+    "tests": [
+      {
+        "inputs": [
+          "yes"
+        ]
+      },
+      {
+        "inputs": [
+          "no"
+        ]
+      }
+    ],
+    "hints": [
+      "Casting with bool(answer) gives True for any word at all.",
+      "Compare the variable answer, not the text \"answer\"."
+    ],
+    "tags": [
+      "library",
+      "BOOL_CAST_TRAP"
+    ],
+    "skills": [
+      "boolean",
+      "type-choice"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "BOOL_CAST_TRAP",
+        "code": "answer = input(\"Is the {{w0}} open? (yes/no): \")\nis_open = bool(answer)\nprint(\"{{cap(w0)}} open:\", is_open)\nprint(\"Type:\", type(is_open))"
+      }
+    ],
+    "where": "(w0 !== \"library\")",
+    "params": {
+      "w0": {
+        "choice": [
+          "library",
+          "canteen",
+          "sports hall",
+          "music room",
+          "science lab",
+          "playground"
+        ]
+      }
+    },
+    "fingerprintVars": [
+      "w0"
+    ]
+  },
+  {
+    "id": "d-types-L6c",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L6c",
+    "derived": true,
+    "level": 6,
+    "type": "parsons",
+    "title": "Shoes and heights",
+    "description": "Arrange the lines so the program reads a shoe size (a whole number) and a height in metres (a real number), casting each to the right type, then prints both.\nTwo lines are not needed.",
+    "starter": "",
+    "solution": "size = int(input(\"Shoe size: \"))\nheight = float(input(\"Height (m): \"))\nprint(\"Size\", size, \"and height\", height, \"m\")",
+    "distractors": [
+      "size = float(input(\"Shoe size: \"))",
+      "height = int(input(\"Height (m): \"))"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          "{{a2}}",
+          "{{(a0).toFixed(2)}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{a3}}",
+          "{{(a1).toFixed(1)}}"
+        ]
+      }
+    ],
+    "hints": [
+      "A shoe size here is a whole number, so cast it with int(): float() would print {{a2}}.",
+      "A height has a decimal part, so cast it with float()."
+    ],
+    "tags": [
+      "shoe sizes",
+      "heights",
+      "INT_OF_DECIMAL_STRING"
+    ],
+    "skills": [
+      "type-choice",
+      "integer",
+      "real"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "INT_OF_DECIMAL_STRING",
+        "code": "size = int(input(\"Shoe size: \"))\nheight = int(input(\"Height (m): \"))\nprint(\"Size\", size, \"and height\", height, \"m\")"
+      }
+    ],
+    "where": "a0 > 0 && a1 > 0 && a0 < a1 && a2 > 0 && ![0, 1, 2].includes(Math.abs(a2)) && a1 < a2 && a3 > 0 && ![0, 1, 2].includes(Math.abs(a3)) && a2 + 2 < a3 && (a0 !== 1.52 || a1 !== 1.7 || a2 !== 5 || a3 !== 9)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j2": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j3": {
+        "int": [
+          -3,
+          3
+        ]
+      }
+    },
+    "values": {
+      "a0": "dp(1.52 * f, 2)",
+      "a1": "dp(1.7 * f, 1)",
+      "a2": "Math.round(5 * f) + j2",
+      "a3": "Math.round(9 * f) + j3"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1",
+      "a2",
+      "a3"
+    ]
+  },
+  {
+    "id": "d-types-L7a",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L7a",
+    "derived": true,
+    "level": 7,
+    "type": "fill",
+    "title": "Books left to read",
+    "description": "The reading target is {{a2}} books. Write the missing line that reads the number of books borrowed and casts it to an integer.",
+    "starter": "____\nprint(\"Books borrowed:\", books)\nprint(\"Books left to read:\", {{a2}} - books)",
+    "answers": [
+      "books = int(input(\"Books borrowed: \"))"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          "{{a0}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{a1}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{a2}}"
+        ]
+      }
+    ],
+    "hints": [
+      "The variable must be called books.",
+      "input() gives a string, so use int() casting before the {{w0}} on the last line."
+    ],
+    "tags": [
+      "library books",
+      "whole line",
+      "INPUT_NOT_INT"
+    ],
+    "skills": [
+      "integer",
+      "casting"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "INPUT_NOT_INT",
+        "code": "books = input(\"Books borrowed: \")\nprint(\"Books borrowed:\", books)\nprint(\"Books left to read:\", {{a2}} - books)"
+      }
+    ],
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && a1 > 0 && ![0, 1, 2].includes(Math.abs(a1)) && a0 + 2 < a1 && a2 > 0 && ![0, 1, 2].includes(Math.abs(a2)) && a1 + 2 < a2 && (a0 !== 3 || a1 !== 7 || a2 !== 10 || w0 !== \"maths\")",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j0": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j1": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j2": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "w0": {
+        "choice": [
+          "maths",
+          "science",
+          "history",
+          "geography",
+          "art",
+          "music",
+          "French",
+          "drama",
+          "computing"
+        ]
+      }
+    },
+    "values": {
+      "a0": "Math.round(3 * f) + j0",
+      "a1": "Math.round(7 * f) + j1",
+      "a2": "Math.round(10 * f) + j2"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1",
+      "a2",
+      "w0"
+    ]
+  },
+  {
+    "id": "d-types-L7b",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L7b",
+    "derived": true,
+    "level": 7,
+    "type": "fill",
+    "title": "Warmer tomorrow",
+    "description": "Write the missing line that casts the temperature text to a real number called temp_c.",
+    "starter": "temp = input(\"Temperature (°C): \")\n____\nprint(\"Tomorrow (°C):\", temp_c + {{(a0).toFixed(1)}})",
+    "answers": [
+      "temp_c = float(temp)"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          "{{(a1).toFixed(1)}}"
+        ]
+      },
+      {
+        "inputs": [
+          "-2"
+        ]
+      },
+      {
+        "inputs": [
+          "{{a2}}"
+        ]
+      }
+    ],
+    "hints": [
+      "The temperature can have a decimal part.",
+      "Casting with int() fails on \"{{(a1).toFixed(1)}}\": use float()."
+    ],
+    "tags": [
+      "weather",
+      "whole line",
+      "INT_OF_DECIMAL_STRING"
+    ],
+    "skills": [
+      "real",
+      "casting"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "INT_OF_DECIMAL_STRING",
+        "code": "temp = input(\"Temperature (°C): \")\ntemp_c = int(temp)\nprint(\"Tomorrow (°C):\", temp_c + {{(a0).toFixed(1)}})"
+      }
+    ],
+    "where": "a0 > 0 && a1 > 0 && a0 < a1 && a2 > 0 && ![0, 1, 2].includes(Math.abs(a2)) && a1 < a2 && (a0 !== 1.5 || a1 !== 12.5 || a2 !== 20)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j2": {
+        "int": [
+          -4,
+          4
+        ]
+      }
+    },
+    "values": {
+      "a0": "dp(1.5 * f, 1)",
+      "a1": "dp(12.5 * f, 1)",
+      "a2": "Math.round(20 * f) + j2"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1",
+      "a2"
+    ]
+  },
+  {
+    "id": "d-types-L7c",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L7c",
+    "derived": true,
+    "level": 7,
+    "type": "fill",
+    "title": "{{cap(w0)}} card",
+    "description": "Write the missing line that builds the text for the card, for example Age {{a0}}, and stores it in card.",
+    "starter": "age = int(input(\"Age: \"))\n____\nprint(\"Card:\", card)",
+    "answers": [
+      "card = \"Age \" + str(age)"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          "{{a0}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{a1}}"
+        ]
+      }
+    ],
+    "hints": [
+      "The card text is built with + and stored in card, so every piece must be a string.",
+      "age is an integer, so it needs str() casting before it can be joined."
+    ],
+    "tags": [
+      "library",
+      "whole line",
+      "STRING_PLUS_INT"
+    ],
+    "skills": [
+      "string",
+      "casting"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "STRING_PLUS_INT",
+        "code": "age = int(input(\"Age: \"))\ncard = \"Age \" + age\nprint(\"Card:\", card)"
+      }
+    ],
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && a1 > 0 && ![0, 1, 2].includes(Math.abs(a1)) && a0 + 2 < a1 && (a0 !== 12 || a1 !== 15 || w0 !== \"library\")",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j0": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j1": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "w0": {
+        "choice": [
+          "library",
+          "canteen",
+          "sports hall",
+          "music room",
+          "science lab",
+          "playground"
+        ]
+      }
+    },
+    "values": {
+      "a0": "Math.round(12 * f) + j0",
+      "a1": "Math.round(15 * f) + j1"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1",
+      "w0"
+    ]
+  },
+  {
+    "id": "d-types-L8a",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L8a",
+    "derived": true,
+    "level": 8,
+    "type": "write",
+    "title": "Tuck shop",
+    "description": "The price is read for you as text. Cast it to a real number, then print what {{a2}} of them cost, rounded to 2 places, for example:\n[[out:0:0]]",
+    "starter": "price_text = input(\"Price (£): \")\n# Cast price_text to a real number, then print the cost of {{a2}}",
+    "solution": "price_text = input(\"Price (£): \")\nprice = float(price_text)\nprint(\"{{a2}} items cost (£):\", round(price * {{a2}}, 2))",
+    "tests": [
+      {
+        "inputs": [
+          "{{(a0).toFixed(2)}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{(a1).toFixed(1)}}"
+        ]
+      },
+      {
+        "inputs": [
+          "2"
+        ]
+      }
+    ],
+    "hints": [
+      "price = float(price_text) is the casting step.",
+      "Use round(..., 2), and print the label and the value with a comma."
+    ],
+    "tags": [
+      "shop prices",
+      "INT_OF_DECIMAL_STRING"
+    ],
+    "skills": [
+      "real",
+      "casting"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "INT_OF_DECIMAL_STRING",
+        "code": "price_text = input(\"Price (£): \")\nprice = int(price_text)\nprint(\"{{a2}} items cost (£):\", round(price * {{a2}}, 2))"
+      }
+    ],
+    "where": "a0 > 0 && a1 > 0 && a0 < a1 && a2 > 0 && ![0, 1, 2].includes(Math.abs(a2)) && a1 < a2 && (a0 !== 0.45 || a1 !== 1.2 || a2 !== 3)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j2": {
+        "int": [
+          -3,
+          3
+        ]
+      }
+    },
+    "values": {
+      "a0": "dp(0.45 * f, 2)",
+      "a1": "dp(1.2 * f, 1)",
+      "a2": "Math.round(3 * f) + j2"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1",
+      "a2"
+    ]
+  },
+  {
+    "id": "d-types-L8b",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L8b",
+    "derived": true,
+    "level": 8,
+    "type": "write",
+    "title": "Bus pass",
+    "description": "The number of rides and the fare are read for you as text. Cast each to the right type (rides are counted; a fare has pence), then print the total rounded to 2 places, for example:\n[[out:0:0]]",
+    "starter": "rides_text = input(\"Rides this week: \")\nfare_text = input(\"Fare (£): \")\n# Cast each one to the right type, then print the total",
+    "solution": "rides_text = input(\"Rides this week: \")\nfare_text = input(\"Fare (£): \")\nrides = int(rides_text)\nfare = float(fare_text)\nprint(\"Total (£):\", round(rides * fare, 2))",
+    "tests": [
+      {
+        "inputs": [
+          "{{a3}}",
+          "{{(a1).toFixed(2)}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{a4}}",
+          "{{(a0).toFixed(1)}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{a2}}",
+          "2"
+        ]
+      }
+    ],
+    "hints": [
+      "Rides are a whole number: int() casting. A fare has pence: float() casting.",
+      "Use round(..., 2), and print with a comma."
+    ],
+    "tags": [
+      "bus fares",
+      "INT_OF_DECIMAL_STRING"
+    ],
+    "skills": [
+      "type-choice",
+      "casting"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "INT_OF_DECIMAL_STRING",
+        "code": "rides_text = input(\"Rides this week: \")\nfare_text = input(\"Fare (£): \")\nrides = int(rides_text)\nfare = int(fare_text)\nprint(\"Total (£):\", round(rides * fare, 2))"
+      }
+    ],
+    "where": "a0 > 0 && a1 > 0 && a0 < a1 && a2 > 0 && ![0, 1, 2].includes(Math.abs(a2)) && a1 < a2 && a3 > 0 && ![0, 1, 2].includes(Math.abs(a3)) && a2 < a3 && a4 > 0 && ![0, 1, 2].includes(Math.abs(a4)) && a3 + 2 < a4 && (a0 !== 0.8 || a1 !== 1.25 || a2 !== 3 || a3 !== 4 || a4 !== 10)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j2": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j3": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j4": {
+        "int": [
+          -3,
+          3
+        ]
+      }
+    },
+    "values": {
+      "a0": "dp(0.8 * f, 1)",
+      "a1": "dp(1.25 * f, 2)",
+      "a2": "Math.round(3 * f) + j2",
+      "a3": "Math.round(4 * f) + j3",
+      "a4": "Math.round(10 * f) + j4"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1",
+      "a2",
+      "a3",
+      "a4"
+    ]
+  },
+  {
+    "id": "d-types-L8c",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L8c",
+    "derived": true,
+    "level": 8,
+    "type": "write",
+    "title": "Shoe size label",
+    "description": "The shoe size is read for you as text. Cast it to an integer, then print it and the next size up, for example:\n[[out:0]]",
+    "starter": "size_text = input(\"Shoe size: \")\n# Cast size_text to an integer, then print the two lines",
+    "solution": "size_text = input(\"Shoe size: \")\nsize = int(size_text)\nprint(\"Size:\", size)\nprint(\"Next size up:\", size + 1)",
+    "tests": [
+      {
+        "inputs": [
+          "{{a0}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{a1}}"
+        ]
+      }
+    ],
+    "hints": [
+      "size = int(size_text) is the casting step.",
+      "Print each label and value with a comma."
+    ],
+    "tags": [
+      "shoe sizes",
+      "INPUT_NOT_INT"
+    ],
+    "skills": [
+      "integer",
+      "casting"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "INPUT_NOT_INT",
+        "code": "size_text = input(\"Shoe size: \")\nprint(\"Size:\", size_text)\nprint(\"Next size up:\", size_text + 1)"
+      }
+    ],
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && a1 > 0 && ![0, 1, 2].includes(Math.abs(a1)) && a0 + 2 < a1 && (a0 !== 5 || a1 !== 12)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j0": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j1": {
+        "int": [
+          -3,
+          3
+        ]
+      }
+    },
+    "values": {
+      "a0": "Math.round(5 * f) + j0",
+      "a1": "Math.round(12 * f) + j1"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1"
+    ]
+  },
+  {
+    "id": "d-types-L9a",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L9a",
+    "derived": true,
+    "level": 9,
+    "type": "write",
+    "title": "{{cap(w0)}} fine",
+    "description": "A {{w0}} charges £{{(a0).toFixed(1)}} for each day a book is late. Ask how many days late it is, cast the input to the right type, and print the fine rounded to 2 places, for example:\n[[out:0:0]]\nAdd a comment saying why you chose that type.",
+    "starter": "# Write your program here",
+    "solution": "days = int(input(\"Days late: \"))  # days are counted in whole numbers, so int\nprint(\"Fine (£):\", round(days * {{(a0).toFixed(1)}}, 2))",
+    "tests": [
+      {
+        "inputs": [
+          "{{a1}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{a2}}"
+        ]
+      },
+      {
+        "inputs": [
+          "0"
+        ]
+      }
+    ],
+    "hints": [
+      "Days are counted, so they are a whole number.",
+      "Casting with int() first, then multiply by {{(a0).toFixed(1)}} and round to 2 places."
+    ],
+    "tags": [
+      "library fines",
+      "INPUT_NOT_INT"
+    ],
+    "skills": [
+      "integer",
+      "type-choice",
+      "casting"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "INPUT_NOT_INT",
+        "code": "days = input(\"Days late: \")\nprint(\"Fine (£):\", round(days * {{(a0).toFixed(1)}}, 2))"
+      }
+    ],
+    "where": "a0 > 0 && a1 > 0 && ![0, 1, 2].includes(Math.abs(a1)) && a0 < a1 && a2 > 0 && ![0, 1, 2].includes(Math.abs(a2)) && a1 + 2 < a2 && (a0 !== 0.2 || a1 !== 3 || a2 !== 10 || w0 !== \"library\")",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j1": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j2": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "w0": {
+        "choice": [
+          "library",
+          "canteen",
+          "sports hall",
+          "music room",
+          "science lab",
+          "playground"
+        ]
+      }
+    },
+    "values": {
+      "a0": "dp(0.2 * f, 1)",
+      "a1": "Math.round(3 * f) + j1",
+      "a2": "Math.round(10 * f) + j2"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1",
+      "a2",
+      "w0"
+    ]
+  },
+  {
+    "id": "d-types-L9b",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L9b",
+    "derived": true,
+    "level": 9,
+    "type": "write",
+    "title": "Height in centimetres",
+    "description": "Ask for a pupil's height in metres, cast the input to the right type, and print it in centimetres as a whole number using round(), for example:\n[[out:0:0]]\nAdd a comment saying why you chose that type.",
+    "starter": "# Write your program here",
+    "solution": "height = float(input(\"Height (m): \"))  # a height has a decimal part, so float\nprint(\"Height (cm):\", round(height * 100))",
+    "tests": [
+      {
+        "inputs": [
+          "{{(a0).toFixed(2)}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{(a1).toFixed(1)}}"
+        ]
+      },
+      {
+        "inputs": [
+          "2"
+        ]
+      }
+    ],
+    "hints": [
+      "A height in metres has a decimal part.",
+      "Casting with float(), then round(height * 100) gives a whole number of centimetres."
+    ],
+    "tags": [
+      "heights",
+      "INT_OF_DECIMAL_STRING"
+    ],
+    "skills": [
+      "real",
+      "type-choice",
+      "casting"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "INT_OF_DECIMAL_STRING",
+        "code": "height = int(input(\"Height (m): \"))\nprint(\"Height (cm):\", round(height * 100))"
+      }
+    ],
+    "where": "a0 > 0 && a1 > 0 && a0 < a1 && (a0 !== 1.52 || a1 !== 1.6)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      }
+    },
+    "values": {
+      "a0": "dp(1.52 * f, 2)",
+      "a1": "dp(1.6 * f, 1)"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1"
+    ]
+  },
+  {
+    "id": "d-types-L9c",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L9c",
+    "derived": true,
+    "level": 9,
+    "type": "write",
+    "title": "Trip slip",
+    "description": "Ask whether the {{[\"trip slip\",\"consent form\",\"museum letter\",\"swimming slip\",\"theatre form\",\"camp letter\"][p0]}} has been signed (yes or no). Store the answer as a Boolean that is True only for yes, then print it, and then \"{{[\"You can go on the trip\",\"You can go to the match\",\"You can go to the museum\",\"You can go swimming\",\"You can go to the theatre\",\"You can go to camp\"][p0]}}\" or \"{{[\"Please bring your slip\",\"Please bring your form\",\"Please bring your letter\",\"Please bring your slip\",\"Please bring your form\",\"Please bring your letter\"][p0]}}\", for example:\n[[out:0]]\nAdd a comment saying why you chose that type.",
+    "starter": "# Write your program here",
+    "solution": "answer = input(\"{{[\"Slip signed?\",\"Form signed?\",\"Letter signed?\",\"Slip signed?\",\"Form signed?\",\"Letter signed?\"][p0]}} (yes/no): \")\nsigned = answer == \"yes\"  # it can only be yes or no, so a Boolean\nprint(\"Signed:\", signed)\nif signed:\n    print(\"{{[\"You can go on the trip\",\"You can go to the match\",\"You can go to the museum\",\"You can go swimming\",\"You can go to the theatre\",\"You can go to camp\"][p0]}}\")\nelse:\n    print(\"{{[\"Please bring your slip\",\"Please bring your form\",\"Please bring your letter\",\"Please bring your slip\",\"Please bring your form\",\"Please bring your letter\"][p0]}}\")",
+    "tests": [
+      {
+        "inputs": [
+          "yes"
+        ]
+      },
+      {
+        "inputs": [
+          "no"
+        ]
+      }
+    ],
+    "hints": [
+      "A yes/no fact suits a Boolean.",
+      "Casting with bool(answer) would be True even for no: compare the text with == instead."
+    ],
+    "tags": [
+      "school trip",
+      "BOOL_CAST_TRAP"
+    ],
+    "skills": [
+      "boolean",
+      "type-choice"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "BOOL_CAST_TRAP",
+        "code": "answer = input(\"{{[\"Slip signed?\",\"Form signed?\",\"Letter signed?\",\"Slip signed?\",\"Form signed?\",\"Letter signed?\"][p0]}} (yes/no): \")\nsigned = bool(answer)\nprint(\"Signed:\", signed)\nif signed:\n    print(\"{{[\"You can go on the trip\",\"You can go to the match\",\"You can go to the museum\",\"You can go swimming\",\"You can go to the theatre\",\"You can go to camp\"][p0]}}\")\nelse:\n    print(\"{{[\"Please bring your slip\",\"Please bring your form\",\"Please bring your letter\",\"Please bring your slip\",\"Please bring your form\",\"Please bring your letter\"][p0]}}\")"
+      }
+    ],
+    "where": "(p0 !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          5
+        ]
+      }
+    },
+    "fingerprintVars": [
+      "p0"
+    ]
+  },
+  {
+    "id": "d-types-L10a",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L10a",
+    "derived": true,
+    "level": 10,
+    "type": "write",
+    "title": "Trip summary",
+    "description": "Ask for the name of a school trip, the number of pupils going, the cost per pupil in pounds, and whether the deposit has been paid (yes or no). Cast each value to a suitable type. Print, for example:\n[[out:0]]\nRound the total to 2 places. Deposit paid is True only for yes.",
+    "starter": "# Write your program here",
+    "solution": "trip = input(\"Trip: \")\npupils = int(input(\"Pupils: \"))\ncost = float(input(\"Cost per pupil (£): \"))\npaid = input(\"Deposit paid? (yes/no): \") == \"yes\"\nprint(\"Trip:\", trip)\nprint(\"Pupils:\", pupils)\nprint(\"Total (£):\", round(pupils * cost, 2))\nprint(\"Deposit paid:\", paid)",
+    "tests": [
+      {
+        "inputs": [
+          "Museum",
+          "{{a4}}",
+          "{{(a0).toFixed(1)}}",
+          "yes"
+        ]
+      },
+      {
+        "inputs": [
+          "Zoo",
+          "{{a3}}",
+          "{{a1}}",
+          "no"
+        ]
+      },
+      {
+        "inputs": [
+          "Theatre",
+          "{{a1}}",
+          "{{(a2).toFixed(2)}}",
+          "yes"
+        ]
+      }
+    ],
+    "hints": [
+      "Pupils are counted (int), a cost has pence (float), a yes/no fact is a Boolean, and the trip name stays a string.",
+      "Casting with bool() would make every answer True: compare the answer with == \"yes\".",
+      "Print each label and value with a comma."
+    ],
+    "tags": [
+      "school trip",
+      "INT_OF_DECIMAL_STRING",
+      "BOOL_CAST_TRAP"
+    ],
+    "skills": [
+      "type-choice",
+      "casting",
+      "real"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "INT_OF_DECIMAL_STRING",
+        "code": "trip = input(\"Trip: \")\npupils = int(input(\"Pupils: \"))\ncost = int(input(\"Cost per pupil (£): \"))\npaid = input(\"Deposit paid? (yes/no): \") == \"yes\"\nprint(\"Trip:\", trip)\nprint(\"Pupils:\", pupils)\nprint(\"Total (£):\", round(pupils * cost, 2))\nprint(\"Deposit paid:\", paid)"
+      },
+      {
+        "misconception": "BOOL_CAST_TRAP",
+        "code": "trip = input(\"Trip: \")\npupils = int(input(\"Pupils: \"))\ncost = float(input(\"Cost per pupil (£): \"))\npaid = bool(input(\"Deposit paid? (yes/no): \"))\nprint(\"Trip:\", trip)\nprint(\"Pupils:\", pupils)\nprint(\"Total (£):\", round(pupils * cost, 2))\nprint(\"Deposit paid:\", paid)"
+      }
+    ],
+    "where": "a0 > 0 && a1 > 0 && ![0, 1, 2].includes(Math.abs(a1)) && a0 < a1 && a2 > 0 && a1 < a2 && a3 > 0 && ![0, 1, 2].includes(Math.abs(a3)) && a2 < a3 && a4 > 0 && ![0, 1, 2].includes(Math.abs(a4)) && a3 + 2 < a4 && (a0 !== 8.5 || a1 !== 12 || a2 !== 15.75 || a3 !== 25 || a4 !== 30)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j1": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j3": {
+        "int": [
+          -5,
+          5
+        ]
+      },
+      "j4": {
+        "int": [
+          -6,
+          6
+        ]
+      }
+    },
+    "values": {
+      "a0": "dp(8.5 * f, 1)",
+      "a1": "Math.round(12 * f) + j1",
+      "a2": "dp(15.75 * f, 2)",
+      "a3": "Math.round(25 * f) + j3",
+      "a4": "Math.round(30 * f) + j4"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1",
+      "a2",
+      "a3",
+      "a4"
+    ]
+  },
+  {
+    "id": "d-types-L10b",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L10b",
+    "derived": true,
+    "level": 10,
+    "type": "write",
+    "title": "Race times",
+    "description": "Ask for three race times in seconds (they can have decimals). Cast each one. Print the total and the mean, each rounded to 2 places, and the type of the mean, for example:\n[[out:0]]",
+    "starter": "# Write your program here",
+    "solution": "a = float(input(\"Time 1 (s): \"))\nb = float(input(\"Time 2 (s): \"))\nc = float(input(\"Time {{a0}} (s): \"))\ntotal = a + b + c\nmean = total / {{a0}}\nprint(\"Total (s):\", round(total, 2))\nprint(\"Mean (s):\", round(mean, 2))\nprint(\"Type:\", type(mean))",
+    "tests": [
+      {
+        "inputs": [
+          "{{(a4).toFixed(1)}}",
+          "{{(a6).toFixed(1)}}",
+          "{{(a5).toFixed(1)}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{a1}}",
+          "{{a2}}",
+          "{{a3}}"
+        ]
+      },
+      {
+        "inputs": [
+          "{{(a8).toFixed(2)}}",
+          "{{(a7).toFixed(2)}}",
+          "{{a9}}"
+        ]
+      }
+    ],
+    "hints": [
+      "Each time needs casting with float(), because it can have a decimal part.",
+      "The mean is total / {{a0}}, and / always gives a float.",
+      "Use round(..., 2) for both."
+    ],
+    "tags": [
+      "sports day",
+      "INT_OF_DECIMAL_STRING"
+    ],
+    "skills": [
+      "real",
+      "casting"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "INT_OF_DECIMAL_STRING",
+        "code": "a = int(input(\"Time 1 (s): \"))\nb = float(input(\"Time 2 (s): \"))\nc = float(input(\"Time {{a0}} (s): \"))\ntotal = a + b + c\nmean = total / {{a0}}\nprint(\"Total (s):\", round(total, 2))\nprint(\"Mean (s):\", round(mean, 2))\nprint(\"Type:\", type(mean))"
+      }
+    ],
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && a1 > 0 && ![0, 1, 2].includes(Math.abs(a1)) && a0 + 2 < a1 && a2 > 0 && ![0, 1, 2].includes(Math.abs(a2)) && a1 < a2 && a3 > 0 && ![0, 1, 2].includes(Math.abs(a3)) && a2 < a3 && a4 > 0 && a3 < a4 && a5 > 0 && a4 < a5 && a6 > 0 && a5 < a6 && a7 > 0 && a6 < a7 && a8 > 0 && a7 < a8 && a9 > 0 && ![0, 1, 2].includes(Math.abs(a9)) && a8 < a9 && (a0 !== 3 || a1 !== 10 || a2 !== 11 || a3 !== 12 || a4 !== 12.5 || a5 !== 12.8 || a6 !== 13.1 || a7 !== 13.75 || a8 !== 14.25 || a9 !== 15)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j0": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j1": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j2": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j3": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j9": {
+        "int": [
+          -3,
+          3
+        ]
+      }
+    },
+    "values": {
+      "a0": "Math.round(3 * f) + j0",
+      "a1": "Math.round(10 * f) + j1",
+      "a2": "Math.round(11 * f) + j2",
+      "a3": "Math.round(12 * f) + j3",
+      "a4": "dp(12.5 * f, 1)",
+      "a5": "dp(12.8 * f, 1)",
+      "a6": "dp(13.1 * f, 1)",
+      "a7": "dp(13.75 * f, 2)",
+      "a8": "dp(14.25 * f, 2)",
+      "a9": "Math.round(15 * f) + j9"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1",
+      "a2",
+      "a3",
+      "a4",
+      "a5",
+      "a6",
+      "a7",
+      "a8",
+      "a9"
+    ]
+  },
+  {
+    "id": "d-types-L10c",
+    "units": [
+      "data-types"
+    ],
+    "source": "types-L10c",
+    "derived": true,
+    "level": 10,
+    "type": "write",
+    "title": "Book fair order",
+    "description": "Ask how many books are wanted, the price of one book in pounds, and whether the buyer is a club member (yes or no). Cast each value to a suitable type. Members get 10% off. Print the total rounded to 2 places, then \"Member discount applied\" if they are a member, for example:\n[[out:0]]",
+    "starter": "# Write your program here",
+    "solution": "books = int(input(\"Books: \"))\nprice = float(input(\"Price (£): \"))\nmember = input(\"Member? (yes/no): \") == \"yes\"\ntotal = books * price\nif member:\n    total = total * 0.9\nprint(\"Total (£):\", round(total, 2))\nif member:\n    print(\"Member discount applied\")",
+    "tests": [
+      {
+        "inputs": [
+          "{{a1}}",
+          "{{a4}}",
+          "yes"
+        ]
+      },
+      {
+        "inputs": [
+          "2",
+          "{{(a3).toFixed(2)}}",
+          "no"
+        ]
+      },
+      {
+        "inputs": [
+          "{{a2}}",
+          "{{(a0).toFixed(1)}}",
+          "no"
+        ]
+      }
+    ],
+    "hints": [
+      "Books are counted (int), a price has pence (float), and member is a Boolean.",
+      "Casting with bool() would give True even for no: compare the answer with == \"yes\".",
+      "Multiply by 0.9 for 10% off."
+    ],
+    "tags": [
+      "book fair",
+      "BOOL_CAST_TRAP",
+      "INPUT_NOT_INT"
+    ],
+    "skills": [
+      "integer",
+      "real",
+      "boolean"
+    ],
+    "buggy_variants": [
+      {
+        "misconception": "BOOL_CAST_TRAP",
+        "code": "books = int(input(\"Books: \"))\nprice = float(input(\"Price (£): \"))\nmember = bool(input(\"Member? (yes/no): \"))\ntotal = books * price\nif member:\n    total = total * 0.9\nprint(\"Total (£):\", round(total, 2))\nif member:\n    print(\"Member discount applied\")"
+      },
+      {
+        "misconception": "INPUT_NOT_INT",
+        "code": "books = input(\"Books: \")\nprice = float(input(\"Price (£): \"))\nmember = input(\"Member? (yes/no): \") == \"yes\"\ntotal = books * price\nif member:\n    total = total * 0.9\nprint(\"Total (£):\", round(total, 2))\nif member:\n    print(\"Member discount applied\")"
+      }
+    ],
+    "where": "a0 > 0 && a1 > 0 && ![0, 1, 2].includes(Math.abs(a1)) && a0 < a1 && a2 > 0 && ![0, 1, 2].includes(Math.abs(a2)) && a1 < a2 && a3 > 0 && a2 < a3 && a4 > 0 && ![0, 1, 2].includes(Math.abs(a4)) && a3 < a4 && (a0 !== 2.5 || a1 !== 3 || a2 !== 4 || a3 !== 4.99 || a4 !== 5)",
+    "params": {
+      "f": {
+        "choice": [
+          0.75,
+          0.8,
+          0.85,
+          0.9,
+          0.95,
+          1,
+          1.05,
+          1.1,
+          1.2,
+          1.3
+        ]
+      },
+      "j1": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j2": {
+        "int": [
+          -3,
+          3
+        ]
+      },
+      "j4": {
+        "int": [
+          -3,
+          3
+        ]
+      }
+    },
+    "values": {
+      "a0": "dp(2.5 * f, 1)",
+      "a1": "Math.round(3 * f) + j1",
+      "a2": "Math.round(4 * f) + j2",
+      "a3": "dp(4.99 * f, 2)",
+      "a4": "Math.round(5 * f) + j4"
+    },
+    "fingerprintVars": [
+      "a0",
+      "a1",
+      "a2",
+      "a3",
+      "a4"
     ]
   }
 ]

@@ -1,5 +1,17 @@
 [
   {
+    "id": "INT_OF_DECIMAL_STRING",
+    "name": "int() used on text with a decimal point",
+    "description": "Casts input such as \"3.5\" with int(), expecting it to become 3 or 3.5. int() only accepts text that is a whole number, so Python stops with a ValueError. float() is needed for real numbers.",
+    "explanation": "It looks like int() was given text with a decimal point in it, which int() can't cast. int() only works on whole numbers like \"42\". Think about what kind of number the user types here, and which casting function fits it."
+  },
+  {
+    "id": "BOOL_CAST_TRAP",
+    "name": "bool() expected to read the word True or False",
+    "description": "Uses bool(input()) or bool(text) expecting \"False\" or \"no\" to become False. bool() of any non-empty text is True, so every answer counts as True. Comparing the text, for example answer == \"yes\", is needed.",
+    "explanation": "It looks like bool() was used to turn typed text into True or False. bool() only checks whether the text is empty, so any word at all, even False or no, gives True. Think about how to test what the user actually typed instead."
+  },
+  {
     "id": "EQUALS_VS_DOUBLE_EQUALS",
     "name": "= instead of == (or the other way round)",
     "description": "Uses a single = (which stores a value) where == (which compares two values) is needed, for example in an if condition, or uses == where a value should be stored.",

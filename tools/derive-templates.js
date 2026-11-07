@@ -54,6 +54,17 @@ const MIN_VARIANTS = 5;
 //   swaps:     [[tuple, tuple, …], …] linked strings; the first tuple is the task's own, changed together everywhere
 //   testSets:  alternative lists of test inputs (the first is the task's own), for inputs that carry meaning
 const OVERRIDES = {
+  // Data types and casting.
+  "types-L1b": { swaps: [[["42"], ["17"], ["8"], ["63"], ["25"], ["31"]]] },
+  "types-L9c": { swaps: [[
+    ["trip slip", "Slip signed?", "You can go on the trip", "Please bring your slip"],
+    ["consent form", "Form signed?", "You can go to the match", "Please bring your form"],
+    ["museum letter", "Letter signed?", "You can go to the museum", "Please bring your letter"],
+    ["swimming slip", "Slip signed?", "You can go swimming", "Please bring your slip"],
+    ["theatre form", "Form signed?", "You can go to the theatre", "Please bring your form"],
+    ["camp letter", "Letter signed?", "You can go to camp", "Please bring your letter"]]] },
+  "types-L10c": { fixed: [0.9] }, // 10% off: the 0.9 is a fact of the task
+
   // Calendar facts (days in each month, the leap-year rule) never change; only the test years do.
   "functions-L10b": { fixed: [4, 6, 9, 11, 28, 29, 30, 31, 400, 1900, 2000] },
   "out-L2b": { swaps: [[["7", "B", "Smith"], ["8", "R", "Jones"], ["9", "K", "Patel"], ["10", "T", "Brown"], ["11", "C", "Khan"], ["8", "M", "Evans"]]] },

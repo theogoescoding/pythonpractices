@@ -88,9 +88,47 @@ export function randomDigits(n: number): string {
 export const newLoginCode = () => String(1 + Number(randomDigits(1)) % 9) + randomDigits(7);
 export const newPin = () => randomDigits(4);
 
-const BCRYPT_COST = 10;
-export const hashPin = (pin: string): Promise<string> => bcrypt.hash(pin, BCRYPT_COST);
-export const pinMatches = (pin: string, hash: string): Promise<boolean> => bcrypt.compare(pin, hash);
+// ---------- PIN hashes ----------
+// PBKDF2-SHA256 (Web Crypto, built into the runtime), stored as "pbkdf2-sha256$<iterations>$<salt>$<hash>" in base64.
+// It replaced bcryptjs (cost 10), which is pure JavaScript: about 6 times slower, so a whole class signing in at
+// once could push a function worker past its CPU limit (status 546).
+// Why 50,000 iterations is enough here: a PIN has only 10,000 values, so a stolen hash could be tried against all of
+// them whatever the cost. The protection is that pin_hash is never readable (row-level security, column grants) and
+// the 5-wrong-PINs lock. The iteration count is stored with each hash, so it can be raised later.
+// PINs hashed before with bcrypt ("$2a$…") still work, and are re-hashed at the student's next correct sign-in.
+const PBKDF2_PREFIX = "pbkdf2-sha256";
+export const PBKDF2_ITERATIONS = 50_000;
+
+async function pbkdf2(pin: string, salt: Uint8Array, iterations: number): Promise<Uint8Array> {
+  const k = await crypto.subtle.importKey("raw", enc.encode(pin), "PBKDF2", false, ["deriveBits"]);
+  return new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations }, k, 256));
+}
+
+// Compares every byte, so the time taken doesn't depend on where two hashes differ.
+function sameBytes(a: Uint8Array, b: Uint8Array): boolean {
+  let diff = a.length ^ b.length;
+  for (let i = 0; i < Math.max(a.length, b.length); i++) diff |= (a[i] ?? 0) ^ (b[i] ?? 0);
+  return diff === 0;
+}
+
+export async function hashPin(pin: string): Promise<string> {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  return [PBKDF2_PREFIX, PBKDF2_ITERATIONS, b64(salt), b64(await pbkdf2(pin, salt, PBKDF2_ITERATIONS))].join("$");
+}
+
+export async function pinMatches(pin: string, stored: string): Promise<boolean> {
+  if (stored.startsWith(PBKDF2_PREFIX + "$")) {
+    const [, its, salt, hash] = stored.split("$");
+    const iterations = Number(its);
+    if (!Number.isInteger(iterations) || iterations < 1 || !salt || !hash) return false;
+    return sameBytes(await pbkdf2(pin, unb64(salt), iterations), unb64(hash));
+  }
+  return bcrypt.compare(pin, stored); // a PIN hashed before the change
+}
+
+// True for a hash in the old format (bcrypt) or with fewer iterations than now: re-hash it after a correct PIN.
+export const pinNeedsRehash = (stored: string): boolean => !stored.startsWith(PBKDF2_PREFIX + "$" + PBKDF2_ITERATIONS + "$");
+
 // Run when no student has the code, so a wrong code takes as long as a wrong PIN.
 let dummyHash: Promise<string> | null = null;
 export async function comparePinWithNobody(pin: string): Promise<void> {
