@@ -69,7 +69,9 @@ function buildTasks(unit, all) {
       const outs = variantOut[ti + ":" + vi];
       if (!t.tags.includes(v.misconception)) problems.push(t.id + ": variant id " + v.misconception + " not in tags");
       if (!outs.some((o, k) => o.kind || o.output !== t.tests[k].expected)) problems.push(t.id + ": the " + v.misconception + " variant passes every test");
-      if (outs.some((o) => /SyntaxError|IndentationError|Timeout/.test(o.kind))) problems.push(t.id + ": the " + v.misconception + " variant ends in " + outs.find((o) => o.kind).kind);
+      // A syntax error can't tell one mistake from another, so it is refused, except "= in an if" (Checker.errorKind
+      // names it SyntaxError:assign-in-condition), which only that mistake gives.
+      if (outs.some((o) => /SyntaxError(?!:assign-in-condition)|IndentationError|Timeout/.test(o.kind))) problems.push(t.id + ": the " + v.misconception + " variant ends in " + outs.find((o) => o.kind).kind);
       if (t.type === "predict" && (outs[0].kind || !t.options.includes(outs[0].output) || outs[0].output === t.tests[0].expected))
         problems.push(t.id + ": the " + v.misconception + " variant's output " + JSON.stringify(outs[0].output) + " should be one of the wrong options");
     });

@@ -100,6 +100,24 @@
       description: "A list of lists: grid[row][col], len() for rows and columns, and nested loops to read and print a grid.",
       skills: ["list-of-lists", "indexing", "nested-loop", "length"],
     },
+    {
+      id: "validation",
+      title: "Validation",
+      description: "Check what the user typed before using it: presence, length, range, format and type checks, asking again with while, and a function that returns True or False.",
+      // The first five skills are the five kinds of check: every task practises one of them.
+      skills: ["presence", "length", "range", "format", "type-check", "re-ask", "validation-function"],
+      // Levels 7 and 8 are both short write tasks (no "complete a whole line" level).
+      levelTypes: { 7: "write" },
+      levelNames: { 7: "Write a short check", 8: "Write a longer check" },
+    },
+    {
+      id: "authentication",
+      title: "Authentication",
+      description: "Check a username and password against stored ones: ==, in, and, counting failed attempts, a while loop with three tries, and a login function that returns True or False. Everything is stored in the program itself.",
+      skills: ["match", "known-users", "both-match", "which-wrong", "attempts", "login-loop", "presence", "validation-function"],
+      levelTypes: { 7: "write" },
+      levelNames: { 7: "Write a short check", 8: "Write a longer check" },
+    },
   ];
 
   // How the unit menu groups the units, under headings. Layout only: unit ids, their order and saved progress are
@@ -109,7 +127,7 @@
       units: ["output", "variables", "data-types", "maths", "selection", "loops-condition", "loops-count"] },
     { id: "advanced", title: "Advanced programming",
       units: ["strings", "random", "lists", "functions-basic", "functions-return", "file-handling", "arrays-2d"] },
-    { id: "validation", title: "Validation", units: [], comingSoon: ["Validation", "Authentication"] },
+    { id: "validation", title: "Validation", units: ["validation", "authentication"] },
     { id: "searching-sorting", title: "Searching and sorting", units: [], comingSoon: ["Searching", "Sorting"] },
   ];
 

@@ -469,6 +469,101 @@ const EXAMPLES = {
     code: 'bays = [[0, 0, 1, 0], [1, 1, 0, 0]]\nprint("Rows of bays:", len(bays))\nprint("Bays per row:", len(bays[0]))',
     key_idea: "len(grid) is the number of rows; len(grid[0]) is the number of columns (the length of one row).",
   },
+
+  // ---------- Validation (one example for each kind of check) ----------
+  "validation:presence": {
+    problem: "A sign-up form checks that a surname was typed. The user types only spaces.",
+    code: 'surname = input("Surname: ").strip()\nif surname == "":\n    print("Surname is missing")\nelse:\n    print("Surname:", surname)',
+    inputs: ["   "],
+    key_idea: "A presence check compares the answer with \"\", the empty string. .strip() first, so an answer of only spaces counts as empty.",
+  },
+  "validation:length": {
+    problem: "A games site checks that a gamer tag has 4 to 12 characters. The user types Zo.",
+    code: 'tag = input("Gamer tag: ")\nif len(tag) >= 4 and len(tag) <= 12:\n    print("Tag accepted")\nelse:\n    print("Tags have 4 to 12 characters")',
+    inputs: ["Zo"],
+    key_idea: "A length check uses len() to count the characters. For a lowest and a highest length, both must be True, so join them with and.",
+  },
+  "validation:range": {
+    problem: "A swimming club takes ages 8 to 14, including 8 and 14. The user types 14.",
+    code: 'swimmer = int(input("Swimmer\'s age: "))\nif swimmer >= 8 and swimmer <= 14:\n    print("Swim club place offered")\nelse:\n    print("Swim club ages are 8 to 14")',
+    inputs: ["14"],
+    key_idea: "A range check compares with the lowest and highest values. Use >= and <= when the end values are allowed.",
+  },
+  "validation:format": {
+    problem: "A school checks that a form group looks like 7B: two characters, a digit and then a letter from A to D. The user types 9C.",
+    code: 'form = input("Form: ")\nif len(form) == 2 and form[0].isdigit() and form[1] in ["A", "B", "C", "D"]:\n    print("Form accepted")\nelse:\n    print("Forms look like 7B")',
+    inputs: ["9C"],
+    key_idea: "A format check tests the pattern of the answer: its length, what is at each index, and whether a part is in a list of allowed values.",
+  },
+  "validation:type-check": {
+    problem: "A quiz asks how many questions to set. The user types ten.",
+    code: 'answer = input("Questions: ")\nif answer.isdigit():\n    print("Setting", int(answer), "questions")\nelse:\n    print("Type a whole number, such as 10")',
+    inputs: ["ten"],
+    key_idea: "A type check with .isdigit() makes sure int() will work. Cast with int() only after the check passes. .isdigit() is False for negative numbers and decimals.",
+  },
+  "validation:re-ask": {
+    problem: "A bowling alley keeps asking until a lane from 1 to 12 is chosen. The user types 15, then 4.",
+    code: 'lane = int(input("Bowling lane (1 to 12): "))\nwhile lane < 1 or lane > 12:\n    print("There are 12 lanes")\n    lane = int(input("Bowling lane (1 to 12): "))\nprint("Your lane:", lane)',
+    inputs: ["15", "4"],
+    key_idea: "The while loop runs while the check fails. Ask again inside the loop and store the answer in the same variable, so the condition can change.",
+  },
+  "validation:validation-function": {
+    problem: "A function checks a house number: digits only, from 1 to 999. The user types 0, then 42.",
+    code: 'def valid_house(text):\n    if not text.isdigit():\n        return False\n    number = int(text)\n    if number < 1 or number > 999:\n        return False\n    return True\n\nhouse = input("House number: ")\nwhile not valid_house(house):\n    print("Type a number from 1 to 999")\n    house = input("House number: ")\nprint("House number:", house)',
+    inputs: ["0", "42"],
+    key_idea: "A validation function does the checks and returns True or False. The rest of the program only has to call it, for example while not valid_house(house):",
+  },
+
+  // ---------- Authentication ----------
+  // A different context from the tasks (a games console, a safe, a lock screen), so no prompt or message is shared.
+  "authentication:match": {
+    problem: "A treehouse door opens only for the stored secret word. The user types Panda7.",
+    code: 'secret = "panda7"\nword = input("Secret word: ")\nif word == secret:\n    print("Door opens")\nelse:\n    print("Door stays shut")',
+    inputs: ["Panda7"],
+    key_idea: "== is True only when the two strings match exactly, capital letters and all. input() gives a string, so a stored number never matches.",
+  },
+  "authentication:known-users": {
+    problem: "A games console checks whether a gamer tag is one it knows. The user types zack.",
+    code: 'players = ["rio", "zack", "nia_b"]\ntag = input("Gamer tag: ")\nif tag in players:\n    print("Player found")\nelse:\n    print("No such player")',
+    inputs: ["zack"],
+    key_idea: "in checks whether the tag is one of the items in the list. == would compare it with the whole list, which never matches.",
+  },
+  "authentication:both-match": {
+    problem: "A games console signs a player in only when the gamer tag and the secret word both match. The user types rio, then Pass99.",
+    code: 'stored_tag = "rio"\nstored_secret = "Cloud6"\ntag = input("Gamer tag: ")\nsecret = input("Secret word: ")\nif tag == stored_tag and secret == stored_secret:\n    print("Signed in")\nelse:\n    print("Sign-in refused")',
+    inputs: ["rio", "Pass99"],
+    key_idea: "Join the two comparisons with and: both must be True. With or, the right gamer tag alone would be enough to get in.",
+  },
+  "authentication:which-wrong": {
+    problem: "A games console says which detail was wrong. The user types rio, then cloud6.",
+    code: 'stored_tag = "rio"\nstored_secret = "Cloud6"\ntag = input("Gamer tag: ")\nsecret = input("Secret word: ")\nif tag == stored_tag and secret == stored_secret:\n    print("Signed in")\nelif tag == stored_tag:\n    print("The secret word is wrong")\nelse:\n    print("The gamer tag is wrong")',
+    inputs: ["rio", "cloud6"],
+    key_idea: "Check both details first. If that fails but the gamer tag matches, the secret word must be the wrong part; otherwise it's the tag.",
+  },
+  "authentication:attempts": {
+    problem: "A safe counts the wrong codes before the right one. The user types 1111, 2222, then 5050.",
+    code: 'safe_code = "5050"\nwrong = 0\ncode = input("Safe code: ")\nwhile code != safe_code:\n    wrong = wrong + 1\n    code = input("Safe code: ")\nprint("Safe opened after", wrong, "wrong tries")',
+    inputs: ["1111", "2222", "5050"],
+    key_idea: "Start the counter at 0 before the loop, and add 1 for each wrong try with wrong = wrong + 1. wrong + 1 on its own doesn't store anything.",
+  },
+  "authentication:login-loop": {
+    problem: "A lock screen allows three tries at the secret word. The user types cat, then Cloud6.",
+    code: 'secret = "Cloud6"\ntries = 0\nopen_now = False\nwhile tries < 3 and not open_now:\n    word = input("Lock screen word: ")\n    tries = tries + 1\n    if word == secret:\n        open_now = True\nif open_now:\n    print("Screen open")\nelse:\n    print("Screen locked for a minute")',
+    inputs: ["cat", "Cloud6"],
+    key_idea: "The loop stops after 3 tries or as soon as open_now is True. Count every try inside the loop, or it never ends.",
+  },
+  "authentication:presence": {
+    problem: "A games console checks both boxes were filled in before it checks the details. The user leaves the secret word empty.",
+    code: 'stored_tag = "rio"\nstored_secret = "Cloud6"\ntag = input("Gamer tag: ").strip()\nsecret = input("Secret word: ")\nif tag == "" or secret == "":\n    print("Both boxes are needed")\nelif tag == stored_tag and secret == stored_secret:\n    print("Signed in")\nelse:\n    print("Sign-in refused")',
+    inputs: ["rio", ""],
+    key_idea: "Do the presence check first: if either box is empty (or), say so. Only then check the gamer tag and the secret word.",
+  },
+  "authentication:validation-function": {
+    problem: "A sign-in function checks a gamer tag and secret word against two stored lists. The user types zack, then Snow5.",
+    code: 'tags = ["rio", "zack"]\nsecrets = ["Cloud6", "Snow5"]\n\ndef check_sign_in(tag, secret):\n    for i in range(len(tags)):\n        if tags[i] == tag and secrets[i] == secret:\n            return True\n    return False\n\nif check_sign_in(input("Gamer tag: "), input("Secret word: ")):\n    print("Signed in")\nelse:\n    print("Sign-in refused")',
+    inputs: ["zack", "Snow5"],
+    key_idea: "Each password is at the same index as its username. The function returns True as soon as a stored pair matches, and False after checking them all.",
+  },
 };
 
 module.exports = { EXAMPLES };

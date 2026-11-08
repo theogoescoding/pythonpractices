@@ -202,5 +202,47 @@
     "name": "Mixes up len(grid) and len(grid[0])",
     "description": "Uses len(grid) for the number of columns or len(grid[0]) for the number of rows, which only works when the grid is square.",
     "explanation": "It looks like the number of rows and columns were mixed up. len(grid) counts the rows, and len(grid[0]) counts the items in one row, which is the number of columns. Check each len() against what you need."
+  },
+  {
+    "id": "AND_OR_CONFUSED",
+    "name": "Uses and where or is needed, or the reverse",
+    "description": "Joins two parts of a check with the wrong word: and when either part should be enough (a value below the lowest or above the highest), or or when both must be true (a length of at least 3 and at most 10). The check then lets everything through, or nothing.",
+    "explanation": "It looks like and and or were swapped. and needs both parts to be True, but or needs only one of them. Ask yourself whether both rules must hold at once, or whether breaking either one is enough."
+  },
+  {
+    "id": "REASK_CONDITION_UNCHANGED",
+    "name": "A while loop whose condition never changes",
+    "description": "Asks again inside the loop but stores the new answer in a different variable, so the variable in the loop's condition never changes and the loop never ends (it keeps asking until there is no more input).",
+    "explanation": "It looks like your loop asks again but never changes what the condition checks. The new answer has to go back into the same variable that the while condition uses. Otherwise the condition stays the same and the loop never stops."
+  },
+  {
+    "id": "ISDIGIT_NEGATIVE",
+    "name": "Expects .isdigit() to accept negative numbers or decimals",
+    "description": "Uses .isdigit() alone as a type check where negative numbers (or decimals) are allowed. .isdigit() is False for \"-3\" and \"2.5\" because - and . are not digits, so valid answers are refused.",
+    "explanation": "It looks like your type check refuses negative numbers. .isdigit() is only True when every character is a digit, and - is not a digit. If negative numbers are allowed, also accept a - followed by digits."
+  },
+  {
+    "id": "IN_NOT_EQUALS",
+    "name": "Uses == to compare with a list of allowed values",
+    "description": "Writes answer == [\"yes\", \"no\"] instead of answer in [\"yes\", \"no\"]. A single string is never equal to a whole list, so every answer is refused.",
+    "explanation": "It looks like the answer is being compared with the whole list. == checks whether two things are the same, and one word is never the same as a list. Use in to check whether the answer is one of the items in the list."
+  },
+  {
+    "id": "EMPTY_AFTER_CAST",
+    "name": "Casts with int() before checking for an empty answer",
+    "description": "Converts the input with int() before the presence check. int(\"\") stops the program with a ValueError, so the check for an empty answer is never reached.",
+    "explanation": "It looks like int() runs before the check for an empty answer. int(\"\") stops the program with an error, so your presence check never gets a chance. Check the answer while it is still text, and cast it with int() afterwards."
+  },
+  {
+    "id": "USERNAME_CASE_MISMATCH",
+    "name": "Compares usernames without allowing for capital letters",
+    "description": "Compares the typed username with the stored one using == alone when usernames should ignore capitals, so Ben_K is refused for ben_k. (Passwords are still compared exactly.)",
+    "explanation": "It looks like the username check is treating capital letters as different. Here usernames should match whatever capitals are used, so compare username.lower() with the stored username. Passwords are different: they must match exactly."
+  },
+  {
+    "id": "ATTEMPTS_NOT_COUNTED",
+    "name": "The failed-attempt counter is never increased",
+    "description": "Writes failed + 1 (which works out a number and throws it away), or leaves the increase out, so the counter of attempts stays at 0: the count is wrong, or a limit of three attempts never ends the loop.",
+    "explanation": "It looks like the counter of attempts never goes up. failed + 1 works out a new number but doesn't store it anywhere. Store the new number back in the same variable, so the counter really changes each time."
   }
 ]

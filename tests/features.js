@@ -168,8 +168,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
 
   // ===================== Strings, Random and Lists units =====================
   {
-    check(Curriculum.UNITS.map((u) => u.id).join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d",
-      "Unit order: Output, Variables, Data types, Maths, Selection, the two loops units, Strings, Random, Lists, the two functions units, File handling and 2D arrays");
+    check(Curriculum.UNITS.map((u) => u.id).join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d,validation,authentication",
+      "Unit order: Output, Variables, Data types, Maths, Selection, the two loops units, Strings, Random, Lists, the two functions units, File handling, 2D arrays, Validation and Authentication");
     const NEW = {
       strings: { title: "Strings", prefix: "str", skills: "length,indexing,slicing,upper/lower,find,replace,in" },
       random: { title: "Random", prefix: "rand", skills: "import,randint,choice,simulation" },
@@ -324,6 +324,92 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "Functions, return values: a function that forgets return prints None (fr-L2a), with the RETURN_MISSING_NONE misconception");
   }
 
+  // ===================== Validation and Authentication units =====================
+  {
+    const templatesAll = require(path.join(ROOT, "templates.json"));
+    const codeOf = (t) => [t.solution, t.starter || ""].concat(t.distractors || [], t.answers || [], (t.buggy_variants || []).map((v) => v.code)).join("\n");
+    const LADDER = "predict,predict,fill,fill,parsons,parsons,write,write,write,write";
+    const OUT_OF_SCOPE = /\btry\s*:|\bexcept\b|\.isalpha\(|\.startswith\(|\bimport\b|\bre\.\w+\(|\bhash(lib)?\b|\bopen\(|\{[^{}\n]*:[^{}\n]*\}|\bdict\(/;
+    const NEW = {
+      validation: { title: "Validation", prefix: "val", perLevel: "5,5,5,5,5,5,5,5,5,5", total: 58,
+        skills: "presence,length,range,format,type-check,re-ask,validation-function" },
+      authentication: { title: "Authentication", prefix: "auth", perLevel: "3,3,3,3,3,3,3,3,3,3", total: 38,
+        skills: "match,known-users,both-match,which-wrong,attempts,login-loop,presence,validation-function" },
+    };
+    for (const [id, want] of Object.entries(NEW)) {
+      const unit = Curriculum.unitById(id);
+      const mine = tasks.filter((t) => t.unit === id);
+      const practice = mine.filter((t) => !t.tags.includes("placement"));
+      const placement = mine.filter((t) => t.tags.includes("placement"));
+      const perLevel = Array.from({ length: 10 }, (_, i) => practice.filter((t) => t.level === i + 1).length);
+      check(unit && unit.title === want.title && unit.skills.join() === want.skills, want.title + ": in curriculum.js with its skills (" + want.skills + ")");
+      check(Array.from({ length: 10 }, (_, i) => Curriculum.levelType(i + 1, id)).join() === LADDER && Curriculum.hasScratch(id),
+        want.title + ": levels 1-2 predict, 3-4 fill in the blanks, 5-6 Parsons, 7-8 write a short check, 9-10 write a full program");
+      check(perLevel.join() === want.perLevel && [2, 5, 7, 9].map((lv) => placement.filter((t) => t.level === lv).length).join() === "2,2,2,2" && mine.length === want.total,
+        want.title + ": " + want.perLevel.split(",")[0] + " practice tasks at each level, and 2 placement tasks at levels 2, 5, 7 and 9 (" + perLevel.join(",") + ")");
+      check(mine.every((t) => new RegExp("^" + want.prefix + "-[LP]\\d+[a-z]$").test(t.id) && t.skills.every((s) => unit.skills.includes(s)) && t.type === Curriculum.levelType(t.level, id)),
+        want.title + ": ids " + want.prefix + "-L…/" + want.prefix + "-P…, skills from the unit's list, and each task's type is its level's type");
+      const outside = mine.filter((t) => OUT_OF_SCOPE.test(codeOf(t)));
+      check(!outside.length, want.title + ": no try/except, .isalpha(), .startswith(), regular expressions, hashing, files, imports or dictionaries" + (outside.length ? " (" + outside.map((t) => t.id).join(", ") + ")" : ""));
+      const tests = practice.filter((t) => t.type !== "predict" && (t.tests.length < 1 || t.tests.length > 2));
+      check(!tests.length && practice.filter((t) => t.type === "predict").every((t) => t.tests.length === 1),
+        want.title + ": 1-2 test cases per task (predict tasks have one)" + (tests.length ? " (" + tests.map((t) => t.id).join(", ") + ")" : ""));
+      // A task's example is its first skill's, and every skill in the unit's list is some task's first skill.
+      check(practice.every((t) => t.worked_example && t.worked_example.skill === t.skills[0]) && unit.skills.every((s) => practice.some((t) => t.worked_example.skill === s)),
+        want.title + ": every practice task has a \"Show me how\" example for its first skill, and every skill in the unit's list has one (" + unit.skills.join(", ") + ")");
+      check(templatesAll.filter((tpl) => tpl.type === "scratch" && tpl.units[0] === id).length >= 3 && practice.every((t) => templatesAll.some((tpl) => tpl.derived && tpl.source === t.id)),
+        want.title + ": has write-from-scratch templates, and every practice task has a derived template");
+    }
+    // Validation: each level has one task for each kind of check, and the id's last letter says which.
+    const CAT = { i: "presence", l: "length", r: "range", f: "format", t: "type-check" };
+    const val = tasks.filter((t) => t.unit === "validation" && !t.tags.includes("placement"));
+    const byCat = Object.values(CAT).map((c) => val.filter((t) => t.skills.filter((s) => Object.values(CAT).includes(s))[0] === c).length);
+    check(Array.from({ length: 10 }, (_, i) => val.filter((t) => t.level === i + 1).map((t) => t.id.slice(-1)).sort().join("")).every((s) => s === "filrt") &&
+      val.every((t) => t.skills.filter((s) => Object.values(CAT).includes(s))[0] === CAT[t.id.slice(-1)]) && byCat.join() === "10,10,10,10,10",
+      "Validation: every level has one presence, length, range, format and type task, 10 of each (" + byCat.join(",") + ")");
+    // The kind of check is the first skill, except where the loop (level 8) or the function (level 10) comes first.
+    check(val.every((t) => t.skills[0] === CAT[t.id.slice(-1)] || (t.level === 8 && t.skills[0] === "re-ask") || (t.level === 10 && t.skills[0] === "validation-function")) &&
+      val.filter((t) => t.level === 10).every((t) => t.skills[0] === "validation-function") && val.some((t) => t.level === 8 && t.skills[0] === "re-ask"),
+      "Validation: \"Show me how\" shows the re-ask loop on level 8 tasks that ask again, and the validation function on level 10");
+    // A task's tests test its own check: where there are two, one answer passes the check and one fails it.
+    const twoOutcomes = val.filter((t) => t.tests.length === 2).filter((t) => t.tests[0].expected === t.tests[1].expected);
+    check(!twoOutcomes.length, "Validation: a task with two tests gives two different results (one answer passes the check, one fails it)" + (twoOutcomes.length ? " (" + twoOutcomes.map((t) => t.id).join(", ") + ")" : ""));
+    check(val.filter((t) => t.level >= 9).some((t) => /^def /m.test(t.solution)) && val.filter((t) => t.level === 10).every((t) => /^def \w+\(/m.test(t.solution) && /return True/.test(t.solution) && /return False/.test(t.solution)) &&
+      val.some((t) => /\bwhile\b/.test(t.solution)) && val.some((t) => /\.isdigit\(\)/.test(t.solution)) && val.some((t) => /\.strip\(\)/.test(t.solution)),
+      "Validation: uses .strip(), .isdigit() and while, and every level 10 task has a function that returns True or False");
+    // Authentication: three tasks per level on the same step, everything stored in the program.
+    const auth = tasks.filter((t) => t.unit === "authentication");
+    const STEP = ["match", "match", "known-users", "both-match", "both-match", "attempts", "which-wrong", "login-loop", "presence", "validation-function"];
+    check(auth.filter((t) => !t.tags.includes("placement")).every((t) => t.skills[0] === STEP[t.level - 1]),
+      "Authentication: the three tasks at each level practise the same step (==, in, and, the login message, failed attempts, which part was wrong, three tries, a presence check, a login function)");
+    check(auth.every((t) => !/\bhash|sha\d|md5|bcrypt/i.test(codeOf(t))) && auth.filter((t) => t.level === 10 && !t.tags.includes("placement")).every((t) => /^def check_login\(/m.test(t.solution) && /\bwhile\b/.test(t.solution) && /attempts = attempts \+ 1/.test(t.solution)),
+      "Authentication: no hashing, and every level 10 task has a login function returning True or False, a while loop and an attempts counter");
+    const NEW_M = ["AND_OR_CONFUSED", "REASK_CONDITION_UNCHANGED", "ISDIGIT_NEGATIVE", "IN_NOT_EQUALS", "EMPTY_AFTER_CAST",
+      "USERNAME_CASE_MISMATCH", "ATTEMPTS_NOT_COUNTED"];
+    for (const mid of NEW_M) {
+      const m = misconceptions.find((x) => x.id === mid);
+      const sentences = m ? m.explanation.split(/(?<=[.!?])\s+/).length : 0;
+      const bank = tasks.filter((t) => !t.tags.includes("placement") && ["validation", "authentication"].includes(t.unit) && (t.buggy_variants || []).some((v) => v.misconception === mid));
+      check(m && m.name && m.description && sentences === 3 && bank.length >= 3,
+        mid + ": in misconceptions.json with a teacher description and a 3-sentence explanation, and buggy variants on " + bank.length + " tasks (3 needed)");
+    }
+    check(tasks.some((t) => t.unit === "validation" && (t.buggy_variants || []).some((v) => v.misconception === "INPUT_NOT_INT")), "Validation: INPUT_NOT_INT is used again where it applies");
+    check(tasks.filter((t) => ["validation", "authentication"].includes(t.unit) && t.tags.includes("placement")).every((t) => !t.buggy_variants),
+      "Validation and Authentication: placement tasks have no buggy variants");
+    // The duplicates were removed: these units reuse the existing ids for = vs == and the boundary comparisons.
+    const both = tasks.filter((t) => ["validation", "authentication"].includes(t.unit));
+    const uses = (id) => both.filter((t) => (t.buggy_variants || []).some((v) => v.misconception === id));
+    check(!misconceptions.some((m) => m.id === "ASSIGN_INSTEAD_OF_COMPARE" || m.id === "RANGE_OFF_BY_ONE") &&
+      !tasks.some((t) => (t.buggy_variants || []).some((v) => /^(ASSIGN_INSTEAD_OF_COMPARE|RANGE_OFF_BY_ONE)$/.test(v.misconception)) || t.tags.some((g) => /^(ASSIGN_INSTEAD_OF_COMPARE|RANGE_OFF_BY_ONE)$/.test(g))) &&
+      uses("EQUALS_VS_DOUBLE_EQUALS").length >= 3 && uses("BOUNDARY_LT_VS_LTE").length >= 3 && uses("GT_VS_GTE").length >= 3,
+      "Validation and Authentication reuse EQUALS_VS_DOUBLE_EQUALS, BOUNDARY_LT_VS_LTE and GT_VS_GTE (no duplicate ids)");
+    check(uses("EQUALS_VS_DOUBLE_EQUALS").every((t) => t.buggy_variants.filter((v) => v.misconception === "EQUALS_VS_DOUBLE_EQUALS").every((v) => v.outputs.every((o) => o.errorKind === "SyntaxError:assign-in-condition"))),
+      "Their EQUALS_VS_DOUBLE_EQUALS variants are recognised by their own error (= in a condition), so they match only that mistake");
+    const l1t = tasks.find((t) => t.id === "val-L1t");
+    check(l1t && !/\b(int|float)\(/.test(l1t.solution + l1t.hints.join(" ")) && !l1t.buggy_variants && l1t.options[l1t.answer] === l1t.tests[0].expected,
+      "val-L1t: a level 1 type check with no cast, its answer is the real output, and it has no buggy variants");
+  }
+
   // ===================== Expected output box and hidden tests =====================
   {
     const TaskView = require(path.join(ROOT, "task-view.js"));
@@ -455,8 +541,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "Unit menu: four groups in order, holding every unit exactly once, in the units' own order");
     check(G[0].units.join() === "output,variables,data-types,maths,selection,loops-condition,loops-count" &&
       G[1].units.join() === "strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d" &&
-      G[2].comingSoon.join() === "Validation,Authentication" && G[3].comingSoon.join() === "Searching,Sorting" && !G[2].units.length && !G[3].units.length,
-      "Unit menu: fundamentals and advanced units as listed; Validation and Searching and sorting show Coming soon");
+      G[2].units.join() === "validation,authentication" && !G[2].comingSoon && G[3].comingSoon.join() === "Searching,Sorting" && !G[3].units.length,
+      "Unit menu: fundamentals and advanced units as listed; the Validation group holds Validation then Authentication; Searching and sorting shows Coming soon");
     const collapseSrc = read("collapse.js");
     check(/aria-expanded/.test(collapseSrc) && /try \{[^}]*localStorage\.getItem\(key/.test(collapseSrc) && /try \{[^}]*localStorage\.setItem\(key/.test(collapseSrc) &&
       /Collapse\.buttonHtml\(/.test(homeSrc) && /Collapse\.wire\(\$\("unit-list"\), COLLAPSED_KEY\)/.test(homeSrc) && !/localStorage/.test(homeSrc) &&
