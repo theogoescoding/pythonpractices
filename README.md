@@ -569,11 +569,12 @@ All values are named constants at the top of `app.js`:
 
 `teacher.html` starts with the note "Data is stored in this browser only. Results from other devices won't appear here." It warns when the browser's storage is nearly full (about 4 of the 5 MB a site may use). It has five pages, each with its own link:
 
+**Collapsible sections.** Each section heading (Students in this class, Delete this class, Quick look, Students, Reset placement, the two Workshop tables and Export) is a button that collapses or expands that section, like the unit groups in the student view (`collapse.js`). Every section starts expanded. The collapsed ones are remembered in this browser under `pythonPractice.teacherCollapsedSections`, separate from the student view's key. If storage is blocked, the sections still open and close but start expanded each time.
+
 **Overview (`#overview`, the default)**
 
 - **Quick look**, above the table:
   - students with 2+ fails in a row, and the task they're on
-  - students who haven't started a unit
   - the 10 most-failed tasks, each with its failure rate, most common failure category and top misconception matched
   - the top misconceptions across the class, with the number of attempts and students affected
 - **Student table**: one row per student, one column per unit. Each cell shows the current level, the placement result, **★ Complete** once a level 10 task is passed, and flags for "Too easy used", "Too hard used" and "⚠ 2+ fails in a row". "Fails in a row" is only reset by a pass, so it stays visible after the level drops.
@@ -756,7 +757,7 @@ This needs Node 18+ and Python 3 on the PATH (set `PYTHON=...` to use a differen
   - **Expected output:** every non-predict task's box shows the example test's output exactly as the checker compares it (or the "No output" line), never a hidden test's input or output, and says how many tests are hidden. A failed hidden test's message says nothing about it.
   - **Task browser:** search by id, title, old id and variant id; every test's expected output is the checker's and every model solution passes against it; it shows the same box as the student's page; the model solution starts hidden; no student page loads the browser.
   - **No teacher link:** no student page (`app.html`, `practice.html`, `progress.html`, `endless.html`), and no script one loads, links to `teacher.html`.
-  - **Home page and unit groups:** the home page's four buttons and their targets, its logo, tagline and Dark default (not used by the other pages); `#join` and `#signin` open the right form; the header wordmark and the tab icon on every page; back links go to `app.html`; the four groups hold every unit once, in order, with Coming soon for Validation and Searching and sorting; the collapse buttons, remembered with storage errors caught.
+  - **Home page and unit groups:** the home page's four buttons and their targets, its logo, tagline and Dark default (not used by the other pages); `#join` and `#signin` open the right form; the header wordmark and the tab icon on every page; back links go to `app.html`; the four groups hold every unit once, in order, with Coming soon for Validation and Searching and sorting; the collapse buttons, remembered with storage errors caught; the teacher view's eight collapsible sections, with their own key, run through collapse.js (start expanded, collapse, stay collapsed after a reload, still work with storage blocked); no "Haven't started a unit" box.
   - **Assignments:** the assignment id goes into the attempt record, the row and the export (as the last column, with every earlier column unchanged) and the data dictionary; the per-task summary (tried, passed, struggled most); importing never rebuilds levels or passes from assignment work; assignment work is kept apart from the saved progress.
   - **`recheck.py`:** an unchanged export gives the same matches as the app (including an attempt on a template variant, made again from its template and seed); a new buggy variant changes the matches only for the attempts it applies to; an export that names a moved task by its old id keeps its matches.
 - **Simulation:** `tests/simulate.js` runs nine made-up students through the rules. It checks the fast move up, the normal move down and the recovery drop with its ceiling, and that a student who uses "Show me how" twice doesn't change level because of it (compared with the same student without it). Run it on its own to see each student's level task by task:
@@ -785,6 +786,7 @@ This needs Node 18+ and Python 3 on the PATH (set `PYTHON=...` to use a differen
 | `progress.html`, `progress.js` | Progress summary and skill drill-down |
 | `endless.html`, `endless.js` | Endless mode set-up: choosing units |
 | `teacher.html`, `teacher.js` | Teacher view (Overview, Detail log, Workshop, Assignments, Task browser) and export |
+| `collapse.js` | Collapsible sections, shared by the student view's unit groups and the teacher view's sections (each remembered under its own localStorage key) |
 | `task-view.js` | The Expected output box and example test (practice page and Task browser), and the task search |
 | `task-browser.js` | The teacher's Task browser, with the model solutions (loaded by `teacher.html` only) |
 | `tools/add-data-types-unit.js`, `tools/add-data-types-templates.js` | One-off: the Data types and casting unit's tasks and templates (each checks its results) |

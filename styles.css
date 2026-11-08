@@ -623,3 +623,7 @@ td pre { white-space: pre-wrap; margin: .25rem 0; font-size: .85rem; }
 .group-count { margin-left: auto; font-size: .9rem; font-weight: 400; color: var(--muted); }
 .group-soon { margin: .25rem 0 .75rem; color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { .group-arrow::before { transition: none; } }
+/* Teacher view sections (collapse.js): the same heading button, at the size of the teacher view's other headings. */
+.teacher-section { margin-top: 1.25rem; }
+.teacher-section > .group-heading { font-size: 1.17rem; }
+.teacher-section > .group-heading .group-toggle { padding: .4rem 0; }

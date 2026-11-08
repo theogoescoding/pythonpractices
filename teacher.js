@@ -26,6 +26,8 @@
   };
 
   Store.setupDisplaySettings();
+  // Each section heading opens and closes its section (collapse.js, the same as the student view's unit groups).
+  Collapse.enhance(document.querySelector("main"), "pythonPractice.teacherCollapsedSections");
 
   let tasksById = {};
   let bankTasks = []; // tasks.json as it is (the Task browser)
@@ -115,8 +117,6 @@
       "<section><h3>2+ fails in a row</h3>" + list(q.struggling.map((s) =>
         "<li><strong>" + esc(s.name) + "</strong> – " + esc(unitTitle(s.unit)) + ": " + s.failsInARow + " fails in a row" +
         (s.taskId ? ", now on " + esc(taskLabel(s.taskId)) : "") + "</li>"), "No one right now.") + "</section>" +
-      "<section><h3>Haven't started a unit</h3>" + list(q.notStarted.map((s) =>
-        "<li><strong>" + esc(s.name) + "</strong>: " + esc(s.units.map(unitTitle).join(", ")) + "</li>"), "Everyone has started every unit.") + "</section>" +
       "<section><h3>Most-failed tasks</h3>" + list(q.topFailedTasks.map((t) =>
         "<li>" + esc(taskLabel(t.taskId)) + ": " + t.fails + " of " + t.attempts + " attempts failed (" + pct(t.failRate) + ")" +
         '<br><span class="small">Most common: ' + esc(t.topCategory || "–") + " · Top misconception: " + esc(t.topMisconception ? mName(t.topMisconception) : "none matched") + "</span></li>"),

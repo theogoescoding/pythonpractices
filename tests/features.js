@@ -457,8 +457,68 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       G[1].units.join() === "strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d" &&
       G[2].comingSoon.join() === "Validation,Authentication" && G[3].comingSoon.join() === "Searching,Sorting" && !G[2].units.length && !G[3].units.length,
       "Unit menu: fundamentals and advanced units as listed; Validation and Searching and sorting show Coming soon");
-    check(/aria-expanded/.test(homeSrc) && /try \{[^}]*localStorage\.getItem\(COLLAPSED_KEY/.test(homeSrc) && /try \{[^}]*localStorage\.setItem\(COLLAPSED_KEY/.test(homeSrc),
-      "Unit menu: each group heading is a button that opens and closes it, remembered on this device (storage errors are caught)");
+    const collapseSrc = read("collapse.js");
+    check(/aria-expanded/.test(collapseSrc) && /try \{[^}]*localStorage\.getItem\(key/.test(collapseSrc) && /try \{[^}]*localStorage\.setItem\(key/.test(collapseSrc) &&
+      /Collapse\.buttonHtml\(/.test(homeSrc) && /Collapse\.wire\(\$\("unit-list"\), COLLAPSED_KEY\)/.test(homeSrc) && !/localStorage/.test(homeSrc) &&
+      /<script src="collapse\.js"><\/script>\s*<script src="home\.js">/.test(app),
+      "Unit menu: each group heading is a button that opens and closes it, remembered on this device (collapse.js; storage errors are caught)");
+
+    // The teacher view's sections use the same component, with their own storage key, all starting expanded.
+    const teacher = read("teacher.html");
+    const teacherSrc = read("teacher.js");
+    const sections = [...teacher.matchAll(/<section class="[^"]*teacher-section[^"]*" data-collapse="([^"]+)">\s*<h3>([^<]+)<\/h3>/g)].map((m) => m[2]);
+    check(sections.join() === "Students in this class,Delete this class,Quick look,Students,Reset placement,Misconceptions,Failed attempts with no match, by task,Export",
+      "Teacher view: every section (class students, delete class, quick look, students, reset placement, both workshop tables, export) is collapsible");
+    const key = (teacherSrc.match(/Collapse\.enhance\(document\.querySelector\("main"\), "([^"]+)"\)/) || [])[1];
+    check(key && key !== "pythonPractice.collapsedGroups" && /<script src="collapse\.js"><\/script>\s*<script src="teacher\.js">/.test(teacher) && !/localStorage\./.test(teacherSrc),
+      "Teacher view: sections open and close with collapse.js, remembered under their own key (not the student view's)");
+    // Run collapse.js on a tiny fake page: sections start expanded, a press collapses one and saves it, and a
+    // "reload" keeps it collapsed. With storage blocked, every section still opens and closes.
+    const runCollapse = (storage) => {
+      const els = {};
+      const mk = (tag, attrs) => {
+        const el = { tagName: tag, attrs: Object.assign({}, attrs), children: [], hidden: false, className: "", dataset: {}, classList: { add() {} },
+          get firstElementChild() { return this.children[0]; },
+          get nextSibling() { return null; },
+          getAttribute(n) { return this.attrs[n]; }, setAttribute(n, v) { this.attrs[n] = v; },
+          appendChild(c) { this.children.push(c); if (c.id) els[c.id] = c; } };
+        return el;
+      };
+      const h = mk("h3"); h.innerHTML = "Students";
+      const s = mk("section"); s.dataset.collapse = "students"; s.children.push(h);
+      let handler = null;
+      const root = { querySelectorAll: () => [s], addEventListener: (_, f) => { handler = f; }, contains: () => true };
+      const doc = { createElement: (t) => mk(t), getElementById: (id) => els[id] };
+      const ctx = { localStorage: storage, document: doc };
+      ctx.self = ctx;
+      require("vm").runInNewContext(collapseSrc, ctx);
+      ctx.Collapse.enhance(root, "k");
+      const body = s.children[1];
+      const press = () => {
+        const open = /aria-expanded="true"/.test(h.innerHTML) ? "true" : "false";
+        const b = { dataset: { group: "students" }, attrs: { "aria-expanded": open, "aria-controls": body.id },
+          getAttribute(n) { return this.attrs[n]; }, setAttribute(n, v) { this.attrs[n] = v; h.innerHTML = h.innerHTML.replace(/aria-expanded="\w+"/, 'aria-expanded="' + v + '"'); } };
+        handler({ target: { closest: () => b } });
+      };
+      return { h, body, press };
+    };
+    const mem = {};
+    const store = { getItem: (k) => (k in mem ? mem[k] : null), setItem: (k, v) => { mem[k] = String(v); } };
+    const first = runCollapse(store);
+    const startedOpen = !first.body.hidden && /aria-expanded="true"/.test(first.h.innerHTML) && /aria-controls="section-students"/.test(first.h.innerHTML);
+    first.press();
+    const closed = first.body.hidden && mem.k === '["students"]';
+    const reload = runCollapse(store);
+    const keptClosed = reload.body.hidden && /aria-expanded="false"/.test(reload.h.innerHTML);
+    reload.press();
+    const reopened = !reload.body.hidden && mem.k === "[]";
+    check(startedOpen && closed && keptClosed && reopened, "Collapsible sections start expanded, collapse when pressed, stay collapsed after a reload, and open again");
+    const blocked = { getItem() { throw new Error("blocked"); }, setItem() { throw new Error("blocked"); } };
+    const b = runCollapse(blocked);
+    const blockedOpen = !b.body.hidden;
+    b.press();
+    check(blockedOpen && b.body.hidden, "With storage blocked, sections start expanded and still open and close");
+    check(!/Haven't started a unit/.test(teacherSrc + teacher), "Teacher overview: the \"Haven't started a unit\" box is gone (the student table still shows Not started cells)");
   }
 
   // ===================== Class assignments =====================

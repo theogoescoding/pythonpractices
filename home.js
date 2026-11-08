@@ -162,15 +162,8 @@ Store.whenReady(function () {
   }
 
   // ---------- Unit groups ----------
-  // Groups a student has collapsed, remembered on this device only. Storage can be blocked: then every group
-  // simply starts expanded again next time.
+  // Groups a student has collapsed, remembered on this device only (collapse.js, shared with the teacher view).
   const COLLAPSED_KEY = "pythonPractice.collapsedGroups";
-  function collapsedGroups() {
-    try { const v = JSON.parse(localStorage.getItem(COLLAPSED_KEY) || "[]"); return Array.isArray(v) ? v : []; } catch (e) { return []; }
-  }
-  function saveCollapsed(ids) {
-    try { localStorage.setItem(COLLAPSED_KEY, JSON.stringify(ids)); } catch (e) { /* blocked: not remembered */ }
-  }
 
   // The units under their group headings (Curriculum.UNIT_GROUPS), in the same order as UNITS. A unit missing from
   // every group is still shown, in a last group, so no unit can disappear from the menu.
@@ -187,29 +180,20 @@ Store.whenReady(function () {
     if (!tasks || !student) return; // still loading, or waiting for a name
     renderAssignments(student);
     const progress = Store.loadProgress(student.id);
-    const collapsed = collapsedGroups();
+    const collapsed = Collapse.collapsedIds(COLLAPSED_KEY);
     $("unit-list").innerHTML = groupsToShow().map((g) => {
       const open = !collapsed.includes(g.id);
       const body = g.units.length
         ? '<ul class="unit-list">' + g.units.map((u) => unitCard(u, progress)).join("") + "</ul>"
         : '<p class="group-soon"><span class="soon">Coming soon</span> ' + esc((g.comingSoon || []).join(" and ")) + "</p>";
+      const count = '<span class="group-count">' + (g.units.length ? g.units.length + " unit" + (g.units.length === 1 ? "" : "s") : "Coming soon") + "</span>";
       return '<section class="unit-group" aria-labelledby="group-' + g.id + '-h">' +
-        '<h3 class="group-heading" id="group-' + g.id + '-h"><button type="button" class="group-toggle" data-group="' + g.id + '"' +
-        ' aria-expanded="' + open + '" aria-controls="group-' + g.id + '"><span class="group-arrow" aria-hidden="true"></span>' + esc(g.title) +
-        '<span class="group-count">' + (g.units.length ? g.units.length + " unit" + (g.units.length === 1 ? "" : "s") : "Coming soon") + "</span></button></h3>" +
+        '<h3 class="group-heading" id="group-' + g.id + '-h">' + Collapse.buttonHtml(g.id, "group-" + g.id, esc(g.title), open, count) + "</h3>" +
         '<div class="group-body" id="group-' + g.id + '"' + (open ? "" : " hidden") + ">" + body + "</div></section>";
     }).join("");
   }
 
-  $("unit-list").addEventListener("click", (e) => {
-    const b = e.target.closest("button.group-toggle");
-    if (!b) return;
-    const open = b.getAttribute("aria-expanded") !== "true";
-    b.setAttribute("aria-expanded", String(open));
-    $("group-" + b.dataset.group).hidden = !open;
-    const ids = collapsedGroups().filter((id) => id !== b.dataset.group);
-    saveCollapsed(open ? ids : ids.concat([b.dataset.group]));
-  });
+  Collapse.wire($("unit-list"), COLLAPSED_KEY);
 
   // One unit's card (a link to practise it, or "Coming soon" if it has no tasks yet).
   function unitCard(u, progress) {
