@@ -179,3 +179,93 @@ def run_code_limited(src, inputs, max_lines):
 
 def run_code_limited_json(src, inputs_json, max_lines):
     return json.dumps(run_code_limited(src, json.loads(inputs_json), int(max_lines)))
+
+
+# ---------- Trace tables ----------
+# trace_code runs a program like run_code_limited and also records, after every line of the main program that
+# runs, the value of each variable and what that line printed. Lines inside a function are not recorded on their
+# own: a call counts as part of the line that made it. checker.js (traceTable) turns the steps into a trace table.
+# Values are written as a trace table shows them: numbers and True/False as Python prints them, text without its
+# quotes ("" for empty text), and a list as a list of those values (each position gets its own column).
+MAX_TRACE_STEPS = 400
+
+
+def _cell(v):
+    if isinstance(v, bool):
+        return str(v)
+    if isinstance(v, (int, float)):
+        return repr(v)
+    if isinstance(v, str):
+        return v if v != "" else '""'
+    return None
+
+
+def _snapshot(names):
+    out = {}
+    for k, v in names.items():
+        if k.startswith("__") or k == "input":
+            continue
+        if isinstance(v, list):
+            cells = [_cell(x) for x in v]
+            if all(c is not None for c in cells):
+                out[k] = cells
+            continue
+        c = _cell(v)
+        if c is not None:
+            out[k] = c
+    return out
+
+
+def trace_code(src, inputs, max_lines=100000):
+    steps = []
+    state = {"line": None, "outpos": 0, "count": 0}
+
+    def record(frame):
+        if state["line"] is None:
+            return
+        try:
+            text = sys.stdout.getvalue()
+        except Exception:
+            text = ""
+        printed = text[state["outpos"]:]
+        state["outpos"] = len(text)
+        if len(steps) < MAX_TRACE_STEPS:
+            steps.append({"line": state["line"], "vars": _snapshot(frame.f_globals), "out": printed})
+
+    def module_local(frame, event, arg):
+        if event == "line":
+            state["count"] += 1
+            if state["count"] > max_lines:
+                raise _LineLimit()
+            record(frame)
+            state["line"] = frame.f_lineno
+        elif event == "return":
+            record(frame)
+            state["line"] = None
+        return module_local
+
+    def other_local(frame, event, arg):
+        if event == "line":
+            state["count"] += 1
+            if state["count"] > max_lines:
+                raise _LineLimit()
+        return other_local
+
+    def tracer(frame, event, arg):
+        if frame.f_code.co_filename != USER_FILENAME:
+            return None
+        return module_local if frame.f_code.co_name == "<module>" else other_local
+
+    sys.settrace(tracer)
+    try:
+        result = run_code(src, inputs)
+    finally:
+        sys.settrace(None)
+    if result["error"] and result["error"]["type"] == "_LineLimit":
+        result["error"] = {"type": "Timeout", "message": "", "line": None}
+    result["steps"] = steps
+    return result
+
+
+def trace_code_json(src, inputs_json, max_lines):
+    return json.dumps(trace_code(src, json.loads(inputs_json), int(max_lines)))

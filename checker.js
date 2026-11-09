@@ -192,7 +192,157 @@
     return err.type || "Error";
   }
 
+  // ---------- Trace tables (task type "trace") ----------
+  // harness.trace_code gives one step per line of the main program that ran: { line, vars, out }. traceTable turns
+  // the steps into the table students fill in, in the exam layout: a Line column, a column for each variable (a list
+  // gets a column for each position, such as nums[0]), and an Output column. A row is a line that changed a value or
+  // printed something; in it, only the cells that changed are filled (the rest stay empty, as in an exam answer).
+  // spec (a task's trace_spec): { columns?, lineColumn?: "given" | "ask" | "none", output?: false,
+  //   blanks?: [[row, column name], …] (only these cells are asked; row < 0 counts from the end),
+  //   givenRows?: n (the first n rows are filled in for the student), givenColumns?: [column name, …] }
+  // The table: { columns, rows (a value or null per cell), ask ([row, column] cells the student fills), lineMode, spec }.
+  const MAX_TRACE_ROWS = 40;
+  const POS = /^(\w+)\[(\d+)\]$/;
+
+  function traceColumns(steps, spec) {
+    const order = [];
+    const maxLen = {};
+    for (const s of steps) {
+      for (const [k, v] of Object.entries(s.vars || {})) {
+        if (!order.includes(k)) order.push(k);
+        if (Array.isArray(v)) maxLen[k] = Math.max(maxLen[k] || 0, v.length);
+      }
+    }
+    const cols = [];
+    for (const n of (spec && spec.columns) || order) {
+      if (!POS.test(n) && n in maxLen) for (let i = 0; i < maxLen[n]; i++) cols.push(n + "[" + i + "]");
+      else cols.push(n);
+    }
+    return cols;
+  }
+
+  function cellOf(vars, col) {
+    const m = POS.exec(col);
+    if (m) { const l = vars[m[1]]; return Array.isArray(l) ? l[+m[2]] : undefined; }
+    const v = vars[col];
+    return Array.isArray(v) ? undefined : v;
+  }
+
+  // What a line printed, as one cell ("" lines and the line break at the end left out).
+  const outCell = (out) => String(out || "").replace(/\n$/, "").split("\n").join(" ");
+
+  function traceTable(steps, spec) {
+    spec = spec || {};
+    const lineMode = spec.lineColumn || "given";
+    const varCols = traceColumns(steps, spec);
+    const hasOut = spec.output !== false && steps.some((s) => s.out);
+    const columns = (lineMode === "none" ? [] : ["Line"]).concat(varCols, hasOut ? ["Output"] : []);
+    const rows = [];
+    const prev = {};
+    for (const s of steps) {
+      const row = columns.map(() => null);
+      let any = false;
+      columns.forEach((c, i) => {
+        if (c === "Line") return;
+        if (c === "Output") { if (s.out) { row[i] = outCell(s.out) || '""'; any = true; } return; }
+        const v = cellOf(s.vars || {}, c);
+        if (v !== undefined && v !== prev[c]) { row[i] = v; any = true; }
+        prev[c] = v;
+      });
+      if (any) { if (lineMode !== "none") row[0] = String(s.line); rows.push(row); }
+    }
+    const ask = [];
+    if (spec.blanks) {
+      for (const [r0, name] of spec.blanks) ask.push([r0 < 0 ? rows.length + r0 : r0, columns.indexOf(name)]);
+    } else {
+      rows.forEach((row, r) => columns.forEach((col, c) => {
+        if (col === "Line" && lineMode !== "ask") return;
+        if (r < (spec.givenRows || 0) || (spec.givenColumns || []).includes(col)) return;
+        ask.push([r, c]);
+      }));
+    }
+    return { columns, rows, ask, lineMode, spec };
+  }
+
+  // Why a table can't be used: too many rows, nothing to fill in, or a blank that isn't a filled cell.
+  function traceProblems(table) {
+    const p = [];
+    if (!table.rows.length) p.push("the table has no rows");
+    if (table.rows.length > MAX_TRACE_ROWS) p.push("the table has " + table.rows.length + " rows (at most " + MAX_TRACE_ROWS + ")");
+    if (!table.ask.length) p.push("the student has no cells to fill in");
+    for (const [r, c] of table.ask) {
+      if (r < 0 || r >= table.rows.length || c < 0) p.push("blank [" + r + ", " + c + "] is outside the table");
+      else if (table.spec && table.spec.blanks && table.rows[r][c] == null) p.push("blank [" + r + ", " + table.columns[c] + "] is an empty cell");
+    }
+    return p;
+  }
+
+  // One cell as it is compared: spaces round it, and one pair of quotes round text, are ignored; true and false may
+  // be any case; "" (empty text) stays "". An empty cell is null.
+  function traceCell(s) {
+    if (s == null) return null;
+    let v = String(s).trim();
+    if (v === "") return null;
+    if (v === '""' || v === "''") return '""';
+    const m = /^"(.*)"$/.exec(v) || /^'(.*)'$/.exec(v);
+    if (m) v = m[1];
+    if (/^(true|false)$/i.test(v)) v = v[0].toUpperCase() + v.slice(1).toLowerCase();
+    return v;
+  }
+
+  const cellKey = (r, c) => r + ":" + c;
+
+  // The student's table as compared: their answers in the asked cells, the given cells as shown. A value written again
+  // in a row where it didn't change counts as an empty cell (both ways of filling in a trace table are right).
+  function traceAnswerRows(table, cells) {
+    const asked = new Set(table.ask.map(([r, c]) => cellKey(r, c)));
+    const carry = {};
+    return table.rows.map((row, r) => row.map((exp, c) => {
+      const col = table.columns[c];
+      let v = traceCell(asked.has(cellKey(r, c)) ? (cells || {})[cellKey(r, c)] : exp);
+      if (col === "Line" || col === "Output") return v;
+      if (v != null && v === carry[col]) v = null;
+      if (v != null) carry[col] = v;
+      return v;
+    }));
+  }
+
+  // A row as text, for the attempt record and for matching a misconception ("i=2, total=5"). The Line column is
+  // left out when it was given (it isn't the student's answer).
+  function traceRowText(table, row) {
+    return table.columns.map((col, i) => (row[i] == null || (col === "Line" && table.lineMode !== "ask") ? null : col + "=" + traceCell(row[i])))
+      .filter((x) => x != null).join(", ");
+  }
+
+  // Marks an answer: { passed, empty, wrong ([row, column] asked cells that are wrong), firstWrongRow, rows }.
+  function gradeTrace(table, cells) {
+    const empty = table.ask.every(([r, c]) => traceCell((cells || {})[cellKey(r, c)]) == null);
+    const rows = traceAnswerRows(table, cells);
+    const expected = table.rows.map((row) => row.map(traceCell));
+    const wrong = table.ask.filter(([r, c]) => rows[r][c] !== expected[r][c]);
+    const badRows = rows.map((row, r) => row.some((v, c) => v !== expected[r][c])).map((b, r) => (b ? r : -1)).filter((r) => r >= 0);
+    return { passed: !empty && !badRows.length, empty, wrong, firstWrongRow: badRows.length ? badRows[0] : null, rows };
+  }
+
+  // A buggy variant's rows as text, in the task's own columns, to match against a student's first wrong row.
+  function variantTraceRows(table, steps) {
+    const spec = { columns: table.columns.filter((c) => c !== "Line" && c !== "Output"), lineColumn: table.lineMode,
+      output: table.columns.includes("Output") ? undefined : false };
+    const t = traceTable(steps, spec);
+    return t.rows.map((row) => traceRowText(t, row));
+  }
+
+  // The answer as plain text for the attempt record (one row per line, empty cells shown as -).
+  function traceAnswerText(table, cells) {
+    const asked = new Set(table.ask.map(([r, c]) => cellKey(r, c)));
+    return [table.columns.join(" | ")].concat(table.rows.map((row, r) => row.map((exp, c) => {
+      const v = asked.has(cellKey(r, c)) ? String((cells || {})[cellKey(r, c)] || "").trim() : exp == null ? "" : exp;
+      return v === "" ? "-" : v;
+    }).join(" | "))).join("\n");
+  }
+
   // a = { type, code, empty, results, tests, passes?, parsons?: { usedDistractor, missing }, choice?, options?, answer? }
+  //     (trace tasks: { type: "trace", table, cells })
   //   results: one { output, error, notRun } per test, from harness.py (via the worker)
   //   empty:   nothing was given at all (blank editor, no blanks filled, no Parsons lines), so the code wasn't run
   // Returns { category, details, failedTest, output, errorType, errorKind }.
@@ -203,6 +353,14 @@
         failedTest: 0, output: a.options[a.choice], errorType: "", errorKind: "" };
     }
     const noRun = { failedTest: null, output: "", errorType: "", errorKind: "" };
+    if (a.type === "trace") {
+      // The evidence is the first row that differs from the real table (failedTest is that row's index).
+      const g = gradeTrace(a.table, a.cells);
+      if (g.empty) return Object.assign({ category: "NO_ANSWER", details: {} }, noRun);
+      const r = g.firstWrongRow == null ? 0 : g.firstWrongRow;
+      return { category: "WRONG_OUTPUT", details: { trace: true, row: r + 1, wrongCells: g.wrong.length, cells: a.table.ask.length },
+        failedTest: r, output: traceRowText(a.table, g.rows[r]), errorType: "", errorKind: "" };
+    }
     if (a.empty) return Object.assign({ category: "NO_ANSWER", details: {} }, noRun);
 
     const results = a.results || [];
@@ -268,6 +426,9 @@
         return { message: "Your program stopped with an error" + onLine + ". Read the explanation below to see why.",
           tryNext: "Use the input from the test that failed and follow your program to the line in the explanation. What value does each variable have there?" };
       case "WRONG_OUTPUT":
+        if (d.trace) return { message: (d.wrongCells === 1 ? "One cell" : d.wrongCells + " cells") + " in your trace table " + (d.wrongCells === 1 ? "doesn't" : "don't") +
+            " match what the program does. The first difference is in row " + d.row + ".",
+          tryNext: "Go back to row " + d.row + ". Read the line in the Line column, work out the new value using the values above it, and write only what that line changes." };
         if (d.parsons) return { message: "Your program works, but it " + d.parsons + ". Check which lines you've used.",
           tryNext: "Compare each line in your program with the task description. Every line should be needed, and nothing the task asks for should be missing." };
         // A hidden test (opts.exampleTests = how many tests the student can see): nothing about it is shown.
@@ -309,7 +470,9 @@
     if (!variants.length || NO_MATCH_CATEGORIES.includes(f.category) || f.failedTest == null) return [];
     const ids = [];
     for (const v of variants) {
-      const out = (v.outputs || [])[f.failedTest];
+      // A trace task's variant has its table's rows ("rows"); the student's first wrong row is compared with the same row.
+      const out = task.type === "trace" ? (v.rows && v.rows[f.failedTest] != null ? { output: v.rows[f.failedTest], errorKind: "" } : null)
+        : (v.outputs || [])[f.failedTest];
       if (out && sameResult(out, f) && !ids.includes(v.misconception)) ids.push(v.misconception);
     }
     return ids;
@@ -318,5 +481,6 @@
   return {
     normalise, outputsMatch, explainError, mismatchHint,
     CATEGORIES, isNoAnswer, errorKind, classifyAttempt, failureParts, failureMessage, matchMisconceptions,
+    MAX_TRACE_ROWS, traceTable, traceProblems, traceCell, traceAnswerRows, traceRowText, gradeTrace, variantTraceRows, traceAnswerText,
   };
 });

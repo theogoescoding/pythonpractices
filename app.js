@@ -66,7 +66,7 @@ const MAX_NEW_VARIANT_TRIES = 40;          // draws to find a template variant t
 const MAX_HINTS_PER_TASK = 3;
 const RUN_TIMEOUT_MS = 5000;               // stop a run after this long (e.g. an infinite loop)
 
-const { UNITS, TYPE_INFO, unitById, unitTitle, levelName, hasScratch } =
+const { UNITS, TYPE_INFO, unitById, unitTitle, levelName, hasScratch, hasPlacement } =
   typeof module === "object" && module.exports ? require("./curriculum.js") : self.Curriculum;
 
 // ===================== Adaptive logic (pure functions) =====================
@@ -231,9 +231,12 @@ function shuffle(arr) {
   return a;
 }
 
-// A task's answer as it starts: empty blanks, the Parsons lines shuffled and none used, no predict choice, or the starter code.
+// A task's answer as it starts: empty blanks, the Parsons lines shuffled and none used, no predict choice (or missing
+// line chosen), an empty trace table, or the starter code.
 function initialDraft(t) {
   if (t.type === "fill") return { blanks: t.starter.split("____").slice(1).map(() => "") };
+  if (t.type === "trace") return { cells: {} };
+  if (t.type === "partial-parsons") return { choice: null };
   if (t.type === "parsons") {
     const items = t.solution.split("\n").filter((l) => l.trim()).map((l, i) => ({ id: "s" + i, text: l.trim() }));
     t.distractors.forEach((d, i) => items.push({ id: "d" + i, text: d.trim() }));
@@ -332,11 +335,16 @@ function attemptRecord(o) {
   if (o.assignmentId) rec.assignmentId = o.assignmentId; // an attempt on a class assignment (phase "assignment")
   const f = o.failure;
   if (f) {
-    const test = f.failedTest == null ? null : t.tests[f.failedTest];
+    // A trace task's evidence is its first wrong row (failedTest is the row number): its expected value is that row
+    // of the real table, and the inputs are the program's.
+    const trace = t.type === "trace";
+    const test = f.failedTest == null ? null : trace ? t.tests[0] : t.tests[f.failedTest];
+    const expected = !test ? null : t.type === "predict" ? t.options[t.answer]
+      : trace ? checkerLib().traceRowText(t.trace, t.trace.rows[f.failedTest] || []) : test.expected;
     Object.assign(rec, {
       category: f.category, details: f.details, misconceptions: checkerLib().matchMisconceptions(t, f),
       code: o.code || "", failedTest: f.failedTest == null ? null : f.failedTest + 1,
-      inputs: test ? test.inputs : null, expected: test ? (t.type === "predict" ? t.options[t.answer] : test.expected) : null,
+      inputs: test ? test.inputs : null, expected,
       output: f.output, errorType: f.errorType, errorKind: f.errorKind,
     });
   }
@@ -664,8 +672,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   // offered, and only the attempt log records what happened (phase "assignment", with the assignment id).
   // Which task is open and what has been tried is kept in this browser (Store.loadAssignmentWork).
   const progress = Store.loadProgress(student.id);
-  // First time in this unit: the placement test comes first.
-  if (unitId && !progress.units[unitId]) progress.units[unitId] = Object.assign(freshUnitState(), { placement: newPlacement() });
+  // First time in this unit: the placement test comes first (units with noPlacement start at level 1 instead).
+  if (unitId && !progress.units[unitId]) progress.units[unitId] = Object.assign(freshUnitState(), { placement: hasPlacement(unitId) ? newPlacement() : null });
   const endlessUnits = endless
     ? (params.get("units") || "").split(",").filter((u) => unitById(u) && progress.units[u] && progress.units[u].completedTop)
     : [];
@@ -750,7 +758,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
 
     // Runs code once per inputs list. Resolves to an array of {output, error, inputsLeft}.
     // maxLines: stop after that many lines (the app's own runs of template variants).
-    async run(code, inputLists, maxLines) {
+    // trace: also record the steps for a trace table (the app's own runs of trace-task variants).
+    async run(code, inputLists, maxLines, trace) {
       const ok = await this.ready;
       if (!ok) return null;
       while (this.job) await this.job.done; // one run at a time
@@ -760,21 +769,21 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
         const id = ++this.seq;
         this.job = { id, resolve: (r) => { markDone(); resolve(r); }, done, results: new Array(inputLists.length).fill(null) };
         this.armTimer();
-        this.worker.postMessage({ type: "run", id, code, tests: inputLists, maxLines: maxLines || 0 });
+        this.worker.postMessage({ type: "run", id, code, tests: inputLists, maxLines: maxLines || 0, trace: !!trace });
       });
     },
 
-    // jobs = [{ code, inputs, maxLines }] (templates.js) → one result per job, in order.
+    // jobs = [{ code, inputs, maxLines, trace }] (templates.js) → one result per job, in order.
     async runJobs(jobs) {
       const results = new Array(jobs.length);
       const groups = new Map();
       jobs.forEach((j, i) => {
-        const key = j.code + "\u0000" + (j.maxLines || 0);
-        if (!groups.has(key)) groups.set(key, { code: j.code, maxLines: j.maxLines, idx: [] });
+        const key = j.code + "\u0000" + (j.maxLines || 0) + "\u0000" + (j.trace ? 1 : 0);
+        if (!groups.has(key)) groups.set(key, { code: j.code, maxLines: j.maxLines, trace: !!j.trace, idx: [] });
         groups.get(key).idx.push(i);
       });
       for (const g of groups.values()) {
-        const res = await this.run(g.code, g.idx.map((i) => jobs[i].inputs), g.maxLines);
+        const res = await this.run(g.code, g.idx.map((i) => jobs[i].inputs), g.maxLines, g.trace);
         g.idx.forEach((i, k) => { results[i] = res ? res[k] : { output: "", error: { type: "Unavailable" }, inputsLeft: 0 }; });
       }
       return results;
@@ -1151,14 +1160,18 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     if (t.type === "fill") body = fillBody(t, c);
     else if (t.type === "parsons") body = parsonsBody();
     else if (t.type === "predict") body = predictBody(t, c);
+    else if (t.type === "trace") body = traceBody(t, c);
+    else if (t.type === "partial-parsons") body = partialBody(t, c);
     else body = writeBody(t, c);
 
     const checkLabel = t.type === "predict" ? "Run to check my answer" : "Check my answer";
     const showLevelButtons = !endless && !inAssignment && !c.placement;
+    // No Run button on predict and trace tasks: running the program would show the answer.
+    const hasRun = t.type !== "predict" && t.type !== "trace";
     card.innerHTML = noticeHtml + (c.placement ? placementIntro : "") + banner(t, false) + header(t) +
       '<div class="task-body">' + body + "</div>" +
       '<div class="actions">' +
-        (t.type !== "predict" ? '<button type="button" id="run-btn" class="secondary">Run</button>' : "") +
+        (hasRun ? '<button type="button" id="run-btn" class="secondary">Run</button>' : "") +
         '<button type="button" id="check-btn" class="primary">' + checkLabel + "</button>" +
         '<button type="button" id="hint-btn" class="secondary"></button>' +
         '<button type="button" id="show-how-btn" class="secondary" hidden>Show me how</button>' +
@@ -1173,6 +1186,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     if (t.type === "fill") wireFill(c);
     else if (t.type === "parsons") renderParsons();
     else if (t.type === "predict") wirePredict(t, c);
+    else if (t.type === "trace") wireTrace(c);
+    else if (t.type === "partial-parsons") wirePartial(t, c);
     else wireWrite(c);
 
     if ($("run-btn")) $("run-btn").addEventListener("click", runOnce);
@@ -1229,7 +1244,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     renderTask();
     $("results").insertAdjacentHTML("afterbegin", '<p class="small" role="status">Your answer has been reset to the start of the task.</p>');
     if (activeEditor) { activeEditor.focus(); return; }
-    const first = $("task").querySelector("input.blank, textarea, .p-line, .option input");
+    const first = $("task").querySelector("input.blank, input.trace-cell, textarea, .p-line, .option input");
     if (first) first.focus();
   }
 
@@ -1271,6 +1286,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       '<pre class="code">' + highlight(we.code) + "</pre>" +
       (we.output != null ? '<p class="small">' + (we.inputs && we.inputs.length ? "When the user types " + esc(we.inputs.join(", then ")) + ", it prints:" : "It prints:") + "</p>" +
         '<pre class="output">' + showOutput(we.output) + "</pre>" : "") +
+      // A trace-table example shows its whole table.
+      (we.trace ? '<p class="small">Its trace table:</p>' + traceTableHtml(we.trace, null, true) : "") +
       "<p><strong>The key idea:</strong> " + esc(we.key_idea) + "</p>" +
       "<p><strong>The key step for this task:</strong> " + esc(keyStep) + "</p>" +
       (c.finished && !c.passed ? '<p><button type="button" id="try-again-btn" class="primary">Try this task again</button></p>' : "");
@@ -1426,6 +1443,10 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       if (!d.program.length) return forCheck ? { empty: true, code: "" } : { problem: "Move some lines into 'Your program' first." };
       return { code: d.program.map((l) => " ".repeat(4 * (l.indent || 0)) + l.text).join("\n") };
     }
+    if (t.type === "partial-parsons") {
+      if (d.choice == null) return forCheck ? { empty: true, code: "" } : { problem: "Choose a line for the gap first." };
+      return { code: withChosenLine(t, d.choice) };
+    }
     if (t.type === "write" || t.type === "scratch") {
       if (!d.code.trim()) return forCheck ? { empty: true, code: "" } : { problem: "Write some code in the editor first." };
       return { code: d.code };
@@ -1466,6 +1487,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     const t = task();
     const c = cur();
     if (t.type === "predict") return checkPredict();
+    if (t.type === "trace") return checkTrace();
     const built = buildCode(true);
     if (built.problem) return showProblem(built.problem);
     const counted = !c.finished; // re-checking a finished task isn't recorded
@@ -1776,6 +1798,128 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
         : failureHtml(t, Checker.classifyAttempt({ type: "predict", choice: c.draft.choice, options: t.options, answer: t.answer }));
     html += "<h3>The program printed</h3><pre class=\"output\">" + showOutput(output) + "</pre>";
     $("results").innerHTML = html;
+  }
+
+  // ---------- Program with line numbers (trace tables refer to lines by number) ----------
+  function numberedCode(code) {
+    const lines = code.split("\n");
+    const w = String(lines.length).length;
+    return '<pre class="code numbered">' + lines.map((l, i) => '<span class="ln" aria-hidden="true">' + String(i + 1).padStart(w, " ") + "</span>" + highlight(l)).join("\n") + "</pre>";
+  }
+
+  // ---------- Trace table ----------
+  // table = a task's trace (Checker.traceTable). cells = the student's answers ("row:column" → text), or null for a
+  // finished example. readOnly: every cell is shown as text (the "Show me how" example).
+  function traceTableHtml(table, cells, readOnly, marks) {
+    const asked = new Set(readOnly ? [] : table.ask.map(([r, c]) => r + ":" + c));
+    const wrong = new Set(marks || []);
+    let html = '<div class="trace-wrap"><table class="trace-table"><thead><tr>' +
+      table.columns.map((col) => '<th scope="col">' + esc(col) + "</th>").join("") + "</tr></thead><tbody>";
+    table.rows.forEach((row, r) => {
+      html += "<tr>" + row.map((v, c) => {
+        const k = r + ":" + c;
+        const col = table.columns[c];
+        if (!asked.has(k)) return (c === 0 && col === "Line" ? '<th scope="row">' : "<td>") + (v == null ? "" : esc(v)) + (c === 0 && col === "Line" ? "</th>" : "</td>");
+        const val = (cells || {})[k] || "";
+        return '<td><input type="text" class="trace-cell' + (wrong.has(k) ? " wrong" : "") + '" data-k="' + k + '" value="' + esc(val) + '"' +
+          ' aria-label="Row ' + (r + 1) + ", " + esc(col) + (wrong.has(k) ? " (not right yet)" : "") + '" spellcheck="false" autocomplete="off" autocapitalize="off"' +
+          (cur() && cur().finished ? " disabled" : "") + "></td>";
+      }).join("") + "</tr>";
+    });
+    return html + "</tbody></table></div>";
+  }
+
+  function traceBody(t, c) {
+    const inputs = t.tests[0].inputs;
+    return numberedCode(t.solution) +
+      (inputs.length ? '<p class="inputs-note">When this program runs, the user types: ' + inputs.map((v) => "<kbd>" + esc(v === "" ? "Enter" : v) + "</kbd>").join(" then ") + "</p>" : "") +
+      '<h3 class="trace-h">Your trace table</h3>' +
+      '<p id="trace-help" class="small">Each row is one line that runs and changes something. Write the new value of each variable that line changes, and anything it prints in Output. Leave the other cells empty. Text doesn\'t need quotes (write "" for empty text).</p>' +
+      '<div id="trace-host">' + traceTableHtml(t.trace, c.draft.cells, false, c.draft.marks) + "</div>";
+  }
+
+  function wireTrace(c) {
+    document.querySelectorAll(".trace-cell").forEach((input) => {
+      input.setAttribute("aria-describedby", "trace-help");
+      input.addEventListener("input", () => {
+        c.draft.cells[input.dataset.k] = input.value;
+        if (input.classList.contains("wrong")) {
+          input.classList.remove("wrong");
+          c.draft.marks = (c.draft.marks || []).filter((k) => k !== input.dataset.k);
+        }
+        save();
+      });
+    });
+  }
+
+  async function checkTrace() {
+    const t = task();
+    const c = cur();
+    const counted = !c.finished;
+    const g = Checker.gradeTrace(t.trace, c.draft.cells);
+    if (counted) { c.attempts += 1; noteAttempt(); }
+    const failure = g.passed ? null : Checker.classifyAttempt({ type: "trace", table: t.trace, cells: c.draft.cells });
+    let more = "";
+    if (counted && !g.passed) {
+      recordAttempt(t, c, { result: "fail", failure, code: Checker.traceAnswerText(t.trace, c.draft.cells) });
+      if (c.placement) more = placementAfterFail() ? "You have one more try." : "";
+    }
+    // Wrong cells are marked (not in placement, where only the count is given).
+    c.draft.marks = !g.passed && !c.placement ? g.wrong.map(([r, k]) => r + ":" + k) : [];
+    save();
+    // Redrawn once the result is recorded, so a finished task's cells can't be changed.
+    const redraw = () => { $("trace-host").innerHTML = traceTableHtml(t.trace, c.draft.cells, false, c.draft.marks); wireTrace(c); };
+    if (g.passed) {
+      $("results").innerHTML = '<p class="success">✓ Well done – every cell of your trace table is right!</p>';
+      if (counted) {
+        if (c.placement) { recordAttempt(t, c, { result: "pass" }); finishPlacementStep(true); }
+        else { const levels = finishTask(true); recordAttempt(t, c, { result: "pass", levels }); }
+        if (notice && !c.placement) $("results").insertAdjacentHTML("afterbegin", '<p class="notice notice-' + notice.kind + '">' + esc(notice.text) + "</p>");
+      }
+      redraw();
+      renderButtons();
+      $("next-btn").focus();
+      return;
+    }
+    redraw();
+    $("results").innerHTML = failureHtml(t, failure, more.trim()) +
+      (c.draft.marks.length ? '<p class="small">The cells that aren\'t right yet are marked in the table.</p>' : "");
+    renderButtons();
+    if (c.finished && counted) renderFinishedMessage();
+  }
+
+  // ---------- Pick the missing line (partial Parsons) ----------
+  // The starter has one line "____" (with its indentation): the chosen option goes there.
+  const withChosenLine = (t, i) => t.starter.replace(/^( *)____[ \t]*$/m, (m, ind) => ind + t.options[i]);
+
+  function partialCode(t, c) {
+    const lines = t.starter.split("\n");
+    return '<pre class="code partial-code">' + lines.map((l) => {
+      const m = /^( *)____[ \t]*$/.exec(l);
+      if (!m) return highlight(l);
+      const chosen = c.draft.choice == null ? null : t.options[c.draft.choice];
+      return m[1] + '<span class="gap' + (chosen == null ? " empty" : "") + '" id="pp-gap">' + (chosen == null ? "? the missing line" : highlight(chosen)) + "</span>";
+    }).join("\n") + "</pre>";
+  }
+
+  function partialBody(t, c) {
+    let html = '<div id="pp-code">' + partialCode(t, c) + "</div>";
+    html += '<fieldset class="options pp-options"><legend>Which line goes in the gap?</legend>';
+    t.options.forEach((opt, i) => {
+      html += '<label class="option"><input type="radio" name="pp" value="' + i + '"' + (c.draft.choice === i ? " checked" : "") + ">" +
+        "<code>" + highlight(opt) + "</code></label>";
+    });
+    return html + "</fieldset>";
+  }
+
+  function wirePartial(t, c) {
+    document.querySelectorAll('input[name="pp"]').forEach((r) => {
+      r.addEventListener("change", () => {
+        c.draft.choice = +r.value;
+        save();
+        $("pp-code").innerHTML = partialCode(t, c);
+      });
+    });
   }
 
   // ---------- Parsons ----------

@@ -18,8 +18,8 @@
   const expectedOutput = (test) => Checker.normalise(test.expected);
   const hiddenTestCount = (t) => Math.max(0, (t.tests || []).length - EXAMPLE_TESTS);
   const isHidden = (index) => index >= EXAMPLE_TESTS;
-  // Predict tasks ask the student to work out the output, so the box would give the answer away.
-  const showsExpectedOutput = (t) => t.type !== "predict";
+  // Predict and trace tasks ask the student to work out the output, so the box would give the answer away.
+  const showsExpectedOutput = (t) => t.type !== "predict" && t.type !== "trace";
   const inputsText = (inputs) => inputs.map((v) => (v === "" ? "(nothing – just Enter)" : v)).join(", then ");
 
   // The "Expected output" box: the example test's input and the exact output, and how many tests are hidden.

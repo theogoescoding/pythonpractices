@@ -6,6 +6,13 @@
   else root.Curriculum = factory();
 })(typeof self !== "undefined" ? self : this, function () {
 
+  // The searching and sorting units' ladder: some levels have two task types (the first is the level's main type).
+  const ALGORITHM_TYPES = { 1: "predict", 2: "predict", 3: ["partial-parsons", "predict"], 4: ["partial-parsons", "predict"],
+    5: ["fill", "trace"], 6: ["fill", "trace"], 7: ["trace", "parsons"], 8: ["trace", "parsons"], 9: ["trace", "write"], 10: "write" };
+  const ALGORITHM_NAMES = { 1: "Predict the output", 2: "Predict – spot the trap", 3: "Pick the missing line", 4: "Pick the missing line – harder",
+    5: "Fill in the blanks or trace", 6: "Fill in or trace – harder", 7: "Trace table or Parsons", 8: "Trace table or Parsons – longer",
+    9: "Trace table or a short program", 10: "Write the whole algorithm" };
+
   // Order here is the order shown on the landing page.
   // `skills` is the fixed list a task's "skills" field may use (the fast move up counts these).
   // `skillMinLevel` keeps tasks for a skill out of the lower levels (they need ideas the student hasn't met yet).
@@ -118,6 +125,61 @@
       levelTypes: { 7: "write" },
       levelNames: { 7: "Write a short check", 8: "Write a longer check" },
     },
+    {
+      id: "trace-tables",
+      title: "Trace tables",
+      description: "Follow a program one line at a time, and write each variable's new value, and what it prints, in a trace table.",
+      skills: ["trace-assignment", "trace-output", "trace-input", "trace-selection", "trace-loop", "trace-list"],
+      // Every level is a trace table: the levels change the program, not the task type.
+      levelTypes: { 1: "trace", 2: "trace", 3: "trace", 4: "trace", 5: "trace", 6: "trace", 7: "trace", 8: "trace", 9: "trace", 10: "trace" },
+      levelNames: { 1: "Trace a short program", 2: "Trace – spot the trap", 3: "Fill in a table's blanks", 4: "Fill in more blanks",
+        5: "Trace a program with input", 6: "Trace input – longer", 7: "Trace selection", 8: "Trace selection – longer",
+        9: "Trace a loop", 10: "Trace a full program" },
+      noScratch: true,
+    },
+    // Searching and sorting. These five units start at level 1 (no placement test), and have fewer tasks at the
+    // top levels; a level can have two task types (the first is the main one).
+    {
+      id: "linear-search",
+      title: "Linear search",
+      description: "Check each item in a list in turn until the one you want is found, or the list runs out.",
+      skills: ["linear-search", "found-flag", "not-found", "position", "count-matches"],
+      levelTypes: ALGORITHM_TYPES, levelNames: ALGORITHM_NAMES, noPlacement: true,
+    },
+    {
+      id: "binary-search",
+      title: "Binary search",
+      description: "Search a sorted list by checking the middle item and throwing away the half that can't hold the one you want.",
+      skills: ["sorted-list", "midpoint", "halving", "bounds", "binary-search"],
+      levelTypes: ALGORITHM_TYPES, levelNames: ALGORITHM_NAMES, noPlacement: true,
+    },
+    {
+      id: "bubble-sort",
+      title: "Bubble sort",
+      description: "Compare each pair of items next to each other and swap them if they're in the wrong order. Repeat the passes until no swaps are needed.",
+      skills: ["compare-pair", "swap", "pass", "bubble-sort", "early-stop"],
+      levelTypes: ALGORITHM_TYPES, levelNames: ALGORITHM_NAMES, noPlacement: true,
+    },
+    {
+      id: "insertion-sort",
+      title: "Insertion sort",
+      description: "Take each item in turn, keep it in a variable, shift the bigger sorted items one place right, and insert it in the gap.",
+      skills: ["key", "shift", "insert", "insertion-sort", "sorted-part"],
+      levelTypes: ALGORITHM_TYPES, levelNames: ALGORITHM_NAMES, noPlacement: true,
+    },
+    {
+      id: "merge-sort",
+      title: "Merge sort",
+      description: "Split a list into single items, then merge sorted lists back together by comparing their front items.",
+      // One short note on recursion (shown on the unit's card and its practice page).
+      note: "Merge sort is usually written with recursion: a function that calls itself on each half, again and again, until every part has one item, then merges the parts on the way back. Recursion is beyond this course, so these tasks never use it: the splitting is shown or done for you, and you practise the merging.",
+      skills: ["split", "merge", "compare-fronts", "leftovers", "merge-sort"],
+      // No write tasks: level 9 is two trace tables and level 10 a full trace of a longer list.
+      levelTypes: Object.assign({}, ALGORITHM_TYPES, { 9: "trace", 10: "trace" }),
+      levelNames: Object.assign({}, ALGORITHM_NAMES, { 9: "Trace a longer merge", 10: "Trace a whole merge sort" }),
+      noPlacement: true,
+      noScratch: true,
+    },
   ];
 
   // How the unit menu groups the units, under headings. Layout only: unit ids, their order and saved progress are
@@ -127,8 +189,8 @@
       units: ["output", "variables", "data-types", "maths", "selection", "loops-condition", "loops-count"] },
     { id: "advanced", title: "Advanced programming",
       units: ["strings", "random", "lists", "functions-basic", "functions-return", "file-handling", "arrays-2d"] },
-    { id: "validation", title: "Validation", units: ["validation", "authentication"] },
-    { id: "searching-sorting", title: "Searching and sorting", units: [], comingSoon: ["Searching", "Sorting"] },
+    { id: "validation", title: "Validation", units: ["validation", "authentication", "trace-tables"] },
+    { id: "searching-sorting", title: "Searching and sorting", units: ["linear-search", "binary-search", "bubble-sort", "insertion-sort", "merge-sort"] },
   ];
 
   // A level is how much support the task gives. It is the same in every unit.
@@ -151,6 +213,8 @@
     predict: { label: "Predict the output", how: "Read the program and choose what you think it prints. Then run it to check." },
     write:   { label: "Write the code",     how: "Write the program yourself in the editor, then check it." },
     scratch: { label: "Write from scratch", how: "Start with a blank editor and write the whole program yourself. It's checked with several different inputs." },
+    trace:   { label: "Trace table",        how: "Follow the program one line at a time. In each row, write the new value of each variable that line changes, and anything it prints." },
+    "partial-parsons": { label: "Pick the missing line", how: "One line of the program is missing. Choose the line that makes the program work, then check your answer." },
   };
 
   // "Write from scratch" tasks are made from templates, at the top level, once a unit is completed.
@@ -160,9 +224,13 @@
   const unitTitle = (id) => (unitById(id) || { title: id }).title;
   // A unit can set its own task type and name for a level (levelTypes, levelNames); otherwise the ladder's are used.
   const levelName = (n, unitId) => ((unitById(unitId) || {}).levelNames || {})[n] || (LEVELS[n - 1] || { name: "" }).name;
-  const levelType = (n, unitId) => ((unitById(unitId) || {}).levelTypes || {})[n] || (LEVELS[n - 1] || { type: "" }).type;
+  // levelTypes: every task type a level may use (most levels have one); levelType: the level's main (first) type.
+  const levelTypes = (n, unitId) => [].concat(((unitById(unitId) || {}).levelTypes || {})[n] || (LEVELS[n - 1] || { type: "" }).type);
+  const levelType = (n, unitId) => levelTypes(n, unitId)[0];
   // Units with noScratch never set "Write from scratch" tasks (File handling: its programs make their own files).
   const hasScratch = (unitId) => !(unitById(unitId) || {}).noScratch;
+  // Units with noPlacement start at level 1 with no placement test (the searching and sorting units).
+  const hasPlacement = (unitId) => !(unitById(unitId) || {}).noPlacement;
 
-  return { UNITS, UNIT_GROUPS, LEVELS, TYPE_INFO, SCRATCH_LEVEL, unitById, unitTitle, levelName, levelType, hasScratch };
+  return { UNITS, UNIT_GROUPS, LEVELS, TYPE_INFO, SCRATCH_LEVEL, unitById, unitTitle, levelName, levelType, levelTypes, hasScratch, hasPlacement };
 });

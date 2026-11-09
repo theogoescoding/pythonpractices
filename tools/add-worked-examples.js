@@ -1,5 +1,7 @@
 // Gives every practice (non-placement) task in tasks.json a "worked_example" for "Show me how": the example in
-// tools/worked-examples.js for the task's unit and first skill that has one, with its output worked out by running it.
+// tools/worked-examples.js for the task's unit and type ("bubble-sort:trace", so each task type has its own example),
+// or else for its unit and first skill that has one, with its output worked out by running it. An example with
+// "trace" (a trace table spec) also gets its trace table, shown under it.
 //
 // Usage:  node tools/add-worked-examples.js           update tasks.json
 //         node tools/add-worked-examples.js --check   only report whether tasks.json is up to date (exit 1 if not)
@@ -11,18 +13,22 @@ const Checker = require(path.join(ROOT, "checker.js"));
 const { EXAMPLES } = require("./worked-examples.js");
 
 const isPlacement = (t) => (t.tags || []).includes("placement");
-const exampleKey = (t) => t.skills.map((s) => t.unit + ":" + s).find((k) => EXAMPLES[k]) || null;
+const exampleKey = (t) => [t.unit + ":" + t.type].concat(t.skills.map((s) => t.unit + ":" + s)).find((k) => EXAMPLES[k]) || null;
 
 // Returns a copy of the tasks with worked examples filled in (and the keys that were missing).
 function withWorkedExamples(tasks) {
   const keys = [...new Set(tasks.filter((t) => !isPlacement(t)).map(exampleKey).filter(Boolean))];
-  const runs = runPython(keys.map((k) => ({ code: EXAMPLES[k].code, inputs: EXAMPLES[k].inputs || [] })));
+  const runs = runPython(keys.map((k) => Object.assign({ code: EXAMPLES[k].code, inputs: EXAMPLES[k].inputs || [] }, EXAMPLES[k].trace ? { trace: true } : {})));
   const made = {};
   keys.forEach((k, i) => {
     const e = EXAMPLES[k];
     if (runs[i].error) throw new Error("Worked example " + k + " raised " + runs[i].error.type);
     made[k] = Object.assign({ skill: k.split(":")[1], problem: e.problem, code: e.code }, e.inputs ? { inputs: e.inputs } : {},
       { output: Checker.normalise(runs[i].output), key_idea: e.key_idea });
+    if (e.trace) {
+      const table = Checker.traceTable(runs[i].steps, e.trace);
+      made[k].trace = { columns: table.columns, rows: table.rows };
+    }
   });
   const missing = [];
   const out = JSON.parse(JSON.stringify(tasks));

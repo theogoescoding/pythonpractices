@@ -4,6 +4,7 @@
 // Usage:  node tools/derive-templates.js --types predict,write    derive these task types only
 //         node tools/derive-templates.js                           all four types
 //         node tools/derive-templates.js --report                  only report what would be made
+//         node tools/derive-templates.js --units merge-sort        only these units (the rest are kept)
 //
 // How a task becomes a template (see templates.js for how a derived template is used):
 //   - Numbers: every number in the code (outside the fixed ones in FIXED) and every number typed in a test is a
@@ -367,6 +368,56 @@ const OVERRIDES = {
   "auth-L9a": { swaps: [[["kai_t", "Rocket9"], ["rio", "Rain22"], ["nia_b", "Kite4"], ["zack9", "Snow5"], ["omar.k", "Owl77"], ["lily.p", "Fox_12"]]] },
   "auth-L9b": { swaps: [[["leo", "Comet3"], ["sam", "Sun1"], ["ella", "Star8"], ["finn", "Moon5"], ["nia", "Kite4"], ["amir", "Rain22"]]] },
   "auth-L9c": { swaps: [[["mia", "Star8"], ["theo", "Moon5"], ["grace", "Owl77"], ["dev", "Kite4"], ["isla", "Sun1"], ["max", "Rain22"]]] },
+
+  // Trace tables: text values, or numbers whose change would change the size of the table.
+  "trace-L2c": { noNumbers: true, swaps: [[["3", "4"], ["5", "2"], ["7", "1"], ["2", "9"], ["8", "6"], ["1", "5"]]] },
+  "trace-L4b": { noNumbers: true, swaps: [[["x = 2"], ["x = 3"], ["x = 4"], ["x = 5"], ["x = 6"], ["x = 7"]]] },
+  "trace-L4c": { swaps: [[["Ada", "Lovelace"], ["Alan", "Turing"], ["Grace", "Hopper"], ["Mary", "Seacole"], ["Isaac", "Newton"], ["Rosa", "Parks"]]] },
+  // Four times round the loop in every variant, so the table keeps its 10 rows.
+  "trace-L9a": { noNumbers: true, swaps: [[["range(1, 5)", "range(1, 6)", "1, 2, 3 and 4", "before 5"], ["range(2, 6)", "range(2, 7)", "2, 3, 4 and 5", "before 6"],
+    ["range(3, 7)", "range(3, 8)", "3, 4, 5 and 6", "before 7"], ["range(5, 9)", "range(5, 10)", "5, 6, 7 and 8", "before 9"],
+    ["range(10, 14)", "range(10, 15)", "10, 11, 12 and 13", "before 14"], ["range(4, 8)", "range(4, 9)", "4, 5, 6 and 7", "before 8"]]] },
+  "trace-L10b": { noNumbers: true, swaps: [[["level"], ["kayak"], ["radar"], ["refer"], ["civic"], ["rotor"]]] },
+  // Hints that work out a value: the variants' hints use the variant's own numbers, or say it without one.
+  "trace-L2b": { hints: ["// divides and keeps only the whole number part.", "{{v(7)}} // 2 is {{idiv(v(7), 2)}}, not {{fl(v(7) / 2)}}."] },
+  "trace-L6b": { hints: ["// gives how many whole times 60 goes into the minutes.", "% gives what is left over after taking the whole hours away."] },
+  "trace-L7c": { hints: ["x % 2 is 0 only when x is even.", "Multiplication comes before adding: x * {{v(3)}} is worked out first."] },
+  "trace-L10a": { hints: ["Each time round the loop: s changes, total changes, and high changes only if s is bigger.", "len(scores) is the number of scores, and / gives a real number."] },
+  "bin-L2b": { fixed: [4, 7] },
+  "bub-L2e": { hints: ["Each pass compares one pair fewer than the pass before.", "Add up the pairs compared in every pass."] },
+  "ins-L3e": { hints: ["Each item is shifted once for every bigger item before it.", "Count the shifts for each item you insert, then add them up."] },
+  "mer-L1a": { hints: ["half is len(items) // 2.", "items[:half] is the first half; items[half:] is the rest."] },
+  "mer-L1e": { hints: ["Each time round, size is halved with //.", "Count how many times it is halved before it reaches 1."] },
+  "mer-L3f": { hints: ["Each step moves i or j along by 1.", "The loop stops when i reaches len(left)."] },
+  "mer-L6e": { hints: ["k goes up in 2s: it is the start of each pair.", "Each pair adds two items to the end of result."] },
+
+  // Searching and sorting: names and words (sorted where a binary search needs it), and whole lists.
+  "lin-L2c": { swaps: [[["Mo", "Jo", "Al", "Bo", "Cy"], ["Kit", "Pip", "Rex", "Dot", "Gus"], ["Ana", "Eli", "Ivo", "Oz", "Uma"], ["Ned", "Ola", "Raj", "Sue", "Tam"],
+    ["Bea", "Cal", "Dax", "Fen", "Hal"], ["Wyn", "Xia", "Yan", "Zed", "Abe"]]] },
+  "lin-L3c": { swaps: [[["A12", "B07", "C33", "D41", "E09", "Z99"], ["K10", "L22", "M35", "N47", "P50", "Q01"], ["R13", "S28", "T31", "U44", "V56", "W99"],
+    ["F05", "G16", "H27", "J38", "K49", "X00"], ["P11", "Q21", "R31", "S41", "T51", "Y77"], ["B01", "C02", "D03", "E04", "F05", "G99"]]] },
+  "lin-L4f": { swaps: [[["sun", "moon", "star", "sky"], ["cat", "dog", "owl", "bee"], ["red", "blue", "pink", "grey"], ["oak", "elm", "ash", "yew"],
+    ["pen", "ink", "pad", "tag"], ["tea", "milk", "jam", "pie"]]] },
+  "lin-L6d": { swaps: [[["a", "b", "c"], ["x", "y", "z"], ["e", "f", "g"], ["m", "n", "p"], ["s", "t", "u"], ["o", "r", "k"]]] },
+  "bin-L1b": { noNumbers: true, swaps: [[["[4, 7, 10, 13, 16, 19, 22]", "16", "13"], ["[2, 5, 8, 11, 14, 17, 20]", "17", "11"], ["[3, 9, 12, 18, 25, 31, 40]", "31", "18"],
+    ["[5, 6, 9, 15, 21, 24, 28]", "21", "15"], ["[1, 8, 14, 19, 23, 30, 36]", "30", "19"], ["[6, 11, 13, 20, 27, 29, 33]", "29", "20"]]] },
+  "bin-L6a": { noNumbers: true, swaps: [[["[120, 128, 133, 141, 150, 156, 162]", "150", "135"], ["[101, 109, 117, 125, 133, 141, 149]", "133", "120"],
+    ["[95, 104, 111, 119, 126, 138, 147]", "126", "100"], ["[130, 134, 139, 145, 152, 158, 165]", "152", "141"],
+    ["[112, 118, 125, 131, 140, 146, 153]", "140", "127"], ["[124, 129, 137, 142, 148, 155, 161]", "148", "150"]]] },
+  "bin-L6b": { swaps: [[["Ann", "Bob", "Dee", "Gus", "Kim", "Liv", "Pat", "Zac", "Ray"], ["Abe", "Cat", "Eve", "Hal", "Ida", "Max", "Nat", "Sam", "Bea"],
+    ["Ali", "Ben", "Cy", "Dan", "Fay", "Jon", "Mia", "Ted", "Kai"], ["Amy", "Dot", "Fin", "Ian", "Joe", "Lea", "Rob", "Uma", "Gil"],
+    ["Bo", "Cal", "Ed", "Flo", "Hen", "Ivy", "Lou", "Viv", "Kit"], ["Ada", "Bev", "Col", "Dev", "Ewa", "Gil", "Ola", "Pip", "Nia"]]] },
+  "bin-L6e": { swaps: [[["Ann", "Bea", "Cal", "Dot", "Eli", "Fay", "Gus"], ["Abe", "Ben", "Cy", "Dan", "Eve", "Flo", "Hal"], ["Ali", "Bo", "Col", "Dee", "Ema", "Fin", "Gia"],
+    ["Amy", "Bob", "Cat", "Del", "Eva", "Fox", "Guy"], ["Ada", "Bev", "Cyd", "Don", "Ely", "Fem", "Gem"], ["Ari", "Bel", "Cia", "Dov", "Esa", "Fia", "Gil"]]] },
+  // Secrets found in exactly three guesses (too big, then too small), so the table keeps its 14 rows.
+  "bin-L8b": { noNumbers: true, swaps: [[["high = 100", "secret = 37", "from 1 to 100"], ["high = 100", "secret = 12", "from 1 to 100"], ["high = 100", "secret = 62", "from 1 to 100"],
+    ["high = 100", "secret = 88", "from 1 to 100"], ["high = 60", "secret = 22", "from 1 to 60"], ["high = 80", "secret = 30", "from 1 to 80"],
+    ["high = 40", "secret = 15", "from 1 to 40"], ["high = 120", "secret = 45", "from 1 to 120"], ["high = 90", "secret = 33", "from 1 to 90"]]],
+    hints: ["The first guess is halfway between low and high: (low + high) // 2.", "If a guess is too big, high moves to just below it; if it is too small, low moves to just above it."] },
+  "ins-L1d": { noNumbers: true, swaps: [[["[4, 3, 5, 1, 2]"], ["[6, 2, 8, 3, 1]"], ["[9, 5, 7, 2, 4]"], ["[3, 1, 6, 4, 2]"], ["[8, 4, 9, 6, 5]"], ["[5, 7, 2, 1, 9]"]]] },
+  "ins-L4f": { swaps: [[["pear", "fig", "kiwi", "apple", "lime"], ["plum", "date", "lemon", "banana", "mango"], ["rose", "daisy", "tulip", "iris", "lily"],
+    ["wolf", "bear", "lynx", "fox", "otter"], ["oak", "elm", "pine", "ash", "yew"], ["tuba", "harp", "flute", "drum", "oboe"]]] },
+  "mer-L2a": { noNumbers: true, swaps: [[["[4, 9, 1, 7, 3]"], ["[8, 2, 6, 5, 1]"], ["[3, 7, 9, 2, 4]"], ["[6, 1, 5, 8, 2]"], ["[9, 4, 2, 6, 7]"], ["[5, 3, 8, 1, 6]"]]] },
 };
 
 const isPlacement = (t) => (t.tags || []).includes("placement");
@@ -405,7 +456,8 @@ function factNumbers(t) {
 }
 
 function codeOf(t) {
-  return [t.solution, t.starter || "", ...(t.distractors || []), ...(t.answers || []), ...(t.buggy_variants || []).map((v) => v.code)].join("\n");
+  return [t.solution, t.starter || "", ...(t.distractors || []), ...(t.answers || []), ...(t.type === "partial-parsons" ? t.options : []),
+    ...(t.buggy_variants || []).map((v) => v.code)].join("\n");
 }
 
 // Replaces numbers in a text by placeholders. map: numeric value → expression text (e.g. "a0", "a0 + 1"),
@@ -508,9 +560,19 @@ function structuralValues(tasks, candidates) {
   return bad;
 }
 
+// Trace tables and the searching and sorting units: their text names lines, rows and indexes ("Line 4", "items[3]",
+// "index 2"), which a variant keeps (positions don't change when the numbers are scaled in order). Those references
+// are kept as they are, and a number in the text only changes if it is one of the task's own numbers (not one more or
+// one less than one).
+const KEEP_POSITIONS_UNITS = ["trace-tables", "linear-search", "binary-search", "bubble-sort", "insertion-sort", "merge-sort"];
+const POSITION_REF = /\b(?:[Ll]ines?|[Ii]ndex(?:es)?|[Rr]ows?) -?\d+(?:(?:, | and | to |, then )-?\d+)*|\b[a-z_]\w*\[-?\d+\]|\blen\(\w+\)(?: - 1)? is \d+/g;
+const keepPositions = (text) => (text == null ? text : String(text).split(/(\{\{[\s\S]*?\}\}|\[\[[^\]]*\]\])/)
+  .map((part, i) => (i % 2 ? part : part.replace(POSITION_REF, (m) => "{{" + JSON.stringify(m) + "}}"))).join(""));
+
 function derive(t, fixedExtra, opts) {
   const smallRange = !!(opts && opts.smallRange);
   const ov = OVERRIDES[t.id] || {};
+  const keepPos = KEEP_POSITIONS_UNITS.includes(t.unit);
   const code = codeOf(t);
   const fixed = new Set([...FIXED, ...quotedNumbers(code), ...factNumbers(t), ...(ov.fixed || []), ...(fixedExtra || [])]);
   // Anchors: numbers in the code, then numbers typed in the tests that aren't next to one of those.
@@ -580,6 +642,7 @@ function derive(t, fixedExtra, opts) {
     map[v] = name;
   });
   for (const [v, [a, d]] of Object.entries(near)) map[v] = map[a] + (d > 0 ? " + " + d : " - " + -d);
+  const textMap = Object.assign({}, map); // KEEP_POSITIONS_UNITS: the text changes only the task's own numbers
   // Numbers one more or one less than a code anchor move with it ("1 to 5" in the text for range(1, 6)).
   for (const v of codeAnchors) {
     for (const d of [1, -1]) if (!(v + d in map) && !fixed.has(Math.abs(v + d))) map[v + d] = map[v] + (d > 0 ? " + 1" : " - 1");
@@ -622,6 +685,8 @@ function derive(t, fixedExtra, opts) {
     return { tuples: tuples.map((tu) => [].concat(tu)), param };
   });
   const s = (x) => substituteWords(substituteNumbers(applySwaps(x, swaps), map, fmt), words);
+  // Text (title, description, hints): as the code, except that the new units keep their line and index references.
+  const st = keepPos ? (x) => substituteWords(substituteNumbers(applySwaps(keepPositions(x), swaps), textMap, fmt), words) : s;
   const tpl = {
     id: "d-" + t.id,
     units: [t.unit],
@@ -629,14 +694,18 @@ function derive(t, fixedExtra, opts) {
     derived: true,
     level: t.level,
     type: t.type,
-    title: s(t.title),
-    description: s(markExampleOutputs(t.description, t.tests)),
+    title: st(t.title),
+    description: st(markExampleOutputs(t.description, t.tests)),
     starter: s(t.starter || ""),
   };
   if (t.type === "fill") tpl.answers = t.answers.map(s);
   else tpl.solution = s(t.solution);
   if (t.type === "parsons") tpl.distractors = t.distractors.map(s);
   if (t.type === "predict") tpl.optionCount = t.options.length;
+  // Pick the missing line: the same options in the same order (each changed like the code), the same right one.
+  if (t.type === "partial-parsons") { tpl.options = t.options.map(s); tpl.answer = t.answer; delete tpl.solution; }
+  // A trace table is made again from the variant's own program, with the same spec and number of rows.
+  if (t.type === "trace") { tpl.trace_spec = t.trace.spec || {}; tpl.traceRows = t.trace.rows.length; }
   tpl.tests = t.tests.map((x) => ({ inputs: x.inputs.map(s) }));
   if (ov.testSets) {
     // Whole alternative sets of test inputs (the first is the task's own).
@@ -647,7 +716,7 @@ function derive(t, fixedExtra, opts) {
   // Hand-written hints (OVERRIDES … hints) for hints that work through the sums: {{v(17)}} is this variant's value
   // for the bank task's 17.
   const own = (h) => h.replace(/\{\{([\s\S]+?)\}\}/g, (m, expr) => "{{" + expr.replace(/\bv\((-?\d+(?:\.\d+)?)\)/g, (x, n) => "(" + (map[Number(n)] || n) + ")") + "}}");
-  tpl.hints = ov.hints ? ov.hints.map(own) : t.hints.map((h) => s(markExampleOutputs(h, t.tests)));
+  tpl.hints = ov.hints ? ov.hints.map(own) : t.hints.map((h) => st(markExampleOutputs(h, t.tests)));
   tpl.tags = t.tags.slice();
   tpl.skills = t.skills.slice();
   if (t.buggy_variants) tpl.buggy_variants = t.buggy_variants.map((v) => ({ misconception: v.misconception, code: s(v.code) }));
@@ -665,11 +734,13 @@ function derive(t, fixedExtra, opts) {
 
 function main() {
   const args = process.argv.slice(2);
-  const typesArg = args.includes("--types") ? args[args.indexOf("--types") + 1].split(",") : ["predict", "write", "fill", "parsons"];
+  const typesArg = args.includes("--types") ? args[args.indexOf("--types") + 1].split(",") : ["predict", "write", "fill", "parsons", "trace", "partial-parsons"];
+  // --units a,b: only these units' tasks (the other units' derived templates are kept as they are).
+  const unitsArg = args.includes("--units") ? args[args.indexOf("--units") + 1].split(",") : null;
   const tasks = JSON.parse(fs.readFileSync(path.join(ROOT, "tasks.json"), "utf8"));
   const file = path.join(ROOT, "templates.json");
   const templates = JSON.parse(fs.readFileSync(file, "utf8"));
-  const chosen = tasks.filter((t) => !isPlacement(t) && typesArg.includes(t.type));
+  const chosen = tasks.filter((t) => !isPlacement(t) && typesArg.includes(t.type) && (!unitsArg || unitsArg.includes(t.unit)));
 
   // First draft, then keep fixed any value that breaks the solution when changed on its own.
   const firstFixed = chosen.map((t) => {
@@ -716,7 +787,7 @@ function main() {
   if (warn.length) console.log("Check these: numbers in the text that the variant's code, tests and outputs don't use (" + warn.length + "): " + warn.join(", "));
   if (args.includes("--report")) return;
   const keepTypes = new Set(typesArg);
-  const kept = templates.filter((tpl) => !(tpl.derived && keepTypes.has(tpl.type)));
+  const kept = templates.filter((tpl) => !(tpl.derived && keepTypes.has(tpl.type) && (!unitsArg || unitsArg.includes(tpl.units[0]))));
   fs.writeFileSync(file, JSON.stringify(kept.concat(derived), null, 2) + "\n");
   console.log("templates.json now has " + (kept.length + derived.length) + " templates.");
 }

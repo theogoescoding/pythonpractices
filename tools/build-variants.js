@@ -18,20 +18,25 @@ function storedResult(r) {
   return { output: errorKind === "Timeout" ? "" : Checker.normalise(r.output), errorKind };
 }
 
-// Returns a copy of the tasks with every variant's outputs worked out.
+// Returns a copy of the tasks with every variant's outputs worked out. A trace task's variants also get "rows": their
+// own trace table's rows, in the task's columns, which a student's first wrong row is matched against.
 function computeVariantOutputs(tasks) {
   const jobs = [];
   const where = [];
-  tasks.forEach((t, ti) => (t.buggy_variants || []).forEach((v, vi) => t.tests.forEach((test, k) => {
-    jobs.push({ code: v.code, inputs: test.inputs });
-    where.push([ti, vi, k]);
-  })));
+  tasks.forEach((t, ti) => (t.buggy_variants || []).forEach((v, vi) => {
+    t.tests.forEach((test, k) => {
+      jobs.push({ code: v.code, inputs: test.inputs });
+      where.push([ti, vi, k]);
+    });
+    if (t.type === "trace") { jobs.push({ code: v.code, inputs: t.tests[0].inputs, trace: true, maxLines: 5000 }); where.push([ti, vi, "rows"]); }
+  }));
   const results = jobs.length ? runPython(jobs) : [];
   const out = JSON.parse(JSON.stringify(tasks));
   out.forEach((t) => (t.buggy_variants || []).forEach((v) => { v.outputs = []; }));
   results.forEach((r, j) => {
     const [ti, vi, k] = where[j];
-    out[ti].buggy_variants[vi].outputs[k] = storedResult(r);
+    if (k === "rows") out[ti].buggy_variants[vi].rows = Checker.variantTraceRows(out[ti].trace, r.steps || []);
+    else out[ti].buggy_variants[vi].outputs[k] = storedResult(r);
   });
   return out;
 }

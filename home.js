@@ -198,7 +198,7 @@ Store.whenReady(function () {
   // One unit's card (a link to practise it, or "Coming soon" if it has no tasks yet).
   function unitCard(u, progress) {
     const count = tasks.filter((t) => t.unit === u.id).length;
-    const title = "<h4>" + esc(u.title) + "</h4><p>" + esc(u.description) + "</p>";
+    const title = "<h4>" + esc(u.title) + "</h4><p>" + esc(u.description) + "</p>" + (u.note ? '<p class="unit-note small">' + esc(u.note) + "</p>" : "");
     if (!count) {
       return '<li><div class="unit-card unavailable" aria-disabled="true">' + title +
         '<p class="unit-meta"><span class="soon">Coming soon</span></p></div></li>';
@@ -206,7 +206,7 @@ Store.whenReady(function () {
     const s = progress.units[u.id];
     const level = unitLevel(progress, u.id);
     let levelText;
-    if (level == null) levelText = "Not started – a quick check will find your starting level";
+    if (level == null) levelText = u.noPlacement ? "Not started – you'll start at Level 1" : "Not started – a quick check will find your starting level";
     else if (needsPlacement(s)) levelText = "Quick check to finish";
     else levelText = "Your level: " + level + " (" + levelName(level, u.id) + ")" + (s.completedTop ? " ✓ completed" : "");
     // A unit glows once a level 10 task has been passed in it.

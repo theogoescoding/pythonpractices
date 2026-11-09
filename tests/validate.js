@@ -17,7 +17,7 @@ const { runPython } = require(path.join(ROOT, "tools", "run-python.js"));
 const { computeVariantOutputs } = require(path.join(ROOT, "tools", "build-variants.js"));
 
 const REQUIRED = ["id", "unit", "level", "type", "title", "description", "starter", "solution", "tests", "hints", "tags", "skills"];
-const TYPES = ["fill", "parsons", "predict", "write"];
+const TYPES = ["fill", "parsons", "predict", "write", "trace", "partial-parsons"];
 const UNIT_IDS = Curriculum.UNITS.map((u) => u.id);
 const MIN_TASKS_PER_UNIT = 30;
 const MIN_PER_UNIT_LEVEL = 3;
@@ -53,17 +53,19 @@ check(unitsWithTasks.length === UNIT_IDS.length, `Every unit should have tasks; 
 for (const unit of unitsWithTasks) {
   const mine = tasks.filter((t) => t.unit === unit);
   check(mine.length >= MIN_TASKS_PER_UNIT, `Unit "${unit}" needs at least ${MIN_TASKS_PER_UNIT} tasks, found ${mine.length}`);
+  // The searching and sorting units (no placement) have fewer tasks at the top levels: at least 1 per level.
+  const minPerLevel = Curriculum.hasPlacement(unit) ? MIN_PER_UNIT_LEVEL : 1;
   for (let lv = 1; lv <= 10; lv++) {
     const count = mine.filter((t) => t.level === lv).length;
-    check(count >= MIN_PER_UNIT_LEVEL, `Unit "${unit}" level ${lv} needs at least ${MIN_PER_UNIT_LEVEL} tasks, found ${count}`);
+    check(count >= minPerLevel, `Unit "${unit}" level ${lv} needs at least ${minPerLevel} tasks, found ${count}`);
     // Tasks kept out of low levels (skillMinLevel) must still leave enough to choose from.
     const settable = App.tasksAt(tasks, unit, lv).length;
-    check(settable >= MIN_PER_UNIT_LEVEL, `Unit "${unit}" level ${lv} has only ${settable} tasks that can be set (after skillMinLevel)`);
+    check(settable >= minPerLevel, `Unit "${unit}" level ${lv} has only ${settable} tasks that can be set (after skillMinLevel)`);
   }
-  // Every task type its ladder uses (File handling has no write tasks).
-  const ladderTypes = new Set(Array.from({ length: 10 }, (_, i) => Curriculum.levelType(i + 1, unit)));
+  // Every task type its ladder uses (File handling has no write tasks; some levels have two types).
+  const ladderTypes = new Set(Array.from({ length: 10 }, (_, i) => Curriculum.levelTypes(i + 1, unit)).flat());
   for (const type of TYPES.filter((ty) => ladderTypes.has(ty))) check(mine.some((t) => t.type === type), `Unit "${unit}" has no tasks of type "${type}"`);
-  check(mine.every((t) => t.type === Curriculum.levelType(t.level, unit)), `Unit "${unit}": every task's type is its level's type`);
+  check(mine.every((t) => Curriculum.levelTypes(t.level, unit).includes(t.type)), `Unit "${unit}": every task's type is one of its level's types`);
 }
 check(tasks.filter((t) => t.unit === "selection").length >= MIN_SELECTION_TASKS, `Selection should keep at least ${MIN_SELECTION_TASKS} tasks`);
 const ids = tasks.map((t) => t.id);
@@ -74,6 +76,10 @@ check(dupes.length === 0, "Duplicate task ids: " + dupes.join(", "));
 // At least 2 per placement level in each unit, so a teacher reset gives the student different tasks.
 const MIN_PLACEMENT_PER_LEVEL = 2;
 for (const unit of UNIT_IDS) {
+  if (!Curriculum.hasPlacement(unit)) {
+    check(!tasks.some((t) => t.unit === unit && App.isPlacementTask(t)), `Unit "${unit}" has no placement test, so no placement tasks`);
+    continue;
+  }
   for (const lv of App.PLACEMENT_LEVELS) {
     const n = tasks.filter((t) => t.unit === unit && t.level === lv && App.isPlacementTask(t)).length;
     check(n >= MIN_PLACEMENT_PER_LEVEL, `Unit "${unit}" needs at least ${MIN_PLACEMENT_PER_LEVEL} placement tasks at level ${lv}, found ${n}`);
@@ -104,12 +110,19 @@ tasks.forEach((t, ti) => {
   (variantOutputs[ti].buggy_variants || []).forEach((fresh, vi) => {
     const v = t.buggy_variants[vi];
     check(JSON.stringify(fresh.outputs) === JSON.stringify(v.outputs), `${t.id}: stored outputs of the ${v.misconception} variant are out of date – run: node tools/build-variants.js`);
-    const differs = fresh.outputs.some((o, k) => o.errorKind || !Checker.outputsMatch(o.output, t.tests[k].expected));
-    check(differs, `${t.id}: the ${v.misconception} variant passes every test, so it can never match a failed attempt`);
+    // A trace task's variant is matched on its table's rows (stored in "rows"), not on what it prints.
+    if (t.type === "trace") {
+      check(JSON.stringify(fresh.rows) === JSON.stringify(v.rows), `${t.id}: stored rows of the ${v.misconception} variant are out of date – run: node tools/build-variants.js`);
+      const own = t.trace.rows.map((row) => Checker.traceRowText(t.trace, row));
+      check(own.some((row, k) => (fresh.rows || [])[k] !== row), `${t.id}: the ${v.misconception} variant's table is the same as the real one, so it can never match`);
+    } else {
+      const differs = fresh.outputs.some((o, k) => o.errorKind || !Checker.outputsMatch(o.output, t.tests[k].expected));
+      check(differs, `${t.id}: the ${v.misconception} variant passes every test, so it can never match a failed attempt`);
+    }
     check(!fresh.outputs.some((o) => o.errorKind === "SyntaxError" || o.errorKind === "IndentationError"),
       `${t.id}: the ${v.misconception} variant ends in a general syntax error, which would match any syntax error`);
-    check(!fresh.outputs.some((o) => o.errorKind === "Timeout") || v.misconception === "LOOP_NO_UPDATE",
-      `${t.id}: only LOOP_NO_UPDATE variants may run forever`);
+    check(!fresh.outputs.some((o) => o.errorKind === "Timeout") || ["LOOP_NO_UPDATE", "BINARY_BOUNDS_NOT_UPDATED"].includes(v.misconception),
+      `${t.id}: only LOOP_NO_UPDATE and BINARY_BOUNDS_NOT_UPDATED variants may run forever`);
     if (t.type === "predict") {
       const wrong = t.options.filter((o, i) => i !== t.answer).map(Checker.normalise);
       check(wrong.includes(fresh.outputs[0].output), `${t.id}: the ${v.misconception} variant's output should be one of the wrong options`);
@@ -169,8 +182,8 @@ for (const t of practiceTasks) {
 }
 
 // Unit order on the landing page, and a skill that is in two units' lists counting for the task's own unit.
-check(UNIT_IDS.join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d,validation,authentication",
-  "Units are listed with Data types and casting between Variables and Maths; Strings, Random and Lists after the two loops units; then the two functions units, File handling and 2D arrays; then Validation and Authentication");
+check(UNIT_IDS.join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d,validation,authentication,trace-tables,linear-search,binary-search,bubble-sort,insertion-sort,merge-sort",
+  "Units are listed with Data types and casting between Variables and Maths; Strings, Random and Lists after the two loops units; then the two functions units, File handling and 2D arrays; then Validation, Authentication and Trace tables; then the five searching and sorting units");
 check(App.unitOfSkill("accumulator", ["loops-condition"]) === "loops-condition" && App.unitOfSkill("accumulator", ["loops-count"]) === "loops-count" &&
   App.unitOfSkill("accumulator") === "loops-condition", "A skill in two units' lists belongs to the task's own unit");
 check(App.unitOfSkill("and/or", ["loops-condition"]) === "loops-condition" && App.unitOfSkill("and/or", ["selection"]) === "selection" &&
@@ -195,13 +208,17 @@ function checkTask(t) {
   const okSkills = allowedSkills(t);
   for (const s of t.skills || []) check(okSkills.includes(s), `${name}: skill "${s}" is not in the skill list for its unit(s) (curriculum.js)`);
   // The ladder's task type for the level, or the unit's own (File handling's levels 8-10 are fill-in and Parsons).
-  const ladder = Curriculum.LEVELS[t.level - 1] && { type: Curriculum.levelType(t.level, t.unit), name: Curriculum.levelName(t.level, t.unit) };
+  const ladder = Curriculum.LEVELS[t.level - 1] && { types: Curriculum.levelTypes(t.level, t.unit), name: Curriculum.levelName(t.level, t.unit) };
   if (t.type === "scratch") {
     check(Curriculum.hasScratch(t.unit), `${name}: unit "${t.unit}" has no write-from-scratch tasks`);
     check(t.level === Curriculum.SCRATCH_LEVEL, `${name}: write-from-scratch tasks are level ${Curriculum.SCRATCH_LEVEL}`);
     check(t.starter === "", `${name}: write-from-scratch tasks start with a blank editor (starter "")`);
     check(t.tests.length >= 1, `${name}: write-from-scratch tasks need tests`);
-  } else if (ladder) check(t.type === ladder.type, `${name}: level ${t.level} tasks must be "${ladder.type}" (${ladder.name}), not "${t.type}"`);
+  } else if (ladder) {
+    // A combined task may use the level's type in any of its units.
+    const types = [...new Set((t.units || [t.unit]).flatMap((u) => Curriculum.levelTypes(t.level, u)))];
+    check(types.includes(t.type), `${name}: level ${t.level} tasks must be "${types.join('" or "')}" (${ladder.name}), not "${t.type}"`);
+  }
   check(typeof t.title === "string" && t.title.trim(), `${name}: title must be a non-empty string`);
   check(typeof t.description === "string" && t.description.trim(), `${name}: description must be a non-empty string`);
   check(typeof t.starter === "string", `${name}: starter must be a string (use "" if not needed)`);
@@ -248,6 +265,19 @@ function checkTask(t) {
   }
   if (t.type === "write") {
     check(typeof t.starter === "string", `${name}: write tasks need a starter (may be a comment)`);
+  }
+  if (t.type === "partial-parsons") {
+    check(Array.isArray(t.options) && t.options.length >= 3 && t.options.length <= 4, `${name}: pick-the-missing-line tasks need 3 or 4 options`);
+    check(Number.isInteger(t.answer) && t.answer >= 0 && t.answer < (t.options || []).length, `${name}: answer must be an index into options`);
+    check((t.starter.match(/^ *____[ \t]*$/gm) || []).length === 1 && (t.starter.match(/____/g) || []).length === 1, `${name}: the starter has exactly one gap line (____)`);
+    check(new Set((t.options || []).map((o) => o.trim())).size === (t.options || []).length, `${name}: options must all be different`);
+    if (t.options && Number.isInteger(t.answer)) check(t.starter.replace(/^( *)____[ \t]*$/m, (m, ind) => ind + t.options[t.answer]) === t.solution, `${name}: the starter with the right option put in must equal the solution`);
+  }
+  if (t.type === "trace") {
+    const tr = t.trace;
+    check(tr && Array.isArray(tr.columns) && Array.isArray(tr.rows) && Array.isArray(tr.ask), `${name}: trace tasks need a trace table (columns, rows, ask)`);
+    if (tr) for (const p of Checker.traceProblems(tr)) check(false, `${name}: ${p}`);
+    check(t.tests.length === 1, `${name}: trace tasks have exactly one test`);
   }
 }
 tasks.forEach(checkTask);
@@ -301,6 +331,8 @@ for (const tpl of templates) {
     if (src && src.type === "fill") check((tpl.starter.match(/____/g) || []).length === (src.starter.match(/____/g) || []).length, `${name}: keeps the source task's number of blanks`);
     if (src && src.type === "parsons") check(tpl.distractors.length === src.distractors.length, `${name}: keeps the source task's number of distractors`);
     if (src && src.type === "predict") check((tpl.optionCount || 4) === src.options.length, `${name}: keeps the source task's number of options`);
+    if (src && src.type === "partial-parsons") check(tpl.options.length === src.options.length && tpl.answer === src.answer, `${name}: keeps the source task's options and right answer`);
+    if (src && src.type === "trace") check(tpl.traceRows === src.trace.rows.length && JSON.stringify(tpl.trace_spec) === JSON.stringify(src.trace.spec || {}), `${name}: keeps the source task's trace table spec and number of rows`);
   }
   const sigs = new Set();
   const fps = new Set();
@@ -363,11 +395,24 @@ for (const t of tasks.concat(variants)) {
     jobs.push({ code: t.solution, inputs: t.tests[0].inputs });
     meta.push({ kind: "predict-options", t, i: 0 });
   }
+  // Pick the missing line: every wrong option must fail at least one test.
+  if (t.type === "partial-parsons") {
+    t.options.forEach((o, oi) => {
+      if (oi === t.answer) return;
+      t.tests.forEach((test, i) => { jobs.push({ code: t.starter.replace(/^( *)____[ \t]*$/m, (m, ind) => ind + o), inputs: test.inputs, maxLines: 100000 }); meta.push({ kind: "pp-option", t, i, oi }); });
+    });
+  }
+  // Trace: the stored table is the one tracing the solution gives.
+  if (t.type === "trace") {
+    jobs.push({ code: t.solution, inputs: t.tests[0].inputs, trace: true });
+    meta.push({ kind: "trace-table", t, i: 0 });
+  }
 }
 
 console.log(`Running ${jobs.length} Python programs with ${process.env.PYTHON || "python"}…`);
 const results = runPython(jobs);
 const starterPasses = {};
+const optionPasses = {};
 results.forEach((r, k) => {
   const { kind, t, i } = meta[k];
   const test = t.tests[i];
@@ -385,9 +430,17 @@ results.forEach((r, k) => {
     t.options.forEach((opt, oi) => {
       if (oi !== t.answer) check(!Checker.outputsMatch(r.output, opt), `${t.id}: wrong option ${oi + 1} matches the real output`);
     });
+  } else if (kind === "pp-option") {
+    const key = t.id + ":" + meta[k].oi;
+    optionPasses[key] = optionPasses[key] === undefined ? true : optionPasses[key];
+    if (r.error || !Checker.outputsMatch(r.output, test.expected)) optionPasses[key] = false;
+  } else if (kind === "trace-table") {
+    const table = Checker.traceTable(r.steps || [], t.trace.spec || {});
+    check(JSON.stringify([table.columns, table.rows, table.ask]) === JSON.stringify([t.trace.columns, t.trace.rows, t.trace.ask]), `${t.id}: the stored trace table isn't the one tracing the solution gives`);
   }
 });
 for (const [id, passes] of Object.entries(starterPasses)) check(!passes, `${id}: starter code already passes every test`);
+for (const [key, passes] of Object.entries(optionPasses)) check(!passes, `${key.split(":")[0]}: wrong option ${Number(key.split(":")[1]) + 1} passes every test`);
 
 // ---------- Harness and friendly error checks ----------
 const harnessCases = [
@@ -613,7 +666,7 @@ const TEXT_PAIRS = [
   ["muted", "bg"], ["muted", "card"], ["muted", "code-bg"],
   ["link", "bg"], ["link", "card"], ["primary-text", "primary"],
   ["pass", "pass-bg"], ["pass", "card"], ["fail", "fail-bg"], ["fail", "card"], ["on-danger", "fail"],
-  ["on-type", "fill"], ["on-type", "parsons"], ["on-type", "predict"], ["on-type", "write"],
+  ["on-type", "fill"], ["on-type", "parsons"], ["on-type", "predict"], ["on-type", "write"], ["on-type", "trace"],
   ["tok-k", "code-bg"], ["tok-s", "code-bg"], ["tok-n", "code-bg"], ["tok-c", "code-bg"], ["tok-f", "code-bg"],
 ];
 function luminance(hex) {

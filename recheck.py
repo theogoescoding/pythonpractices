@@ -160,6 +160,14 @@ class Matcher:
         inputs = json.loads(row["failed_test_inputs"]) if row.get("failed_test_inputs") else None
         ids = []
         for vi, variant in enumerate(task["buggy_variants"]):
+            if task.get("type") == "trace":
+                # A trace task's evidence is the student's first wrong row (failed_test_number is its row number),
+                # compared with the same row of the variant's table (stored in "rows" by tools/build-variants.js).
+                rows = variant.get("rows") or []
+                if test_index < len(rows) and normalise(rows[test_index]) == normalise(row.get("student_output", "")) \
+                        and variant["misconception"] not in ids:
+                    ids.append(variant["misconception"])
+                continue
             out = self.variant_result(task, vi, test_index, inputs)
             if same_result(out, row.get("student_output", ""), row.get("student_error_kind", "")) and variant["misconception"] not in ids:
                 ids.append(variant["misconception"])

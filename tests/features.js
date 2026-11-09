@@ -168,8 +168,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
 
   // ===================== Strings, Random and Lists units =====================
   {
-    check(Curriculum.UNITS.map((u) => u.id).join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d,validation,authentication",
-      "Unit order: Output, Variables, Data types, Maths, Selection, the two loops units, Strings, Random, Lists, the two functions units, File handling, 2D arrays, Validation and Authentication");
+    check(Curriculum.UNITS.map((u) => u.id).join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d,validation,authentication,trace-tables,linear-search,binary-search,bubble-sort,insertion-sort,merge-sort",
+      "Unit order: Output, Variables, Data types, Maths, Selection, the two loops units, Strings, Random, Lists, the two functions units, File handling, 2D arrays, Validation, Authentication, Trace tables, then Linear search, Binary search, Bubble sort, Insertion sort and Merge sort");
     const NEW = {
       strings: { title: "Strings", prefix: "str", skills: "length,indexing,slicing,upper/lower,find,replace,in" },
       random: { title: "Random", prefix: "rand", skills: "import,randint,choice,simulation" },
@@ -410,6 +410,172 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "val-L1t: a level 1 type check with no cast, its answer is the real output, and it has no buggy variants");
   }
 
+  // ===================== Trace tables, and the searching and sorting units =====================
+  {
+    const templatesAll = require(path.join(ROOT, "templates.json"));
+    const codeOf = (t) => [t.solution, t.starter || ""].concat(t.distractors || [], t.answers || [], t.type === "partial-parsons" ? t.options : [], (t.buggy_variants || []).map((v) => v.code)).join("\n");
+    const recursive = (code) => [...code.matchAll(/^\s*def ([a-z_]\w*)\(/gm)].some((m) => {
+      const lines = code.slice(m.index).split("\n");
+      const ind = /^\s*/.exec(lines[0])[0].length;
+      const end = lines.slice(1).findIndex((l) => l.trim() && /^\s*/.exec(l)[0].length <= ind);
+      return (end < 0 ? lines.slice(1) : lines.slice(1, end + 1)).some((l) => new RegExp("\\b" + m[1] + "\\(").test(l));
+    });
+    const ALGO = { "linear-search": "lin", "binary-search": "bin", "bubble-sort": "bub", "insertion-sort": "ins", "merge-sort": "mer" };
+    const typesAt = (mine, lv) => mine.filter((t) => t.level === lv).map((t) => t.type).sort().join("+");
+
+    // Trace tables: 3 practice tasks per level, all trace tables, and placement at levels 2, 5, 7 and 9.
+    const tt = tasks.filter((t) => t.unit === "trace-tables");
+    const ttPractice = tt.filter((t) => !t.tags.includes("placement"));
+    const ttPlacement = tt.filter((t) => t.tags.includes("placement"));
+    check(Array.from({ length: 10 }, (_, i) => ttPractice.filter((t) => t.level === i + 1).length).join() === "3,3,3,3,3,3,3,3,3,3" &&
+      [2, 5, 7, 9].map((lv) => ttPlacement.filter((t) => t.level === lv).map((t) => t.id).join("+")).join() === "trace-P2a+trace-P2b,trace-P5a+trace-P5b,trace-P7a+trace-P7b,trace-P9a+trace-P9b" &&
+      tt.every((t) => t.type === "trace") && Array.from({ length: 10 }, (_, i) => Curriculum.levelType(i + 1, "trace-tables")).every((ty) => ty === "trace") &&
+      !Curriculum.hasScratch("trace-tables") && Curriculum.hasPlacement("trace-tables"),
+      "Trace tables: 3 trace-table tasks at every level, and placement tasks trace-P2a/b, P5a/b, P7a/b and P9a/b");
+    const blanks = (t) => !!t.trace.spec.blanks;
+    check(ttPractice.filter((t) => t.level <= 2).every((t) => t.solution.split("\n").length <= 3 && !blanks(t)) &&
+      ttPractice.filter((t) => t.level === 3 || t.level === 4).every((t) => blanks(t) && t.trace.ask.length < t.trace.rows.length * (t.trace.columns.length - 1)) &&
+      ttPractice.filter((t) => t.level === 5 || t.level === 6).every((t) => t.tests[0].inputs.length > 0) &&
+      ttPractice.filter((t) => t.level === 7 || t.level === 8).every((t) => /^\s*if\b/m.test(t.solution) && t.trace.lineMode === "ask") &&
+      ttPractice.filter((t) => t.level === 9).every((t) => /^\s*(for|while)\b/m.test(t.solution)) &&
+      ttPractice.filter((t) => t.level === 10).every((t) => t.trace.rows.length >= 13 && t.trace.rows.length <= 17),
+      "Trace tables: levels 1-2 trace 1-3 lines, 3-4 fill in a table's blanks, 5-6 have input, 7-8 selection (the Line column is asked too), 9 a loop, 10 a full table of about 15 rows");
+
+    // The searching and sorting units: no placement, about 40 tasks each, more at the low levels.
+    for (const [id, prefix] of Object.entries(ALGO)) {
+      const mine = tasks.filter((t) => t.unit === id);
+      const want = id === "merge-sort"
+        ? "predict,predict,partial-parsons+partial-parsons+partial-parsons+partial-parsons+predict+predict,partial-parsons+partial-parsons+partial-parsons+partial-parsons+predict+predict,fill+fill+fill+trace+trace,fill+fill+fill+trace+trace,parsons+trace+trace,parsons+trace+trace,trace+trace,trace"
+        : "predict,predict,partial-parsons+partial-parsons+partial-parsons+partial-parsons+predict+predict,partial-parsons+partial-parsons+partial-parsons+partial-parsons+predict+predict,fill+fill+fill+trace+trace,fill+fill+fill+trace+trace,parsons+trace+trace,parsons+trace+trace,trace+write,write";
+      const got = Array.from({ length: 10 }, (_, i) => (i < 2 ? (typesAt(mine, i + 1) === "predict+predict+predict+predict+predict" ? "predict" : typesAt(mine, i + 1)) : typesAt(mine, i + 1))).join();
+      check(mine.length === 41 && got === want && mine.every((t) => new RegExp("^" + prefix + "-L\\d+[a-z]$").test(t.id) && Curriculum.levelTypes(t.level, id).includes(t.type)) &&
+        !mine.some((t) => t.tags.includes("placement")) && !Curriculum.hasPlacement(id) && Curriculum.hasScratch(id) === (id !== "merge-sort"),
+        Curriculum.unitTitle(id) + ": 41 tasks, no placement; levels 1-2 five predict, 3-4 four pick-the-missing-line and two predict, 5-6 three fill and two trace, 7-8 two trace and a Parsons, 9 " +
+        (id === "merge-sort" ? "two trace tables and 10 a full trace (no write tasks)" : "a trace and a short write, 10 a full write") + (got === want ? "" : " (" + got + ")"));
+      // The items given: every list written out in the program (merge tasks give two sorted lists), or 5 typed in.
+      // A task with no list at all (the binary search guessing game searches 1 to 100) doesn't need one.
+      const big = mine.filter((t) => t.level >= 7).filter((t) => {
+        const lists = [...t.solution.matchAll(/\[(\s*-?[\w"'.]+\s*(?:,\s*-?[\w"'.]+\s*)+)\]/g)].map((m) => m[1].split(",").length);
+        const typed = /for k in range\(5\):\n\s+\w+\.append\(int\(input\(/.test(t.solution) ? 5 : 0;
+        return (lists.length || typed) && Math.max(typed, lists.reduce((a, b) => a + b, 0)) < 5;
+      });
+      check(!big.length, Curriculum.unitTitle(id) + ": every task from level 7 up works on a list of at least 5 items" + (big.length ? " (" + big.map((t) => t.id).join(", ") + ")" : ""));
+      // Every task type used in the unit has its own "Show me how" example.
+      const practice = mine.filter((t) => !t.tags.includes("placement"));
+      check(practice.every((t) => t.worked_example && t.worked_example.skill === t.type) && new Set(practice.map((t) => t.type)).size === new Set(practice.map((t) => t.worked_example.skill)).size,
+        Curriculum.unitTitle(id) + ": every practice task has a \"Show me how\" example for its task type, and each type has one");
+    }
+    check(/recursion/i.test(Curriculum.unitById("merge-sort").note || "") && /beyond this course|out of scope/i.test(Curriculum.unitById("merge-sort").note),
+      "Merge sort: the unit has one short note on how recursion works and why it isn't used");
+    const NEW_UNITS = ["trace-tables"].concat(Object.keys(ALGO));
+    const newTasks = tasks.filter((t) => NEW_UNITS.includes(t.unit));
+    const rec = newTasks.filter((t) => recursive(codeOf(t)));
+    check(!rec.length, "No task in the six new units uses recursion" + (rec.length ? " (" + rec.map((t) => t.id).join(", ") + ")" : ""));
+    check(ttPractice.every((t) => t.worked_example && t.worked_example.trace && t.worked_example.trace.rows.length) &&
+      Curriculum.UNITS.find((u) => u.id === "trace-tables").skills.every((s) => ttPractice.some((t) => t.worked_example.skill === s)),
+      "Trace tables: every practice task's \"Show me how\" shows a worked trace table, and every skill has one");
+    check(newTasks.filter((t) => !t.tags.includes("placement")).every((t) => templatesAll.some((tpl) => tpl.derived && tpl.source === t.id)),
+      "The six new units: every practice task has a derived template");
+    check(Object.keys(ALGO).filter((u) => u !== "merge-sort").every((u) => templatesAll.filter((tpl) => tpl.type === "scratch" && tpl.units[0] === u).length >= 3),
+      "Linear search, Binary search, Bubble sort and Insertion sort have write-from-scratch templates");
+    const pairs = [["authentication", "trace-tables"], ["trace-tables", "linear-search"], ["linear-search", "binary-search"], ["binary-search", "bubble-sort"], ["bubble-sort", "insertion-sort"], ["insertion-sort", "merge-sort"]];
+    check(pairs.every((p) => templatesAll.filter((tpl) => tpl.units.length === 2 && p.every((u) => tpl.units.includes(u))).length >= 3) &&
+      !templatesAll.some((tpl) => tpl.type === "trace" && !tpl.derived),
+      "Each new pair of units taught one after the other has 3 combined templates (none of them trace tables, which are only made from bank tasks)");
+
+    // The misconceptions: a teacher description, a 3-sentence explanation, and buggy variants on 3+ tasks in their unit.
+    const NEW_M = { LINEAR_NOT_FOUND_MISSING: "linear-search", LINEAR_STOPS_EARLY: "linear-search", BINARY_UNSORTED: "binary-search", BINARY_BOUNDS_NOT_UPDATED: "binary-search",
+      BINARY_MID_FLOAT: "binary-search", BUBBLE_RANGE_OFF_BY_ONE: "bubble-sort", BUBBLE_SWAP_NO_TEMP: "bubble-sort", INSERTION_OVERWRITES: "insertion-sort",
+      INSERTION_KEY_NOT_KEPT: "insertion-sort", MERGE_ITEMS_LOST: "merge-sort", MERGE_NO_COMPARE: "merge-sort" };
+    for (const [mid, unit] of Object.entries(NEW_M)) {
+      const m = misconceptions.find((x) => x.id === mid);
+      const sentences = m ? m.explanation.split(/(?<=[.!?])\s+/).length : 0;
+      const bank = tasks.filter((t) => t.unit === unit && !t.tags.includes("placement") && (t.buggy_variants || []).some((v) => v.misconception === mid));
+      check(m && m.name && m.description && sentences === 3 && bank.length >= 3,
+        mid + ": in misconceptions.json with a teacher description and a 3-sentence explanation, and buggy variants on " + bank.length + " " + unit + " tasks (3 needed)");
+    }
+    check(new Set(misconceptions.map((m) => m.id)).size === misconceptions.length && misconceptions.length === 52, "misconceptions.json has 52 different ids (11 new)");
+
+    // The two new task types in the app, the checker and the teacher's task browser.
+    check(Curriculum.TYPE_INFO.trace && Curriculum.TYPE_INFO["partial-parsons"] && App.initialDraft(byId["bub-L5d"]).cells && App.initialDraft(byId["bub-L3a"]).choice === null,
+      "Task types: trace and partial-parsons have a label and an empty answer to start (an empty table; no line chosen)");
+    const TaskView = require(path.join(ROOT, "task-view.js"));
+    const TaskBrowser = require(path.join(ROOT, "task-browser.js"));
+    check(!TaskView.showsExpectedOutput(byId["lin-L5d"]) && TaskView.showsExpectedOutput(byId["lin-L3a"]) &&
+      /partial-parsons/.test(TaskBrowser.html(byId["lin-L3a"], App.initialDraft)) && /trace-table/.test(TaskBrowser.html(byId["lin-L5d"], App.initialDraft)),
+      "A trace task shows no Expected output box (it's in the table); the teacher's task browser shows both new types, named partial-parsons and Trace table");
+    const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+    check(/hasRun = t\.type !== "predict" && t\.type !== "trace"/.test(appSrc) && /traceBody\(t, c\)/.test(appSrc) && /partialBody\(t, c\)/.test(appSrc),
+      "The practice page draws a trace table and a pick-the-missing-line task, with no Run button on trace tables");
+
+    // Marking a trace table.
+    const tb = byId["trace-L1b"].trace; // x = 10 / x = x - 3 / print(x)
+    const cellsFor = (rows) => { const c = {}; tb.ask.forEach(([r, k]) => { if (rows[r][k] != null) c[r + ":" + k] = rows[r][k]; }); return c; };
+    const right = cellsFor(tb.rows);
+    const repeated = Object.assign({}, right, { "2:1": "7" });       // x written again in the print row (unchanged)
+    const quoted = Object.assign({}, right, { "2:2": '"7"' });       // the output in quotes
+    const wrong = Object.assign({}, right, { "1:1": "13" });
+    check(Checker.gradeTrace(tb, right).passed && Checker.gradeTrace(tb, repeated).passed && Checker.gradeTrace(tb, quoted).passed &&
+      !Checker.gradeTrace(tb, wrong).passed && Checker.gradeTrace(tb, wrong).firstWrongRow === 1 && Checker.gradeTrace(tb, {}).empty,
+      "Trace tables are marked cell by cell: a value written again where it didn't change, and quotes round text, are both fine; a wrong cell is found; an empty table is no answer");
+    const f = Checker.classifyAttempt({ type: "trace", table: tb, cells: wrong });
+    const fe = Checker.classifyAttempt({ type: "trace", table: tb, cells: {} });
+    check(f.category === "WRONG_OUTPUT" && f.details.trace && f.details.row === 2 && f.failedTest === 1 && f.output === "x=13" && fe.category === "NO_ANSWER" &&
+      /row 2/.test(Checker.failureParts(f).message),
+      "A wrong trace table is WRONG_OUTPUT, with its first wrong row as the evidence; an empty one is NO_ANSWER");
+    // A student who makes the misconception's mistake in their table matches it, row by row.
+    const t9 = byId["trace-L9a"]; // RANGE_STOP_EXCLUSIVE: the loop also runs for i = 5
+    const vRows = t9.buggy_variants[0].rows;
+    const studentRows = t9.trace.rows.map((row) => row.slice());
+    studentRows[9] = t9.trace.columns.map((c) => (c === "Line" ? studentRows[9][0] : c === "i" ? "5" : null));
+    const cells9 = {};
+    t9.trace.ask.forEach(([r, k]) => { if (studentRows[r][k] != null) cells9[r + ":" + k] = studentRows[r][k]; });
+    const f9 = Checker.classifyAttempt({ type: "trace", table: t9.trace, cells: cells9 });
+    check(vRows[9] === "i=5" && f9.output === "i=5" && Checker.matchMisconceptions(t9, f9).join() === "RANGE_STOP_EXCLUSIVE" &&
+      App.attemptRecord({ task: t9, unit: "trace-tables", failure: f9, code: "" }).expected === "Output=10",
+      "A trace task's misconception is matched on the student's first wrong row (trace-L9a: an extra i = 5 row is RANGE_STOP_EXCLUSIVE), and the record gives the real row");
+
+    // The builder's checks for the two new types (tools/unit-tasks.js checkTasks), each with a task it must refuse.
+    const { checkTasks, T } = require(path.join(ROOT, "tools", "unit-tasks.js"));
+    const pp = (o) => Object.assign({ id: "x-L3a", level: 3, type: "partial-parsons", title: "t", description: "d", tests: [T(["3"]), T(["9"])],
+      starter: 'n = int(input("N: "))\nif n > 5:\n    ____\nelse:\n    print("small")', options: ['print("big")', 'print("small")', 'print("n")'], hints: ["h"], skills: ["linear-search"], tags: ["x"] }, o);
+    const tr = (o) => Object.assign({ id: "x-L5a", level: 5, type: "trace", title: "t", description: "d", tests: [T([])], solution: "a = 2\nb = a * 3\nprint(b)", hints: ["h"], skills: ["trace-assignment"], tags: ["x"] }, o);
+    const probs = (spec) => checkTasks("x", [spec]).problems;
+    const ok = checkTasks("x", [pp({}), tr({}), tr({ id: "x-L5b", trace: { blanks: [[1, "b"]] } })]);
+    const ppTable = ok.built[0];
+    check(!ok.problems.length && ppTable.solution === 'n = int(input("N: "))\nif n > 5:\n    print("big")\nelse:\n    print("small")' && ppTable.options[ppTable.answer] === 'print("big")' &&
+      ok.built[1].trace.columns.join() === "Line,a,b,Output" && ok.built[1].trace.rows.length === 3 && ok.built[2].trace.ask.join() === "1,2",
+      "Builder: a pick-the-missing-line task gets its solution and right answer; a trace task gets its table from tracing the program (and only the blanks asked, when it has some)");
+    check(probs(pp({ options: ['print("big")', 'print("big") ', 'print("n")'] })).some((p) => /different|indentation/.test(p)) &&
+      probs(pp({ options: ['print("big")', 'print("BIG".lower())', 'print("n")'] })).some((p) => /passes every test/.test(p)) &&
+      probs(pp({ options: ['print("big")', 'print("small"', 'print("n")'] })).some((p) => /syntax error/.test(p)) &&
+      probs(pp({ starter: 'n = int(input("N: "))\n____\n____' })).some((p) => /exactly one gap/.test(p)) &&
+      probs(pp({ options: ['print("big")', 'print("n")'] })).some((p) => /3 or 4 options/.test(p)),
+      "Builder refuses a pick-the-missing-line task with options that are the same, a wrong option that passes every test, a wrong option that is a syntax error, two gaps, or only 2 options");
+    check(probs(tr({ tests: [T([]), T([])] })).some((p) => /exactly one test/.test(p)) &&
+      probs(tr({ trace: { blanks: [[0, "b"]] } })).some((p) => /empty cell/.test(p)) &&
+      probs(tr({ trace: { blanks: [[7, "a"]] } })).some((p) => /outside the table/.test(p)) &&
+      probs(tr({ solution: "i = 0\nwhile i < 50:\n    i = i + 1" })).some((p) => /rows \(at most/.test(p)) &&
+      !probs(tr({ tags: ["INT_DIV_VS_DIV"], buggy: [["INT_DIV_VS_DIV", "a = 2\nb = a * 4\nprint(b)"]] })).length &&
+      probs(tr({ tags: ["INT_DIV_VS_DIV"], buggy: [["INT_DIV_VS_DIV", "a = 2\nb = a * 3\nprint(b)\nc = 0"]] })).some((p) => /same table as the solution/.test(p)),
+      "Builder refuses a trace task with two tests, a blank on an empty cell or outside the table, a table of more than 40 rows, or a buggy variant whose table is the same as the real one where the student fills it in");
+    // harness.trace_code records each line's values and output (the same file the browser's worker loads).
+    const traced = runPython([{ code: 'nums = [3, 1]\nx = 2.5\nfor n in nums:\n    x = x + n\nprint("done")', inputs: [], trace: true }])[0];
+    // 8 steps: the for line runs a last time (and changes nothing) when the list runs out.
+    check(traced.steps.length === 8 && JSON.stringify(traced.steps[0]) === JSON.stringify({ line: 1, vars: { nums: ["3", "1"] }, out: "" }) &&
+      traced.steps[3].vars.x === "5.5" && traced.steps[7].out === "done\n" && /trace_code_json/.test(fs.readFileSync(path.join(ROOT, "worker.js"), "utf8")),
+      "harness.py traces a program line by line (values as a trace table writes them, and what each line prints), in Node and in the browser's worker");
+
+    // Server and teacher data: the new units and task types are accepted, listed and explained.
+    const mig = fs.readFileSync(path.join(ROOT, "supabase", "migrations", "0010_searching_sorting_trace_units.sql"), "utf8");
+    const rowsTs = fs.readFileSync(path.join(ROOT, "supabase", "functions", "_shared", "rows.ts"), "utf8");
+    const dict = fs.readFileSync(path.join(ROOT, "teacher-data.js"), "utf8");
+    check(/^begin;$/m.test(mig) && /^commit;$/m.test(mig) && (mig.match(/drop constraint/g) || []).length === 5 && !/drop (table|column)|alter column|delete from|update /i.test(mig) &&
+      ["progress_unit_check", "passed_tasks_unit_check", "attempts_unit_check", "events_unit_check", "attempts_task_type_check"].every((c) => mig.includes("add constraint " + c)) &&
+      /'trace', 'partial-parsons'/.test(mig) && NEW_UNITS.every((u) => rowsTs.includes('"' + u + '"') && dict.includes(u + " (")) && /partial-parsons \(pick the missing line/.test(dict),
+      "Migration 0010 re-adds the four unit checks and the task type check (and changes nothing else); rows.ts and the data dictionary list the new units and types");
+  }
+
   // ===================== Expected output box and hidden tests =====================
   {
     const TaskView = require(path.join(ROOT, "task-view.js"));
@@ -541,8 +707,9 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "Unit menu: four groups in order, holding every unit exactly once, in the units' own order");
     check(G[0].units.join() === "output,variables,data-types,maths,selection,loops-condition,loops-count" &&
       G[1].units.join() === "strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d" &&
-      G[2].units.join() === "validation,authentication" && !G[2].comingSoon && G[3].comingSoon.join() === "Searching,Sorting" && !G[3].units.length,
-      "Unit menu: fundamentals and advanced units as listed; the Validation group holds Validation then Authentication; Searching and sorting shows Coming soon");
+      G[2].units.join() === "validation,authentication,trace-tables" && !G[2].comingSoon &&
+      G[3].units.join() === "linear-search,binary-search,bubble-sort,insertion-sort,merge-sort" && !G[3].comingSoon,
+      "Unit menu: fundamentals and advanced units as listed; the Validation group holds Validation, Authentication and Trace tables; Searching and sorting holds its five units (no Coming soon)");
     const collapseSrc = read("collapse.js");
     check(/aria-expanded/.test(collapseSrc) && /try \{[^}]*localStorage\.getItem\(key/.test(collapseSrc) && /try \{[^}]*localStorage\.setItem\(key/.test(collapseSrc) &&
       /Collapse\.buttonHtml\(/.test(homeSrc) && /Collapse\.wire\(\$\("unit-list"\), COLLAPSED_KEY\)/.test(homeSrc) && !/localStorage/.test(homeSrc) &&

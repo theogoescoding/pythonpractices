@@ -564,6 +564,209 @@ const EXAMPLES = {
     inputs: ["zack", "Snow5"],
     key_idea: "Each password is at the same index as its username. The function returns True as soon as a stored pair matches, and False after checking them all.",
   },
+
+  // ---------- Trace tables ----------
+  // Each example has "trace" (a trace table spec), so "Show me how" shows its whole table. Contexts: a shop, a
+  // garden, a car park, a bus, a sticker book and a climbing wall.
+  "trace-tables:trace-assignment": {
+    problem: "A shop works out the change from a £20 note for a cost of £13.",
+    code: "paid = 20\ncost = 13\nchange = paid - cost\npaid = 0",
+    trace: {},
+    key_idea: "Write a value only in the row of the line that changes it. Each line uses the values from the rows above it, so change uses paid before line 4 sets it to 0.",
+  },
+  "trace-tables:trace-output": {
+    problem: "A garden program doubles the number of seeds, then prints it.",
+    code: "seeds = 6\nseeds = seeds * 2\nprint(seeds)",
+    trace: {},
+    key_idea: "A print() line changes no variable: it only has an Output. Write exactly what it prints, without quotes.",
+  },
+  "trace-tables:trace-input": {
+    problem: "A car park works out how many wheels are parked. The user types 9.",
+    code: 'cars = int(input("Cars parked: "))\nwheels = cars * 4\nprint(wheels)',
+    inputs: ["9"],
+    trace: {},
+    key_idea: "input() gives the next thing the user types: that is the variable's value in its row. The prompt isn't output.",
+  },
+  "trace-tables:trace-selection": {
+    problem: "A bus fare is free under 5, otherwise 2. The user types 7.",
+    code: 'age = int(input("Passenger age: "))\nif age < 5:\n    fare = 0\nelse:\n    fare = 2\nprint(fare)',
+    inputs: ["7"],
+    trace: {},
+    key_idea: "Only the lines that run go in the table. 7 < 5 is False, so line 3 is skipped and line 5 runs.",
+  },
+  "trace-tables:trace-loop": {
+    problem: "A sticker book gets 2 stickers a day for 3 days.",
+    code: "stickers = 0\nfor day in range(3):\n    stickers = stickers + 2\nprint(stickers)",
+    trace: {},
+    key_idea: "Each time round the loop gets new rows: first the loop variable changes, then the lines inside the loop.",
+  },
+  "trace-tables:trace-list": {
+    problem: "A climbing wall finds the highest climb in a list.",
+    code: "climbs = [6, 11, 9]\nhighest = climbs[0]\nfor c in climbs:\n    if c > highest:\n        highest = c\nprint(highest)",
+    trace: {},
+    key_idea: "A list has a column for each position: climbs[0], climbs[1], … Fill them in on the line that makes the list.",
+  },
+
+  // ---------- Linear search (one example per task type; contexts: a library shelf, race laps, a car park) ----------
+  "linear-search:predict": {
+    problem: "A library shelf is searched for book number 31.",
+    code: 'shelf = [12, 45, 31, 8, 27]\nfor i in range(len(shelf)):\n    if shelf[i] == 31:\n        print("Book at index", i)',
+    key_idea: "A linear search checks each item in turn, from index 0. Indexing counts from 0, so the third item is at index 2.",
+  },
+  "linear-search:partial-parsons": {
+    problem: "A library program says whether book 8 is on the shelf, using a flag.",
+    code: 'shelf = [12, 45, 31, 8, 27]\non_shelf = False\nfor book in shelf:\n    if book == 8:\n        on_shelf = True\nprint(on_shelf)',
+    key_idea: "The flag starts as False before the loop and only becomes True when an item matches. Nothing sets it back.",
+  },
+  "linear-search:fill": {
+    problem: "A function finds a lap time in a list, or gives -1.",
+    code: "def find_lap(laps, t):\n    for i in range(len(laps)):\n        if laps[i] == t:\n            return i\n    return -1\n\nprint(find_lap([58, 61, 57, 60], 57))\nprint(find_lap([58, 61, 57, 60], 55))",
+    key_idea: "range(len(laps)) gives every index. return -1 goes after the loop, so it only runs when nothing matched.",
+  },
+  "linear-search:trace": {
+    problem: "Trace a search for lap time 57.",
+    code: "laps = [58, 61, 57, 60]\nfound = False\ni = 0\nwhile i < len(laps) and not found:\n    if laps[i] == 57:\n        found = True\n    i = i + 1\nprint(found, i)",
+    trace: { columns: ["found", "i"] },
+    key_idea: "Each time round, compare the item at i, then i goes up by 1. Once found is True, the loop stops.",
+  },
+  "linear-search:parsons": {
+    problem: "A car park counts how many cars are in space 4.",
+    code: 'spaces = [4, 2, 4, 7, 4, 1]\ncount = 0\nfor s in spaces:\n    if s == 4:\n        count = count + 1\nif count == 0:\n    print("No cars there")\nelse:\n    print("Cars:", count)',
+    key_idea: "Set the count to 0 before the loop, add 1 for each match inside it, and decide what to print after it.",
+  },
+  "linear-search:write": {
+    problem: "A function searches the car park list for a registration. The user types XY12.",
+    code: 'regs = ["AB34", "XY12", "QQ90"]\n\ndef where(items, target):\n    for i in range(len(items)):\n        if items[i] == target:\n            return i\n    return -1\n\nreg = input("Registration: ")\nspot = where(regs, reg)\nif spot == -1:\n    print("Not parked here")\nelse:\n    print("Parked in space", spot)',
+    inputs: ["XY12"],
+    key_idea: "Check every index and return as soon as one matches. After the loop, return -1 for not found, and let the caller decide what to print.",
+  },
+
+  // ---------- Binary search (contexts: page numbers, a ladder of heights, a phone book) ----------
+  "binary-search:predict": {
+    problem: "A sorted list of page numbers: which page is checked first?",
+    code: "pages = [3, 10, 18, 26, 40, 52, 61]\nlow = 0\nhigh = len(pages) - 1\nmid = (low + high) // 2\nprint(mid, pages[mid])",
+    key_idea: "The first check is the middle: mid = (low + high) // 2. // keeps mid a whole number, so it can be an index.",
+  },
+  "binary-search:partial-parsons": {
+    problem: "One step of a binary search for page 52: which half is kept?",
+    code: "pages = [3, 10, 18, 26, 40, 52, 61]\nlow = 0\nhigh = 6\nmid = (low + high) // 2\nif pages[mid] < 52:\n    low = mid + 1\nelse:\n    high = mid - 1\nprint(low, high)",
+    key_idea: "The middle item has been checked, so move past it: low = mid + 1 if it was too small, or high = mid - 1 if it was too big.",
+  },
+  "binary-search:fill": {
+    problem: "A binary search finds the height 150 in a sorted list.",
+    code: "heights = [110, 125, 138, 150, 162, 175]\nlow = 0\nhigh = len(heights) - 1\nspot = -1\nwhile low <= high and spot == -1:\n    mid = (low + high) // 2\n    if heights[mid] == 150:\n        spot = mid\n    elif heights[mid] < 150:\n        low = mid + 1\n    else:\n        high = mid - 1\nprint(spot)",
+    key_idea: "Keep going while low <= high: when they are equal, one item is still left to check.",
+  },
+  "binary-search:trace": {
+    problem: "Trace a binary search for 18.",
+    code: "pages = [3, 10, 18, 26, 40, 52, 61]\nlow = 0\nhigh = len(pages) - 1\nfound = False\nwhile low <= high and not found:\n    mid = (low + high) // 2\n    if pages[mid] == 18:\n        found = True\n    elif pages[mid] < 18:\n        low = mid + 1\n    else:\n        high = mid - 1\nprint(found)",
+    trace: { columns: ["low", "high", "found", "mid"] },
+    key_idea: "Each time round: work out mid, compare pages[mid], then change low, high or found. Only the value that changes goes in each row.",
+  },
+  "binary-search:parsons": {
+    problem: "A phone book is in alphabetical order. A binary search finds Jo.",
+    code: 'book = ["Al", "Cy", "Jo", "Mo", "Ty"]\nlow = 0\nhigh = len(book) - 1\nwhile low <= high:\n    mid = (low + high) // 2\n    if book[mid] == "Jo":\n        print("Entry", mid)\n        low = high + 1\n    elif book[mid] < "Jo":\n        low = mid + 1\n    else:\n        high = mid - 1',
+    key_idea: "Set low and high before the loop. Inside it, work out mid first, then compare, then move low or high.",
+  },
+  "binary-search:write": {
+    problem: "A function returns the index of a page in a sorted list, or -1.",
+    code: "def find_page(pages, p):\n    low = 0\n    high = len(pages) - 1\n    while low <= high:\n        mid = (low + high) // 2\n        if pages[mid] == p:\n            return mid\n        elif pages[mid] < p:\n            low = mid + 1\n        else:\n            high = mid - 1\n    return -1\n\nprint(find_page([3, 10, 18, 26, 40], 26))\nprint(find_page([3, 10, 18, 26, 40], 5))",
+    key_idea: "return mid as soon as it matches. If low passes high, every possible place has been thrown away, so return -1.",
+  },
+
+  // ---------- Bubble sort (contexts: plant heights, race times, shoe sizes) ----------
+  "bubble-sort:predict": {
+    problem: "One pass of a bubble sort on plant heights.",
+    code: "plants = [14, 9, 20, 11]\nfor j in range(len(plants) - 1):\n    if plants[j] > plants[j + 1]:\n        plants[j], plants[j + 1] = plants[j + 1], plants[j]\nprint(plants)",
+    key_idea: "A pass compares each pair next to each other and swaps it if it is the wrong way round. After one pass, the biggest item is at the end.",
+  },
+  "bubble-sort:partial-parsons": {
+    problem: "Swapping two race times with a temp variable.",
+    code: "times = [62, 58]\nif times[0] > times[1]:\n    temp = times[0]\n    times[0] = times[1]\n    times[1] = temp\nprint(times)",
+    key_idea: "Keep the first value in temp before you overwrite it. Without temp, both places end up with the same value.",
+  },
+  "bubble-sort:fill": {
+    problem: "A full bubble sort of shoe sizes.",
+    code: "sizes = [7, 4, 9, 5, 6]\nfor i in range(len(sizes) - 1):\n    for j in range(len(sizes) - 1 - i):\n        if sizes[j] > sizes[j + 1]:\n            sizes[j], sizes[j + 1] = sizes[j + 1], sizes[j]\nprint(sizes)",
+    key_idea: "n items need n - 1 passes. Each pass compares one pair fewer, because the biggest items are already at the end.",
+  },
+  "bubble-sort:trace": {
+    problem: "Trace one pass of a bubble sort on plant heights.",
+    code: "plants = [14, 9, 20, 11]\nfor j in range(len(plants) - 1):\n    if plants[j] > plants[j + 1]:\n        plants[j], plants[j + 1] = plants[j + 1], plants[j]\nprint(plants)",
+    trace: { columns: ["j", "plants"] },
+    key_idea: "In a swap row, both positions change at once: write both new values. A pair that's already in order adds no row.",
+  },
+  "bubble-sort:parsons": {
+    problem: "A bubble sort of race times that stops when a pass makes no swaps.",
+    code: "times = [61, 58, 59, 64, 60]\nswapped = True\nwhile swapped:\n    swapped = False\n    for j in range(len(times) - 1):\n        if times[j] > times[j + 1]:\n            times[j], times[j + 1] = times[j + 1], times[j]\n            swapped = True\nprint(times)",
+    key_idea: "Set swapped to False at the start of each pass and to True after any swap. A pass with no swaps means the list is sorted.",
+  },
+  "bubble-sort:write": {
+    problem: "A function sorts shoe sizes with a bubble sort and returns them.",
+    code: "def sort_sizes(sizes):\n    for i in range(len(sizes) - 1):\n        for j in range(len(sizes) - 1 - i):\n            if sizes[j] > sizes[j + 1]:\n                temp = sizes[j]\n                sizes[j] = sizes[j + 1]\n                sizes[j + 1] = temp\n    return sizes\n\nprint(sort_sizes([8, 3, 6, 2]))",
+    key_idea: "The inner loop's range stops at len(sizes) - 1 - i, so sizes[j + 1] is always in the list.",
+  },
+
+  // ---------- Insertion sort (contexts: playing cards, book heights, ages) ----------
+  "insertion-sort:predict": {
+    problem: "Inserting one card into the sorted cards before it.",
+    code: "cards = [2, 6, 9, 4, 7]\ni = 3\nkey = cards[i]\nj = i - 1\nwhile j >= 0 and cards[j] > key:\n    cards[j + 1] = cards[j]\n    j = j - 1\ncards[j + 1] = key\nprint(cards)",
+    key_idea: "Keep the card in key first. Shift each bigger card one place right, then put key in the gap at j + 1.",
+  },
+  "insertion-sort:partial-parsons": {
+    problem: "A shift copies a bigger book height one place to the right.",
+    code: "books = [18, 25, 30, 21]\nkey = books[3]\nj = 2\nwhile j >= 0 and books[j] > key:\n    books[j + 1] = books[j]\n    j = j - 1\nbooks[j + 1] = key\nprint(books)",
+    key_idea: "books[j + 1] = books[j] copies to the right, into the place that is free. Copying to the left would write over a value before it is moved.",
+  },
+  "insertion-sort:fill": {
+    problem: "A full insertion sort of ages.",
+    code: "ages = [12, 9, 15, 10, 11]\nfor i in range(1, len(ages)):\n    key = ages[i]\n    j = i - 1\n    while j >= 0 and ages[j] > key:\n        ages[j + 1] = ages[j]\n        j = j - 1\n    ages[j + 1] = key\nprint(ages)",
+    key_idea: "i starts at 1: the first item is a sorted part on its own. Each time round, one more item joins the sorted part.",
+  },
+  "insertion-sort:trace": {
+    problem: "Trace the insertion of one card.",
+    code: "cards = [3, 7, 8, 5]\ni = 3\nkey = cards[i]\nj = i - 1\nwhile j >= 0 and cards[j] > key:\n    cards[j + 1] = cards[j]\n    j = j - 1\ncards[j + 1] = key\nprint(cards)",
+    trace: { columns: ["key", "j", "cards"] },
+    key_idea: "After a shift, the same card is in two places for one row. The insert at the end fills the gap with key.",
+  },
+  "insertion-sort:parsons": {
+    problem: "An insertion sort of book heights, tallest first.",
+    code: "books = [21, 30, 18, 25]\nfor i in range(1, len(books)):\n    key = books[i]\n    j = i - 1\n    while j >= 0 and books[j] < key:\n        books[j + 1] = books[j]\n        j = j - 1\n    books[j + 1] = key\nprint(books)",
+    key_idea: "For tallest first, the smaller books shift right. The order of the lines is the same as for smallest first.",
+  },
+  "insertion-sort:write": {
+    problem: "A function sorts ages with an insertion sort and returns them.",
+    code: "def sort_ages(ages):\n    for i in range(1, len(ages)):\n        key = ages[i]\n        j = i - 1\n        while j >= 0 and ages[j] > key:\n            ages[j + 1] = ages[j]\n            j = j - 1\n        ages[j + 1] = key\n    return ages\n\nprint(sort_ages([14, 11, 13, 12]))",
+    key_idea: "Compare with key, not ages[i]: the first shift writes over ages[i].",
+  },
+
+  // ---------- Merge sort (contexts: two queues, two piles of marked tests, ticket numbers) ----------
+  "merge-sort:predict": {
+    problem: "Two sorted queues of ticket numbers are merged into one.",
+    code: "queue_a = [4, 9, 15]\nqueue_b = [6, 7, 20]\nboth = []\na = 0\nb = 0\nwhile a < len(queue_a) and b < len(queue_b):\n    if queue_a[a] <= queue_b[b]:\n        both.append(queue_a[a])\n        a = a + 1\n    else:\n        both.append(queue_b[b])\n        b = b + 1\nboth = both + queue_a[a:] + queue_b[b:]\nprint(both)",
+    key_idea: "Compare the two front items and take the smaller one. When one queue runs out, add everything left in the other.",
+  },
+  "merge-sort:partial-parsons": {
+    problem: "Splitting a pile of 7 test marks in half.",
+    code: "marks = [41, 77, 58, 63, 90, 35, 72]\nhalf = len(marks) // 2\nfirst = marks[:half]\nsecond = marks[half:]\nprint(first, second)",
+    key_idea: "half = len(marks) // 2. marks[:half] is everything before index half, and marks[half:] is the rest, so no item is lost.",
+  },
+  "merge-sort:fill": {
+    problem: "A function merges two sorted piles of marks.",
+    code: "def merge_piles(p, q):\n    out = []\n    a = 0\n    b = 0\n    while a < len(p) and b < len(q):\n        if p[a] <= q[b]:\n            out.append(p[a])\n            a = a + 1\n        else:\n            out.append(q[b])\n            b = b + 1\n    return out + p[a:] + q[b:]\n\nprint(merge_piles([35, 58, 77], [41, 63]))",
+    key_idea: "p[a:] and q[b:] are the leftovers. One of them is always empty, so adding both is safe.",
+  },
+  "merge-sort:trace": {
+    problem: "Trace a merge of two queues.",
+    code: "queue_a = [4, 9]\nqueue_b = [6, 7, 20]\nboth = []\na = 0\nb = 0\nwhile a < len(queue_a) and b < len(queue_b):\n    if queue_a[a] <= queue_b[b]:\n        both.append(queue_a[a])\n        a = a + 1\n    else:\n        both.append(queue_b[b])\n        b = b + 1\nboth = both + queue_a[a:] + queue_b[b:]\nprint(both)",
+    trace: { columns: ["a", "b", "both"] },
+    key_idea: "Each append fills the next position of both, then a or b moves along. The last line adds the leftovers all at once.",
+  },
+  "merge-sort:parsons": {
+    problem: "Merging two sorted queues, with a loop for each queue's leftovers.",
+    code: "queue_a = [2, 8]\nqueue_b = [3, 5, 9]\nboth = []\na = 0\nb = 0\nwhile a < len(queue_a) and b < len(queue_b):\n    if queue_a[a] <= queue_b[b]:\n        both.append(queue_a[a])\n        a = a + 1\n    else:\n        both.append(queue_b[b])\n        b = b + 1\nwhile a < len(queue_a):\n    both.append(queue_a[a])\n    a = a + 1\nwhile b < len(queue_b):\n    both.append(queue_b[b])\n    b = b + 1\nprint(both)",
+    key_idea: "The first loop compares; the two leftover loops come after it. Only one of them adds anything.",
+  },
 };
 
 module.exports = { EXAMPLES };

@@ -24,7 +24,7 @@
   const log = (s) => { document.getElementById("log").textContent += s + "\n"; };
   const status = (s) => { document.getElementById("status").textContent = s; };
 
-  function runInWorker(worker, code, tests, maxLines) {
+  function runInWorker(worker, code, tests, maxLines, trace) {
     return new Promise((resolve) => {
       const results = [];
       const id = Math.random();
@@ -35,7 +35,7 @@
         if (m.type === "progress") results[m.index] = m.result;
         if (m.type === "done") resolve({ results });
       };
-      worker.postMessage({ type: "run", id, code, tests, maxLines: maxLines || 0 });
+      worker.postMessage({ type: "run", id, code, tests, maxLines: maxLines || 0, trace: !!trace });
     });
   }
 
@@ -55,7 +55,7 @@
     status("Pyodide ready – making template variants…");
     const runJobs = async (jobs) => {
       const out = [];
-      for (const j of jobs) out.push((await runInWorker(worker, j.code, [j.inputs], j.maxLines)).results[0]);
+      for (const j of jobs) out.push((await runInWorker(worker, j.code, [j.inputs], j.maxLines, j.trace)).results[0]);
       return out;
     };
     const variants = [];

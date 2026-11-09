@@ -10,7 +10,18 @@
   else root.TaskBrowser = factory(root.TaskView);
 })(typeof self !== "undefined" ? self : this, function (TaskView) {
   const esc = TaskView.esc;
-  const TYPE_NAMES = { predict: "Predict the output", fill: "Fill in the blanks", parsons: "Parsons puzzle", write: "Write code", scratch: "Write from scratch" };
+  const TYPE_NAMES = { predict: "Predict the output", fill: "Fill in the blanks", parsons: "Parsons puzzle", write: "Write code", scratch: "Write from scratch",
+    trace: "Trace table", "partial-parsons": "Pick the missing line (partial-parsons)" };
+
+  // A trace table as a teacher sees it: with every value (answers), or as students get it (only the given cells).
+  function traceHtml(table, answers) {
+    const asked = new Set(table.ask.map(([r, c]) => r + ":" + c));
+    return '<div class="trace-wrap"><table class="trace-table"><thead><tr>' + table.columns.map((c) => '<th scope="col">' + esc(c) + "</th>").join("") + "</tr></thead><tbody>" +
+      table.rows.map((row, r) => "<tr>" + row.map((v, c) => {
+        const blank = asked.has(r + ":" + c) && !answers;
+        return "<td>" + (blank ? '<span class="small">…</span>' : v == null ? "" : esc(v)) + "</td>";
+      }).join("") + "</tr>").join("") + "</tbody></table></div>";
+  }
 
   // Everything the browser shows for a task. initialDraft is app.js's (the Parsons lines in the order students get).
   function viewModel(t, initialDraft) {
@@ -20,14 +31,15 @@
       placement: (t.tags || []).includes("placement"), formerIds: t.former_ids || [],
       description: t.description, starter: t.starter || "",
       parsonsLines: t.type === "parsons" && draft ? draft.available.map((l) => l.text) : null,
-      options: t.type === "predict" ? t.options.slice() : null,
+      options: t.type === "predict" || t.type === "partial-parsons" ? t.options.slice() : null,
       studentsSeeExpectedBox: TaskView.showsExpectedOutput(t),
       expectedOutput: TaskView.expectedOutput(TaskView.exampleTest(t)), // the example test, exactly as the checker compares it
       tests: t.tests.map((test, i) => ({ number: i + 1, inputs: test.inputs.slice(), expected: TaskView.expectedOutput(test), hidden: TaskView.isHidden(i) })),
       hints: t.hints.slice(),
       solution: t.solution,
       answers: t.answers ? t.answers.slice() : null,
-      correctOption: t.type === "predict" ? t.answer : null,
+      correctOption: t.type === "predict" || t.type === "partial-parsons" ? t.answer : null,
+      trace: t.type === "trace" ? t.trace : null,
     };
   }
 
@@ -44,6 +56,12 @@
     else if (v.type === "predict") student = '<p class="small">Program students read:</p>' + pre(v.solution) +
       (t.tests[0].inputs.length ? '<p class="small">The user types: ' + inputs(t.tests[0].inputs) + "</p>" : "") +
       '<p class="small">Options:</p><ol class="tb-options">' + v.options.map((o, i) => "<li>" + pre(o, "output") + (i === v.correctOption ? ' <span class="flag">correct</span>' : "") + "</li>").join("") + "</ol>";
+    else if (v.type === "partial-parsons") student = '<p class="small">Program students get, with one line missing (____):</p>' + pre(v.starter) +
+      '<p class="small">Lines they choose from (the same order for every student):</p><ol class="tb-options">' +
+      v.options.map((o, i) => "<li><code>" + esc(o) + "</code>" + (i === v.correctOption ? ' <span class="flag">correct</span>' : "") + "</li>").join("") + "</ol>";
+    else if (v.type === "trace") student = '<p class="small">Program students trace:</p>' + pre(v.solution) +
+      (t.tests[0].inputs.length ? '<p class="small">The user types: ' + inputs(t.tests[0].inputs) + "</p>" : "") +
+      '<p class="small">Their trace table (… is a cell they fill in; the other cells are given):</p>' + traceHtml(v.trace, false);
     else student = '<p class="small">Starter code in the editor:</p>' + (v.starter ? pre(v.starter) : '<p class="small">(empty)</p>');
     return '<article class="tb-task" aria-labelledby="tb-task-h">' +
       '<h3 id="tb-task-h" tabindex="-1">' + esc(v.id) + " – " + esc(v.title) + "</h3>" +
@@ -53,7 +71,7 @@
       '<p class="description">' + esc(v.description) + "</p>" + student +
       "<h4>Expected output</h4>" +
       (v.studentsSeeExpectedBox ? TaskView.expectedBoxHtml(t)
-        : '<p class="small">Students don\'t see this box on predict tasks: it is the answer.</p>' + pre(v.expectedOutput, "output expected-output")) +
+        : '<p class="small">Students don\'t see this box on predict and trace tasks: it is (part of) the answer.</p>' + pre(v.expectedOutput, "output expected-output")) +
       "<h4>Tests <span class=\"small\">(teacher only)</span></h4>" +
       '<div class="table-wrap"><table class="tb-tests"><thead><tr><th scope="col">Test</th><th scope="col">Shown to students?</th><th scope="col">Input</th><th scope="col">Expected output</th></tr></thead><tbody>' +
       v.tests.map((x) => '<tr><td class="num">' + x.number + "</td><td>" + (x.hidden ? "Hidden" : "Yes, the example test") + "</td><td>" + inputs(x.inputs) + "</td><td>" + pre(x.expected, "output") + "</td></tr>").join("") +
@@ -62,6 +80,7 @@
       '<h4>Model solution <span class="small">(teacher only)</span></h4>' +
       '<p><button type="button" id="tb-solution-btn" class="secondary" aria-expanded="false" aria-controls="tb-solution">Show model solution</button></p>' +
       '<div id="tb-solution" hidden>' + pre(v.solution) +
+        (v.trace ? '<p class="small">The full trace table:</p>' + traceHtml(v.trace, true) : "") +
         (v.answers ? '<p class="small">Blanks: ' + v.answers.map((a) => "<code>" + esc(a) + "</code>").join(", ") + "</p>" : "") + "</div>" +
       "</article>";
   }

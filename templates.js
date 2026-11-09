@@ -23,6 +23,8 @@
 //   - predict options are the solution's output plus wrong outputs from the task's buggy variants and from
 //     common-mistake changes to the program (MUTATIONS), shuffled; "optionCount" says how many
 //   - buggy_variants keep their misconception and are run on every test, so attempts can be matched
+//   - a trace task's table is made by tracing the solution (trace_spec, with the bank task's number of rows), and each
+//     buggy variant's rows by tracing it; pick-the-missing-line tasks run every wrong option, which must fail a test
 // A variant is thrown away (and the next draw tried) if the solution fails, a buggy variant passes every test,
 // a Parsons distractor equals a solution line, or a predict task can't get enough different wrong options.
 //
@@ -36,6 +38,9 @@
   const MAX_TRIES = 200;
   const MAX_DERIVED_TRIES = 12;   // draws a derived template may take (each one runs Python)
   const MAX_LINES = 100000;       // lines a template program may run before it counts as never ending (harness.run_code_limited)
+  const TRACE_LINES = 5000;       // the same for a traced program (harness.trace_code)
+  // Misconceptions whose buggy variant may run for ever (the endless loop is how the mistake shows).
+  const MAY_RUN_FOREVER = ["LOOP_NO_UPDATE", "BINARY_BOUNDS_NOT_UPDATED"];
 
   function mulberry32(seed) {
     let a = seed >>> 0;
@@ -179,12 +184,18 @@
     if (tpl.type === "fill") {
       task.answers = tpl.answers.map(f);
       task.solution = task.starter.split("____").reduce((acc, part, i) => acc + task.answers[i - 1] + part);
+    } else if (tpl.type === "partial-parsons") {
+      // Pick the missing line: the starter's "____" line gets the right option, with the gap's indentation.
+      task.options = tpl.options.map(f);
+      task.answer = tpl.answer;
+      task.solution = task.starter.replace(GAP, (m, ind) => ind + task.options[task.answer]);
     } else {
       task.solution = f(tpl.solution);
     }
     if (tpl.type === "parsons") task.distractors = tpl.distractors.map(f);
     return task;
   }
+  const GAP = /^( *)____[ \t]*$/m;
 
   function shuffleInPlace(arr, rand) {
     for (let i = arr.length - 1; i > 0; i--) {
@@ -195,6 +206,7 @@
   }
 
   function build(tpl, vars, rand, seed) {
+    if (tpl.type === "trace") throw new Error("Template " + tpl.id + ": a trace template must be derived (its table comes from running it)");
     const scope = makeScope(vars);
     const f = (s) => fillText(s, scope);
     const task = baseTask(tpl, vars, seed);
@@ -343,7 +355,7 @@
     const add = (c) => { if (c !== code && !out.includes(c)) out.push(c); };
     let rules = /\btype\(/.test(code) ? MUTATIONS.concat(TYPE_MUTATIONS) : MUTATIONS;
     const us = units || [];
-    if (us.some((u) => u === "strings" || u === "lists" || u === "arrays-2d")) rules = rules.concat(STRING_LIST_MUTATIONS);
+    if (us.some((u) => ["strings", "lists", "arrays-2d", "trace-tables", "linear-search", "binary-search", "bubble-sort", "insertion-sort", "merge-sort"].includes(u))) rules = rules.concat(STRING_LIST_MUTATIONS);
     if (us.includes("random")) rules = rules.concat(RANDOM_MUTATIONS);
     if (us.some((u) => u === "functions-basic" || u === "functions-return")) rules = rules.concat(FUNCTION_MUTATIONS);
     if (us.includes("file-handling")) rules = rules.concat(FILE_MUTATIONS);
@@ -410,11 +422,20 @@
     const task = baseTask(tpl, vars, seed);
     const tests = (tpl.tests || []).map((t) => ({ inputs: fillInputs(t.inputs, scope) }));
     const jobs = [];
-    const parts = { solution: [], variants: [], mutants: [] };
-    const add = (code, inputs) => { jobs.push({ code, inputs, maxLines: MAX_LINES }); return jobs.length - 1; };
+    const parts = { solution: [], variants: [], mutants: [], trace: null, variantTraces: [], options: [] };
+    const add = (code, inputs, trace) => { jobs.push(Object.assign({ code, inputs, maxLines: trace ? TRACE_LINES : MAX_LINES }, trace ? { trace: true } : {})); return jobs.length - 1; };
     tests.forEach((t) => parts.solution.push(add(task.solution, t.inputs)));
     const variants = (tpl.buggy_variants || []).map((v) => ({ misconception: v.misconception, code: fillText(v.code, scope) }));
     variants.forEach((v) => parts.variants.push(tests.map((t) => add(v.code, t.inputs))));
+    // A trace task's table (and each buggy variant's) comes from tracing the program with the test's inputs.
+    if (tpl.type === "trace") {
+      parts.trace = add(task.solution, tests[0].inputs, true);
+      variants.forEach((v) => parts.variantTraces.push(add(v.code, tests[0].inputs, true)));
+    }
+    // Pick the missing line: each wrong option is run on every test (it must fail one).
+    if (tpl.type === "partial-parsons") {
+      task.options.forEach((o, oi) => { if (oi !== task.answer) parts.options.push(tests.map((t) => add(task.starter.replace(GAP, (m, ind) => ind + o), t.inputs))); });
+    }
     let mutants = [];
     if (tpl.type === "predict") {
       mutants = variants.map((v) => v.code).concat(mutate(task.solution, tpl.units)).filter((c, i, a) => a.indexOf(c) === i);
@@ -442,9 +463,31 @@
       const v = task.buggy_variants[vi];
       v.outputs = idxs.map((i) => stored(results[i]));
       const differs = v.outputs.some((o, k) => o.errorKind || o.output !== task.tests[k].expected);
-      if (!differs) return null; // the mistake wouldn't show with these values
+      if (!differs && tpl.type !== "trace") return null; // the mistake wouldn't show with these values
       if (v.outputs.some((o) => o.errorKind === "SyntaxError" || o.errorKind === "IndentationError")) return null;
-      if (v.outputs.some((o) => o.errorKind === "Timeout") && v.misconception !== "LOOP_NO_UPDATE") return null;
+      if (v.outputs.some((o) => o.errorKind === "Timeout") && !MAY_RUN_FOREVER.includes(v.misconception)) return null;
+    }
+    if (tpl.type === "trace") {
+      const r = results[parts.trace];
+      if (!r || r.error) return null;
+      const table = Checker.traceTable(r.steps || [], tpl.trace_spec || {});
+      // The same size of table as the bank task's, so the variant is the same amount of work.
+      if (Checker.traceProblems(table).length || (tpl.traceRows && table.rows.length !== tpl.traceRows)) return null;
+      task.trace = table;
+      const own = table.rows.map((row) => Checker.traceRowText(table, row));
+      for (const [vi, i] of parts.variantTraces.entries()) {
+        const v = task.buggy_variants[vi];
+        v.rows = Checker.variantTraceRows(table, (results[i] && results[i].steps) || []);
+        if (!own.some((row, k) => v.rows[k] !== row)) return null; // the mistake wouldn't show in this table
+      }
+    }
+    if (tpl.type === "partial-parsons") {
+      if (new Set(task.options.map((o) => o.trim())).size !== task.options.length) return null;
+      for (const idxs of parts.options) {
+        const outs = idxs.map((i) => results[i]);
+        if (!outs.some((r, k) => r.error || Checker.normalise(r.output) !== task.tests[k].expected)) return null; // a wrong option would pass
+        if (outs.some((r) => r.error && /SyntaxError|IndentationError/.test(r.error.type))) return null;
+      }
     }
     if (task.type === "parsons") {
       const lines = task.solution.split("\n").map((l) => l.trim());

@@ -244,5 +244,71 @@
     "name": "The failed-attempt counter is never increased",
     "description": "Writes failed + 1 (which works out a number and throws it away), or leaves the increase out, so the counter of attempts stays at 0: the count is wrong, or a limit of three attempts never ends the loop.",
     "explanation": "It looks like the counter of attempts never goes up. failed + 1 works out a new number but doesn't store it anywhere. Store the new number back in the same variable, so the counter really changes each time."
+  },
+  {
+    "id": "LINEAR_NOT_FOUND_MISSING",
+    "name": "Gives no result when the item isn't in the list",
+    "description": "The linear search only prints (or returns) something when the item is found. When the item isn't in the list the program prints nothing, or returns None, instead of saying it wasn't found.",
+    "explanation": "It looks like your search only says something when it finds the item. When the item isn't in the list, the loop ends and nothing tells the user. Add the \"not found\" result after the loop, so it is given once every item has been checked."
+  },
+  {
+    "id": "LINEAR_STOPS_EARLY",
+    "name": "The search stops before the last item",
+    "description": "The loop of a linear search ends one item too soon, usually range(len(items) - 1) or while i < len(items) - 1, so the last item is never checked and an item at the end is reported as not found.",
+    "explanation": "It looks like your loop stops before it reaches the last item. range(len(items)) already stops at the last index, len(items) - 1, so taking 1 away misses that item. Check the loop goes all the way to the end of the list."
+  },
+  {
+    "id": "BINARY_UNSORTED",
+    "name": "Uses binary search on a list that isn't sorted",
+    "description": "Runs a binary search (or expects it to work) on a list that isn't in order. Throwing away half the list only works when every item in that half is known to be too small or too big, so the search can miss an item that is there.",
+    "explanation": "It looks like you expected binary search to work on a list that isn't in order. Binary search throws away half the list because it knows every item there is too small or too big, which is only true in a sorted list. Check the list is sorted first, or use a linear search."
+  },
+  {
+    "id": "BINARY_BOUNDS_NOT_UPDATED",
+    "name": "low or high never changes in a binary search",
+    "description": "After checking the middle item, low or high is not moved past it (for example low = mid instead of low = mid + 1, or one of them is never changed), so the part of the list left to search stops getting smaller and the loop never ends or checks the wrong part.",
+    "explanation": "It looks like the part of the list left to search never gets smaller. After checking the middle item, move past it: set low to one after mid if the item you want is bigger, or high to one before mid if it is smaller. Otherwise low and high stay the same and the loop goes on for ever."
+  },
+  {
+    "id": "BINARY_MID_FLOAT",
+    "name": "Finds the middle with / instead of //",
+    "description": "Works out the middle index as (low + high) / 2, which gives a real number such as 2.5 (or 2.0). A list index must be a whole number, so the program stops with a TypeError, or prints the decimal index.",
+    "explanation": "It looks like you found the middle with /, which always gives a real number such as 3.5. A list index must be a whole number, so add low and high, then divide with //, which drops the remainder. Then mid is always a whole number you can use for indexing."
+  },
+  {
+    "id": "BUBBLE_RANGE_OFF_BY_ONE",
+    "name": "A bubble sort pass checks one pair too many or too few",
+    "description": "The inner loop of a bubble sort goes one step too far (range(len(items)), so items[j + 1] is past the end) or stops one pair early (range(len(items) - 2)), so the last pair is never compared.",
+    "explanation": "It looks like your pass compares one pair too many or too few. A list of n items has n - 1 pairs next to each other, so j goes from 0 to n - 2 with range(len(items) - 1). Then items[j + 1] is always in the list, and the last pair is still checked."
+  },
+  {
+    "id": "BUBBLE_SWAP_NO_TEMP",
+    "name": "Swaps two values without a temporary variable",
+    "description": "Swaps with items[j] = items[j + 1] then items[j + 1] = items[j]. The first line overwrites items[j], so both places end up holding the same value and one value is lost.",
+    "explanation": "It looks like one of the two values was lost in the swap. Once the first place is overwritten, its old value is gone, so the second line copies the same value back. Keep the first value in a temp variable before you overwrite it, or swap both values in one line, as in a, b = b, a."
+  },
+  {
+    "id": "INSERTION_OVERWRITES",
+    "name": "Overwrites a value before it has been moved",
+    "description": "In an insertion sort, an item is written into a place before the value already there has been moved or saved: for example the key is put in the gap before the shift, or the shift copies to the left instead of to the right, so a value is lost or repeated.",
+    "explanation": "It looks like a value was written over before it was moved. In insertion sort, each bigger item is copied one place to the right first, which makes a gap. Only put the item you are inserting into the gap once the shifting has finished."
+  },
+  {
+    "id": "INSERTION_KEY_NOT_KEPT",
+    "name": "Doesn't keep the item being inserted",
+    "description": "The item being inserted is not stored in a variable (key = items[i]) before the shift. The first shift copies the item to its left over items[i], so the program later inserts the wrong value and one value appears twice.",
+    "explanation": "It looks like the item you are inserting was lost during the shift. The first shift copies the item to its left into its place, so that position no longer holds it. Keep it in a variable (key) before the shifting starts, and put key into the gap at the end."
+  },
+  {
+    "id": "MERGE_ITEMS_LOST",
+    "name": "A merge leaves out items from one half",
+    "description": "When one half runs out, the merge stops without adding the items still left in the other half (the leftovers), so the merged list is shorter than the two halves together.",
+    "explanation": "It looks like some items were left out of the merged list. The loop stops as soon as one half runs out, but the other half can still have items in it. After the loop, add whatever is left in both halves, so the merged list has every item."
+  },
+  {
+    "id": "MERGE_NO_COMPARE",
+    "name": "Merges without comparing the front items",
+    "description": "Joins the two halves end to end (left + right), or takes items from them in turn, without comparing the front item of each half, so the merged list isn't in order.",
+    "explanation": "It looks like the halves were joined without comparing them. Merging only gives a sorted list if each step compares the front item of each half and takes the smaller one. Then move along in the half you took from, and compare again."
   }
 ]

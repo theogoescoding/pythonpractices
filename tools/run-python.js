@@ -10,15 +10,17 @@ const ROOT = path.join(__dirname, "..");
 // The harness then reports a "Timeout" error, as recheck.py does.
 const RUN_TIME_LIMIT_S = 5;
 
-// jobs = [{ code, inputs, maxLines? }]. Returns one { output, error, inputsLeft } per job.
+// jobs = [{ code, inputs, maxLines?, trace? }]. Returns one { output, error, inputsLeft } per job.
 // maxLines: stop after that many lines instead (harness.run_code_limited, as the app does for template variants).
+// trace: also record the steps for a trace table (harness.trace_code; the result has "steps").
 function runPython(jobs) {
   const driver = [
     "import sys, json, time",
     "sys.path.insert(0, " + JSON.stringify(ROOT) + ")",
-    "from harness import run_code, run_code_limited",
+    "from harness import run_code, run_code_limited, trace_code",
     "class Timeout(Exception): pass",
-    "def run(code, inputs, max_lines=None):",
+    "def run(code, inputs, max_lines=None, trace=False):",
+    "    if trace: return trace_code(code, inputs, max_lines or 100000)",
     "    if max_lines: return run_code_limited(code, inputs, max_lines)",
     "    deadline = time.monotonic() + " + RUN_TIME_LIMIT_S,
     "    def tracer(frame, event, arg):",
@@ -28,7 +30,7 @@ function runPython(jobs) {
     "    try: return run_code(code, inputs)",
     "    finally: sys.settrace(None)",
     "jobs = json.loads(sys.stdin.read())",
-    "print(json.dumps([run(j['code'], j['inputs'], j.get('maxLines')) for j in jobs]))",
+    "print(json.dumps([run(j['code'], j['inputs'], j.get('maxLines'), j.get('trace', False)) for j in jobs]))",
   ].join("\n");
   const py = process.env.PYTHON || "python";
   const res = spawnSync(py, ["-c", driver], {

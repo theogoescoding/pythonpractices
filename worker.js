@@ -6,6 +6,7 @@ const PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/";
 
 let runCodeJson = null;
 let runCodeLimitedJson = null;
+let traceCodeJson = null;
 
 async function init() {
   importScripts(PYODIDE_URL + "pyodide.js");
@@ -15,6 +16,7 @@ async function init() {
   pyodide.runPython(await response.text());
   runCodeJson = pyodide.globals.get("run_code_json");
   runCodeLimitedJson = pyodide.globals.get("run_code_limited_json");
+  traceCodeJson = pyodide.globals.get("trace_code_json");
 }
 
 const ready = init().then(
@@ -22,8 +24,9 @@ const ready = init().then(
   (err) => { postMessage({ type: "load-error", message: String(err) }); return false; }
 );
 
-// Message in:  { type: "run", id, code, tests: [ [input, input, ...], ... ], maxLines? }
+// Message in:  { type: "run", id, code, tests: [ [input, input, ...], ... ], maxLines?, trace? }
 //   maxLines: stop after this many lines have run (the app's own runs of template variants, not students' code)
+//   trace: also record the steps for a trace table (the app's own runs of trace-task template variants)
 // Messages out: { type: "progress", id, index, result } once per test,
 //               then { type: "done", id }
 self.onmessage = async (event) => {
@@ -34,7 +37,8 @@ self.onmessage = async (event) => {
     let result;
     try {
       const inputs = JSON.stringify(msg.tests[i]);
-      result = JSON.parse(msg.maxLines ? runCodeLimitedJson(msg.code, inputs, msg.maxLines) : runCodeJson(msg.code, inputs));
+      result = JSON.parse(msg.trace ? traceCodeJson(msg.code, inputs, msg.maxLines || 100000)
+        : msg.maxLines ? runCodeLimitedJson(msg.code, inputs, msg.maxLines) : runCodeJson(msg.code, inputs));
     } catch (err) {
       result = { output: "", error: { type: "InternalError", message: "", line: null }, inputsLeft: 0 };
     }

@@ -28,6 +28,7 @@
   --parsons: #7a2fb5;
   --predict: #b54708;
   --write: #13723a;
+  --trace: #0f6b75;
   --on-type: #ffffff;
 
   --tok-k: #8a1fb0;
@@ -64,6 +65,7 @@
   --parsons: #d4a8ff;
   --predict: #ffb46b;
   --write: #7ee2a0;
+  --trace: #7fd8e0;
   --on-type: #0b1220;
   --tok-k: #d6a8ff;
   --tok-s: #8fe0a3;
@@ -99,6 +101,7 @@
   --parsons: #e2b0ff;
   --predict: #ffb46b;
   --write: #7dff9c;
+  --trace: #80f0ff;
   --on-type: #000000;
   --tok-k: #ffb3ff;
   --tok-s: #9dffb0;
@@ -179,6 +182,8 @@ button.danger { background: var(--fail); border-color: var(--fail); color: var(-
 .task-card.type-parsons { border-top-color: var(--parsons); }
 .task-card.type-predict { border-top-color: var(--predict); }
 .task-card.type-write, .task-card.type-scratch { border-top-color: var(--write); }
+.task-card.type-trace { border-top-color: var(--trace); }
+.task-card.type-partial-parsons { border-top-color: var(--parsons); }
 .task-card:focus { outline: none; }
 
 /* ---------- Type banner ---------- */
@@ -195,6 +200,8 @@ button.danger { background: var(--fail); border-color: var(--fail); color: var(-
 .type-banner.type-parsons { background: var(--parsons); }
 .type-banner.type-predict { background: var(--predict); }
 .type-banner.type-write, .type-banner.type-scratch { background: var(--write); }
+.type-banner.type-trace { background: var(--trace); }
+.type-banner.type-partial-parsons { background: var(--parsons); }
 
 .task-card h2 { margin: 0 0 .25rem; font-size: 1.5rem; }
 .meta { color: var(--muted); margin: 0 0 .75rem; font-size: .9rem; }
@@ -284,6 +291,26 @@ pre.code, pre.output, .compare pre, .io-lines pre, .option pre, .worked pre {
 .option.correct { border-color: var(--pass); background: var(--pass-bg); }
 .option.wrong { border-color: var(--fail); background: var(--fail-bg); }
 .inputs-note kbd { font-size: 1rem; }
+
+/* ---------- Trace tables ---------- */
+pre.code.numbered .ln { color: var(--muted); margin-right: 1rem; user-select: none; }
+.trace-h { margin: 1rem 0 .25rem; font-size: 1.05rem; }
+.trace-wrap { overflow-x: auto; max-width: 100%; margin: .5rem 0; }
+.trace-table { border-collapse: collapse; background: var(--card); }
+.trace-table th, .trace-table td { border: 1px solid var(--border); padding: .2rem .35rem; text-align: center; min-width: 3.5rem; font-family: Consolas, "Cascadia Mono", "Courier New", monospace; }
+.trace-table thead th { background: var(--code-bg); }
+.trace-table tbody th { color: var(--muted); font-weight: 600; }
+.trace-cell { width: 6ch; min-width: 100%; box-sizing: border-box; font-size: 1rem; padding: .15rem .25rem; border: 2px dashed var(--trace); border-radius: 4px; background: var(--card); color: var(--text); font-family: inherit; text-align: center; }
+.trace-cell.wrong { border-style: solid; border-color: var(--fail); background: var(--fail-bg); }
+.trace-cell:disabled { border-style: solid; border-color: var(--border); }
+
+/* ---------- Pick the missing line ---------- */
+.partial-code .gap { display: inline-block; min-width: 18ch; border: 2px dashed var(--parsons); border-radius: 4px; padding: 0 .3rem; }
+.partial-code .gap.empty { color: var(--muted); font-style: italic; }
+.pp-options .option code { flex: 1; margin: .5rem 0; white-space: pre-wrap; }
+.pp-options .option input { margin-top: .55rem; }
+.pp-options .option:has(input:checked) { border-color: var(--parsons); }
+.unit-note { margin-top: .25rem; }
 
 /* ---------- Parsons ---------- */
 .parsons { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
@@ -495,6 +522,8 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .badge.type-parsons { background: var(--parsons); }
 .badge.type-predict { background: var(--predict); }
 .badge.type-write, .badge.type-scratch { background: var(--write); }
+.badge.type-trace { background: var(--trace); }
+.badge.type-partial-parsons { background: var(--parsons); }
 .res-pass { color: var(--pass); font-weight: 700; }
 .res-fail { color: var(--fail); font-weight: 700; }
 .res-none { color: var(--muted); }
