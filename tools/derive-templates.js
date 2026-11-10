@@ -451,6 +451,34 @@ const OVERRIDES = {
   "dbg-L1c": { swaps: [[["ava"], ["leo"], ["mia"], ["kai"], ["zoe"], ["sam"], ["tom"]]] },
   "dbg-L2a": { swaps: [[['"3"'], ['"4"'], ['"5"'], ['"2"'], ['"6"'], ['"7"']]], hints: ["qty holds text in quotes, not a number.", "* 2 on text repeats it."] },
   "dbg-L8a": { testSets: [[["banana"], ["sky"]], [["potato"], ["rhythm"]], [["orange"], ["myth"]], [["igloo"], ["lynx"]], [["tomato"], ["gym"]], [["elephant"], ["crypt"]]] },
+  // A-level data structures. Words typed in, brackets, and seat labels have no numbers to vary.
+  "sq-L5a": { testSets: [[["stack"], ["queue"]], [["tower"], ["plate"]], [["apple"], ["mango"]], [["pizza"], ["robot"]], [["cloud"], ["river"]], [["piano"], ["tiger"]]] },
+  "sq-L6a": { testSets: [[["(())"], ["())("], ["(()"]], [["()()"], [")("], ["((("]], [["((()))"], ["(()))"], ["()("]], [["(()())"], ["())"], ["(("]],
+    [["()"], ["))(("], ["(()()"]], [["(())()"], ["(()"], [")"]]] },
+  "a3d-L2b": { swaps: [[["A1", "A2", "B1", "B2", "C1", "C2", "D1", "D2"], ["P1", "P2", "Q1", "Q2", "R1", "R2", "S1", "S2"], ["E1", "E2", "F1", "F2", "G1", "G2", "H1", "H2"],
+    ["J1", "J2", "K1", "K2", "L1", "L2", "M1", "M2"], ["T1", "T2", "U1", "U2", "V1", "V2", "W1", "W2"], ["N1", "N2", "O1", "O2", "X1", "X2", "Y1", "Y2"]]] },
+  "a3d-L4c": { testSets: [[["1", "0", "2"], ["0", "1", "0"]], [["0", "0", "0"], ["1", "1", "2"]], [["1", "1", "1"], ["0", "0", "2"]], [["0", "1", "2"], ["1", "0", "0"]],
+    [["1", "0", "1"], ["0", "1", "1"]], [["0", "0", "1"], ["1", "1", "0"]]] },
+  // Hash tables: a table's size and the slots a key hashes to belong together (a list of 5 slots is hashed with % 5),
+  // and a hint or a task may name a collision. So the sizes stay fixed, and the keys change only as whole sets that
+  // keep the same collisions, or as the keys typed in.
+  "hash-L1b": { fixed: [5] },
+  "hash-L1c": { noNumbers: true, swaps: [[["7", "12", "cat", "dog"], ["8", "13", "owl", "bat"], ["9", "14", "fox", "elk"], ["6", "11", "cow", "pig"], ["10", "20", "ant", "bee"], ["16", "21", "hen", "yak"]]] },
+  "hash-L2a": { noNumbers: true, swaps: [[["8", "13", "4"], ["3", "18", "9"], ["23", "8", "14"], ["13", "3", "19"], ["18", "23", "4"], ["3", "13", "24"]]] },
+  "hash-L2b": { noNumbers: true, swaps: [[["10", "7", "17"], ["15", "12", "22"], ["5", "2", "27"], ["20", "22", "7"], ["25", "17", "12"], ["30", "27", "2"]]] },
+  "hash-L3b": { noNumbers: true, testSets: [[["24"], ["13"]], [["9"], ["11"]], [["14"], ["7"]], [["29"], ["6"]], [["4"], ["10"]], [["34"], ["8"]]] },
+  "hash-L3c": { noNumbers: true, testSets: [[["17"], ["9"]], [["24"], ["5"]], [["3"], ["13"]], [["31"], ["8"]], [["10"], ["6"]], [["38"], ["14"]]] },
+  "hash-L4a": { fixed: [5] },
+  // Every set searches for at least one key that was moved along by a collision (22 or 12 here; 15 or 22 below).
+  "hash-L4b": { noNumbers: true, testSets: [[["22"], ["12"], ["9"]], [["12"], ["7"], ["4"]], [["22"], ["15"], ["20"]], [["12"], ["22"], ["14"]], [["7"], ["12"], ["19"]], [["15"], ["22"], ["24"]]] },
+  "hash-L5b": { noNumbers: true, testSets: [[["22"], ["8"]], [["15"], ["6"]], [["8"], ["22"]], [["22"], ["15"]], [["6"], ["15"]], [["15"], ["8"]]] },
+  "hash-L5c": { noNumbers: true, testSets: [[["17"], ["6"]], [["7"], ["1"]], [["22"], ["4"]], [["2"], ["5"]], [["27"], ["0"]], [["12"], ["9"]]] },
+  "hash-L6a": { noNumbers: true, testSets: [[["16"], ["23"], ["14"]], [["9"], ["30"], ["16"]], [["14"], ["2"], ["9"]], [["16"], ["21"], ["9"]], [["9"], ["7"], ["14"]], [["14"], ["37"], ["16"]]] },
+  "hash-L7a": { noNumbers: true, swaps: [[["6", "11", "3"], ["1", "16", "4"], ["21", "6", "8"], ["16", "1", "9"], ["11", "26", "13"], ["26", "21", "14"]]] },
+  "hash-L7c": { noNumbers: true, swaps: [[["18"], ["23"], ["28"], ["33"], ["38"], ["43"]]] },
+  "hash-L8a": { fixed: [7] },
+  "hash-L9b": { noNumbers: true, swaps: [[["[11, 17, 5, 23]"], ["[5, 11, 17, 29]"], ["[23, 29, 5, 11]"], ["[17, 5, 29, 35]"], ["[35, 11, 23, 5]"], ["[29, 17, 41, 5]"]]] },
+  "hash-L10b": { noNumbers: true, swaps: [[["30"], ["2"], ["37"], ["44"], ["51"], ["58"]]] },
 };
 
 const isPlacement = (t) => (t.tags || []).includes("placement");
@@ -597,7 +625,8 @@ function structuralValues(tasks, candidates) {
 // "index 2"), which a variant keeps (positions don't change when the numbers are scaled in order). Those references
 // are kept as they are, and a number in the text only changes if it is one of the task's own numbers (not one more or
 // one less than one).
-const A_LEVEL_UNITS = ["recursion", "scope-parameters", "oop-classes", "oop-methods", "oop-encapsulation", "oop-inheritance", "debugging"];
+const A_LEVEL_UNITS = ["recursion", "scope-parameters", "oop-classes", "oop-methods", "oop-encapsulation", "oop-inheritance", "debugging",
+  "records-tuples", "stacks-queues", "linked-lists", "hash-tables", "arrays-3d"];
 const KEEP_POSITIONS_UNITS = ["trace-tables", "linear-search", "binary-search", "bubble-sort", "insertion-sort", "merge-sort"].concat(A_LEVEL_UNITS);
 // The A-level units also name lines in their code (an error message in a comment: "line 3"), and a debugging answer
 // may be a line number: every number a line, row or index reference names stays fixed, in the code as well.

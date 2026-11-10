@@ -346,7 +346,8 @@
     { re: /^(\s*)([a-z_]\w*\.[a-z_]\w*\([^\n]*\))[ \t]*$/gm, to: (m, ind, call) => m + "\n" + ind + call },
   ];
   const MAX_PLACES_PER_RULE = 3;
-  const A_LEVEL_UNITS =["recursion", "scope-parameters", "oop-classes", "oop-methods", "oop-encapsulation", "oop-inheritance", "debugging"];
+  const A_LEVEL_UNITS =["recursion", "scope-parameters", "oop-classes", "oop-methods", "oop-encapsulation", "oop-inheritance", "debugging",
+    "records-tuples", "stacks-queues", "linked-lists", "hash-tables", "arrays-3d"];
 
   // Positions inside strings and comments, which mutations leave alone.
   function maskedRanges(code) {

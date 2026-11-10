@@ -168,8 +168,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
 
   // ===================== Strings, Random and Lists units =====================
   {
-    check(Curriculum.UNITS.map((u) => u.id).join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d,validation,authentication,trace-tables,linear-search,binary-search,bubble-sort,insertion-sort,merge-sort,recursion,scope-parameters,oop-classes,oop-methods,oop-encapsulation,oop-inheritance,debugging",
-      "Unit order: Output, Variables, Data types, Maths, Selection, the two loops units, Strings, Random, Lists, the two functions units, File handling, 2D arrays, Validation, Authentication, Trace tables, Linear search, Binary search, Bubble sort, Insertion sort, Merge sort, then the seven A-level units");
+    check(Curriculum.UNITS.map((u) => u.id).join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d,validation,authentication,trace-tables,linear-search,binary-search,bubble-sort,insertion-sort,merge-sort,recursion,scope-parameters,oop-classes,oop-methods,oop-encapsulation,oop-inheritance,debugging,records-tuples,stacks-queues,linked-lists,hash-tables,arrays-3d",
+      "Unit order: Output, Variables, Data types, Maths, Selection, the two loops units, Strings, Random, Lists, the two functions units, File handling, 2D arrays, Validation, Authentication, Trace tables, Linear search, Binary search, Bubble sort, Insertion sort, Merge sort, then the seven A-level programming techniques units and the five A-level data structures units");
     const NEW = {
       strings: { title: "Strings", prefix: "str", skills: "length,indexing,slicing,upper/lower,find,replace,in" },
       random: { title: "Random", prefix: "rand", skills: "import,randint,choice,simulation" },
@@ -628,8 +628,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     }
     check(!misconceptions.some((m) => m.id === "RECURSION_RETURN_MISSING") &&
       alBank.filter((t) => t.unit === "recursion" && (t.buggy_variants || []).some((v) => v.misconception === "RETURN_MISSING_NONE")).length >= 3 &&
-      misconceptions.length === 64 && new Set(misconceptions.map((m) => m.id)).size === 64,
-      "Recursion reuses RETURN_MISSING_NONE for a recursive call whose result isn't returned (no RECURSION_RETURN_MISSING); misconceptions.json has 64 different ids (12 new)");
+      misconceptions.slice(52, 64).map((m) => m.id).join() === NEW_AL.join(),
+      "Recursion reuses RETURN_MISSING_NONE for a recursive call whose result isn't returned (no RECURSION_RETURN_MISSING); the 12 new programming techniques ids follow the earlier 52 in misconceptions.json");
     check(alBank.filter((t) => (t.buggy_variants || []).some((v) => v.misconception === "RECURSION_NO_BASE_CASE")).every((t) =>
       t.buggy_variants.filter((v) => v.misconception === "RECURSION_NO_BASE_CASE").every((v) => v.outputs.some((o) => o.errorKind === "RecursionError"))),
       "RECURSION_NO_BASE_CASE variants end in a RecursionError (never a timeout), so they match a student's endless recursion");
@@ -670,6 +670,85 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       (mig11.replace(/\s+/g, " ").match(/'merge-sort', 'recursion', 'scope-parameters', 'oop-classes', 'oop-methods', 'oop-encapsulation', 'oop-inheritance', 'debugging'/g) || []).length === 4 &&
       ids.every((u) => rowsTs.includes('"' + u + '"') && fs.readFileSync(path.join(ROOT, "teacher-data.js"), "utf8").includes(u + " (")),
       "Migration 0011 re-adds only the four unit checks with the seven units after merge-sort; rows.ts and the data dictionary list them");
+  }
+
+  // ===================== The A-level data structures units =====================
+  {
+    const templatesAll = require(path.join(ROOT, "templates.json"));
+    const { explainerProblems } = require(path.join(ROOT, "tools", "unit-tasks.js"));
+    const DS = { "records-tuples": "tup", "stacks-queues": "sq", "linked-lists": "ll", "hash-tables": "hash", "arrays-3d": "a3d" };
+    const ids = Object.keys(DS);
+    const order = Curriculum.UNITS.map((u) => u.id);
+    const ladder = "predict,predict,fill,fill,parsons+partial-parsons,parsons+partial-parsons,trace+write,trace+write,write+trace,write+trace";
+    check(order.slice(order.indexOf("debugging") + 1).join() === ids.join() &&
+      ids.every((u) => Curriculum.hasPlacement(u) && Curriculum.hasScratch(u) && Array.from({ length: 10 }, (_, i) => Curriculum.levelTypes(i + 1, u).join("+")).join() === ladder),
+      "Data structures units come after Debugging, in order (records-tuples, stacks-queues, linked-lists, hash-tables, arrays-3d), with the A-level ladder, a placement test and write-from-scratch tasks");
+
+    for (const [u, prefix] of Object.entries(DS)) {
+      const mine = tasks.filter((t) => t.unit === u);
+      const practice = mine.filter((t) => !t.tags.includes("placement"));
+      const placement = mine.filter((t) => t.tags.includes("placement"));
+      const { COVERAGE } = require(path.join(ROOT, "tools", "add-" + u + "-unit.js"));
+      const angles = Object.entries(COVERAGE || {});
+      const byIdHere = Object.fromEntries(mine.map((t) => [t.id, t]));
+      const badCover = angles.filter(([, list]) => !list.length || list.some((id) => !byIdHere[id]));
+      check(angles.length >= 4 && !badCover.length && mine.every((t) => new RegExp("^" + prefix + "-[LP]\\d+[a-z]$").test(t.id)) &&
+        practice.length >= 24 && mine.length >= 32 && Array.from({ length: 10 }, (_, i) => practice.filter((t) => t.level === i + 1).length).every((n) => n >= 1),
+        Curriculum.unitTitle(u) + ": " + mine.length + " tasks (" + practice.length + " practice), a coverage map of " + angles.length + " angles whose tasks exist, and practice tasks at every level");
+      check([2, 5, 7, 9].map((lv) => placement.filter((t) => t.level === lv).map((t) => t.id).sort().join("+")).join() === [2, 5, 7, 9].map((lv) => prefix + "-P" + lv + "a+" + prefix + "-P" + lv + "b").join() &&
+        placement.length === 8 && placement.every((t) => !(t.buggy_variants || []).length),
+        Curriculum.unitTitle(u) + ": placement tasks " + prefix + "-P2a/b, P5a/b, P7a/b and P9a/b, with no buggy variants");
+      const noExplainer = mine.filter((t) => !t.explainer || explainerProblems(t).length);
+      check(!noExplainer.length, Curriculum.unitTitle(u) + ": every task has a one-sentence explainer (a predict task's doesn't give the answer)" + (noExplainer.length ? " (" + noExplainer.map((t) => t.id).join(", ") + ")" : ""));
+      check(practice.every((t) => templatesAll.some((tpl) => tpl.derived && tpl.source === t.id && tpl.explainer && (/\d/.test(t.explainer) || tpl.explainer === t.explainer))) &&
+        placement.every((t) => !templatesAll.some((tpl) => tpl.source === t.id && tpl.derived)),
+        Curriculum.unitTitle(u) + ": every practice task has a derived template, which inherits its explainer");
+      check(practice.every((t) => t.worked_example && t.worked_example.skill === t.type), Curriculum.unitTitle(u) + ": every practice task has a \"Show me how\" example for its task type");
+      const dicts = mine.filter((t) => /[{}]|\bdict\(/.test(t.solution + (t.buggy_variants || []).map((v) => v.code).join("\n")));
+      check(!dicts.length, Curriculum.unitTitle(u) + ": no task uses a dictionary (or any {...})" + (dicts.length ? " (" + dicts.map((t) => t.id).join(", ") + ")" : ""));
+    }
+    const pairs = [["debugging", "records-tuples"], ["records-tuples", "stacks-queues"], ["stacks-queues", "linked-lists"], ["linked-lists", "hash-tables"], ["hash-tables", "arrays-3d"]];
+    check(pairs.every((p) => templatesAll.filter((tpl) => tpl.units.length === 2 && p.every((x) => tpl.units.includes(x)) && tpl.explainer).length >= 3) &&
+      ids.every((u) => templatesAll.some((tpl) => tpl.type === "scratch" && tpl.units[0] === u && tpl.explainer)),
+      "Data structures templates: 3 combined templates for each new pair of units next to each other (Debugging + Records and tuples first), and a write-from-scratch template for each unit, all with explainers");
+
+    // Misconceptions: each unit's own ids, with a teacher description, a 3-sentence explanation that ends by saying
+    // what to write (some code), and buggy variants on 3+ of that unit's bank tasks.
+    const NEW_DS = {
+      "records-tuples": ["TUPLE_CHANGED_IN_PLACE", "RECORD_FIELD_WRONG_INDEX", "TUPLE_UNPACK_ORDER"],
+      "stacks-queues": ["STACK_POP_FROM_FRONT", "QUEUE_REMOVE_FROM_BACK", "POP_EMPTY_NOT_CHECKED"],
+      "linked-lists": ["LINKED_LOST_REFERENCE", "LINKED_STOPS_EARLY", "LINKED_HEAD_NOT_UPDATED"],
+      "hash-tables": ["HASH_NO_MOD", "HASH_COLLISION_OVERWRITES", "HASH_SEARCH_STOPS_AT_HOME"],
+      "arrays-3d": ["CUBE_INDEX_ORDER", "CUBE_WRONG_LEN", "CUBE_SHARED_ROWS"],
+    };
+    for (const [u, mids] of Object.entries(NEW_DS)) {
+      const bankHere = tasks.filter((t) => t.unit === u && !t.tags.includes("placement"));
+      for (const mid of mids) {
+        const m = misconceptions.find((x) => x.id === mid);
+        const sentences = m ? m.explanation.split(/(?<=[.!?])\s+/) : [];
+        const bank = bankHere.filter((t) => (t.buggy_variants || []).some((v) => v.misconception === mid));
+        check(m && m.name && m.description && sentences.length === 3 && /\w\.\w|[(\[=%]/.test(sentences[2]) && bank.length >= 3,
+          mid + ": in misconceptions.json with a teacher description and a 3-sentence explanation ending with what to write, and buggy variants on " + bank.length + " " + Curriculum.unitTitle(u) + " tasks (3 needed)");
+      }
+    }
+    const allDs = Object.values(NEW_DS).flat();
+    check(misconceptions.slice(64).map((m) => m.id).join() === allDs.join() && misconceptions.length === 79 && new Set(misconceptions.map((m) => m.id)).size === 79,
+      "misconceptions.json has 79 different ids: the 15 data structures ids follow the 64 earlier ones");
+
+    // Trace tables: a node's data is a column of its own (cur.data), as harness.py does for every object.
+    check(byId["ll-L7a"].trace.columns.includes("cur.data") && byId["ll-L10b"].trace.columns.includes("prev.data") && byId["sq-L10b"].trace.columns.includes("queue[0]"),
+      "Data structures trace tasks show each object attribute in its own column (cur.data, prev.data) and each list item in its own column (queue[0])");
+
+    // Migration 0012: only the four unit checks, with the five units after debugging; rows.ts and the dictionary too.
+    const mig12 = fs.readFileSync(path.join(ROOT, "supabase", "migrations", "0012_a_level_data_structures_units.sql"), "utf8");
+    const rowsTs = fs.readFileSync(path.join(ROOT, "supabase", "functions", "_shared", "rows.ts"), "utf8");
+    const dict = fs.readFileSync(path.join(ROOT, "teacher-data.js"), "utf8");
+    check(/^begin;$/m.test(mig12) && /^commit;$/m.test(mig12) && (mig12.match(/drop constraint/g) || []).length === 4 && !/drop (table|column)|alter column|delete from|update |task_type/i.test(mig12.replace(/^--.*$/gm, "")) &&
+      ["progress_unit_check", "passed_tasks_unit_check", "attempts_unit_check", "events_unit_check"].every((c) => mig12.includes("add constraint " + c)) &&
+      (mig12.replace(/\s+/g, " ").match(/'oop-inheritance', 'debugging', 'records-tuples', 'stacks-queues', 'linked-lists', 'hash-tables', 'arrays-3d'/g) || []).length === 4 &&
+      /'arrays-3d', 'endless'\)\);/.test(mig12) &&
+      ids.every((u) => rowsTs.includes('"' + u + '"') && dict.includes(u + " (")) && fs.existsSync(path.join(ROOT, "tests", "sql", "a-level-data-structures-units.sql")),
+      "Migration 0012 re-adds only the four unit checks with the five units after debugging (endless still last in progress); rows.ts, the data dictionary and a SQL test cover them");
   }
 
   // ===================== Expected output box and hidden tests =====================
@@ -801,15 +880,18 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(G.map((g) => g.title).join() === "Programming fundamentals,Advanced programming,Validation,Searching and sorting,A-level" &&
       grouped.join() === Curriculum.UNITS.map((u) => u.id).join() && new Set(grouped).size === grouped.length,
       "Unit menu: five groups in order, holding every unit exactly once, in the units' own order");
-    check(G[4].id === "a-level" && G[4].units.join() === "recursion,scope-parameters,oop-classes,oop-methods,oop-encapsulation,oop-inheritance,debugging" && !G[4].comingSoon &&
-      (G[4].subsections || []).length === 1 && G[4].subsections[0].title === "Programming techniques" && G[4].subsections[0].units.join() === G[4].units.join() &&
+    check(G[4].id === "a-level" && G[4].units.join() === "recursion,scope-parameters,oop-classes,oop-methods,oop-encapsulation,oop-inheritance,debugging,records-tuples,stacks-queues,linked-lists,hash-tables,arrays-3d" && !G[4].comingSoon &&
+      (G[4].subsections || []).length === 2 && G[4].subsections[0].title === "Programming techniques" && G[4].subsections[1].title === "Data structures" &&
+      G[4].subsections.flatMap((s) => s.units).join() === G[4].units.join() &&
       /g\.subsections/.test(homeSrc) && /class="subsection-heading"/.test(homeSrc) && /unitCard\(u, progress, sub\)/.test(homeSrc) && /sub \? "h5" : "h4"/.test(homeSrc),
-      "Unit menu: the A-level group has a Programming techniques subsection holding its seven units in order, shown under its own heading (unit cards one heading level lower)");
-    // The A-level group drawn the way home.js draws it: the subsection heading, then its seven units in order.
+      "Unit menu: the A-level group has a Programming techniques subsection (seven units) then a Data structures subsection (five units), each shown under its own heading (unit cards one heading level lower)");
+    // The A-level group drawn the way home.js draws it: each subsection heading, then its units in order.
     {
       const subs = G[4].subsections.map((s) => ({ title: s.title, units: Curriculum.UNITS.filter((u) => s.units.includes(u.id)).map((u) => u.title) }));
-      check(subs.length === 1 && subs[0].units.join("|") === "Recursion|Scope and parameters|Object-oriented programming: classes and objects|Object-oriented programming: methods|Object-oriented programming: encapsulation|Object-oriented programming: inheritance and polymorphism|Debugging",
+      check(subs.length === 2 && subs[0].units.join("|") === "Recursion|Scope and parameters|Object-oriented programming: classes and objects|Object-oriented programming: methods|Object-oriented programming: encapsulation|Object-oriented programming: inheritance and polymorphism|Debugging",
         "Unit menu: Programming techniques lists Recursion, Scope and parameters, the four object-oriented programming units, then Debugging");
+      check(subs[1].units.join("|") === "Records and tuples|Stacks and queues|Linked lists|Hash tables|3D arrays",
+        "Unit menu: Data structures lists Records and tuples, Stacks and queues, Linked lists, Hash tables, then 3D arrays, after Programming techniques");
     }
     check(G[0].units.join() === "output,variables,data-types,maths,selection,loops-condition,loops-count" &&
       G[1].units.join() === "strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d" &&

@@ -994,6 +994,167 @@ const EXAMPLES = {
     inputs: ["62", "58", "60"],
     key_idea: "Run the program, fix the first error Python stops at, then run it again. Once it runs, check its output against what it should print, and fix any line that gives a wrong value.",
   },
+
+  // ---------- A-level data structures ----------
+  "records-tuples:predict": {
+    problem: "A record for one novel: a title, an author and a year.",
+    code: 'novel = ("Dune", "Herbert", 1965)\ntitle, writer, year = novel\nprint(writer, year)',
+    key_idea: "A tuple keeps a record's fields together in order. Read a field by its index, counting from 0, or unpack the tuple into one variable for each field, in the same order.",
+  },
+  "records-tuples:fill": {
+    problem: "A tuple can't be changed, so a planet's record is replaced by a new one with one more moon.",
+    code: 'planet = ("Mars", 2)\nplanet = (planet[0], planet[1] + 1)\nprint(planet)',
+    key_idea: "To change a record, make a new tuple from the old fields and the new value, and store it with the same name.",
+  },
+  "records-tuples:parsons": {
+    problem: "Find a player's shirt number in a list of records.",
+    code: 'squad = [("Jo", 7), ("Sam", 4)]\nfor who, number in squad:\n    if who == "Sam":\n        print("Shirt", number)',
+    key_idea: "Unpack each record in the loop line, in the same order as its fields, then use the fields by name.",
+  },
+  "records-tuples:partial-parsons": {
+    problem: "A function returns a tuple of hours and minutes, which is unpacked.",
+    code: 'def split_time(mins):\n    return (mins // 60, mins % 60)\n\nhours, left = split_time(135)\nprint(hours, "h", left, "m")',
+    key_idea: "A function can return a tuple of several values. Unpack it into variables in the order the function puts them.",
+  },
+  "records-tuples:trace": {
+    problem: "Trace a box's record being unpacked, replaced and unpacked again.",
+    code: "box = (3, 4)\nw, h = box\nbox = (w * 2, h)\nw, h = box\narea = w * h\nprint(area)",
+    trace: { columns: ["w", "h", "area"] },
+    key_idea: "A tuple isn't shown in the table, so trace the variables it is unpacked into. They only change when the tuple is unpacked again.",
+  },
+  "records-tuples:write": {
+    problem: "Rivers are stored as records of a name and a length in miles; print the shortest.",
+    code: 'rivers = [("Severn", 220), ("Thames", 215), ("Trent", 185)]\nshort = rivers[0]\nfor r in rivers:\n    if r[1] < short[1]:\n        short = r\nprint("Shortest:", short[0])',
+    key_idea: "Store each record as a tuple in a list. Keep the whole record you want, so its fields stay together, then print the field you need.",
+  },
+
+  "stacks-queues:predict": {
+    problem: "Plates go onto a stack, then two come off.",
+    code: 'plates = []\nplates.append("red")\nplates.append("blue")\nplates.append("white")\nprint(plates.pop(), plates.pop())',
+    key_idea: "A stack is last in, first out. append pushes onto the top (the end of the list) and pop() takes the top item off, so items come off in the opposite order.",
+  },
+  "stacks-queues:fill": {
+    problem: "Print jobs wait in a queue.",
+    code: 'jobs = [101, 102]\njobs.append(103)\ndone = jobs.pop(0)\nprint("Printed", done, "waiting", jobs)',
+    key_idea: "A queue is first in, first out. append joins the back and pop(0) takes the item at the front.",
+  },
+  "stacks-queues:parsons": {
+    problem: "Take every book off a pile, top first, until the pile is empty.",
+    code: 'books = [4, 9, 2]\nwhile len(books) > 0:\n    print(books.pop())\nprint("Done")',
+    key_idea: "Check that the stack isn't empty before every pop: popping an empty list stops the program with an IndexError.",
+  },
+  "stacks-queues:partial-parsons": {
+    problem: "An array stack of 3 slots, with top holding the index of the top item.",
+    code: 'stack = [0, 0, 0]\ntop = -1\ntop = top + 1\nstack[top] = 42\nprint("Top item", stack[top])',
+    key_idea: "In an array stack, top holds the index of the top item: move top up before storing, and read stack[top] before moving it down.",
+  },
+  "stacks-queues:trace": {
+    problem: "Trace a stack of moves in a game, with one move undone.",
+    code: "moves = []\nmoves.append(3)\nmoves.append(5)\nundone = moves.pop()\nmoves.append(1)\nprint(undone, moves)",
+    trace: { columns: ["moves", "undone"] },
+    key_idea: "Each item of the list has its own column. A pop empties the cell at the end, the top, and the next push fills it again.",
+  },
+  "stacks-queues:write": {
+    problem: "A queue at a ticket desk, written as a class whose leave method checks for empty.",
+    code: 'class Line:\n    def __init__(self):\n        self.people = []\n\n    def join(self, p):\n        self.people.append(p)\n\n    def leave(self):\n        if len(self.people) == 0:\n            return None\n        return self.people.pop(0)\n\nq = Line()\nq.join("Ann")\nq.join("Raj")\nprint(q.leave(), q.leave(), q.leave())',
+    key_idea: "Put the list inside a class and give it methods. Check for empty inside the method, so the rest of the program never pops an empty list.",
+  },
+
+  "linked-lists:predict": {
+    problem: "Print every node of a two-node list.",
+    code: "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nhead = Node(10)\nhead.next = Node(20)\ncur = head\nwhile cur != None:\n    print(cur.data)\n    cur = cur.next",
+    key_idea: "Start cur at head, use cur.data, then move on with cur = cur.next. The loop stops when cur becomes None, after the last node.",
+  },
+  "linked-lists:fill": {
+    problem: "Add a node at the front of a list.",
+    code: "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nhead = Node(30)\nnode = Node(15)\nnode.next = head\nhead = node\nprint(head.data, head.next.data)",
+    key_idea: "To add at the front, point the new node at the old head first, then move head to the new node.",
+  },
+  "linked-lists:parsons": {
+    problem: "Remove the first node of a list.",
+    code: "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nfirst = Node(1)\nfirst.next = Node(2)\nfirst = first.next\nprint(first.data)",
+    key_idea: "To remove the first node, move the start of the list on to the next node. Nothing refers to the old first node any more, so it is gone.",
+  },
+  "linked-lists:partial-parsons": {
+    problem: "Put a node in between two others.",
+    code: "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nstart = Node(5)\nstart.next = Node(9)\nmid = Node(7)\nmid.next = start.next\nstart.next = mid\nprint(start.next.data, start.next.next.data)",
+    key_idea: "Join the new node to the rest of the list first, then point the node before it at the new node, so nothing is cut off.",
+  },
+  "linked-lists:trace": {
+    problem: "Trace a walk along a two-node list.",
+    code: "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nstart = Node(4)\nstart.next = Node(1)\nat = start\nsum_all = 0\nwhile at != None:\n    sum_all = sum_all + at.data\n    at = at.next\nprint(sum_all)",
+    trace: { columns: ["at.data", "sum_all"] },
+    key_idea: "Each node's data is a column of its own, such as at.data. It is blank once the variable is None.",
+  },
+  "linked-lists:write": {
+    problem: "Search a linked list for the number 8.",
+    code: 'class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nstart = Node(3)\nstart.next = Node(8)\nstart.next.next = Node(6)\nat = start\nseen = False\nwhile at != None:\n    if at.data == 8:\n        seen = True\n    at = at.next\nprint("Seen 8:", seen)',
+    key_idea: "Go along the list one node at a time, checking each node's data, and keep going while the node isn't None so the last node is checked too.",
+  },
+
+  "hash-tables:predict": {
+    problem: "Hash three keys into a table of 10 slots.",
+    code: 'for key in [42, 17, 30]:\n    print(key, "goes in slot", key % 10)',
+    key_idea: "The hash key % size is the remainder after dividing by the table size, so it is always an index inside the table.",
+  },
+  "hash-tables:fill": {
+    problem: "Store a key with linear probing in a table of 4 slots.",
+    code: "slots = [None, 9, None, None]\nkey = 13\ni = key % 4\nwhile slots[i] != None:\n    i = (i + 1) % 4\nslots[i] = key\nprint(slots)",
+    key_idea: "If a key's slot is taken, move on one slot at a time with (i + 1) % size, wrapping round, until an empty one is found.",
+  },
+  "hash-tables:parsons": {
+    problem: "Store two keys in a table of 3 slots.",
+    code: "slots = [None] * 3\nfor key in [4, 8]:\n    slots[key % 3] = key\nprint(slots)",
+    key_idea: "Make the table first, then work out each key's index with the hash before storing it there.",
+  },
+  "hash-tables:partial-parsons": {
+    problem: "Search for a key that was moved along by a collision.",
+    code: "slots = [None, 5, 9, None]\nkey = 9\ni = key % 4\nwhile slots[i] != None and slots[i] != key:\n    i = (i + 1) % 4\nprint(slots[i] == key)",
+    key_idea: "Search the same way you stored: start at the hash and move on until you find the key or reach an empty slot.",
+  },
+  "hash-tables:trace": {
+    problem: "Trace the hash of a two-letter word.",
+    code: 'sum_codes = 0\nfor letter in "ab":\n    sum_codes = sum_codes + ord(letter)\nslot = sum_codes % 7\nprint(slot)',
+    trace: { columns: ["letter", "sum_codes", "slot"] },
+    key_idea: "Write each letter's code added to the total, then the remainder at the end. ord gives a letter's character code.",
+  },
+  "hash-tables:write": {
+    problem: "Store three keys that all collide, counting the moves.",
+    code: "slots = [None] * 5\nclashes = 0\nfor key in [3, 8, 13]:\n    i = key % 5\n    while slots[i] != None:\n        i = (i + 1) % 5\n        clashes = clashes + 1\n    slots[i] = key\nprint(slots, clashes)",
+    key_idea: "Use the same hash and probing every time you store or search. A loop that moves on while the slot is taken never writes over a key.",
+  },
+
+  "arrays-3d:predict": {
+    problem: "desks[floor][room][desk] is 1 if a desk is in use.",
+    code: "desks = [[[1, 0], [1, 1]], [[0, 0], [1, 0]]]\nprint(desks[1][1][0], len(desks[0]))",
+    key_idea: "Read the indexes from the outside in: the first picks a layer, the second a row in it, the third an item in that row.",
+  },
+  "arrays-3d:fill": {
+    problem: "Build a 3D array of zeros whose rows are separate lists.",
+    code: "store = []\nfor a in range(2):\n    level = []\n    for b in range(2):\n        level.append([0] * 2)\n    store.append(level)\nstore[0][1][1] = 5\nprint(store)",
+    key_idea: "Make each row new inside the loops with [0] * n. Multiplying lists with * would make every row the same list.",
+  },
+  "arrays-3d:parsons": {
+    problem: "Count the odd numbers in a 3D array.",
+    code: "blocks = [[[3, 2], [5, 4]], [[1, 6], [8, 7]]]\nodd = 0\nfor level in blocks:\n    for line in level:\n        for x in line:\n            if x % 2 == 1:\n                odd = odd + 1\nprint(odd)",
+    key_idea: "Use one loop for each level: layers, then rows, then items. The check goes in the innermost loop.",
+  },
+  "arrays-3d:partial-parsons": {
+    problem: "The size of each level of a 3D array.",
+    code: "blocks = [[[0, 0, 0]], [[0, 0, 0]]]\nprint(len(blocks), len(blocks[0]), len(blocks[0][0]))",
+    key_idea: "len(cube) counts layers, len(cube[0]) counts the rows in a layer, and len(cube[0][0]) counts the items in a row.",
+  },
+  "arrays-3d:trace": {
+    problem: "Trace the biggest number in the first layer.",
+    code: "blocks = [[[2, 9], [4, 1]], [[3, 3], [5, 0]]]\nbig = 0\nfor line in blocks[0]:\n    for x in line:\n        if x > big:\n            big = x\nprint(big)",
+    trace: { columns: ["line", "x", "big"] },
+    key_idea: "A list of numbers, such as one row, gets a column for each item; a list of lists isn't shown, so trace the loop variables.",
+  },
+  "arrays-3d:write": {
+    problem: "rain[week][day][hour] holds millimetres of rain; print each week's total.",
+    code: 'rain = [[[2, 0], [1, 3]], [[4, 4], [0, 2]]]\nfor w in range(len(rain)):\n    mm_total = 0\n    for day in rain[w]:\n        for mm in day:\n            mm_total = mm_total + mm\n    print("Rain in week", w, mm_total)',
+    key_idea: "Index or loop down to the level you need: rain[w] is one week's 2D list, so two more loops reach every hour in it.",
+  },
 };
 
 module.exports = { EXAMPLES };

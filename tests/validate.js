@@ -23,7 +23,8 @@ const MIN_TASKS_PER_UNIT = 30;
 // Units have different numbers of tasks at each level (the A-level units' come from their coverage maps): every
 // level needs at least one bank task, and templates make more.
 const MIN_PER_UNIT_LEVEL = 1;
-const A_LEVEL_UNITS = ["recursion", "scope-parameters", "oop-classes", "oop-methods", "oop-encapsulation", "oop-inheritance", "debugging"];
+const A_LEVEL_UNITS = ["recursion", "scope-parameters", "oop-classes", "oop-methods", "oop-encapsulation", "oop-inheritance", "debugging",
+  "records-tuples", "stacks-queues", "linked-lists", "hash-tables", "arrays-3d"];
 const { explainerProblems } = require(path.join(ROOT, "tools", "unit-tasks.js"));
 const MIN_SELECTION_TASKS = 100;
 
@@ -187,7 +188,7 @@ for (const t of practiceTasks) {
 
 // Unit order on the landing page, and a skill that is in two units' lists counting for the task's own unit.
 check(UNIT_IDS.join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d,validation,authentication,trace-tables,linear-search,binary-search,bubble-sort,insertion-sort,merge-sort," + A_LEVEL_UNITS.join(),
-  "Units are listed with Data types and casting between Variables and Maths; Strings, Random and Lists after the two loops units; then the two functions units, File handling and 2D arrays; then Validation, Authentication and Trace tables; then the five searching and sorting units; then the seven A-level units (Recursion, Scope and parameters, the four object-oriented programming units, Debugging)");
+  "Units are listed with Data types and casting between Variables and Maths; Strings, Random and Lists after the two loops units; then the two functions units, File handling and 2D arrays; then Validation, Authentication and Trace tables; then the five searching and sorting units; then the seven A-level programming techniques units (Recursion, Scope and parameters, the four object-oriented programming units, Debugging) and the five A-level data structures units (Records and tuples, Stacks and queues, Linked lists, Hash tables, 3D arrays)");
 check(App.unitOfSkill("accumulator", ["loops-condition"]) === "loops-condition" && App.unitOfSkill("accumulator", ["loops-count"]) === "loops-count" &&
   App.unitOfSkill("accumulator") === "loops-condition", "A skill in two units' lists belongs to the task's own unit");
 check(App.unitOfSkill("and/or", ["loops-condition"]) === "loops-condition" && App.unitOfSkill("and/or", ["selection"]) === "selection" &&

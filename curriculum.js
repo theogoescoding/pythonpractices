@@ -239,6 +239,42 @@
       // No write-from-scratch tasks: every write task here starts from a program with bugs in it.
       noScratch: true,
     },
+    // A-level: data structures. The same A-level ladder and placement test as the programming techniques units.
+    {
+      id: "records-tuples",
+      title: "Records and tuples",
+      description: "Keep the fields of one record together in a tuple, read a field by its index, unpack a tuple into variables, and build a new tuple because a tuple can't be changed.",
+      skills: ["tuple", "field-index", "unpack", "immutable", "record-list"],
+      levelTypes: A_LEVEL_TYPES, levelNames: A_LEVEL_NAMES,
+    },
+    {
+      id: "stacks-queues",
+      title: "Stacks and queues",
+      description: "A stack is last in, first out and a queue is first in, first out: push, pop and peek, enqueue and dequeue, check for empty, and use pointers in an array stack or a circular queue.",
+      skills: ["stack", "queue", "empty-check", "stack-queue-class", "pointers", "stack-use"],
+      levelTypes: A_LEVEL_TYPES, levelNames: A_LEVEL_NAMES,
+    },
+    {
+      id: "linked-lists",
+      title: "Linked lists",
+      description: "Nodes that hold data and a next pointer: go along the list from head to None, add a node at the front, after a node or at the end, delete a node, and search the list.",
+      skills: ["node", "traverse", "insert-front", "insert-after", "delete-node", "search-list"],
+      levelTypes: A_LEVEL_TYPES, levelNames: A_LEVEL_NAMES,
+    },
+    {
+      id: "hash-tables",
+      title: "Hash tables",
+      description: "A hash function turns a key into an index with key % size; store keys, handle collisions with linear probing that wraps round, search for a key, and hash a word with ord().",
+      skills: ["hash-function", "store-key", "collision", "linear-probe", "hash-search", "string-hash"],
+      levelTypes: A_LEVEL_TYPES, levelNames: A_LEVEL_NAMES,
+    },
+    {
+      id: "arrays-3d",
+      title: "3D arrays",
+      description: "A list of 2D lists: read an item with cube[layer][row][col], take the length of each level, loop through every item with three loops, and build one so its rows are separate lists.",
+      skills: ["index-3d", "len-3d", "loop-3d", "build-3d", "total-3d"],
+      levelTypes: A_LEVEL_TYPES, levelNames: A_LEVEL_NAMES,
+    },
   ];
 
   // How the unit menu groups the units, under headings. Layout only: unit ids, their order and saved progress are
@@ -252,9 +288,12 @@
     { id: "validation", title: "Validation", units: ["validation", "authentication", "trace-tables"] },
     { id: "searching-sorting", title: "Searching and sorting", units: ["linear-search", "binary-search", "bubble-sort", "insertion-sort", "merge-sort"] },
     { id: "a-level", title: "A-level",
-      units: ["recursion", "scope-parameters", "oop-classes", "oop-methods", "oop-encapsulation", "oop-inheritance", "debugging"],
+      units: ["recursion", "scope-parameters", "oop-classes", "oop-methods", "oop-encapsulation", "oop-inheritance", "debugging",
+        "records-tuples", "stacks-queues", "linked-lists", "hash-tables", "arrays-3d"],
       subsections: [{ id: "programming-techniques", title: "Programming techniques",
-        units: ["recursion", "scope-parameters", "oop-classes", "oop-methods", "oop-encapsulation", "oop-inheritance", "debugging"] }] },
+        units: ["recursion", "scope-parameters", "oop-classes", "oop-methods", "oop-encapsulation", "oop-inheritance", "debugging"] },
+      { id: "data-structures", title: "Data structures",
+        units: ["records-tuples", "stacks-queues", "linked-lists", "hash-tables", "arrays-3d"] }] },
   ];
 
   // A level is how much support the task gives. It is the same in every unit.
