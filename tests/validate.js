@@ -23,8 +23,7 @@ const MIN_TASKS_PER_UNIT = 30;
 // Units have different numbers of tasks at each level (the A-level units' come from their coverage maps): every
 // level needs at least one bank task, and templates make more.
 const MIN_PER_UNIT_LEVEL = 1;
-const A_LEVEL_UNITS = ["recursion", "scope-parameters", "oop-classes", "oop-methods", "oop-encapsulation", "oop-inheritance", "debugging",
-  "records-tuples", "stacks-queues", "linked-lists", "hash-tables", "arrays-3d"];
+const A_LEVEL_UNITS = Curriculum.A_LEVEL_UNIT_IDS; // the a-level group in curriculum.js
 const { explainerProblems } = require(path.join(ROOT, "tools", "unit-tasks.js"));
 const MIN_SELECTION_TASKS = 100;
 
@@ -52,20 +51,16 @@ try {
 
 // ---------- Bank-level checks ----------
 check(Array.isArray(tasks), "tasks.json must contain an array");
-// Units with no tasks are shown as "Coming soon"; every unit that has tasks must be complete.
-const unitsWithTasks = UNIT_IDS.filter((u) => tasks.some((t) => t.unit === u));
-check(unitsWithTasks.length === UNIT_IDS.length, `Every unit should have tasks; missing: ${UNIT_IDS.filter((u) => !unitsWithTasks.includes(u)).join(", ")}`);
-for (const unit of unitsWithTasks) {
+// Every unit has tasks (at least MIN_TASKS_PER_UNIT), and at least MIN_PER_UNIT_LEVEL at every level.
+for (const unit of UNIT_IDS) {
   const mine = tasks.filter((t) => t.unit === unit);
   check(mine.length >= MIN_TASKS_PER_UNIT, `Unit "${unit}" needs at least ${MIN_TASKS_PER_UNIT} tasks, found ${mine.length}`);
-  // At least one task per level, however many the unit has.
-  const minPerLevel = MIN_PER_UNIT_LEVEL;
   for (let lv = 1; lv <= 10; lv++) {
     const count = mine.filter((t) => t.level === lv).length;
-    check(count >= minPerLevel, `Unit "${unit}" level ${lv} needs at least ${minPerLevel} tasks, found ${count}`);
+    check(count >= MIN_PER_UNIT_LEVEL, `Unit "${unit}" level ${lv} needs at least ${MIN_PER_UNIT_LEVEL} tasks, found ${count}`);
     // Tasks kept out of low levels (skillMinLevel) must still leave enough to choose from.
     const settable = App.tasksAt(tasks, unit, lv).length;
-    check(settable >= minPerLevel, `Unit "${unit}" level ${lv} has only ${settable} tasks that can be set (after skillMinLevel)`);
+    check(settable >= MIN_PER_UNIT_LEVEL, `Unit "${unit}" level ${lv} has only ${settable} tasks that can be set (after skillMinLevel)`);
   }
   // Every task type its ladder uses (File handling has no write tasks; some levels have two types).
   const ladderTypes = new Set(Array.from({ length: 10 }, (_, i) => Curriculum.levelTypes(i + 1, unit)).flat());
@@ -286,7 +281,7 @@ function checkTask(t) {
   }
   // The explainer: every task in the A-level units (bank tasks and every template variant) has one short sentence,
   // with no placeholder left in it, and a predict task's doesn't give the answer.
-  if ((t.units || [t.unit]).some((u) => A_LEVEL_UNITS.includes(u))) {
+  if ((t.units || [t.unit]).some(Curriculum.isALevel)) {
     check(typeof t.explainer === "string" && !/\{\{|\[\[/.test(t.explainer), `${name}: needs an explainer, with its placeholders filled in`);
     if (typeof t.explainer === "string") for (const p of explainerProblems(t)) check(false, `${name}: ${p}`);
   }

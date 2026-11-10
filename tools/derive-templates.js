@@ -25,6 +25,7 @@ const path = require("path");
 const { runPython, ROOT } = require("./run-python.js");
 const Checker = require(path.join(ROOT, "checker.js"));
 const Templates = require(path.join(ROOT, "templates.js"));
+const Curriculum = require(path.join(ROOT, "curriculum.js"));
 
 // Numbers that keep their meaning (units of time, percentages, 0/1/2): never changed.
 const FIXED = new Set([0, 1, 2, 100, 1000, 60, 24, 365, 52]);
@@ -625,9 +626,8 @@ function structuralValues(tasks, candidates) {
 // "index 2"), which a variant keeps (positions don't change when the numbers are scaled in order). Those references
 // are kept as they are, and a number in the text only changes if it is one of the task's own numbers (not one more or
 // one less than one).
-const A_LEVEL_UNITS = ["recursion", "scope-parameters", "oop-classes", "oop-methods", "oop-encapsulation", "oop-inheritance", "debugging",
-  "records-tuples", "stacks-queues", "linked-lists", "hash-tables", "arrays-3d"];
-const KEEP_POSITIONS_UNITS = ["trace-tables", "linear-search", "binary-search", "bubble-sort", "insertion-sort", "merge-sort"].concat(A_LEVEL_UNITS);
+// The A-level units are the a-level group in curriculum.js (Curriculum.isALevel).
+const KEEP_POSITIONS_UNITS = ["trace-tables", "linear-search", "binary-search", "bubble-sort", "insertion-sort", "merge-sort"].concat(Curriculum.A_LEVEL_UNIT_IDS);
 // The A-level units also name lines in their code (an error message in a comment: "line 3"), and a debugging answer
 // may be a line number: every number a line, row or index reference names stays fixed, in the code as well.
 // A program shown in comments with its line numbers ("#   3  print(total)", the Debugging unit) keeps them too.
@@ -647,7 +647,7 @@ function derive(t, fixedExtra, opts) {
   const keepPos = KEEP_POSITIONS_UNITS.includes(t.unit);
   const code = codeOf(t);
   const fixed = new Set([...FIXED, ...quotedNumbers(code), ...factNumbers(t), ...(ov.fixed || []), ...(fixedExtra || []),
-    ...(A_LEVEL_UNITS.includes(t.unit) ? lineRefNumbers(t) : [])]);
+    ...(Curriculum.isALevel(t.unit) ? lineRefNumbers(t) : [])]);
   // Anchors: numbers in the code, then numbers typed in the tests that aren't next to one of those.
   const fmt = {};
   const anchors = new Set();
@@ -819,7 +819,7 @@ function main() {
 
   // First draft, then keep fixed any value that breaks the solution when changed on its own.
   const firstFixed = chosen.map((t) => {
-    const fixed = new Set([...FIXED, ...quotedNumbers(codeOf(t)), ...((OVERRIDES[t.id] || {}).fixed || []), ...(A_LEVEL_UNITS.includes(t.unit) ? lineRefNumbers(t) : [])]);
+    const fixed = new Set([...FIXED, ...quotedNumbers(codeOf(t)), ...((OVERRIDES[t.id] || {}).fixed || []), ...(Curriculum.isALevel(t.unit) ? lineRefNumbers(t) : [])]);
     const vals = new Set();
     for (const tok of codeNumbers(codeOf(t))) if (!fixed.has(Math.abs(Number(tok)))) vals.add(Number(tok));
     for (const test of t.tests) for (const inp of test.inputs) if (/^-?\d+(\.\d+)?$/.test(inp.trim()) && !fixed.has(Math.abs(Number(inp)))) vals.add(Number(inp));

@@ -179,7 +179,7 @@
       title: "Merge sort",
       description: "Split a list into single items, then merge sorted lists back together by comparing their front items.",
       // One short note on recursion (shown on the unit's card and its practice page).
-      note: "Merge sort is usually written with recursion: a function that calls itself on each half, again and again, until every part has one item, then merges the parts on the way back. Recursion is beyond this course, so these tasks never use it: the splitting is shown or done for you, and you practise the merging.",
+      note: "Merge sort uses recursion, which is an A-level topic. You can learn more about it in the Recursion unit.",
       skills: ["split", "merge", "compare-fronts", "leftovers", "merge-sort"],
       // No write tasks: level 9 is two trace tables and level 10 a full trace of a longer list.
       levelTypes: Object.assign({}, ALGORITHM_TYPES, { 9: "trace", 10: "trace" }),
@@ -278,8 +278,8 @@
   ];
 
   // How the unit menu groups the units, under headings. Layout only: unit ids, their order and saved progress are
-  // unchanged. A group with no units yet lists what is coming, shown as "Coming soon". A group may split its units
-  // into subsections, each with its own heading (the A-level group's "Programming techniques").
+  // unchanged. A group may split its units into subsections, each with its own heading (the A-level group's
+  // "Programming techniques" and "Data structures").
   const UNIT_GROUPS = [
     { id: "fundamentals", title: "Programming fundamentals",
       units: ["output", "variables", "data-types", "maths", "selection", "loops-condition", "loops-count"] },
@@ -334,6 +334,10 @@
   const hasScratch = (unitId) => !(unitById(unitId) || {}).noScratch;
   // Units with noPlacement start at level 1 with no placement test (the searching and sorting units).
   const hasPlacement = (unitId) => !(unitById(unitId) || {}).noPlacement;
+  // The A-level units: every unit in the a-level group (the one list templates.js, the tools and the tests use).
+  const A_LEVEL_UNIT_IDS = (UNIT_GROUPS.find((g) => g.id === "a-level") || { units: [] }).units;
+  const isALevel = (unitId) => A_LEVEL_UNIT_IDS.includes(unitId);
 
-  return { UNITS, UNIT_GROUPS, LEVELS, TYPE_INFO, SCRATCH_LEVEL, unitById, unitTitle, levelName, levelType, levelTypes, hasScratch, hasPlacement };
+  return { UNITS, UNIT_GROUPS, LEVELS, TYPE_INFO, SCRATCH_LEVEL, unitById, unitTitle, levelName, levelType, levelTypes, hasScratch, hasPlacement,
+    A_LEVEL_UNIT_IDS, isALevel };
 });

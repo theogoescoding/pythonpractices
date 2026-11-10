@@ -74,7 +74,7 @@ const NEW = [
 
   // ---------- Write from scratch ----------
   // These three replaced scratch-types-trip, scratch-types-height and scratch-types-receipt, which used round()
-  // (tools/replace-types-round-if.js removed those). Prices are whole quarters of a pound, so totals are exact.
+  // (tools/archive/replace-types-round-if.js removed those). Prices are whole quarters of a pound, so totals are exact.
   { id: "scratch-types-trip-cost", units: ["data-types"], source: "types-L10d", level: 10, type: "scratch", starter: "", title: "Trip planner",
     params: { place: { choice: ["science museum", "castle", "zoo", "theatre", "farm"] } },
     description: "Write a program from scratch for a trip to the {{place}}. Ask for the number of pupils, the cost per pupil in pounds, and whether the coach is booked (yes or no). Cast each value to a suitable type. Print the total cost (pupils times the cost) and whether the coach is booked, for example:\nTotal (£): 255.0\nCoach booked: True\nCoach booked is True only for yes.",

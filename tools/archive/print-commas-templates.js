@@ -5,7 +5,7 @@
 "use strict";
 const fs = require("fs");
 const path = require("path");
-const { runPython, ROOT } = require("./run-python.js");
+const { runPython, ROOT } = require("../run-python.js");
 const Checker = require(path.join(ROOT, "checker.js"));
 const Templates = require(path.join(ROOT, "templates.js"));
 

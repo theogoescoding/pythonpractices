@@ -166,10 +166,11 @@ Store.whenReady(function () {
   const COLLAPSED_KEY = "pythonPractice.collapsedGroups";
 
   // The units under their group headings (Curriculum.UNIT_GROUPS), in the same order as UNITS. A unit missing from
-  // every group is still shown, in a last group, so no unit can disappear from the menu.
+  // every group is still shown, in a last group, so no unit can disappear from the menu. A group with no units isn't shown.
   function groupsToShow() {
     const listed = new Set(self.Curriculum.UNIT_GROUPS.flatMap((g) => g.units));
-    const groups = self.Curriculum.UNIT_GROUPS.map((g) => Object.assign({}, g, { units: UNITS.filter((u) => g.units.includes(u.id)) }));
+    const groups = self.Curriculum.UNIT_GROUPS.map((g) => Object.assign({}, g, { units: UNITS.filter((u) => g.units.includes(u.id)) }))
+      .filter((g) => g.units.length);
     const others = UNITS.filter((u) => !listed.has(u.id));
     if (others.length) groups.push({ id: "other", title: "More units", units: others });
     return groups;
@@ -187,13 +188,11 @@ Store.whenReady(function () {
       // Subsections (the A-level group's "Programming techniques"): a heading over each one's units, in their order.
       const subs = (g.subsections || []).map((s) => ({ id: s.id, title: s.title, units: g.units.filter((u) => s.units.includes(u.id)) })).filter((s) => s.units.length);
       const loose = g.units.filter((u) => !subs.some((s) => s.units.includes(u)));
-      const body = !g.units.length
-        ? '<p class="group-soon"><span class="soon">Coming soon</span> ' + esc((g.comingSoon || []).join(" and ")) + "</p>"
-        : subs.length
-          ? (loose.length ? list(loose) : "") + subs.map((s) => '<section class="unit-subsection" aria-labelledby="sub-' + s.id + '-h">' +
-            '<h4 class="subsection-heading" id="sub-' + s.id + '-h">' + esc(s.title) + "</h4>" + list(s.units, true) + "</section>").join("")
-          : list(g.units);
-      const count = '<span class="group-count">' + (g.units.length ? g.units.length + " unit" + (g.units.length === 1 ? "" : "s") : "Coming soon") + "</span>";
+      const body = subs.length
+        ? (loose.length ? list(loose) : "") + subs.map((s) => '<section class="unit-subsection" aria-labelledby="sub-' + s.id + '-h">' +
+          '<h4 class="subsection-heading" id="sub-' + s.id + '-h">' + esc(s.title) + "</h4>" + list(s.units, true) + "</section>").join("")
+        : list(g.units);
+      const count = '<span class="group-count">' + g.units.length + " unit" + (g.units.length === 1 ? "" : "s") + "</span>";
       return '<section class="unit-group" aria-labelledby="group-' + g.id + '-h">' +
         '<h3 class="group-heading" id="group-' + g.id + '-h">' + Collapse.buttonHtml(g.id, "group-" + g.id, esc(g.title), open, count) + "</h3>" +
         '<div class="group-body" id="group-' + g.id + '"' + (open ? "" : " hidden") + ">" + body + "</div></section>";
@@ -202,16 +201,12 @@ Store.whenReady(function () {
 
   Collapse.wire($("unit-list"), COLLAPSED_KEY);
 
-  // One unit's card (a link to practise it, or "Coming soon" if it has no tasks yet). In a subsection the card's
-  // heading is one level lower (h5), under the subsection's h4.
+  // One unit's card: a link to practise it (every unit has tasks: tests/validate.js checks this). In a subsection
+  // the card's heading is one level lower (h5), under the subsection's h4.
   function unitCard(u, progress, sub) {
     const count = tasks.filter((t) => t.unit === u.id).length;
     const h = sub ? "h5" : "h4";
     const title = "<" + h + ">" + esc(u.title) + "</" + h + "><p>" + esc(u.description) + "</p>" + (u.note ? '<p class="unit-note small">' + esc(u.note) + "</p>" : "");
-    if (!count) {
-      return '<li><div class="unit-card unavailable" aria-disabled="true">' + title +
-        '<p class="unit-meta"><span class="soon">Coming soon</span></p></div></li>';
-    }
     const s = progress.units[u.id];
     const level = unitLevel(progress, u.id);
     let levelText;

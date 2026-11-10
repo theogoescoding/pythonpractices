@@ -9,13 +9,13 @@
 // the old task was a different task, so its saved progress is NOT moved onto the new one.
 // It also points the hand-written templates whose source was an old task at the new one, and removes the three
 // write-from-scratch templates that used round(); tools/add-data-types-templates.js adds their replacements.
-// Run once: node tools/replace-types-round-if.js, then build-variants, add-worked-examples, add-data-types-templates,
+// Run once: node tools/archive/replace-types-round-if.js, then build-variants, add-worked-examples, add-data-types-templates,
 // derive-templates and the tests.
 "use strict";
 const fs = require("fs");
 const path = require("path");
-const { T, buildTasks } = require("./unit-tasks.js");
-const { ROOT } = require("./run-python.js");
+const { T, buildTasks } = require("../unit-tasks.js");
+const { ROOT } = require("../run-python.js");
 
 const NEW = [
   { replaces: "types-L5c", id: "types-L5d", level: 5, type: "parsons", title: "Long jump",

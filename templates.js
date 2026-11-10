@@ -31,9 +31,9 @@
 // Every variant has a fingerprint: the template id plus its parameter values. A passed fingerprint is never served again.
 
 (function (root, factory) {
-  if (typeof module === "object" && module.exports) module.exports = factory(require("./checker.js"));
-  else root.Templates = factory(root.Checker);
-})(typeof self !== "undefined" ? self : this, function (Checker) {
+  if (typeof module === "object" && module.exports) module.exports = factory(require("./checker.js"), require("./curriculum.js"));
+  else root.Templates = factory(root.Checker, root.Curriculum); // a page loads curriculum.js before templates.js
+})(typeof self !== "undefined" ? self : this, function (Checker, Curriculum) {
 
   const MAX_TRIES = 200;
   const MAX_DERIVED_TRIES = 12;   // draws a derived template may take (each one runs Python)
@@ -346,8 +346,13 @@
     { re: /^(\s*)([a-z_]\w*\.[a-z_]\w*\([^\n]*\))[ \t]*$/gm, to: (m, ind, call) => m + "\n" + ind + call },
   ];
   const MAX_PLACES_PER_RULE = 3;
-  const A_LEVEL_UNITS =["recursion", "scope-parameters", "oop-classes", "oop-methods", "oop-encapsulation", "oop-inheritance", "debugging",
-    "records-tuples", "stacks-queues", "linked-lists", "hash-tables", "arrays-3d"];
+  // Which units get which extra rules. The A-level units (functions, lists and objects throughout) come from
+  // curriculum.js (Curriculum.isALevel), as do the searching and sorting units; the page must load curriculum.js first.
+  const needCurriculum = () => { if (!Curriculum) throw new Error("templates.js needs curriculum.js, loaded before it"); return Curriculum; };
+  const isALevel = (u) => needCurriculum().isALevel(u);
+  const groupUnits = (id) => (needCurriculum().UNIT_GROUPS.find((g) => g.id === id) || { units: [] }).units;
+  // The Strings and Lists rules: the A-level units, and these (the searching and sorting units too).
+  const stringListUnits = () => ["strings", "lists", "arrays-2d", "trace-tables"].concat(groupUnits("searching-sorting"));
 
   // Positions inside strings and comments, which mutations leave alone.
   function maskedRanges(code) {
@@ -368,8 +373,8 @@
     let rules = /\btype\(/.test(code) ? MUTATIONS.concat(TYPE_MUTATIONS) : MUTATIONS;
     const us = units || [];
     // The A-level units (functions, lists and objects throughout) use the Strings and Lists and the functions rules too.
-    const aLevel = us.some((u) => A_LEVEL_UNITS.includes(u));
-    if (aLevel || us.some((u) => ["strings", "lists", "arrays-2d", "trace-tables", "linear-search", "binary-search", "bubble-sort", "insertion-sort", "merge-sort"].includes(u))) rules = rules.concat(STRING_LIST_MUTATIONS);
+    const aLevel = us.some(isALevel);
+    if (aLevel || us.some((u) => stringListUnits().includes(u))) rules = rules.concat(STRING_LIST_MUTATIONS);
     if (us.includes("random")) rules = rules.concat(RANDOM_MUTATIONS);
     if (aLevel || us.some((u) => u === "functions-basic" || u === "functions-return")) rules = rules.concat(FUNCTION_MUTATIONS);
     if (aLevel) rules = rules.concat(OOP_MUTATIONS);

@@ -4,7 +4,7 @@
 // disagree. Nothing is written unless every task is consistent.
 // Run once: node tools/add-data-types-unit.js, then build-variants, add-worked-examples, derive-templates and the tests.
 // Later (2026-11), when the unit moved before Maths and Selection, the 11 tasks below that use round() or if/else were
-// replaced by tools/replace-types-round-if.js. This file is kept as the record of the unit as first added.
+// replaced by tools/archive/replace-types-round-if.js. This file is kept as the record of the unit as first added.
 "use strict";
 const fs = require("fs");
 const path = require("path");

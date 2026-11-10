@@ -347,7 +347,7 @@
   const fullExportCsv = (data) => toCsv(FULL_COLUMNS.map(([key]) => ({ key })), fullExportRows(data));
 
   function dataDictionaryCsv(misconceptions) {
-    const rows = [{ kind: "about", name: "this file", meaning: "Explains the columns and values in the full data export (python-practice-full-data-*.csv). Each row of that file is one event from a Python practice app used by students aged 11-16. All data comes from one browser on one computer. Columns that don't apply to a row's record_type are empty." }];
+    const rows = [{ kind: "about", name: "this file", meaning: "Explains the columns and values in the full data export (python-practice-full-data-*.csv). Each row of that file is one event from a Python practice app used by students aged 11–18. In local mode all data comes from one browser; in backend mode it is the whole class. Columns that don't apply to a row's record_type are empty." }];
     for (const [name, meaning] of FULL_COLUMNS) rows.push({ kind: "column", name, meaning });
     for (const [col, value, meaning] of VALUE_NOTES) rows.push({ kind: "value of " + col, name: value, meaning });
     for (const m of misconceptions || []) rows.push({ kind: "value in misconception_matches", name: m.id, meaning: m.name + ". " + m.description });

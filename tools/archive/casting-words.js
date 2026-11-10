@@ -1,11 +1,11 @@
 // One-off (2026-11): every task that converts input() with int(), float() or bool() names it "casting".
 // Where the task asks the student to do the conversion (a conversion skill, or a fill/Parsons/write task whose
 // answer includes it), the description says "cast"; otherwise a hint does.
-// Run once: node tools/casting-words.js   (then add-worked-examples, derive-templates and the tests)
+// Run once: node tools/archive/casting-words.js   (then add-worked-examples, derive-templates and the tests)
 "use strict";
 const fs = require("fs");
 const path = require("path");
-const ROOT = path.join(__dirname, "..");
+const ROOT = path.join(__dirname, "..", "..");
 const file = path.join(ROOT, "tasks.json");
 const tasks = JSON.parse(fs.readFileSync(file, "utf8"));
 

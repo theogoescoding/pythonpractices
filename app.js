@@ -39,7 +39,6 @@ const SECURED_MAX_HINTS = 1;               // ...each using this many hints or f
 // That unlocks endless mode for the unit, and from-scratch tasks in it.
 const SCRATCH_EVERY_N_TASKS = 3;           // after completing a unit, every Nth task there at the top level is "write from scratch"
 const ENDLESS_COMBINED_CHANCE = 0.35;      // in endless mode with 2+ units ticked, chance that the next task is a combined task
-const MAX_VARIANT_TRIES = 10;              // tries to get a variant that differs from the last one
 
 // ===================== Placement test =====================
 // The first time a student opens a unit they take one placement task at each of these levels, in this order.
@@ -465,16 +464,6 @@ function pickAvoiding(items, avoid, key, rand) {
   return pool.length ? pool[Math.floor(rand() * pool.length)] : null;
 }
 
-// A variant of the template that differs from the last task served (lastSignature). Expression templates only.
-function freshVariant(tpl, lastSignature, rand, Templates) {
-  let task = null;
-  for (let k = 0; k < MAX_VARIANT_TRIES; k++) {
-    task = Templates.expand(tpl, Templates.randomSeed(rand));
-    if (Templates.signature(task) !== lastSignature) break;
-  }
-  return task;
-}
-
 // Unit practice: is the next task a from-scratch task?
 function scratchDue(state) {
   return !!state.completedTop && state.level === MAX_LEVEL && (state.sinceScratch || 0) >= SCRATCH_EVERY_N_TASKS - 1;
@@ -654,7 +643,7 @@ if (typeof module === "object" && module.exports) {
     recordPlacementStep, resetPlacement, attemptRecord, levelButtonAvailable, applyLevelButton, levelButtonMessage, pressLevelButton,
     freshUnitState, applyOutcome, levelMessage, tasksAt, chooseTask,
     unitOfSkill, updateSkillStates, skillStatus, ensureSkillStates, completesTopLevel,
-    singleTemplates, scratchTemplates, combinedTemplates, freshVariant, scratchDue, chooseEndlessTask,
+    singleTemplates, scratchTemplates, combinedTemplates, scratchDue, chooseEndlessTask,
   };
 }
 

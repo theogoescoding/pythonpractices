@@ -5,11 +5,11 @@
 // The new task lists the old id in former_ids, so older attempts and exports still find it in the teacher view, with
 // former_ids_are_replacements: the old task was a different task, so its saved progress (a pass, the log, a task in
 // progress) is NOT moved onto the new one, and imports and recheck.py don't treat it as the same task.
-// Run once: node tools/replace-sep-end.js, then add-worked-examples, derive-templates and the tests.
+// Run once: node tools/archive/replace-sep-end.js, then add-worked-examples, derive-templates and the tests.
 "use strict";
 const fs = require("fs");
 const path = require("path");
-const { runPython, ROOT } = require("./run-python.js");
+const { runPython, ROOT } = require("../run-python.js");
 const Checker = require(path.join(ROOT, "checker.js"));
 
 const file = path.join(ROOT, "tasks.json");

@@ -1,11 +1,11 @@
 // One-off rewrite for the printing rule (2026-11): when a program prints several values it uses commas in print(),
 // not + and str(). + is kept only where text is built and stored in a variable, and the hint then says why.
-// Run once: node tools/print-commas.js   (then build-variants, add-worked-examples, derive-templates, the tests)
+// Run once: node tools/archive/print-commas.js   (then build-variants, add-worked-examples, derive-templates, the tests)
 // It checks every changed task: the new solution's output must equal the expected output worked out from the old one.
 "use strict";
 const fs = require("fs");
 const path = require("path");
-const { runPython, ROOT } = require("./run-python.js");
+const { runPython, ROOT } = require("../run-python.js");
 const Checker = require(path.join(ROOT, "checker.js"));
 
 const file = path.join(ROOT, "tasks.json");

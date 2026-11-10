@@ -17,7 +17,6 @@ const READ5 = 'nums = []\nfor k in range(5):\n    nums.append(int(input("Number:
 const INVERSIONS = (v) => v + ".reduce((n, x, i) => n + " + v + ".slice(i + 1).filter((y) => y < x).length, 0)";
 // The checks a binary search of L for t makes (as the programs here count them).
 const BIN_CHECKS = (L, t) => "(() => { let lo = 0, hi = " + L + ".length - 1, c = 0; while (lo <= hi) { const m = Math.floor((lo + hi) / 2); c++; if (" + L + "[m] === " + t + ") return c; if (" + L + "[m] < " + t + ") lo = m + 1; else hi = m - 1; } return c; })()";
-const BIN_FOUND = (L, t) => "(() => { let lo = 0, hi = " + L + ".length - 1; while (lo <= hi) { const m = Math.floor((lo + hi) / 2); if (" + L + "[m] === " + t + ") return m; if (" + L + "[m] < " + t + ") lo = m + 1; else hi = m - 1; } return -1; })()";
 const USERS = ["ava7", "ben_k", "zara.b", "kai_t", "leo_m", "mia", "dev01", "rio"];
 const PASSWORDS = ["Tiger42", "Moon5", "Star8", "Rocket9", "Comet3", "Owl77", "Fox_12", "Rain22"];
 const BUBBLE = (v, ind, cmp) => ind + "for i in range(len(" + v + ") - 1):\n" + ind + "    for j in range(len(" + v + ") - 1 - i):\n" + ind + "        if " + v + "[j] " + (cmp || ">") + " " + v + "[j + 1]:\n" + ind + "            " + v + "[j], " + v + "[j + 1] = " + v + "[j + 1], " + v + "[j]";

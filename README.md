@@ -1,6 +1,6 @@
 # Python Practice (prototype)
 
-A browser-based Python practice app for students aged 11–16, aligned to KS3 and OCR GCSE Computer Science J277 (section 2.2, programming fundamentals, and the searching and sorting algorithms of section 2.1), with an A-level group (programming techniques, then data structures). It has thirty-four units, in this order:
+A browser-based Python practice app for students aged 11–18: KS3, OCR GCSE Computer Science J277 (section 2.2, programming fundamentals, and the searching and sorting algorithms of section 2.1), and A-level (twelve units in the A-level group: programming techniques, then data structures). It has thirty-four units, in this order:
 
 | Unit | Covers | Practice tasks | Placement tasks |
 |---|---|---|---|
@@ -119,7 +119,7 @@ npx supabase start
 npx supabase functions serve --env-file <secrets file outside this folder>
 ```
 
-See `docs/SECRETS.md` for making the secrets file. `config.js` (committed) points at the test project. To use the local stack instead, change it on your computer only, without committing: set `BACKEND_ENABLED: true`, `SUPABASE_URL: "http://127.0.0.1:54321"` and the anon key from `npx supabase status`, and serve the folder on port 8000 as above. Confirmation emails go to the local Mailpit inbox (http://127.0.0.1:54324). With `BACKEND_ENABLED: false` the app is in local mode.
+See `docs/SECRETS.md` for making the secrets file. `config.js` (committed) points at the trial project (`bkcvigaqhawwaxtxyzec`). To use the local stack instead, change it on your computer only, without committing: set `BACKEND_ENABLED: true`, `SUPABASE_URL: "http://127.0.0.1:54321"` and the anon key from `npx supabase status`, and serve the folder on port 8000 as above. Confirmation emails go to the local Mailpit inbox (http://127.0.0.1:54324). With `BACKEND_ENABLED: false` the app is in local mode.
 
 ### Class assignments (backend mode)
 
@@ -183,7 +183,7 @@ If CodeMirror can't be loaded, the page falls back to the plain text editor, whi
 - **The student view is `app.html`** (it used to be `index.html`). Its header shows the wordmark logo (the dark version in the Dark and High contrast themes), which links to the home page. Every page's tab icon is `assets/logo/icon-light.png`. Once signed in, a student's pages never link to the teacher view; only the home page does.
 - **Name first.** On a student's first visit they are asked for their name (at least one character) before anything else. A stable student id is generated once and stored with the name.
 - **"Not you? Change name"** in the top bar lists the students already saved in this browser, or lets a new student enter their name. Each name gets its own id, so two students called Sam don't share progress.
-- **Unit menu.** `app.html` shows a card for each unit, with its description, number of tasks and the student's level, under five headings (`UNIT_GROUPS` in `curriculum.js`): **Programming fundamentals** (Output to Count-controlled loops), **Advanced programming** (Strings to 2D arrays), **Validation** (Validation, Authentication and Trace tables), **Searching and sorting** and **A-level**. A group can split its units into subsections (`subsections`), each under its own heading: the A-level group's only one so far is **Programming techniques** (Recursion, Scope and parameters, the four object-oriented programming units, then Debugging), and its unit cards' headings are one level lower (`h5`). A group with no units yet shows "Coming soon". Within a group the units keep the order of `UNITS`. Each heading is a button that collapses or expands its group; groups start expanded, and a collapsed group is remembered on that device (`localStorage`, ignored if storage is blocked). Unit ids and saved progress don't depend on the groups. Units with no tasks in `tasks.json` are greyed out as "Coming soon". Clicking a card opens `practice.html?unit=<id>`.
+- **Unit menu.** `app.html` shows a card for each unit, with its description, number of tasks and the student's level, under five headings (`UNIT_GROUPS` in `curriculum.js`): **Programming fundamentals** (Output to Count-controlled loops), **Advanced programming** (Strings to 2D arrays), **Validation** (Validation, Authentication and Trace tables), **Searching and sorting** and **A-level**. A group can split its units into subsections (`subsections`), each under its own heading: the A-level group has two, **Programming techniques** (Recursion, Scope and parameters, the four object-oriented programming units, then Debugging) and **Data structures** (Records and tuples, Stacks and queues, Linked lists, Hash tables, then 3D arrays), and their unit cards' headings are one level lower (`h5`). A group with no units isn't shown. Within a group the units keep the order of `UNITS`. Each heading is a button that collapses or expands its group; groups start expanded, and a collapsed group is remembered on that device (`localStorage`, ignored if storage is blocked). Unit ids and saved progress don't depend on the groups. Units with no tasks in `tasks.json` are greyed out as "Coming soon". Clicking a card opens `practice.html?unit=<id>`.
 - **Progress is stored per student, per unit.**
 
 ### Test mode (`?test=1`)
@@ -430,7 +430,7 @@ Each skill has one name everywhere. `indexing` and `length` are in both the Stri
 
 **Data types and casting** (unit id `data-types`, task ids `types-L…`, placement `types-P…`) comes between Variables and input and Maths in Python, so it uses only casting, types, `+ - * /` and comparisons that give True or False: no `round()`, `if`/`else` or loops.
 
-- **Replaced when it moved:** it was written to come after the loops units, so 11 tasks used `round()` (Maths) or `if`/`else` (Selection). `tools/replace-types-round-if.js` replaced them with tasks of the same level, type and skills: `types-L5c`, `L8a`, `L8b`, `L9a`, `L9b`, `L9c`, `L10a`, `L10b`, `L10c`, `P7a` and `P9b` became `types-L5d`, `L8d`, `L8e`, `L9d`, `L9e`, `L9f`, `L10d`, `L10e`, `L10f`, `P7c` and `P9c`. Each lists the old id in `former_ids` with `former_ids_are_replacements`, so older attempts still find it but its saved progress isn't moved across. The three from-scratch templates that used `round()` were replaced too (`scratch-types-trip-cost`, `scratch-types-height-check`, `scratch-types-receipt-type`). The combined templates with Maths and the loops units still use those units' ideas, because they're only set to students who have both units.
+- **Replaced when it moved:** it was written to come after the loops units, so 11 tasks used `round()` (Maths) or `if`/`else` (Selection). `tools/archive/replace-types-round-if.js` replaced them with tasks of the same level, type and skills: `types-L5c`, `L8a`, `L8b`, `L9a`, `L9b`, `L9c`, `L10a`, `L10b`, `L10c`, `P7a` and `P9b` became `types-L5d`, `L8d`, `L8e`, `L9d`, `L9e`, `L9f`, `L10d`, `L10e`, `L10f`, `P7c` and `P9c`. Each lists the old id in `former_ids` with `former_ids_are_replacements`, so older attempts still find it but its saved progress isn't moved across. The three from-scratch templates that used `round()` were replaced too (`scratch-types-trip-cost`, `scratch-types-height-check`, `scratch-types-receipt-type`). The combined templates with Maths and the loops units still use those units' ideas, because they're only set to students who have both units.
 - **Exact real numbers:** where a task adds or multiplies real numbers, its tests use halves and quarters, which Python adds exactly, so no output looks like `0.30000000000000004`. Its derived template uses fixed sets of such values (`testSets` in `tools/derive-templates.js`) instead of scaling them.
 
 - **What it teaches:** the four types in the spec: integer (`int`), real (Python's `float`), Boolean (`bool`) and string (`str`); choosing the right type for a value (a shoe size, a weight, a yes/no flag); and casting with `int()`, `float()`, `str()` and `bool()`.
@@ -455,7 +455,7 @@ Each skill has one name everywhere. `indexing` and `length` are in both the Stri
 - **Lists** (`lists`, `list-L…`/`list-P…`): making a list, indexing (and changing an item by index), `append()`, `len()`, and `for` loops over a list or its indexes. No list comprehensions, list slicing, `sort()`, `sum()`, `max()` or `min()`: totals and largest values are found with a loop, as in the GCSE.
 - **Hints use the skill list's words:** a hint that names a skill says `len()`/length, indexing, slicing, `upper()`/`lower()`, `find()`, `replace()`, `import`, `randint()`, `choice()`, `append()` or loop, never another word for it (such as substring or array). The feature tests check this.
 - **Every hint and rule from the other units applies:** casting is named wherever input is converted, printing uses commas, and text built with `+` and stored has a hint saying why.
-- **Misconceptions:** six new ids (see [Misconceptions](#misconceptions)), alongside `INPUT_NOT_INT` and `STRING_PLUS_INT`. Their placement tasks have no buggy variants yet.
+- **Misconceptions:** six new ids (see [Misconceptions](#misconceptions)), alongside `INPUT_NOT_INT` and `STRING_PLUS_INT`. Their placement tasks have no buggy variants, by rule (as in every unit from here on).
 - **Templates:** every practice task has a derived template, with hand-written swaps in `tools/derive-templates.js` for the text-only tasks. Each unit has 3 from-scratch templates and 3 combined with the unit before it.
 - **Tools:** `tools/add-strings-unit.js`, `tools/add-random-unit.js` and `tools/add-lists-unit.js` (using `tools/unit-tasks.js`), and `tools/add-strings-templates.js`, `tools/add-random-templates.js` and `tools/add-lists-templates.js` (using `tools/hand-templates.js`). Data types' templates with Strings are in `tools/add-data-types-templates.js`.
 
@@ -468,7 +468,7 @@ Each skill has one name everywhere. `indexing` and `length` are in both the Stri
   - **Each program runs in its own empty folder** (`harness.py`), which is deleted afterwards, in the browser and in the tests. So a file can't last from one run, or one test, to the next, and nothing is written into the project folder.
 - **2D arrays** (`arrays-2d`, `grid-L…`/`grid-P…`): a list of lists, `grid[row][col]` (reading and changing an item), `len(grid)` for rows and `len(grid[0])` for columns, and nested loops to read, total, search and print a grid. No `numpy` or other import.
 - **Hints use the skill list's words** (`def`, call, parameter, argument, `return`, store, `with open`, mode, `write()`, `read()`, line, `close()`, list of lists, indexing, nested loop, `len()`), and the feature tests check every task.
-- **Misconceptions:** ten new ids (see [Misconceptions](#misconceptions)), with `INDEX_FROM_ONE` and `INPUT_NOT_INT` used again. The new placement tasks have no buggy variants yet.
+- **Misconceptions:** ten new ids (see [Misconceptions](#misconceptions)), with `INDEX_FROM_ONE` and `INPUT_NOT_INT` used again. Their placement tasks have no buggy variants, by rule.
 - **Error messages:** new advice for a missing file, reading a file opened to write (or the other way round), using a closed file, `write()` given a number, and a `None` from a missing `return`.
 - **Tools:** `tools/add-functions-basic-unit.js`, `tools/add-functions-return-unit.js`, `tools/add-file-handling-unit.js` and `tools/add-arrays-2d-unit.js`; templates in `tools/add-functions-templates.js`, `tools/add-file-handling-templates.js` and `tools/add-arrays-2d-templates.js`.
 
@@ -495,7 +495,7 @@ Each skill has one name everywhere. `indexing` and `length` are in both the Stri
 **Searching and sorting** is the last group: Linear search (`lin-L…`), Binary search (`bin-L…`), Bubble sort (`bub-L…`), Insertion sort (`ins-L…`) and Merge sort (`mer-L…`), 41 tasks each on the ladder above. They have `noPlacement` in `curriculum.js`, so a student starts each at level 1 (the unit's placement is stored as `null`, as for a unit started before placement existed).
 
 - **The same names in every task:** `found`, `pos` and `-1` for not found; `low`, `high` and `mid = (low + high) // 2`; `swapped` and `temp`; `key`, `i` and `j`; `left`, `right` and `merged`. From level 7 up, every list has at least 5 items (a merge's two lists together).
-- **No recursion anywhere.** Merge sort has one short note (`note` in `curriculum.js`, shown on its card): merge sort is usually written with recursion, which is beyond this course, so the tasks practise splitting, merging two sorted lists, and a "bottom-up" merge sort that merges runs of 1, then 2, then 4. Merge sort has no write tasks (`noScratch`): level 9 is two trace tables and level 10 a full trace of eight items.
+- **No recursion in these tasks.** Merge sort has one short note (`note` in `curriculum.js`, shown on its card): "Merge sort uses recursion, which is an A-level topic. You can learn more about it in the Recursion unit." The tasks themselves practise splitting, merging two sorted lists, and a "bottom-up" merge sort that merges runs of 1, then 2, then 4. Merge sort has no write tasks (`noScratch`): level 9 is two trace tables and level 10 a full trace of eight items.
 - **Misconceptions:** eleven new ids, each with buggy variants on 3 or more tasks in its unit: `LINEAR_NOT_FOUND_MISSING`, `LINEAR_STOPS_EARLY`, `BINARY_UNSORTED`, `BINARY_BOUNDS_NOT_UPDATED`, `BINARY_MID_FLOAT`, `BUBBLE_RANGE_OFF_BY_ONE`, `BUBBLE_SWAP_NO_TEMP`, `INSERTION_OVERWRITES`, `INSERTION_KEY_NOT_KEPT`, `MERGE_ITEMS_LOST` and `MERGE_NO_COMPARE`. `INDEX_FROM_ONE`, `GT_VS_GTE`, `INT_DIV_VS_DIV` and `RANGE_STOP_EXCLUSIVE` are used again where they fit. `BINARY_BOUNDS_NOT_UPDATED` variants may run for ever (as `LOOP_NO_UPDATE` ones may): that is how the mistake shows.
 - **"Show me how":** each unit has one worked example for each task type it uses (`unit:type` keys in `tools/worked-examples.js`, found before the skill keys), and a trace table example shows its whole table. Trace tables has one for each skill.
 - **Templates:** every practice task has a derived template. Their text keeps its line, row and index references ("Line 4", "items[3]", "index 2") as they are, since scaling the numbers in order doesn't move any position, and the list mistakes (an index one out, a slice end) give predict tasks their wrong options. Linear search, Binary search, Bubble sort and Insertion sort have 3 write-from-scratch templates each, and each new pair of units taught one after the other has 3 combined templates (`tools/add-searching-sorting-templates.js`).
@@ -504,7 +504,7 @@ Each skill has one name everywhere. `indexing` and `length` are in both the Stri
 **A-level: Programming techniques** is the first subsection of the last group (`a-level`, subsection `programming-techniques`): Recursion (`rec-L…`/`rec-P…`), Scope and parameters (`scope-…`), Object-oriented programming: classes and objects (`cls-…`), methods (`meth-…`), encapsulation (`enc-…`), inheritance and polymorphism (`inh-…`), then Debugging (`dbg-…`). Each has 26 or 27 practice tasks on the A-level ladder above, and 8 placement tasks (2 at each of levels 2, 5, 7 and 9) with no buggy variants.
 
 - **Coverage maps:** each unit's script (`tools/add-<unit>-unit.js`) has a `COVERAGE` list: each angle of the unit and the tasks that cover it. The feature tests check that every angle has tasks and every task id exists.
-- **Out of scope (in these seven units):** data structures (now in the next subsection), quick sort, bitwise operations, Boolean logic, graphs, trees, Big O, computational methods, the programming project, pseudocode, SQL, web technologies and Little Man Computer. No `try`/`except`, dictionaries or libraries beyond the earlier units'.
+- **Taught in lessons, not in the app:** bitwise operations and trees (binary trees included). **Out of scope (in these seven units):** data structures (now in the next subsection), quick sort, Boolean logic, graphs, Big O, computational methods, the programming project, pseudocode, SQL, web technologies and Little Man Computer. No `try`/`except`, dictionaries or libraries beyond the earlier units'.
 - **Trace tables with objects:** `harness.trace_code` gives each attribute of an object made from a class in the program its own column (`acc.balance`), so the object-oriented units have trace tasks. A trace table records only the main program's lines, so recursion is traced through what the calls print (the Output column) and the values the main program stores.
 - **Debugging:** a predict task's program must run, so levels 1–2 predict what a program with a bug prints and where the mistake first shows. Levels 3–4 show a program that stopped, with its line numbers and error message, in comments, and the student fills in the line and the type of error. Its write tasks start from the program with the bugs in it, so it has no write-from-scratch tasks (`noScratch`).
 - **A method named without brackets is never printed** (that shows a memory address, different each run): it is used where its effect is the same every time (it does nothing, counts as True, or gives a TypeError).
@@ -512,7 +512,7 @@ Each skill has one name everywhere. `indexing` and `length` are in both the Stri
 - **Error messages:** clearer advice for a function that never reaches a base case (`RecursionError`), an object without an attribute (`AttributeError`, mentioning `self.` and `super().__init__`), and a method without `self`.
 - **"Show me how":** one worked example for each task type in each unit, in contexts of their own (planets, museums, gardens, ferries).
 - **Templates:** every practice task has a derived template (text-only tasks have swaps or test sets in `tools/derive-templates.js`; the line numbers a task names stay fixed). Wrong predict options also come from object mistakes (an attribute's name printed, a change that doesn't happen, a method without brackets). Each new pair of units taught one after the other (Merge sort + Recursion, then each A-level pair) has 3 combined templates, and each unit but Debugging a write-from-scratch template (`tools/add-a-level-templates.js`).
-- **Merge sort's note** still says recursion is beyond the course, which was written before the Recursion unit; the Merge sort tasks themselves don't change.
+- **Merge sort's note** points students to the Recursion unit (merge sort uses recursion, an A-level topic); the Merge sort tasks themselves don't use it.
 - **Tools:** `tools/add-recursion-unit.js`, `tools/add-scope-parameters-unit.js`, `tools/add-oop-classes-unit.js`, `tools/add-oop-methods-unit.js`, `tools/add-oop-encapsulation-unit.js`, `tools/add-oop-inheritance-unit.js` and `tools/add-debugging-unit.js` (using `tools/unit-tasks.js`, whose `nameCasting` adds the casting sentence to every task that casts its input), `tools/add-a-level-misconceptions.js` and `tools/add-a-level-templates.js`.
 
 **A-level: Data structures** is the second subsection of the A-level group (`data-structures`), after Debugging: Records and tuples (`tup-L…`/`tup-P…`), Stacks and queues (`sq-…`), Linked lists (`ll-…`), Hash tables (`hash-…`), then 3D arrays (`a3d-…`). Each has 26 practice tasks on the A-level ladder (3 at levels 1–5 and 7, 2 at levels 6 and 8–10) and 8 placement tasks (2 at each of levels 2, 5, 7 and 9) with no buggy variants, and an explainer on every task, as in Programming techniques.
@@ -561,7 +561,7 @@ A program that uses `random` prints different things on different runs, but the 
 - At levels 1 to 9, each pair of `sep=`/`end=` tasks tests different ideas (one `sep=`, one `end=`), so they were kept. So were all the placement tasks.
 - Each new task lists the old id in `former_ids`, with `former_ids_are_replacements: true`. The teacher view then shows an old attempt as "a removed task, replaced by …".
 - Because the old task was a different task, its saved progress is **not** moved onto the new one: a student who passed `out-L10e` can still be given `out-L10o`. Imports and `recheck.py` also keep the old id.
-- The tool that made this change is `tools/replace-sep-end.js`.
+- The tool that made this change is `tools/archive/replace-sep-end.js`.
 
 **Removed duplicate.** `sel-L10d` was the same rock, paper, scissors task as `logic-L10b`, so it was removed. `logic-L10b` lists `sel-L10d` in its `former_ids`, so older attempts and exports still find it, and saved progress on `sel-L10d` (including a task in progress) is merged into `logic-L10b` when it loads.
 
@@ -689,13 +689,12 @@ Every failed attempt gets one category, worked out by `Checker.classifyAttempt` 
 - **A task may have `buggy_variants`**: short programs that each show one misconception (`{ "misconception": "GT_VS_GTE", "code": "…", "outputs": [...] }`).
 - **How matching works.** When an attempt fails, the student's result on the first failing test is compared with each variant's result on the same test. A variant matches if both printed the same thing (ignoring trailing spaces) and ended the same way: no error, or the same kind of error (for example `TypeError:concat`, or a syntax error from `=` in a condition). Two runs that both went on forever also match, which is how `LOOP_NO_UPDATE` is found. If nothing matches, nothing is recorded: a misconception is never recorded without a match. `NO_ANSWER` attempts are never matched.
 - **Variant outputs are worked out in advance.** `node tools/build-variants.js` runs every variant through `harness.py` on each of its task's tests and stores the results in `outputs`. The app and `recheck.py` compare against these stored outputs, so their results are identical. **Run it after adding or changing a variant or a task's tests.** The test script fails if the stored outputs are out of date.
-- **Coverage now:** 273 tasks have misconception tags and buggy variants (334 variants in total):
-  - **43 of the 112 placement tasks.** The 69 without variants are:
+- **Coverage now:** 646 tasks have misconception tags and buggy variants (756 variants in total):
+  - **43 of the 232 placement tasks**, all in the first seven units. By rule, the placement tasks of every unit from Strings on have no buggy variants, so the 189 without variants are those 176, plus:
     - 7 Output and sequence tasks and 1 Variables task, whose ideas (`sep=`, `end=`, the order of statements, reassignment) have no id in the list yet
     - `for-P7a` (looping over a string), which has no matching id
     - 4 Data types tasks (`types-P2a`, `types-P2b`, `types-P7b`, `types-P7c`), whose mistakes (`/` giving a float, `*` on a string, a forgotten line) have no id
-    - all 56 placement tasks of the seven units after Count-controlled loops (not written yet)
-  - **230 bank tasks:** 21 in Selection, 21 in Condition-controlled loops, 29 in Count-controlled loops, 26 in Data types and casting, 9 in Variables and input, 11 in Maths, 20 in Strings, 15 in Random, 16 in Lists, 13 in Functions (no return value), 15 in Functions (return values), 15 in File handling and 19 in 2D arrays.
+  - **603 of the 1306 bank tasks**, in every unit except Output and sequence (none): for example 21 in Selection, 29 in Count-controlled loops, 38 in Validation, and 11 to 23 in each searching and sorting and A-level unit.
   - **Rules:** every id has variants on at least 3 bank tasks. Every id used in the loops units has variants on at least 3 bank tasks within those two units.
   - **Template variants:** a variant made from a bank task keeps its buggy variants, and their outputs are worked out when the variant is made (by running them), so mistakes on variants are matched too. The hand-written templates (Endless mode's single-unit and combined templates, write-from-scratch) have none.
 
@@ -719,7 +718,6 @@ All values are named constants at the top of `app.js`:
 | `SECURED_MAX_HINTS` | 1 | Hints allowed on each of those passes |
 | `SCRATCH_EVERY_N_TASKS` | 3 | After completing a unit, how often a from-scratch task comes up at Level 10 |
 | `ENDLESS_COMBINED_CHANCE` | 0.35 | Chance of a combined task in Endless mode with 2+ units ticked |
-| `MAX_VARIANT_TRIES` | 10 | Tries to make a variant different from the last one |
 | `MAX_HINTS_PER_TASK` | 3 | Hints available on a task |
 | `RUN_TIMEOUT_MS` | 5000 | How long a run may take before it is stopped |
 | `PLACEMENT_LEVELS` | 2, 5, 7, 9 | Levels of the placement tasks, in order |
@@ -745,7 +743,7 @@ All values are named constants at the top of `app.js`:
 - **Two predict tasks show why:**
   - `out-L1e` shows that commas print a space between values, with a no-space wrong option.
   - `var-L2e` shows text being joined (`"4" + "5"` is `45`) next to cast values being added (`9`).
-- `tools/print-commas.js`, `tools/print-commas-templates.js` and `tools/casting-words.js` made these changes once. Each one checks that every changed solution still prints its expected output.
+- `tools/archive/print-commas.js`, `tools/archive/print-commas-templates.js` and `tools/archive/casting-words.js` made these changes once. Each one checks that every changed solution still prints its expected output.
 
 ## Teacher view
 
@@ -970,6 +968,8 @@ This needs Node 18+ and Python 3 on the PATH (set `PYTHON=...` to use a differen
 
 ## Files
 
+The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, not a way to rebuild: each one refuses to add a unit that is already in `tasks.json`, and later changes (such as the archived rewrites in `tools/archive/`) were made to `tasks.json` after the older ones ran.
+
 | File | Purpose |
 |---|---|
 | `index.html` | Home page: logo, tagline, and the student and teacher buttons (opens in the Dark theme) |
@@ -996,7 +996,7 @@ This needs Node 18+ and Python 3 on the PATH (set `PYTHON=...` to use a differen
 | `tools/add-records-tuples-unit.js`, `tools/add-stacks-queues-unit.js`, `tools/add-linked-lists-unit.js`, `tools/add-hash-tables-unit.js`, `tools/add-arrays-3d-unit.js` | One-off: the five A-level data structures units' tasks, explainers and coverage maps (built with `unit-tasks.js`) |
 | `tools/add-a-level-data-structures-misconceptions.js`, `tools/add-a-level-data-structures-templates.js` | One-off: the data structures units' fifteen misconceptions, and their combined and from-scratch templates |
 | `tests/sql/a-level-data-structures-units.sql` | SQL test for migration 0012 (the five data structures units in every unit check) |
-| `tools/print-commas.js`, `tools/print-commas-templates.js`, `tools/casting-words.js`, `tools/replace-sep-end.js` | One-off rewrites for the printing rule (commas, casting), kept as a record; each checks its results |
+| `tools/archive/print-commas.js`, `tools/archive/print-commas-templates.js`, `tools/archive/casting-words.js`, `tools/archive/replace-sep-end.js`, `tools/archive/replace-types-round-if.js` | Archived: one-off rewrites that were each run once (the printing rule's commas and casting, `sep=`/`end=`, and the Data types tasks that used `round()` or `if`), kept as a record. Nothing needs them to rebuild anything |
 | `teacher-data.js` | Teacher view sums, filters, full export and data dictionary (no DOM, so it's tested in Node) |
 | `misconceptions.json` | The fixed list of misconception ids, names and descriptions |
 | `recheck.py` | Re-runs misconception matching over an exported full-data CSV |
@@ -1045,7 +1045,7 @@ This needs Node 18+ and Python 3 on the PATH (set `PYTHON=...` to use a differen
 - **The teacher view isn't protected in local mode.** Anyone who opens `teacher.html` in a browser can see all the data saved in that browser (names, levels, attempts and code), and reset placements. The student pages have no link to it, but that only hides it: it is not a security control. Backend mode needs a teacher sign-in.
 - **Progress is per browser, per computer (local mode).** Clearing browser data deletes it. To collect results, export the full data on each machine.
 - **Backend mode: the rate limit is per school network.** `join-class` and `resume` allow 300 requests every 10 minutes per IP address (`RATE_LIMIT_HITS` in `supabase/functions/_shared/limits.ts`). A whole school usually shares one public IP, so this is set for several classes signing in at once; the per-student PIN lock (5 wrong PINs, then 15 minutes) is the main protection.
-- **Backend mode: `config.js` is committed.** It holds only the project URL and the public anon key, which are safe to publish because row-level security protects the data. The service-role key and the three Edge Function secrets are never in the repository (see `docs/SECRETS.md`). `BACKEND_ENABLED` is `false` until the backend has been deployed and tested.
+- **Backend mode: `config.js` is committed.** It holds only the project URL and the public anon key, which are safe to publish because row-level security protects the data. The service-role key and the three Edge Function secrets are never in the repository (see `docs/SECRETS.md`). `BACKEND_ENABLED` is `true`: the site uses the trial project's backend.
 - **⚠ Decide before the trial starts: who can be a teacher.** Teacher sign-up is open: **anyone with a confirmed email address can create a teacher account** and make classes. A teacher only ever sees their own classes, but nothing limits who signs up. This must be decided before the trial starts (for example, allowing only the school's email domain, or turning sign-up off in Supabase once the trial teachers have accounts).
 - **Backend mode: an 8-hour student session.** After 8 hours the student signs in again. Work done in between is kept in the outbox and sent after they do.
 - **Backend mode: the local stack's CORS headers.** Locally, Supabase's gateway answers with `Access-Control-Allow-Origin: *`; the functions themselves allow only `https://theogoescoding.github.io` and `http://localhost:8000`, and refuse other origins with 403. The exact headers can only be checked on a hosted project.
