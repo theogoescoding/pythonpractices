@@ -112,6 +112,8 @@
           return { title: "Joining text and a number" + at, detail: "You can't use + to join text and a number. Use a comma in print() instead, or convert the number with str()." };
         if (/unsupported operand/.test(msg))
           return { title: "Maths on the wrong type" + at, detail: "You're doing maths with something that isn't a number. Did you forget to cast the input with int(input())?" };
+        if (/takes 0 positional arguments but 1 was given/.test(msg))
+          return { title: "A method is missing self" + at, detail: "When you call a method on an object, the object itself is passed in first. Every method needs self as its first parameter: def name(self):" };
         if (/argument|positional/.test(msg))
           return { title: "Wrong number of values passed to a function" + at, detail: "Check that you give the function the same number of values as it expects in its brackets." };
         if (/not callable/.test(msg))
@@ -120,10 +122,14 @@
       case "ZeroDivisionError":
         return { title: "Dividing by zero" + at, detail: "You can't divide by 0 (and that includes // and %). Check the value before you divide." };
       case "RecursionError":
-        return { title: "A function keeps calling itself" + at, detail: "A function is calling itself over and over. Check that it returns a value instead." };
+        return { title: "A function keeps calling itself" + at, detail: "A function is calling itself over and over and never stops. A recursive function needs a base case that returns without calling itself, and each call must get closer to it." };
       case "AttributeError":
         if (/'NoneType' object has no attribute/.test(msg))
           return { title: "This value is None" + at, detail: "A variable holds None. If you wrote something like scores = scores.append(5), write scores.append(5) on its own: append() changes the list and gives back None. A function with no return line gives back None too." };
+        if (/'[A-Z]\w*' object has no attribute/.test(msg)) {
+          const a = (/has no attribute '([^']+)'/.exec(msg) || [])[1] || "that";
+          return { title: "This object has no attribute '" + a + "'" + at, detail: "The object was never given '" + a + "'. Check the spelling, and that __init__ stores it with self." + a + " = ... (a subclass must call super().__init__(...) to get its parent's attributes)." };
+        }
         return { title: "That doesn't work on this value" + at, detail: "You used a .method() on a value that doesn't have it. For example, .isdigit() works on text, not on numbers." };
       case "IndexError":
         return { title: "Position out of range" + at, detail: "You asked for a position that doesn't exist. Indexing counts from 0, so the last position is len() - 1." };

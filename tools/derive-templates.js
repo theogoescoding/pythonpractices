@@ -418,6 +418,39 @@ const OVERRIDES = {
   "ins-L4f": { swaps: [[["pear", "fig", "kiwi", "apple", "lime"], ["plum", "date", "lemon", "banana", "mango"], ["rose", "daisy", "tulip", "iris", "lily"],
     ["wolf", "bear", "lynx", "fox", "otter"], ["oak", "elm", "pine", "ash", "yew"], ["tuba", "harp", "flute", "drum", "oboe"]]] },
   "mer-L2a": { noNumbers: true, swaps: [[["[4, 9, 1, 7, 3]"], ["[8, 2, 6, 5, 1]"], ["[3, 7, 9, 2, 4]"], ["[6, 1, 5, 8, 2]"], ["[9, 4, 2, 6, 7]"], ["[5, 3, 8, 1, 6]"]]] },
+
+  // A-level units: tasks with no numbers to change get other words, names or test inputs.
+  "rec-L4b": { testSets: [[["banana"], ["sky"]], [["avocado"], ["plum"]], [["pasta"], ["fig"]], [["papaya"], ["lemon"]], [["alpaca"], ["dog"]], [["sardine"], ["kiwi"]], [["salad"], ["toffee"]]] },
+  "rec-L5b": { testSets: [[["moon"], [""]], [["star"], [""]], [["planet"], [""]], [["sun"], [""]], [["comet"], [""]], [["galaxy"], [""]], [["orbit"], [""]]] },
+  "rec-L6c": { testSets: [[["level"], ["lever"]], [["radar"], ["rider"]], [["kayak"], ["kites"]], [["refer"], ["ruler"]], [["civic"], ["cubic"]], [["noon"], ["moon"]], [["madam"], ["medal"]]] },
+  "scope-L1b": { swaps: [[["count"], ["total"], ["score"], ["visits"], ["points"], ["clicks"], ["goals"]]] },
+  "scope-L2b": { swaps: [[["sam"], ["ava"], ["leo"], ["mia"], ["kai"], ["zoe"], ["tom"]]] },
+  "scope-L3c": { swaps: [[["pen", "ruler", "rubber", "glue"], ["map", "torch", "rope", "tent"], ["cup", "plate", "fork", "bowl"], ["sock", "shoe", "hat", "scarf"],
+    ["book", "pencil", "eraser", "tape"], ["key", "phone", "wallet", "comb"]]] },
+  "scope-L10a": { testSets: [[["apple", "pear", "apple", "apple"], ["kiwi", "plum", "fig", "milk"]], [["egg", "jam", "egg", "egg"], ["tea", "rice", "oats", "salt"]],
+    [["corn", "corn", "bean", "corn"], ["lime", "pea", "nut", "date"]], [["fish", "fish", "fish", "fish"], ["soup", "cake", "pie", "ham"]],
+    [["lemon", "lime", "lemon", "lemon"], ["beef", "lamb", "pork", "tuna"]], [["onion", "leek", "leek", "leek"], ["flour", "sugar", "yeast", "salt"]]] },
+  "cls-L3b": { testSets: [[["Up", "F7"], ["Cars", "A12"]], [["Jaws", "B3"], ["Coco", "H10"]], [["Soul", "C5"], ["Elf", "D8"]], [["Frozen", "E2"], ["Moana", "G6"]],
+    [["Shrek", "J1"], ["Bolt", "K4"]], [["Brave", "L9"], ["Luca", "M2"]]] },
+  "cls-L4c": { swaps: [[["lamp1", "lamp2", "Lamp"], ["fan1", "fan2", "Fan"], ["light1", "light2", "Light"], ["heater1", "heater2", "Heater"], ["radio1", "radio2", "Radio"], ["torch1", "torch2", "Torch"]]] },
+  "cls-L5b": { testSets: [[["R2"], ["K9"]], [["C3"], ["B8"]], [["X5"], ["Z1"]], [["D7"], ["M4"]], [["Q6"], ["T3"]], [["V2"], ["W9"]]] },
+  "cls-L10a": { fixed: [2012, 2014, 2015, 2017, 2019, 2021] },
+  "meth-L1a": { swaps: [[["Clicker", "click", "count"], ["Stepper", "step", "steps"], ["Tally", "tick", "total"], ["Turnstile", "turn", "visits"], ["Doorbell", "ring", "rings"], ["Pedometer", "walk", "paces"]]] },
+  "meth-L2a": { swaps: [[["Door", "unlock", "locked"], ["Gate", "open_gate", "shut"], ["Safe", "crack", "sealed"], ["Hatch", "release", "closed"], ["Vault", "open_vault", "secured"], ["Cage", "free", "caged"]]] },
+  "meth-L4a": { testSets: [[["map", "torch"], ["hat", "hat"]], [["rope", "tent"], ["cup", "cup"]], [["key", "coin"], ["pen", "pen"]], [["sock", "shoe"], ["mug", "mug"]],
+    [["book", "lamp"], ["fork", "fork"]], [["ball", "bat"], ["kite", "kite"]]] },
+  "meth-L4b": { testSets: [[["HAH"], ["AAA"]], [["HHA"], ["HHH"]], [["AHHA"], ["A"]], [["HAAH"], ["HH"]], [["AAH"], ["HAHAH"]], [["H"], ["AHA"]]] },
+  "meth-L5c": { testSets: [[["1"], ["0"]], [["2"], ["1"]], [["0"], ["2"]], [["2"], ["0"]], [["1"], ["2"]], [["0"], ["1"]]] },
+  "enc-L8a": { fixed: [8], testSets: [[["sunshine", "abcdef12"], ["abc12", "password12"]], [["rainbows", "qwerty99"], ["xy7", "football1"]], [["elephant", "zebra123"], ["cat9", "dolphins2"]],
+    [["mountain", "river777"], ["sky", "forest55"]], [["notebook", "pencil44"], ["ink1", "marker88"]], [["sandwich", "toast321"], ["egg2", "pancake9"]]] },
+  "inh-L1a": { swaps: [[["Bird", "Kiwi", "fly", "flies"], ["Fish", "Nemo", "swim", "swims"], ["Frog", "Kermit", "hop", "hops"], ["Horse", "Comet", "gallop", "gallops"],
+    ["Snake", "Kaa", "slither", "slithers"], ["Bat", "Echo", "glide", "glides"]]] },
+  "inh-L1b": { swaps: [[["Square", "square"], ["Circle", "circle"], ["Triangle", "triangle"], ["Oval", "oval"], ["Hexagon", "hexagon"], ["Star", "star"]]] },
+  "inh-L3a": { testSets: [[["Nemo"], ["Dory"]], [["Bubbles"], ["Finn"]], [["Goldie"], ["Splash"]], [["Wanda"], ["Flipper"]], [["Marlin"], ["Gill"]], [["Bruce"], ["Squirt"]]] },
+  "inh-L6b": { testSets: [[["hello"], ["go"]], [["stop"], ["run"]], [["help"], ["wow"]], [["look out"], ["yes"]], [["fire"], ["no"]], [["jump"], ["hey"]]] },
+  "dbg-L1c": { swaps: [[["ava"], ["leo"], ["mia"], ["kai"], ["zoe"], ["sam"], ["tom"]]] },
+  "dbg-L2a": { swaps: [[['"3"'], ['"4"'], ['"5"'], ['"2"'], ['"6"'], ['"7"']]], hints: ["qty holds text in quotes, not a number.", "* 2 on text repeats it."] },
+  "dbg-L8a": { testSets: [[["banana"], ["sky"]], [["potato"], ["rhythm"]], [["orange"], ["myth"]], [["igloo"], ["lynx"]], [["tomato"], ["gym"]], [["elephant"], ["crypt"]]] },
 };
 
 const isPlacement = (t) => (t.tags || []).includes("placement");
@@ -564,7 +597,17 @@ function structuralValues(tasks, candidates) {
 // "index 2"), which a variant keeps (positions don't change when the numbers are scaled in order). Those references
 // are kept as they are, and a number in the text only changes if it is one of the task's own numbers (not one more or
 // one less than one).
-const KEEP_POSITIONS_UNITS = ["trace-tables", "linear-search", "binary-search", "bubble-sort", "insertion-sort", "merge-sort"];
+const A_LEVEL_UNITS = ["recursion", "scope-parameters", "oop-classes", "oop-methods", "oop-encapsulation", "oop-inheritance", "debugging"];
+const KEEP_POSITIONS_UNITS = ["trace-tables", "linear-search", "binary-search", "bubble-sort", "insertion-sort", "merge-sort"].concat(A_LEVEL_UNITS);
+// The A-level units also name lines in their code (an error message in a comment: "line 3"), and a debugging answer
+// may be a line number: every number a line, row or index reference names stays fixed, in the code as well.
+// A program shown in comments with its line numbers ("#   3  print(total)", the Debugging unit) keeps them too.
+const lineRefNumbers = (t) => {
+  const text = [t.description, ...t.hints, t.explainer || "", t.solution, t.starter || ""].join("\n");
+  const refs = (text.match(/\b(?:[Ll]ines?|[Rr]ows?) -?\d+(?:(?:, | and | to |, then )-?\d+)*/g) || []).flatMap((m) => m.match(/-?\d+/g).map(Number));
+  const labels = [...text.matchAll(/^#\s+(\d+)  /gm)].map((m) => Number(m[1]));
+  return refs.concat(labels);
+};
 const POSITION_REF = /\b(?:[Ll]ines?|[Ii]ndex(?:es)?|[Rr]ows?) -?\d+(?:(?:, | and | to |, then )-?\d+)*|\b[a-z_]\w*\[-?\d+\]|\blen\(\w+\)(?: - 1)? is \d+/g;
 const keepPositions = (text) => (text == null ? text : String(text).split(/(\{\{[\s\S]*?\}\}|\[\[[^\]]*\]\])/)
   .map((part, i) => (i % 2 ? part : part.replace(POSITION_REF, (m) => "{{" + JSON.stringify(m) + "}}"))).join(""));
@@ -574,7 +617,8 @@ function derive(t, fixedExtra, opts) {
   const ov = OVERRIDES[t.id] || {};
   const keepPos = KEEP_POSITIONS_UNITS.includes(t.unit);
   const code = codeOf(t);
-  const fixed = new Set([...FIXED, ...quotedNumbers(code), ...factNumbers(t), ...(ov.fixed || []), ...(fixedExtra || [])]);
+  const fixed = new Set([...FIXED, ...quotedNumbers(code), ...factNumbers(t), ...(ov.fixed || []), ...(fixedExtra || []),
+    ...(A_LEVEL_UNITS.includes(t.unit) ? lineRefNumbers(t) : [])]);
   // Anchors: numbers in the code, then numbers typed in the tests that aren't next to one of those.
   const fmt = {};
   const anchors = new Set();
@@ -717,6 +761,8 @@ function derive(t, fixedExtra, opts) {
   // for the bank task's 17.
   const own = (h) => h.replace(/\{\{([\s\S]+?)\}\}/g, (m, expr) => "{{" + expr.replace(/\bv\((-?\d+(?:\.\d+)?)\)/g, (x, n) => "(" + (map[Number(n)] || n) + ")") + "}}");
   tpl.hints = ov.hints ? ov.hints.map(own) : t.hints.map((h) => st(markExampleOutputs(h, t.tests)));
+  // The explainer changes like the description (the same numbers and words), so it stays right for each variant.
+  if (t.explainer) tpl.explainer = ov.explainer ? own(ov.explainer) : st(markExampleOutputs(t.explainer, t.tests));
   tpl.tags = t.tags.slice();
   tpl.skills = t.skills.slice();
   if (t.buggy_variants) tpl.buggy_variants = t.buggy_variants.map((v) => ({ misconception: v.misconception, code: s(v.code) }));
@@ -744,7 +790,7 @@ function main() {
 
   // First draft, then keep fixed any value that breaks the solution when changed on its own.
   const firstFixed = chosen.map((t) => {
-    const fixed = new Set([...FIXED, ...quotedNumbers(codeOf(t)), ...((OVERRIDES[t.id] || {}).fixed || [])]);
+    const fixed = new Set([...FIXED, ...quotedNumbers(codeOf(t)), ...((OVERRIDES[t.id] || {}).fixed || []), ...(A_LEVEL_UNITS.includes(t.unit) ? lineRefNumbers(t) : [])]);
     const vals = new Set();
     for (const tok of codeNumbers(codeOf(t))) if (!fixed.has(Math.abs(Number(tok)))) vals.add(Number(tok));
     for (const test of t.tests) for (const inp of test.inputs) if (/^-?\d+(\.\d+)?$/.test(inp.trim()) && !fixed.has(Math.abs(Number(inp)))) vals.add(Number(inp));

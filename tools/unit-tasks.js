@@ -106,6 +106,8 @@ function checkTasks(unit, all) {
     }
     t.tests = s.tests.map((x) => ({ inputs: x.inputs, expected: null }));
     t.hints = s.hints;
+    // One sentence naming the idea (the A-level units), shown after a pass or the second wrong check.
+    if (s.explainer) t.explainer = s.explainer;
     t.tags = (s.placement ? ["placement"] : []).concat(s.tags);
     t.skills = s.skills;
     if (s.buggy) t.buggy_variants = s.buggy.map(([misconception, code]) => ({ misconception, code }));
@@ -189,8 +191,36 @@ function checkTasks(unit, all) {
         problems.push(t.id + ": the " + v.misconception + " variant's output " + JSON.stringify(outs[0].output) + " should be one of the wrong options");
     });
     if (t.skills.length < 1 || t.skills.length > 3) problems.push(t.id + ": 1 to 3 skills");
+    if (t.explainer != null) for (const p of explainerProblems(t)) problems.push(t.id + ": " + p);
   });
   return { built, problems };
 }
 
-module.exports = { T, addUnit, buildTasks, checkTasks, withLine, seededShuffle, MAY_RUN_FOREVER };
+// The casting sentence (the A-level units): every task whose program converts input() with int() says so in its
+// description, as the earlier units' tasks do (first, so it never lands inside a "for example" output). Called by
+// each tools/add-<unit>-unit.js on its own task specs.
+const CASTING_SENTENCE = "int() turns the text typed into a whole number: this is called casting.";
+function nameCasting(specs) {
+  for (const s of specs) {
+    const code = [s.solution || "", s.starter || "", ...(s.answers || []), ...(s.type === "partial-parsons" ? s.options || [] : [])].join("\n");
+    if (/\b(int|float|bool)\(\s*input\(/.test(code) && !/\bcast/i.test(s.description + " " + s.hints.join(" "))) s.description = CASTING_SENTENCE + " " + s.description;
+  }
+  return specs;
+}
+
+// An explainer is one short sentence, and on a predict task it doesn't give the answer (the right option's text).
+function explainerProblems(t) {
+  const e = String(t.explainer || "").trim();
+  const p = [];
+  if (!e) p.push("the explainer is empty");
+  if (e.length > 220) p.push("the explainer is longer than one short sentence (" + e.length + " characters)");
+  if (!/[.!?]$/.test(e) || /[.!?]\s+[A-Z]/.test(e)) p.push("the explainer should be one sentence");
+  if (t.type === "predict" && t.options && t.answer != null) {
+    const ans = Checker.normalise(t.options[t.answer]);
+    const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    if (ans && new RegExp("(^|[^\\w.])" + esc(ans) + "(?![\\w])").test(e)) p.push("the explainer gives away the answer " + JSON.stringify(ans));
+  }
+  return p;
+}
+
+module.exports = { T, addUnit, buildTasks, checkTasks, withLine, seededShuffle, MAY_RUN_FOREVER, explainerProblems, nameCasting, CASTING_SENTENCE };

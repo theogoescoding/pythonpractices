@@ -183,9 +183,16 @@ Store.whenReady(function () {
     const collapsed = Collapse.collapsedIds(COLLAPSED_KEY);
     $("unit-list").innerHTML = groupsToShow().map((g) => {
       const open = !collapsed.includes(g.id);
-      const body = g.units.length
-        ? '<ul class="unit-list">' + g.units.map((u) => unitCard(u, progress)).join("") + "</ul>"
-        : '<p class="group-soon"><span class="soon">Coming soon</span> ' + esc((g.comingSoon || []).join(" and ")) + "</p>";
+      const list = (units, sub) => '<ul class="unit-list">' + units.map((u) => unitCard(u, progress, sub)).join("") + "</ul>";
+      // Subsections (the A-level group's "Programming techniques"): a heading over each one's units, in their order.
+      const subs = (g.subsections || []).map((s) => ({ id: s.id, title: s.title, units: g.units.filter((u) => s.units.includes(u.id)) })).filter((s) => s.units.length);
+      const loose = g.units.filter((u) => !subs.some((s) => s.units.includes(u)));
+      const body = !g.units.length
+        ? '<p class="group-soon"><span class="soon">Coming soon</span> ' + esc((g.comingSoon || []).join(" and ")) + "</p>"
+        : subs.length
+          ? (loose.length ? list(loose) : "") + subs.map((s) => '<section class="unit-subsection" aria-labelledby="sub-' + s.id + '-h">' +
+            '<h4 class="subsection-heading" id="sub-' + s.id + '-h">' + esc(s.title) + "</h4>" + list(s.units, true) + "</section>").join("")
+          : list(g.units);
       const count = '<span class="group-count">' + (g.units.length ? g.units.length + " unit" + (g.units.length === 1 ? "" : "s") : "Coming soon") + "</span>";
       return '<section class="unit-group" aria-labelledby="group-' + g.id + '-h">' +
         '<h3 class="group-heading" id="group-' + g.id + '-h">' + Collapse.buttonHtml(g.id, "group-" + g.id, esc(g.title), open, count) + "</h3>" +
@@ -195,10 +202,12 @@ Store.whenReady(function () {
 
   Collapse.wire($("unit-list"), COLLAPSED_KEY);
 
-  // One unit's card (a link to practise it, or "Coming soon" if it has no tasks yet).
-  function unitCard(u, progress) {
+  // One unit's card (a link to practise it, or "Coming soon" if it has no tasks yet). In a subsection the card's
+  // heading is one level lower (h5), under the subsection's h4.
+  function unitCard(u, progress, sub) {
     const count = tasks.filter((t) => t.unit === u.id).length;
-    const title = "<h4>" + esc(u.title) + "</h4><p>" + esc(u.description) + "</p>" + (u.note ? '<p class="unit-note small">' + esc(u.note) + "</p>" : "");
+    const h = sub ? "h5" : "h4";
+    const title = "<" + h + ">" + esc(u.title) + "</" + h + "><p>" + esc(u.description) + "</p>" + (u.note ? '<p class="unit-note small">' + esc(u.note) + "</p>" : "");
     if (!count) {
       return '<li><div class="unit-card unavailable" aria-disabled="true">' + title +
         '<p class="unit-meta"><span class="soon">Coming soon</span></p></div></li>';

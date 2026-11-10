@@ -181,6 +181,8 @@
       skills: (tpl.skills || []).slice(),
     };
     if (tpl.source) task.source = tpl.source;
+    // The explainer (A-level tasks) uses the same placeholders as the description, so it matches the variant.
+    if (tpl.explainer) task.explainer = f(tpl.explainer);
     if (tpl.type === "fill") {
       task.answers = tpl.answers.map(f);
       task.solution = task.starter.split("____").reduce((acc, part, i) => acc + task.answers[i - 1] + part);
@@ -335,7 +337,16 @@
     { re: /\blen\((\w+)\[0\]\)/g, to: (m, a) => "len(" + a + ")" },               // ROWS_COLS_LEN_MIXED
     { re: /\blen\((\w+)\)/g, to: (m, a) => "len(" + a + "[0])" },
   ];
+  // Object mistakes, only for the A-level units' templates: printing an attribute's name instead of its value, a
+  // change to an attribute that doesn't happen, a method named without brackets (so it never runs), or run twice.
+  const OOP_MUTATIONS = [
+    { re: /(?<![\w."'])([a-z_]\w*)\.([a-z_]\w*)\b(?!\s*[(=])/g, to: (m, o, a) => "\"" + a + "\"" },
+    { re: /^(\s*)[a-z_]\w*\.[a-z_]\w* = [^\n]+$/gm, to: (m, ind) => ind + "pass" },
+    { re: /^(\s*)([a-z_]\w*\.[a-z_]\w*)\([^\n]*\)[ \t]*$/gm, to: (m, ind, call) => ind + call },     // METHOD_NO_BRACKETS
+    { re: /^(\s*)([a-z_]\w*\.[a-z_]\w*\([^\n]*\))[ \t]*$/gm, to: (m, ind, call) => m + "\n" + ind + call },
+  ];
   const MAX_PLACES_PER_RULE = 3;
+  const A_LEVEL_UNITS =["recursion", "scope-parameters", "oop-classes", "oop-methods", "oop-encapsulation", "oop-inheritance", "debugging"];
 
   // Positions inside strings and comments, which mutations leave alone.
   function maskedRanges(code) {
@@ -355,9 +366,12 @@
     const add = (c) => { if (c !== code && !out.includes(c)) out.push(c); };
     let rules = /\btype\(/.test(code) ? MUTATIONS.concat(TYPE_MUTATIONS) : MUTATIONS;
     const us = units || [];
-    if (us.some((u) => ["strings", "lists", "arrays-2d", "trace-tables", "linear-search", "binary-search", "bubble-sort", "insertion-sort", "merge-sort"].includes(u))) rules = rules.concat(STRING_LIST_MUTATIONS);
+    // The A-level units (functions, lists and objects throughout) use the Strings and Lists and the functions rules too.
+    const aLevel = us.some((u) => A_LEVEL_UNITS.includes(u));
+    if (aLevel || us.some((u) => ["strings", "lists", "arrays-2d", "trace-tables", "linear-search", "binary-search", "bubble-sort", "insertion-sort", "merge-sort"].includes(u))) rules = rules.concat(STRING_LIST_MUTATIONS);
     if (us.includes("random")) rules = rules.concat(RANDOM_MUTATIONS);
-    if (us.some((u) => u === "functions-basic" || u === "functions-return")) rules = rules.concat(FUNCTION_MUTATIONS);
+    if (aLevel || us.some((u) => u === "functions-basic" || u === "functions-return")) rules = rules.concat(FUNCTION_MUTATIONS);
+    if (aLevel) rules = rules.concat(OOP_MUTATIONS);
     if (us.includes("file-handling")) rules = rules.concat(FILE_MUTATIONS);
     if (us.includes("arrays-2d")) rules = rules.concat(GRID_MUTATIONS);
     for (const rule of rules) {
@@ -516,6 +530,7 @@
     }
     task.description = fillOutputs(task.description, task.tests);
     task.hints = task.hints.map((h) => fillOutputs(h, task.tests));
+    if (task.explainer) task.explainer = fillOutputs(task.explainer, task.tests);
     return task;
   }
 

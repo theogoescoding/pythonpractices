@@ -12,6 +12,13 @@
   const ALGORITHM_NAMES = { 1: "Predict the output", 2: "Predict – spot the trap", 3: "Pick the missing line", 4: "Pick the missing line – harder",
     5: "Fill in the blanks or trace", 6: "Fill in or trace – harder", 7: "Trace table or Parsons", 8: "Trace table or Parsons – longer",
     9: "Trace table or a short program", 10: "Write the whole algorithm" };
+  // The A-level units' ladder: predict, fill in, Parsons (or pick the missing line), trace (or a short write), then
+  // write (or a longer trace). The first type of a level is its main one.
+  const A_LEVEL_TYPES = { 1: "predict", 2: "predict", 3: "fill", 4: "fill", 5: ["parsons", "partial-parsons"], 6: ["parsons", "partial-parsons"],
+    7: ["trace", "write"], 8: ["trace", "write"], 9: ["write", "trace"], 10: ["write", "trace"] };
+  const A_LEVEL_NAMES = { 1: "Predict the output", 2: "Predict – spot the trap", 3: "Fill in one blank", 4: "Fill in two blanks",
+    5: "Parsons or pick the missing line", 6: "Parsons – with traps", 7: "Trace table or a short write", 8: "Trace or write – longer",
+    9: "Write a full program or trace", 10: "Write an extended program or a longer trace" };
 
   // Order here is the order shown on the landing page.
   // `skills` is the fixed list a task's "skills" field may use (the fast move up counts these).
@@ -180,10 +187,63 @@
       noPlacement: true,
       noScratch: true,
     },
+    // A-level: programming techniques. Each has a placement test (levels 2, 5, 7 and 9) and the A-level ladder.
+    {
+      id: "recursion",
+      title: "Recursion",
+      description: "A function that calls itself: a base case that stops it, a smaller problem each call, and values returned back through the calls.",
+      skills: ["self-call", "base-case", "recursive-number", "recursive-list", "return-through", "call-trace", "loop-vs-recursion"],
+      levelTypes: A_LEVEL_TYPES, levelNames: A_LEVEL_NAMES,
+    },
+    {
+      id: "scope-parameters",
+      title: "Scope and parameters",
+      description: "Local and global variables, the global keyword, passing values and lists into functions, returning new values, and mutable and immutable objects.",
+      skills: ["local", "global", "pass-value", "pass-list", "mutable", "param-or-global", "scope-trace"],
+      levelTypes: A_LEVEL_TYPES, levelNames: A_LEVEL_NAMES,
+    },
+    {
+      id: "oop-classes",
+      title: "Object-oriented programming: classes and objects",
+      description: "Define a class, make objects from it with __init__ and self, store attributes, and keep several objects in a list.",
+      skills: ["class", "object", "init", "self", "attribute", "object-list", "class-vs-object"],
+      levelTypes: A_LEVEL_TYPES, levelNames: A_LEVEL_NAMES,
+    },
+    {
+      id: "oop-methods",
+      title: "Object-oriented programming: methods",
+      description: "Methods that read and change an object's attributes, methods that return values, and calling methods on several objects.",
+      skills: ["method", "change-attribute", "return-method", "method-call", "method-brackets", "method-trace"],
+      levelTypes: A_LEVEL_TYPES, levelNames: A_LEVEL_NAMES,
+    },
+    {
+      id: "oop-encapsulation",
+      title: "Object-oriented programming: encapsulation",
+      description: "Mark an attribute as private with _name, and use getters and setters, with setters that check a value before storing it.",
+      skills: ["private", "getter", "setter", "setter-check", "direct-change"],
+      levelTypes: A_LEVEL_TYPES, levelNames: A_LEVEL_NAMES,
+    },
+    {
+      id: "oop-inheritance",
+      title: "Object-oriented programming: inheritance and polymorphism",
+      description: "A subclass inherits attributes and methods, calls super() in its constructor, and overrides methods; the same method call works on different kinds of object.",
+      skills: ["subclass", "inherit", "super", "override", "polymorphism"],
+      levelTypes: A_LEVEL_TYPES, levelNames: A_LEVEL_NAMES,
+    },
+    {
+      id: "debugging",
+      title: "Debugging",
+      description: "Read an error message for its line and type, find the first line where a value goes wrong, and fix bugs without changing what the program should print.",
+      skills: ["error-message", "error-line", "first-wrong-value", "fix-bug", "several-bugs", "choose-line"],
+      levelTypes: A_LEVEL_TYPES, levelNames: A_LEVEL_NAMES,
+      // No write-from-scratch tasks: every write task here starts from a program with bugs in it.
+      noScratch: true,
+    },
   ];
 
   // How the unit menu groups the units, under headings. Layout only: unit ids, their order and saved progress are
-  // unchanged. A group with no units yet lists what is coming, shown as "Coming soon".
+  // unchanged. A group with no units yet lists what is coming, shown as "Coming soon". A group may split its units
+  // into subsections, each with its own heading (the A-level group's "Programming techniques").
   const UNIT_GROUPS = [
     { id: "fundamentals", title: "Programming fundamentals",
       units: ["output", "variables", "data-types", "maths", "selection", "loops-condition", "loops-count"] },
@@ -191,6 +251,10 @@
       units: ["strings", "random", "lists", "functions-basic", "functions-return", "file-handling", "arrays-2d"] },
     { id: "validation", title: "Validation", units: ["validation", "authentication", "trace-tables"] },
     { id: "searching-sorting", title: "Searching and sorting", units: ["linear-search", "binary-search", "bubble-sort", "insertion-sort", "merge-sort"] },
+    { id: "a-level", title: "A-level",
+      units: ["recursion", "scope-parameters", "oop-classes", "oop-methods", "oop-encapsulation", "oop-inheritance", "debugging"],
+      subsections: [{ id: "programming-techniques", title: "Programming techniques",
+        units: ["recursion", "scope-parameters", "oop-classes", "oop-methods", "oop-encapsulation", "oop-inheritance", "debugging"] }] },
   ];
 
   // A level is how much support the task gives. It is the same in every unit.

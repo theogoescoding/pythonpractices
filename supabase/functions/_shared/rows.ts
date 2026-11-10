@@ -6,10 +6,11 @@ import { check, db } from "./http.ts";
 
 // Keep in step with the unit checks in the migrations (0006 added data-types; 0007 strings, random and lists;
 // 0008 functions-basic, functions-return, file-handling and arrays-2d; 0009 validation and authentication; 0010
-// trace-tables and the five searching and sorting units).
+// trace-tables and the five searching and sorting units; 0011 the seven A-level programming techniques units).
 export const UNITS = ["output", "variables", "maths", "selection", "loops-condition", "loops-count", "data-types", "strings", "random", "lists",
   "functions-basic", "functions-return", "file-handling", "arrays-2d", "validation", "authentication",
-  "trace-tables", "linear-search", "binary-search", "bubble-sort", "insertion-sort", "merge-sort"];
+  "trace-tables", "linear-search", "binary-search", "bubble-sort", "insertion-sort", "merge-sort",
+  "recursion", "scope-parameters", "oop-classes", "oop-methods", "oop-encapsulation", "oop-inheritance", "debugging"];
 export const PROGRESS_UNITS = [...UNITS, "endless"];
 export const MAX_ROWS_PER_BATCH = 500;
 const MAX_STORED_TEXT = 2000; // as store.js: code and output are cut to this many characters

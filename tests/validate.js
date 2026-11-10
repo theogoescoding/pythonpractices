@@ -20,7 +20,11 @@ const REQUIRED = ["id", "unit", "level", "type", "title", "description", "starte
 const TYPES = ["fill", "parsons", "predict", "write", "trace", "partial-parsons"];
 const UNIT_IDS = Curriculum.UNITS.map((u) => u.id);
 const MIN_TASKS_PER_UNIT = 30;
-const MIN_PER_UNIT_LEVEL = 3;
+// Units have different numbers of tasks at each level (the A-level units' come from their coverage maps): every
+// level needs at least one bank task, and templates make more.
+const MIN_PER_UNIT_LEVEL = 1;
+const A_LEVEL_UNITS = ["recursion", "scope-parameters", "oop-classes", "oop-methods", "oop-encapsulation", "oop-inheritance", "debugging"];
+const { explainerProblems } = require(path.join(ROOT, "tools", "unit-tasks.js"));
 const MIN_SELECTION_TASKS = 100;
 
 const FULL = process.argv.includes("--full"); // more seeds per template and longer runs of the repeat rule
@@ -53,8 +57,8 @@ check(unitsWithTasks.length === UNIT_IDS.length, `Every unit should have tasks; 
 for (const unit of unitsWithTasks) {
   const mine = tasks.filter((t) => t.unit === unit);
   check(mine.length >= MIN_TASKS_PER_UNIT, `Unit "${unit}" needs at least ${MIN_TASKS_PER_UNIT} tasks, found ${mine.length}`);
-  // The searching and sorting units (no placement) have fewer tasks at the top levels: at least 1 per level.
-  const minPerLevel = Curriculum.hasPlacement(unit) ? MIN_PER_UNIT_LEVEL : 1;
+  // At least one task per level, however many the unit has.
+  const minPerLevel = MIN_PER_UNIT_LEVEL;
   for (let lv = 1; lv <= 10; lv++) {
     const count = mine.filter((t) => t.level === lv).length;
     check(count >= minPerLevel, `Unit "${unit}" level ${lv} needs at least ${minPerLevel} tasks, found ${count}`);
@@ -182,8 +186,8 @@ for (const t of practiceTasks) {
 }
 
 // Unit order on the landing page, and a skill that is in two units' lists counting for the task's own unit.
-check(UNIT_IDS.join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d,validation,authentication,trace-tables,linear-search,binary-search,bubble-sort,insertion-sort,merge-sort",
-  "Units are listed with Data types and casting between Variables and Maths; Strings, Random and Lists after the two loops units; then the two functions units, File handling and 2D arrays; then Validation, Authentication and Trace tables; then the five searching and sorting units");
+check(UNIT_IDS.join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d,validation,authentication,trace-tables,linear-search,binary-search,bubble-sort,insertion-sort,merge-sort," + A_LEVEL_UNITS.join(),
+  "Units are listed with Data types and casting between Variables and Maths; Strings, Random and Lists after the two loops units; then the two functions units, File handling and 2D arrays; then Validation, Authentication and Trace tables; then the five searching and sorting units; then the seven A-level units (Recursion, Scope and parameters, the four object-oriented programming units, Debugging)");
 check(App.unitOfSkill("accumulator", ["loops-condition"]) === "loops-condition" && App.unitOfSkill("accumulator", ["loops-count"]) === "loops-count" &&
   App.unitOfSkill("accumulator") === "loops-condition", "A skill in two units' lists belongs to the task's own unit");
 check(App.unitOfSkill("and/or", ["loops-condition"]) === "loops-condition" && App.unitOfSkill("and/or", ["selection"]) === "selection" &&
@@ -279,6 +283,12 @@ function checkTask(t) {
     if (tr) for (const p of Checker.traceProblems(tr)) check(false, `${name}: ${p}`);
     check(t.tests.length === 1, `${name}: trace tasks have exactly one test`);
   }
+  // The explainer: every task in the A-level units (bank tasks and every template variant) has one short sentence,
+  // with no placeholder left in it, and a predict task's doesn't give the answer.
+  if ((t.units || [t.unit]).some((u) => A_LEVEL_UNITS.includes(u))) {
+    check(typeof t.explainer === "string" && !/\{\{|\[\[/.test(t.explainer), `${name}: needs an explainer, with its placeholders filled in`);
+    if (typeof t.explainer === "string") for (const p of explainerProblems(t)) check(false, `${name}: ${p}`);
+  }
 }
 tasks.forEach(checkTask);
 
@@ -333,6 +343,7 @@ for (const tpl of templates) {
     if (src && src.type === "predict") check((tpl.optionCount || 4) === src.options.length, `${name}: keeps the source task's number of options`);
     if (src && src.type === "partial-parsons") check(tpl.options.length === src.options.length && tpl.answer === src.answer, `${name}: keeps the source task's options and right answer`);
     if (src && src.type === "trace") check(tpl.traceRows === src.trace.rows.length && JSON.stringify(tpl.trace_spec) === JSON.stringify(src.trace.spec || {}), `${name}: keeps the source task's trace table spec and number of rows`);
+    if (src) check(!src.explainer === !tpl.explainer, `${name}: a derived template inherits its source task's explainer`);
   }
   const sigs = new Set();
   const fps = new Set();

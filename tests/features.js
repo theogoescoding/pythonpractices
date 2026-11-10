@@ -168,8 +168,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
 
   // ===================== Strings, Random and Lists units =====================
   {
-    check(Curriculum.UNITS.map((u) => u.id).join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d,validation,authentication,trace-tables,linear-search,binary-search,bubble-sort,insertion-sort,merge-sort",
-      "Unit order: Output, Variables, Data types, Maths, Selection, the two loops units, Strings, Random, Lists, the two functions units, File handling, 2D arrays, Validation, Authentication, Trace tables, then Linear search, Binary search, Bubble sort, Insertion sort and Merge sort");
+    check(Curriculum.UNITS.map((u) => u.id).join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d,validation,authentication,trace-tables,linear-search,binary-search,bubble-sort,insertion-sort,merge-sort,recursion,scope-parameters,oop-classes,oop-methods,oop-encapsulation,oop-inheritance,debugging",
+      "Unit order: Output, Variables, Data types, Maths, Selection, the two loops units, Strings, Random, Lists, the two functions units, File handling, 2D arrays, Validation, Authentication, Trace tables, Linear search, Binary search, Bubble sort, Insertion sort, Merge sort, then the seven A-level units");
     const NEW = {
       strings: { title: "Strings", prefix: "str", skills: "length,indexing,slicing,upper/lower,find,replace,in" },
       random: { title: "Random", prefix: "rand", skills: "import,randint,choice,simulation" },
@@ -494,7 +494,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       check(m && m.name && m.description && sentences === 3 && bank.length >= 3,
         mid + ": in misconceptions.json with a teacher description and a 3-sentence explanation, and buggy variants on " + bank.length + " " + unit + " tasks (3 needed)");
     }
-    check(new Set(misconceptions.map((m) => m.id)).size === misconceptions.length && misconceptions.length === 52, "misconceptions.json has 52 different ids (11 new)");
+    check(new Set(misconceptions.map((m) => m.id)).size === misconceptions.length && Object.keys(NEW_M).every((id) => misconceptions.some((m) => m.id === id)),
+      "misconceptions.json has different ids, with the 11 searching and sorting ones");
 
     // The two new task types in the app, the checker and the teacher's task browser.
     check(Curriculum.TYPE_INFO.trace && Curriculum.TYPE_INFO["partial-parsons"] && App.initialDraft(byId["bub-L5d"]).cells && App.initialDraft(byId["bub-L3a"]).choice === null,
@@ -574,6 +575,101 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       ["progress_unit_check", "passed_tasks_unit_check", "attempts_unit_check", "events_unit_check", "attempts_task_type_check"].every((c) => mig.includes("add constraint " + c)) &&
       /'trace', 'partial-parsons'/.test(mig) && NEW_UNITS.every((u) => rowsTs.includes('"' + u + '"') && dict.includes(u + " (")) && /partial-parsons \(pick the missing line/.test(dict),
       "Migration 0010 re-adds the four unit checks and the task type check (and changes nothing else); rows.ts and the data dictionary list the new units and types");
+  }
+
+  // ===================== The A-level programming techniques units, and the explainer =====================
+  {
+    const Templates = require(path.join(ROOT, "templates.js"));
+    const templatesAll = require(path.join(ROOT, "templates.json"));
+    const { explainerProblems } = require(path.join(ROOT, "tools", "unit-tasks.js"));
+    const AL = { recursion: "rec", "scope-parameters": "scope", "oop-classes": "cls", "oop-methods": "meth", "oop-encapsulation": "enc", "oop-inheritance": "inh", debugging: "dbg" };
+    const ids = Object.keys(AL);
+    const ladder = "predict,predict,fill,fill,parsons+partial-parsons,parsons+partial-parsons,trace+write,trace+write,write+trace,write+trace";
+    check(ids.every((u) => Curriculum.hasPlacement(u) && Array.from({ length: 10 }, (_, i) => Curriculum.levelTypes(i + 1, u).join("+")).join() === ladder) &&
+      ids.every((u) => Curriculum.hasScratch(u) === (u !== "debugging")),
+      "A-level units: levels 1-2 predict, 3-4 fill in, 5-6 Parsons or pick the missing line, 7-8 trace or a short write, 9-10 write or a longer trace; each has a placement test; Debugging has no write-from-scratch tasks");
+
+    for (const [u, prefix] of Object.entries(AL)) {
+      const mine = tasks.filter((t) => t.unit === u);
+      const practice = mine.filter((t) => !t.tags.includes("placement"));
+      const placement = mine.filter((t) => t.tags.includes("placement"));
+      const { COVERAGE } = require(path.join(ROOT, "tools", "add-" + u + "-unit.js"));
+      const angles = Object.entries(COVERAGE || {});
+      const byIdHere = Object.fromEntries(mine.map((t) => [t.id, t]));
+      const badCover = angles.filter(([, list]) => !list.length || list.some((id) => !byIdHere[id]));
+      check(angles.length >= 4 && !badCover.length && mine.every((t) => new RegExp("^" + prefix + "-[LP]\\d+[a-z]$").test(t.id)) &&
+        Array.from({ length: 10 }, (_, i) => practice.filter((t) => t.level === i + 1).length).every((n) => n >= 1),
+        Curriculum.unitTitle(u) + ": a coverage map of " + angles.length + " angles, every one with tasks that exist, and practice tasks at every level" + (badCover.length ? " (" + badCover.map(([a]) => a).join("; ") + ")" : ""));
+      check([2, 5, 7, 9].map((lv) => placement.filter((t) => t.level === lv).map((t) => t.id).sort().join("+")).join() === [2, 5, 7, 9].map((lv) => prefix + "-P" + lv + "a+" + prefix + "-P" + lv + "b").join() &&
+        placement.length === 8 && placement.every((t) => !(t.buggy_variants || []).length),
+        Curriculum.unitTitle(u) + ": placement tasks " + prefix + "-P2a/b, P5a/b, P7a/b and P9a/b, with no buggy variants");
+      const noExplainer = mine.filter((t) => !t.explainer || explainerProblems(t).length);
+      check(!noExplainer.length, Curriculum.unitTitle(u) + ": every task has a one-sentence explainer (a predict task's doesn't give the answer)" + (noExplainer.length ? " (" + noExplainer.map((t) => t.id).join(", ") + ")" : ""));
+      check(practice.every((t) => templatesAll.some((tpl) => tpl.derived && tpl.source === t.id && tpl.explainer)) && placement.every((t) => !templatesAll.some((tpl) => tpl.source === t.id && tpl.derived)),
+        Curriculum.unitTitle(u) + ": every practice task has a derived template, which inherits its explainer");
+      check(practice.every((t) => t.worked_example && t.worked_example.skill === t.type), Curriculum.unitTitle(u) + ": every practice task has a \"Show me how\" example for its task type");
+    }
+    const pairs = [["merge-sort", "recursion"], ["recursion", "scope-parameters"], ["scope-parameters", "oop-classes"], ["oop-classes", "oop-methods"],
+      ["oop-methods", "oop-encapsulation"], ["oop-encapsulation", "oop-inheritance"], ["oop-inheritance", "debugging"]];
+    check(pairs.every((p) => templatesAll.filter((tpl) => tpl.units.length === 2 && p.every((x) => tpl.units.includes(x)) && tpl.explainer).length >= 3) &&
+      ids.filter((u) => u !== "debugging").every((u) => templatesAll.some((tpl) => tpl.type === "scratch" && tpl.units[0] === u && tpl.explainer)),
+      "A-level templates: 3 combined templates for each new pair of units next to each other, and a write-from-scratch template for each unit but Debugging, all with explainers");
+
+    // Misconceptions: a teacher description, a 3-sentence explanation, buggy variants on 3+ bank tasks; reused ids too.
+    const NEW_AL = ["RECURSION_NO_BASE_CASE", "GLOBAL_KEYWORD_MISSING", "LOCAL_THOUGHT_CHANGES_OUTSIDE", "LIST_COPY_ASSUMED", "SELF_MISSING", "ATTRIBUTE_NOT_STORED",
+      "METHOD_NO_BRACKETS", "GETTER_BYPASSED", "SUPER_NOT_CALLED", "OVERRIDE_WRONG_VERSION", "FIRST_ERROR_IGNORED", "WRONG_LINE_FIXED"];
+    const alBank = tasks.filter((t) => ids.includes(t.unit) && !t.tags.includes("placement"));
+    for (const mid of NEW_AL) {
+      const m = misconceptions.find((x) => x.id === mid);
+      const sentences = m ? m.explanation.split(/(?<=[.!?])\s+/).length : 0;
+      const bank = alBank.filter((t) => (t.buggy_variants || []).some((v) => v.misconception === mid));
+      check(m && m.name && m.description && sentences === 3 && bank.length >= 3,
+        mid + ": in misconceptions.json with a teacher description and a 3-sentence explanation, and buggy variants on " + bank.length + " A-level tasks (3 needed)");
+    }
+    check(!misconceptions.some((m) => m.id === "RECURSION_RETURN_MISSING") &&
+      alBank.filter((t) => t.unit === "recursion" && (t.buggy_variants || []).some((v) => v.misconception === "RETURN_MISSING_NONE")).length >= 3 &&
+      misconceptions.length === 64 && new Set(misconceptions.map((m) => m.id)).size === 64,
+      "Recursion reuses RETURN_MISSING_NONE for a recursive call whose result isn't returned (no RECURSION_RETURN_MISSING); misconceptions.json has 64 different ids (12 new)");
+    check(alBank.filter((t) => (t.buggy_variants || []).some((v) => v.misconception === "RECURSION_NO_BASE_CASE")).every((t) =>
+      t.buggy_variants.filter((v) => v.misconception === "RECURSION_NO_BASE_CASE").every((v) => v.outputs.some((o) => o.errorKind === "RecursionError"))),
+      "RECURSION_NO_BASE_CASE variants end in a RecursionError (never a timeout), so they match a student's endless recursion");
+
+    // Objects in a trace table: each attribute of an object made from a class in the program is a column.
+    const traced = runPython([{ code: "class Acc:\n    def __init__(self, b):\n        self.balance = b\n\na = Acc(5)\na.balance = a.balance + 2", inputs: [], trace: true }])[0];
+    const table = Checker.traceTable(traced.steps, {});
+    check(table.columns.join() === "Line,a.balance" && JSON.stringify(table.rows) === JSON.stringify([["5", "5"], ["6", "7"]]) &&
+      (byId["cls-L7a"].trace.columns.includes("b.size") && byId["meth-L7a"].trace.columns.includes("a.balance")),
+      "harness.py traces an object's attributes as columns of their own (a.balance), which the OOP trace tasks use");
+
+    // The explainer is shown only after a pass or the second wrong check (App.explainerShown), never before.
+    const ex = byId["rec-L1a"];
+    const shown = (attempts, passed, t) => App.explainerShown({ attempts, passed }, t || ex);
+    check(!shown(0, false) && !shown(1, false) && shown(2, false) && shown(3, false) && shown(1, true) && shown(2, true) &&
+      !shown(5, false, byId["sel-L1a"] || tasks.find((t) => !t.explainer)) && App.EXPLAINER_AFTER_WRONG_CHECKS === 2,
+      "Explainer: hidden before any check and after one wrong check; shown straight after the second wrong check, or once the task is passed; never on a task without one");
+    const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+    const card = appSrc.slice(appSrc.indexOf('card.innerHTML = noticeHtml + (c.placement ? placementIntro : "")'), appSrc.indexOf("if (t.type === \"fill\") wireFill(c);"));
+    check(/<aside id="explainer" class="explainer" aria-live="polite" hidden><\/aside>/.test(card) && card.indexOf('id="explainer"') < card.indexOf('id="next-btn"') &&
+      card.indexOf('id="explainer"') < card.indexOf('<div class="actions">') && /renderLevelButtons\(\);\s*renderExplainer\(\);/.test(appSrc) &&
+      /box\.hidden = !show;/.test(appSrc) && /show \? "<p><strong>The idea:<\/strong> " \+ esc\(t\.explainer\)/.test(appSrc),
+      "Explainer: the box starts hidden, sits above the buttons (before the Skip option), and is filled in after every check; it stays empty while hidden");
+    // Template variants keep the explainer, with their own values filled in.
+    const dtpl = templatesAll.find((tpl) => tpl.id === "d-rec-L4a");
+    const v = Templates.realiseSync(dtpl, 3, runPython);
+    const comb = Templates.expand(templatesAll.find((tpl) => tpl.id === "comb-rec-scope-global"), 2);
+    check(v && v.explainer && !/\{\{|\[\[/.test(v.explainer) && comb.explainer && !/\{\{/.test(comb.explainer) && dtpl.explainer === byId["rec-L4a"].explainer,
+      "Explainer: derived templates inherit it, and every variant gets it with its placeholders filled in");
+    // Content only: no database column or server check names the explainer.
+    const mig11 = fs.readFileSync(path.join(ROOT, "supabase", "migrations", "0011_a_level_programming_techniques_units.sql"), "utf8");
+    const rowsTs = fs.readFileSync(path.join(ROOT, "supabase", "functions", "_shared", "rows.ts"), "utf8");
+    const migAll = fs.readdirSync(path.join(ROOT, "supabase", "migrations")).map((f) => fs.readFileSync(path.join(ROOT, "supabase", "migrations", f), "utf8").replace(/^--.*$/gm, "")).join("\n");
+    check(!/explainer/i.test(migAll) && !/explainer/.test(rowsTs) && !("explainer" in App.attemptRecord({ task: ex, unit: "recursion", kind: "attempt", result: "pass" })),
+      "Explainer: content only (tasks.json and templates.json), with no database column, server check or attempt field");
+    check(/^begin;$/m.test(mig11) && /^commit;$/m.test(mig11) && (mig11.match(/drop constraint/g) || []).length === 4 && !/drop (table|column)|alter column|delete from|update |task_type/i.test(mig11.replace(/^--.*$/gm, "")) &&
+      ["progress_unit_check", "passed_tasks_unit_check", "attempts_unit_check", "events_unit_check"].every((c) => mig11.includes("add constraint " + c)) &&
+      (mig11.replace(/\s+/g, " ").match(/'merge-sort', 'recursion', 'scope-parameters', 'oop-classes', 'oop-methods', 'oop-encapsulation', 'oop-inheritance', 'debugging'/g) || []).length === 4 &&
+      ids.every((u) => rowsTs.includes('"' + u + '"') && fs.readFileSync(path.join(ROOT, "teacher-data.js"), "utf8").includes(u + " (")),
+      "Migration 0011 re-adds only the four unit checks with the seven units after merge-sort; rows.ts and the data dictionary list them");
   }
 
   // ===================== Expected output box and hidden tests =====================
@@ -702,9 +798,19 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "Every \"back to your units\" link and redirect goes to the student view, app.html");
     const G = Curriculum.UNIT_GROUPS;
     const grouped = G.flatMap((g) => g.units);
-    check(G.map((g) => g.title).join() === "Programming fundamentals,Advanced programming,Validation,Searching and sorting" &&
+    check(G.map((g) => g.title).join() === "Programming fundamentals,Advanced programming,Validation,Searching and sorting,A-level" &&
       grouped.join() === Curriculum.UNITS.map((u) => u.id).join() && new Set(grouped).size === grouped.length,
-      "Unit menu: four groups in order, holding every unit exactly once, in the units' own order");
+      "Unit menu: five groups in order, holding every unit exactly once, in the units' own order");
+    check(G[4].id === "a-level" && G[4].units.join() === "recursion,scope-parameters,oop-classes,oop-methods,oop-encapsulation,oop-inheritance,debugging" && !G[4].comingSoon &&
+      (G[4].subsections || []).length === 1 && G[4].subsections[0].title === "Programming techniques" && G[4].subsections[0].units.join() === G[4].units.join() &&
+      /g\.subsections/.test(homeSrc) && /class="subsection-heading"/.test(homeSrc) && /unitCard\(u, progress, sub\)/.test(homeSrc) && /sub \? "h5" : "h4"/.test(homeSrc),
+      "Unit menu: the A-level group has a Programming techniques subsection holding its seven units in order, shown under its own heading (unit cards one heading level lower)");
+    // The A-level group drawn the way home.js draws it: the subsection heading, then its seven units in order.
+    {
+      const subs = G[4].subsections.map((s) => ({ title: s.title, units: Curriculum.UNITS.filter((u) => s.units.includes(u.id)).map((u) => u.title) }));
+      check(subs.length === 1 && subs[0].units.join("|") === "Recursion|Scope and parameters|Object-oriented programming: classes and objects|Object-oriented programming: methods|Object-oriented programming: encapsulation|Object-oriented programming: inheritance and polymorphism|Debugging",
+        "Unit menu: Programming techniques lists Recursion, Scope and parameters, the four object-oriented programming units, then Debugging");
+    }
     check(G[0].units.join() === "output,variables,data-types,maths,selection,loops-condition,loops-count" &&
       G[1].units.join() === "strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d" &&
       G[2].units.join() === "validation,authentication,trace-tables" && !G[2].comingSoon &&

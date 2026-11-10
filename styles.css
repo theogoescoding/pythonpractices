@@ -377,6 +377,9 @@ pre.code.numbered .ln { color: var(--muted); margin-right: 1rem; user-select: no
 @media (max-width: 600px) { .io-lines { grid-template-columns: 1fr; } }
 .worked { border: 2px solid var(--primary); background: var(--card); border-radius: 8px; padding: .5rem .9rem; margin-top: .75rem; }
 .worked h3 { margin-top: .2rem; }
+/* The explainer (A-level tasks): one sentence naming the idea, shown after a pass or the second wrong check. */
+.explainer { border: 2px solid var(--border); border-left: 6px solid var(--primary); background: var(--card); border-radius: 8px; padding: .5rem .9rem; margin: .75rem 0; }
+.explainer p { margin: 0; }
 .failure p { margin: .3rem 0; }
 .failure .misconception { color: var(--text); background: var(--card); border-radius: 6px; padding: .4rem .6rem; }
 .failure .try-next { color: var(--text); }
@@ -449,7 +452,7 @@ pre.code.numbered .ln { color: var(--muted); margin-right: 1rem; user-select: no
 }
 a.unit-card { color: var(--text); }
 a.unit-card:hover { border-color: var(--primary); }
-.unit-card h3, .unit-card h4 { margin: 0 0 .25rem; font-size: 1.25rem; }
+.unit-card h3, .unit-card h4, .unit-card h5 { margin: 0 0 .25rem; font-size: 1.25rem; }
 .unit-card p { margin: .25rem 0; }
 .unit-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .25rem 1rem; font-size: .9rem; margin-top: .75rem !important; }
 .unit-card.unavailable { color: var(--muted); border-top-color: var(--border); border-style: dashed; opacity: .75; }
@@ -651,6 +654,8 @@ td pre { white-space: pre-wrap; margin: .25rem 0; font-size: .85rem; }
 .group-toggle[aria-expanded="false"] .group-arrow::before { transform: rotate(-90deg); }
 .group-count { margin-left: auto; font-size: .9rem; font-weight: 400; color: var(--muted); }
 .group-soon { margin: .25rem 0 .75rem; color: var(--muted); }
+.unit-subsection { margin-top: .5rem; }
+.subsection-heading { margin: .5rem 0 0; font-size: 1.1rem; color: var(--text); }
 @media (prefers-reduced-motion: reduce) { .group-arrow::before { transition: none; } }
 /* Teacher view sections (collapse.js): the same heading button, at the size of the teacher view's other headings. */
 .teacher-section { margin-top: 1.25rem; }

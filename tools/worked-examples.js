@@ -767,6 +767,233 @@ const EXAMPLES = {
     code: "queue_a = [2, 8]\nqueue_b = [3, 5, 9]\nboth = []\na = 0\nb = 0\nwhile a < len(queue_a) and b < len(queue_b):\n    if queue_a[a] <= queue_b[b]:\n        both.append(queue_a[a])\n        a = a + 1\n    else:\n        both.append(queue_b[b])\n        b = b + 1\nwhile a < len(queue_a):\n    both.append(queue_a[a])\n    a = a + 1\nwhile b < len(queue_b):\n    both.append(queue_b[b])\n    b = b + 1\nprint(both)",
     key_idea: "The first loop compares; the two leftover loops come after it. Only one of them adds anything.",
   },
+
+  // ---------- A-level: one example for each task type in each unit (stairs, planets, museums, gardens…) ----------
+  "recursion:predict": {
+    problem: "A climber goes up a staircase one step at a time, using recursion.",
+    code: 'def climb(steps):\n    if steps == 0:\n        print("At the top")\n    else:\n        print("Step", steps)\n        climb(steps - 1)\n\nclimb(2)',
+    key_idea: "A recursive function calls itself on a smaller problem. Follow one call at a time: each prints its line, then makes the next call, until the base case stops them.",
+  },
+  "recursion:fill": {
+    problem: "A recursive function counts how many times a number can be halved before it drops below 1.",
+    code: "def halves(n):\n    if n < 1:\n        return 0\n    return 1 + halves(n // 2)\n\nprint(halves(20))",
+    key_idea: "Every recursive function needs a base case that returns without calling itself, and a call on a smaller value that moves towards it. Return the result so it travels back up.",
+  },
+  "recursion:parsons": {
+    problem: "A recursive function counts the planets in a list.",
+    code: 'def count_items(things):\n    if things == []:\n        return 0\n    return 1 + count_items(things[1:])\n\nprint(count_items(["Mercury", "Venus", "Saturn"]))',
+    key_idea: "Put the base case first in the function, then the line that calls the function again on a smaller list. The main program comes after the function.",
+  },
+  "recursion:partial-parsons": {
+    problem: "A recursive function multiplies the numbers in a list.",
+    code: "def product(nums):\n    if len(nums) == 0:\n        return 1\n    return nums[0] * product(nums[1:])\n\nprint(product([2, 3, 5]))",
+    key_idea: "Check each choice: does the call get smaller, and does the base case stop it? A call with the same value, or one that moves away from the base case, never stops.",
+  },
+  "recursion:trace": {
+    problem: "A museum guide counts the doors on the way through 3 rooms, using recursion.",
+    code: 'def museum(rooms):\n    print("enter", rooms)\n    if rooms == 1:\n        return 1\n    return 2 + museum(rooms - 1)\n\nvisits = museum(3)\nprint(visits)',
+    trace: { columns: ["visits"] },
+    key_idea: "The trace table only has rows for the main program's lines. A line that makes a recursive call gets one row, with everything the calls print in its Output cell, in the order the calls happen.",
+  },
+  "recursion:write": {
+    problem: "A countdown list made two ways: with recursion and with a loop.",
+    code: "def countdown_list(n):\n    if n == 0:\n        return []\n    return [n] + countdown_list(n - 1)\n\ndef countdown_loop(n):\n    out = []\n    while n > 0:\n        out.append(n)\n        n = n - 1\n    return out\n\nprint(countdown_list(3), countdown_loop(3))",
+    key_idea: "To turn a loop into recursion, the base case is when the loop would stop, and the recursive call does what the next time round the loop would. Both versions give the same answer.",
+  },
+
+  "scope-parameters:predict": {
+    problem: "A space game has a planet variable outside a function and another inside it.",
+    code: 'planet = "Mars"\n\ndef visit():\n    planet = "Venus"\n    print("Visiting", planet)\n\nvisit()\nprint("Home is", planet)',
+    key_idea: "A variable given a value inside a function is local: it is a different variable from one outside with the same name, and it disappears when the function ends.",
+  },
+  "scope-parameters:fill": {
+    problem: "A game collects coins in a global variable.",
+    code: "coins = 0\n\ndef collect(n):\n    global coins\n    coins = coins + n\n\ncollect(5)\ncollect(3)\nprint(coins)",
+    key_idea: "Use global and the name only when a function must change a variable from outside it. Otherwise, pass values in as parameters and return the new value.",
+  },
+  "scope-parameters:parsons": {
+    problem: "A night sky list is passed to a function that adds to it.",
+    code: 'def add_star(sky):\n    sky.append("star")\n\nnight = ["moon"]\nadd_star(night)\nprint(night)',
+    key_idea: "A list passed to a function is the same list, not a copy, so a change made inside the function is seen outside. A function that only changes a list doesn't need to return it.",
+  },
+  "scope-parameters:partial-parsons": {
+    problem: "A function tidies up text that was typed with spaces and capitals.",
+    code: 'def tidy(word):\n    return word.strip().lower()\n\nentry = tidy("  HELLO ")\nprint(entry)',
+    key_idea: "A string can't be changed in place, so a function that works on one returns the new string, and the caller stores it.",
+  },
+  "scope-parameters:trace": {
+    problem: "Trace a number through two calls to a function that changes its parameter.",
+    code: "def triple(n):\n    n = n * 3\n    return n\n\nx = 2\ny = triple(x)\nx = triple(y)\nprint(x, y)",
+    trace: { columns: ["x", "y"] },
+    key_idea: "Only the main program's variables are in the table. Changing a parameter inside a function doesn't change the variable passed in: x and y only change when a returned value is stored.",
+  },
+  "scope-parameters:write": {
+    problem: "A function gives back the length of every tree name in a list.",
+    code: 'def lengths(words):\n    out = []\n    for w in words:\n        out.append(len(w))\n    return out\n\ntrees = ["oak", "willow", "ash"]\nprint(trees, lengths(trees))',
+    key_idea: "Give a function everything it needs as parameters and return its answer, so it works for any values and never depends on global variables.",
+  },
+
+  "oop-classes:predict": {
+    problem: "A museum stores each exhibit as an object.",
+    code: 'class Exhibit:\n    def __init__(self, title, year):\n        self.title = title\n        self.year = year\n\ne = Exhibit("Sundial", 1650)\nprint(e.title, e.year)',
+    key_idea: "Calling the class makes a new object and runs __init__, which stores each value on the object with self. Then object.attribute reads it.",
+  },
+  "oop-classes:fill": {
+    problem: "A space program stores a comet's name and speed.",
+    code: 'class Comet:\n    def __init__(self, name, speed):\n        self.name = name\n        self.speed = speed\n\nc = Comet("Halley", 70)\nprint(c.name, "travels at", c.speed)',
+    key_idea: "Inside __init__, self is the new object. self.name = name stores the parameter on the object; a plain name = name would be thrown away.",
+  },
+  "oop-classes:parsons": {
+    problem: "A campsite adds up the beds in its tents.",
+    code: 'class Tent:\n    def __init__(self, beds):\n        self.beds = beds\ncamp = [Tent(2), Tent(4), Tent(3)]\ntotal = 0\nfor t in camp:\n    total = total + t.beds\nprint("Beds:", total)',
+    key_idea: "Write the class first, then make objects from it. A list can hold several objects; loop over it and use each object's attributes.",
+  },
+  "oop-classes:partial-parsons": {
+    problem: "A lantern object is made, then switched on.",
+    code: 'class Lantern:\n    def __init__(self, colour):\n        self.colour = colour\n        self.lit = False\n\nlamp = Lantern("amber")\nlamp.lit = True\nprint(lamp.colour, lamp.lit)',
+    key_idea: "Every method, including __init__, takes self first. An attribute set in __init__ belongs to that one object, and can be changed later with object.attribute = value.",
+  },
+  "oop-classes:trace": {
+    problem: "Trace two kite objects as one's height is changed.",
+    code: "class Kite:\n    def __init__(self, height):\n        self.height = height\n\nk1 = Kite(10)\nk2 = Kite(25)\nk1.height = k2.height + 5\nprint(k1.height)",
+    trace: { columns: ["k1.height", "k2.height"] },
+    key_idea: "Each object's attributes get their own columns, such as k1.height. Making an object fills in its attributes on that line; later lines change one attribute of one object.",
+  },
+  "oop-classes:write": {
+    problem: "A space program keeps its moons as objects in a list.",
+    code: 'class Moon:\n    def __init__(self, name, km):\n        self.name = name\n        self.km = km\n\nmoons = [Moon("Io", 3643), Moon("Europa", 3122)]\nfor m in moons:\n    print(m.name, m.km)',
+    key_idea: "Write the class with an __init__ that stores every value with self, make an object for each item, keep them in a list, and loop over the list to use them.",
+  },
+
+  "oop-methods:predict": {
+    problem: "A rocket object burns fuel with a method.",
+    code: "class Rocket:\n    def __init__(self):\n        self.fuel = 10\n\n    def burn(self):\n        self.fuel = self.fuel - 3\n\nr = Rocket()\nr.burn()\nr.burn()\nprint(r.fuel)",
+    key_idea: "A method changes the object it is called on, through self. Each call with brackets runs it once; r.burn without brackets would do nothing.",
+  },
+  "oop-methods:fill": {
+    problem: "A garden object works out the length of fence it needs.",
+    code: "class Garden:\n    def __init__(self, width, length):\n        self.width = width\n        self.length = length\n\n    def fence(self):\n        return 2 * (self.width + self.length)\n\ng = Garden(3, 5)\nprint(g.fence())",
+    key_idea: "A method that works something out uses the object's attributes with self, and returns the answer so the caller can use it.",
+  },
+  "oop-methods:parsons": {
+    problem: "A jukebox counts how many songs it has played.",
+    code: "class Jukebox:\n    def __init__(self):\n        self.plays = 0\n    def play(self):\n        self.plays = self.plays + 1\nj = Jukebox()\nj.play()\nj.play()\nprint(j.plays)",
+    key_idea: "Methods go inside the class, after __init__, each starting with def and self. Calls go after the class, with brackets.",
+  },
+  "oop-methods:partial-parsons": {
+    problem: "A parcel object says whether it is heavy.",
+    code: 'class Parcel:\n    def __init__(self, kg):\n        self.kg = kg\n\n    def heavy(self):\n        return self.kg > 20\n\np = Parcel(25)\nif p.heavy():\n    print("Use the trolley")',
+    key_idea: "obj.method() runs the method and gives back its value. Without the brackets, obj.method is the method itself: it doesn't run, and it always counts as True in an if.",
+  },
+  "oop-methods:trace": {
+    problem: "Trace two ferries as cars board them.",
+    code: "class Ferry:\n    def __init__(self):\n        self.cars = 0\n\n    def board(self, n):\n        self.cars = self.cars + n\n\nf = Ferry()\ng = Ferry()\nf.board(4)\ng.board(2)\nf.board(g.cars)\nprint(f.cars)",
+    trace: { columns: ["f.cars", "g.cars"] },
+    key_idea: "A method call changes only the object before the dot, so write the new value in that object's column on the call's row.",
+  },
+  "oop-methods:write": {
+    problem: "A piggy bank object with a method that adds coins and one that gives the total.",
+    code: "class Piggy:\n    def __init__(self):\n        self.coins = 0\n\n    def add(self, n):\n        self.coins = self.coins + n\n\n    def total(self):\n        return self.coins\n\nbank = Piggy()\nbank.add(5)\nbank.add(7)\nprint(bank.total())",
+    key_idea: "Give the class one method for each job: some change attributes, some return values. Then make the objects and call the methods with brackets.",
+  },
+
+  "oop-encapsulation:predict": {
+    problem: "A vault keeps its gold in a private attribute.",
+    code: "class Vault:\n    def __init__(self):\n        self._gold = 0\n\n    def add_gold(self, n):\n        if n > 0:\n            self._gold = self._gold + n\n\n    def get_gold(self):\n        return self._gold\n\nv = Vault()\nv.add_gold(30)\nv.add_gold(-10)\nprint(v.get_gold())",
+    key_idea: "A private attribute (its name starts with _) is changed only through the class's methods, so their checks always run: a value that fails is refused.",
+  },
+  "oop-encapsulation:fill": {
+    problem: "A thermometer only stores readings from -50 to 60.",
+    code: "class Thermometer:\n    def __init__(self):\n        self._reading = 20\n\n    def set_reading(self, r):\n        if -50 <= r <= 60:\n            self._reading = r\n\n    def get_reading(self):\n        return self._reading\n\nt = Thermometer()\nt.set_reading(75)\nprint(t.get_reading())",
+    key_idea: "A setter checks the value before storing it, like a validation check, and a getter returns the stored value.",
+  },
+  "oop-encapsulation:parsons": {
+    problem: "A nickname is only stored if it has 2 to 8 letters.",
+    code: 'class Nickname:\n    def __init__(self):\n        self._nick = "nobody"\n    def set_nick(self, n):\n        if 2 <= len(n) <= 8:\n            self._nick = n\n    def get_nick(self):\n        return self._nick\nx = Nickname()\nx.set_nick("Ziggy")\nprint(x.get_nick())',
+    key_idea: "Put the check inside the setter, before the value is stored. Code outside the class calls the setter instead of changing the attribute itself.",
+  },
+  "oop-encapsulation:partial-parsons": {
+    problem: "A scoreboard's home score can only go up through its method.",
+    code: 'class Scoreboard:\n    def __init__(self):\n        self._home = 0\n\n    def goal(self):\n        self._home = self._home + 1\n\n    def get_home(self):\n        return self._home\n\ns = Scoreboard()\ns.goal()\ns.goal()\nprint("Home:", s.get_home())',
+    key_idea: "Outside the class, read and change a private attribute only through its methods, with brackets. Changing it directly would skip the class's own rules.",
+  },
+  "oop-encapsulation:trace": {
+    problem: "Trace a cooler whose setter only allows 2 to 8 degrees.",
+    code: "class Cooler:\n    def __init__(self):\n        self._temp = 5\n\n    def set_temp(self, t):\n        if 2 <= t <= 8:\n            self._temp = t\n\nc = Cooler()\nc.set_temp(4)\nc.set_temp(12)\nc._temp = 12\nprint(c._temp)",
+    trace: { columns: ["c._temp"] },
+    key_idea: "A setter call that is refused changes nothing, so it gets no row. Setting the attribute directly skips the check, which is why it can break the class.",
+  },
+  "oop-encapsulation:write": {
+    problem: "A gym membership level can only be one of three allowed levels.",
+    code: 'class Membership:\n    def __init__(self):\n        self._level = "bronze"\n\n    def set_level(self, lv):\n        if lv in ["bronze", "silver", "gold"]:\n            self._level = lv\n\n    def get_level(self):\n        return self._level\n\nm = Membership()\nm.set_level("platinum")\nm.set_level("silver")\nprint(m.get_level())',
+    key_idea: "Make the attribute private, give it a getter, and a setter that checks each value (range, length, presence or an allowed list) before storing it.",
+  },
+
+  "oop-inheritance:predict": {
+    problem: "Musical instruments: one subclass overrides sound, one doesn't.",
+    code: 'class Instrument:\n    def sound(self):\n        return "plink"\n\nclass Trumpet(Instrument):\n    def sound(self):\n        return "toot"\n\nclass Harp(Instrument):\n    pass\n\nfor i in [Trumpet(), Harp()]:\n    print(i.sound())',
+    key_idea: "Python looks for a method in the object's own class first, then in its parent. A subclass that overrides a method uses its own version; one that doesn't inherits the parent's.",
+  },
+  "oop-inheritance:fill": {
+    problem: "A tower is a building with a height as well as floors.",
+    code: "class Building:\n    def __init__(self, floors):\n        self.floors = floors\n\nclass Tower(Building):\n    def __init__(self, floors, height):\n        super().__init__(floors)\n        self.height = height\n\nt = Tower(30, 120)\nprint(t.floors, t.height)",
+    key_idea: "A subclass is written class Child(Parent):. If it has its own __init__, it calls super().__init__(...) first so the parent's attributes are stored, then adds its own.",
+  },
+  "oop-inheritance:parsons": {
+    problem: "A gas giant is a planet with its own description.",
+    code: 'class Planet:\n    def __init__(self, name):\n        self.name = name\n    def info(self):\n        return self.name + " orbits the Sun"\nclass Giant(Planet):\n    def info(self):\n        return self.name + " is a gas giant"\ng = Giant("Saturn")\nprint(g.info())',
+    key_idea: "Write the parent class first, then the subclass with the parent's name in brackets. A method with the same name in the subclass overrides the parent's.",
+  },
+  "oop-inheritance:partial-parsons": {
+    problem: "A gold badge adds to the label of an ordinary badge.",
+    code: 'class Badge:\n    def label(self):\n        return "member"\n\nclass GoldBadge(Badge):\n    def label(self):\n        return "gold " + super().label()\n\nprint(GoldBadge().label())',
+    key_idea: "super().method() runs the parent's version from inside an override, so the subclass can add to it instead of starting again.",
+  },
+  "oop-inheritance:trace": {
+    problem: "Trace a plant and a bamboo, which grows faster.",
+    code: "class Plant:\n    def __init__(self):\n        self.height = 1\n\n    def grow(self):\n        self.height = self.height + 1\n\nclass Bamboo(Plant):\n    def grow(self):\n        self.height = self.height + 10\n\np = Plant()\nb = Bamboo()\np.grow()\nb.grow()\nprint(p.height, b.height)",
+    trace: { columns: ["p.height", "b.height"] },
+    key_idea: "Check each object's own class to see which version of a method runs, then write the new value in that object's column.",
+  },
+  "oop-inheritance:write": {
+    problem: "A toll road charges lorries more than other vehicles.",
+    code: 'class Vehicle:\n    def __init__(self, name):\n        self.name = name\n\n    def toll(self):\n        return 5\n\nclass Lorry(Vehicle):\n    def toll(self):\n        return 12\n\ntotal = 0\nfor v in [Vehicle("van"), Lorry("truck"), Vehicle("car")]:\n    total = total + v.toll()\nprint("Tolls:", total)',
+    key_idea: "Put what every kind shares in the parent class, override only what is different, and call the same method on every object in a list: each uses its own version.",
+  },
+
+  "debugging:predict": {
+    problem: "A walking log should print the total miles and the mean of 3 walks.",
+    code: 'miles = [3, 5, 2]\ntotal = 0\nfor m in miles:\n    total = total + m\nprint("Miles:", total)\nprint("Mean:", total // 2)',
+    key_idea: "Read the program line by line and work out each value. A bug can sit quietly on one line and only show up later, in the output of another line: here the mean divides by 2, not by 3.",
+  },
+  "debugging:fill": {
+    problem: "Reading an error message: a list of cities was used past its end.",
+    code: '# This program stopped with an error message:\n#   1  cities = ["Leeds", "York"]\n#   2  print(cities[2])\n#   IndexError: list index out of range (line 2)\nprint("Line 2, IndexError")',
+    key_idea: "An error message names the line where Python stopped, and its last line gives the type, such as NameError, TypeError or IndexError. Start there.",
+  },
+  "debugging:parsons": {
+    problem: "A speed camera program, fixed: the original used >= where it needed >.",
+    code: 'speed = int(input("Speed: "))\nif speed > 30:\n    print("Too fast")\nelse:\n    print("OK")',
+    inputs: ["35"],
+    key_idea: "When you fix a program, keep the lines that were right and replace only the buggy ones. Check each line you leave out: is it the version with the bug?",
+  },
+  "debugging:partial-parsons": {
+    problem: "A program finding the longest length was fixed by changing its starting value to the first item.",
+    code: 'lengths = [12, 7, 9]\nlongest = lengths[0]\nfor n in lengths:\n    if n > longest:\n        longest = n\nprint("Longest:", longest)',
+    key_idea: "Find the line that causes the bug, not the line where it shows. Changing only that line fixes the program without changing what it should print.",
+  },
+  "debugging:trace": {
+    problem: "Trace a program that should work out 3 tickets at 8 each, plus 1 booking fee: 25.",
+    code: "cost = 8\nqty = 3\ntotal = cost + qty\ntotal = total + 1\nprint(total)",
+    trace: {},
+    key_idea: "Trace the program and compare each value with what it should be. The first row with a wrong value tells you which line to fix: here line 3 adds where it should multiply.",
+  },
+  "debugging:write": {
+    problem: "A lap timer, after its bugs were fixed. The user types 62, 58 and 60.",
+    code: 'laps = []\nfor k in range(3):\n    laps.append(int(input("Lap time: ")))\nbest = laps[0]\nfor t in laps:\n    if t < best:\n        best = t\nprint("Best lap:", best)',
+    inputs: ["62", "58", "60"],
+    key_idea: "Run the program, fix the first error Python stops at, then run it again. Once it runs, check its output against what it should print, and fix any line that gives a wrong value.",
+  },
 };
 
 module.exports = { EXAMPLES };

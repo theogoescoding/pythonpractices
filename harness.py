@@ -186,7 +186,8 @@ def run_code_limited_json(src, inputs_json, max_lines):
 # runs, the value of each variable and what that line printed. Lines inside a function are not recorded on their
 # own: a call counts as part of the line that made it. checker.js (traceTable) turns the steps into a trace table.
 # Values are written as a trace table shows them: numbers and True/False as Python prints them, text without its
-# quotes ("" for empty text), and a list as a list of those values (each position gets its own column).
+# quotes ("" for empty text), and a list as a list of those values (each position gets its own column). An object of
+# a class defined in the program gives a column for each attribute that holds such a value ("acc.balance").
 MAX_TRACE_STEPS = 400
 
 
@@ -204,6 +205,13 @@ def _snapshot(names):
     out = {}
     for k, v in names.items():
         if k.startswith("__") or k == "input":
+            continue
+        # An object made from a class in the program: each attribute is a column of its own ("acc.balance").
+        if not isinstance(v, type) and type(v).__module__ == "__main__" and hasattr(v, "__dict__"):
+            for a, av in vars(v).items():
+                c = _cell(av)
+                if c is not None:
+                    out[k + "." + a] = c
             continue
         if isinstance(v, list):
             cells = [_cell(x) for x in v]

@@ -36,6 +36,7 @@
       expectedOutput: TaskView.expectedOutput(TaskView.exampleTest(t)), // the example test, exactly as the checker compares it
       tests: t.tests.map((test, i) => ({ number: i + 1, inputs: test.inputs.slice(), expected: TaskView.expectedOutput(test), hidden: TaskView.isHidden(i) })),
       hints: t.hints.slice(),
+      explainer: t.explainer || null,
       solution: t.solution,
       answers: t.answers ? t.answers.slice() : null,
       correctOption: t.type === "predict" || t.type === "partial-parsons" ? t.answer : null,
@@ -77,6 +78,7 @@
       v.tests.map((x) => '<tr><td class="num">' + x.number + "</td><td>" + (x.hidden ? "Hidden" : "Yes, the example test") + "</td><td>" + inputs(x.inputs) + "</td><td>" + pre(x.expected, "output") + "</td></tr>").join("") +
       "</tbody></table></div>" +
       "<h4>Hints</h4><ol>" + v.hints.map((h) => "<li>" + esc(h) + "</li>").join("") + "</ol>" +
+      (v.explainer ? '<h4>Explainer</h4><p class="small">Students see this once they pass, or straight after their second wrong check:</p><p>' + esc(v.explainer) + "</p>" : "") +
       '<h4>Model solution <span class="small">(teacher only)</span></h4>' +
       '<p><button type="button" id="tb-solution-btn" class="secondary" aria-expanded="false" aria-controls="tb-solution">Show model solution</button></p>' +
       '<div id="tb-solution" hidden>' + pre(v.solution) +

@@ -56,6 +56,14 @@ const BUTTON_JUMP_LEVELS = 1;              // levels moved by either button (eac
 // Using it shows a worked example; the task can't then be a strong pass, but it doesn't count towards
 // HINTS_ON_ONE_TASK_TO_LEVEL_DOWN, and it doesn't change the level or the streaks by itself.
 const SHOW_HOW_AFTER_FAILS = 2;
+// A task's "explainer" (one sentence naming the idea) is shown once the task is passed, or straight after its second
+// wrong check, never before: on a predict task it doesn't give the answer, but it is still kept back until then.
+const EXPLAINER_AFTER_WRONG_CHECKS = 2;
+function explainerShown(current, t) {
+  if (!t || !t.explainer || !current) return false;
+  const wrongChecks = (current.attempts || 0) - (current.passed ? 1 : 0);
+  return !!current.passed || wrongChecks >= EXPLAINER_AFTER_WRONG_CHECKS;
+}
 
 // ===================== Never repeating a passed task =====================
 // Every task has a fingerprint: a bank task's id, or a template variant's template id plus its parameter values.
@@ -639,7 +647,7 @@ if (typeof module === "object" && module.exports) {
     HINTS_ON_ONE_TASK_TO_LEVEL_DOWN, DOWN_LEVEL_STEP, RECOVERY_WINDOW_TASKS, RECOVERY_CEILING_TASKS, MAX_HINTS_PER_TASK,
     SECURED_PASSES_IN_A_ROW, SECURED_MAX_HINTS, SCRATCH_EVERY_N_TASKS, ENDLESS_COMBINED_CHANCE,
     PLACEMENT_LEVELS, PLACEMENT_ATTEMPTS, PLACEMENT_MAX_LEVEL, PLACEMENT_TAG, BUTTON_JUMP_LEVELS,
-    SHOW_HOW_AFTER_FAILS, MAX_NEW_VARIANT_TRIES, SKILL_RENAMES, PROGRESS_VERSION,
+    SHOW_HOW_AFTER_FAILS, EXPLAINER_AFTER_WRONG_CHECKS, explainerShown, MAX_NEW_VARIANT_TRIES, SKILL_RENAMES, PROGRESS_VERSION,
     migrateProgress, fingerprintOf, hasPassed, recordTaskResult, noteFailedAttempt, showHowAvailable, initialDraft, resetTaskAnswer, isStrongPass,
     chooseNextTask, chooseScratchTask, newVariant,
     newPlacement, isPlacementTask, needsPlacement, choosePlacementTasks, startPlacement, placementStartLevel,
@@ -1170,6 +1178,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     const hasRun = t.type !== "predict" && t.type !== "trace";
     card.innerHTML = noticeHtml + (c.placement ? placementIntro : "") + banner(t, false) + header(t) +
       '<div class="task-body">' + body + "</div>" +
+      // The explainer: above the buttons (so before the Skip option), filled in by renderExplainer.
+      '<aside id="explainer" class="explainer" aria-live="polite" hidden></aside>' +
       '<div class="actions">' +
         (hasRun ? '<button type="button" id="run-btn" class="secondary">Run</button>' : "") +
         '<button type="button" id="check-btn" class="primary">' + checkLabel + "</button>" +
@@ -1230,6 +1240,17 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     resetBtn.className = resetArmed ? "danger" : "secondary";
     resetBtn.disabled = busy;
     renderLevelButtons();
+    renderExplainer();
+  }
+
+  // The explainer box: shown after a pass or the second wrong check (explainerShown), empty and hidden before that.
+  function renderExplainer() {
+    const box = $("explainer");
+    if (!box) return;
+    const t = task();
+    const show = explainerShown(cur(), t);
+    box.hidden = !show;
+    box.innerHTML = show ? "<p><strong>The idea:</strong> " + esc(t.explainer) + "</p>" : "";
   }
 
   // ---------- "Reset this task" ----------
