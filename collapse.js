@@ -53,5 +53,17 @@
     wire(root, key);
   }
 
-  self.Collapse = { collapsedIds, saveCollapsed, buttonHtml, wire, enhance };
+  // The student view's unit groups follow the class's stage: the first time a stage is seen on this device, or when it
+  // changes, the collapsed sections become that stage's (collapsed = the ids to close). After that the student's own
+  // opening and closing is kept. The stage it was set for is remembered next to the key.
+  function resetForStage(key, stage, collapsed) {
+    let seen = null;
+    try { seen = localStorage.getItem(key + ".stage"); } catch (e) { return false; }
+    if (seen === stage) return false;
+    saveCollapsed(key, collapsed);
+    try { localStorage.setItem(key + ".stage", stage); } catch (e) { /* blocked: not remembered */ }
+    return true;
+  }
+
+  self.Collapse = { collapsedIds, saveCollapsed, buttonHtml, wire, enhance, resetForStage };
 })();

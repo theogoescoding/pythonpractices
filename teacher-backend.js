@@ -34,6 +34,7 @@
   let students = [];    // its students
   let codes = null;     // { student_id: code } after "Show codes"
   let onData = () => {};
+  let onChange = () => {};
 
   function loadSupabase() {
     return new Promise((resolve, reject) => {
@@ -115,6 +116,8 @@
       const email = $("tb-new-email").value.trim();
       const password = $("tb-new-password").value;
       if (!name || !email || password.length < 10) return say("tb-auth-status", "Please give your name, your email and a password of at least 10 characters.", true);
+      if (password !== $("tb-new-password2").value) return say("tb-auth-status", "The two passwords aren't the same. Please type them again.", true);
+      $("tb-new-password2").value = "";
       const { data, error } = await sb.auth.signUp({ email, password,
         options: { data: { name }, emailRedirectTo: location.origin + location.pathname } });
       $("tb-new-password").value = "";
@@ -151,16 +154,21 @@
     }
     $("tb-auth").hidden = true;
     $("tb-classes").hidden = false;
+    $("teacher-main").hidden = false;
     $("tb-who").textContent = (mine.data && mine.data.name) || user.email;
-    if (["#signin", "#signup"].includes(location.hash)) history.replaceState(null, "", location.pathname + "#overview");
+    if (["#signin", "#signup"].includes(location.hash)) history.replaceState(null, "", location.pathname + "#students");
     await loadClasses(store.get(CLASS_KEY));
   }
 
   // ---------- Classes ----------
+  // A server without migration 0013 has no classes.stage column: classes then load without it (every class is GCSE).
+  const noStage = (e) => e && (e.code === "42703" || e.code === "PGRST204" || /stage/.test(e.message || ""));
+  let stageOnServer = true;
   async function loadClasses(chooseId) {
-    const r = await sb.from("classes").select("id, name, class_code, end_of_year, created_at").order("name");
+    let r = await sb.from("classes").select("id, name, class_code, end_of_year, created_at, stage").order("name");
+    if (r.error && noStage(r.error)) { stageOnServer = false; r = await sb.from("classes").select("id, name, class_code, end_of_year, created_at").order("name"); }
     if (r.error) return say("tb-status", "Couldn't load your classes. Please try again.", true);
-    classes = r.data;
+    classes = r.data.map((c) => Object.assign({ stage: self.Curriculum.DEFAULT_STAGE }, c, { stage: c.stage || self.Curriculum.DEFAULT_STAGE }));
     $("tb-class").innerHTML = classes.map((c) => '<option value="' + c.id + '">' + esc(c.name) + "</option>").join("");
     const soon = classes.filter((c) => (new Date(c.end_of_year + "T00:00:00") - Date.now()) / 86400000 <= ENDING_SOON_DAYS);
     $("tb-ending").hidden = !soon.length;
@@ -171,8 +179,9 @@
     if (!classes.length) {
       current = null;
       $("tb-class-info").hidden = true;
-      $("teacher-main").hidden = true;
-      say("tb-status", "You don't have a class yet. Type a name above and create your first class.");
+      say("tb-status", "You don't have a class yet. Create your first class on the Classes page.");
+      if (!/^#classes/.test(location.hash)) location.hash = "classes";
+      onChange();
       $("tb-new-class-name").focus();
       return;
     }
@@ -192,6 +201,8 @@
     $("teacher-main").hidden = false;
     $("tb-code").textContent = current.class_code;
     $("tb-end").textContent = day(current.end_of_year);
+    $("tb-class-name").value = current.name;
+    $("tb-stage").value = current.stage;
     say("tb-status", "");
     renderImportArea();
     await loadClassData();
@@ -247,12 +258,34 @@
     $("tb-new-class").addEventListener("submit", async (e) => {
       e.preventDefault();
       const name = $("tb-new-class-name").value.trim();
+      const stage = $("tb-new-class-stage").value;
       if (!name) return say("tb-status", "Please type a name for the class.", true);
-      const r = await sb.from("classes").insert({ name }).select("id, class_code").single();
+      let r = await sb.from("classes").insert(stageOnServer ? { name, stage } : { name }).select("id, class_code").single();
+      if (r.error && noStage(r.error)) { stageOnServer = false; r = await sb.from("classes").insert({ name }).select("id, class_code").single(); }
       if (r.error) return say("tb-status", "Couldn't create the class. Please try again.", true);
       $("tb-new-class-name").value = "";
       await loadClasses(r.data.id);
-      say("tb-status", "Class " + name + " created. Its class code is " + r.data.class_code + ": give it to your students so they can join.");
+      say("tb-status", "Class " + name + " created. Its class code is " + r.data.class_code + ": give it to your students so they can join." +
+        (stageOnServer ? "" : " (The server doesn't store a class's stage yet, so it is shown as GCSE.)"));
+      location.hash = "students";
+    });
+
+    $("tb-rename-class").addEventListener("click", async () => {
+      const name = $("tb-class-name").value.trim();
+      if (!name) return say("tb-status", "Please type a name for the class.", true);
+      const r = await sb.from("classes").update({ name }).eq("id", current.id);
+      if (r.error) return say("tb-status", "Couldn't rename the class. Please try again.", true);
+      await loadClasses(current.id);
+      say("tb-status", "The class is now called " + name + ".");
+    });
+
+    $("tb-stage-save").addEventListener("click", async () => {
+      const stage = $("tb-stage").value;
+      if (!stageOnServer) return say("tb-status", "The server doesn't store a class's stage yet (it needs migration 0013). Every class is shown as GCSE until then.", true);
+      const r = await sb.from("classes").update({ stage }).eq("id", current.id);
+      if (r.error) return say("tb-status", noStage(r.error) ? "The server doesn't store a class's stage yet (it needs migration 0013)." : "Couldn't change the stage. Please try again.", true);
+      await loadClasses(current.id);
+      say("tb-status", "Stage changed to " + self.Curriculum.stageOf(stage).label + ". Your students' unit menu opens the " + self.Curriculum.stageOf(stage).label + " sections the next time they open the app.");
     });
 
     $("tb-show-codes").addEventListener("click", async () => {
@@ -270,21 +303,19 @@
       const s = (id) => students.find((x) => x.id === id);
       const confirmEl = (id) => $("tb-students").querySelector('[data-confirm="' + id + '"]');
       if (b.dataset.pin) {
-        const r = await teacherApi("reset_pin", { student_id: b.dataset.pin });
-        if (r.status !== 200) return say("tb-status", r.body.error || "Couldn't reset the PIN.", true);
-        $("tb-pin-result").innerHTML = '<p class="notice notice-up">New PIN for <strong>' + esc(s(b.dataset.pin).nickname) + "</strong>: " +
-          '<strong class="class-code">' + esc(r.body.pin) + "</strong>. Give it to them now: it won't be shown again. Any lock is cleared.</p>";
-        await loadClassData();
+        const r = await resetPin(b.dataset.pin);
+        if (r.error) return say("tb-status", r.error, true);
+        $("tb-pin-result").innerHTML = '<p class="notice notice-up">New PIN for <strong>' + esc(r.nickname) + "</strong>: " +
+          '<strong class="class-code">' + esc(r.pin) + "</strong>. Give it to them now: it won't be shown again. Any lock is cleared.</p>";
       } else if (b.dataset.delete) {
         confirmEl(b.dataset.delete).hidden = false;
       } else if (b.dataset.deleteNo) {
         confirmEl(b.dataset.deleteNo).hidden = true;
       } else if (b.dataset.deleteYes) {
         const name = s(b.dataset.deleteYes).nickname;
-        const r = await sb.from("students").delete().eq("id", b.dataset.deleteYes);
-        if (r.error) return say("tb-status", "Couldn't delete the student.", true);
+        const r = await removeStudent(b.dataset.deleteYes);
+        if (r.error) return say("tb-status", r.error, true);
         say("tb-status", name + " and all their data have been deleted.");
-        await loadClassData();
       }
     });
 
@@ -419,6 +450,70 @@
     if (fresh.length) $("imp-copy").addEventListener("click", () => copy(fresh.map((s) => s.nickname + "\t" + s.code + "\t" + s.pin).join("\n"), "imp-status"));
   }
 
+  // ---------- Student actions (the Student logins table and the student's own page) ----------
+  // Each returns { error } (a message) or what it did.
+  async function resetPin(studentId) {
+    const s = students.find((x) => x.id === studentId);
+    const r = await teacherApi("reset_pin", { student_id: studentId });
+    if (r.status !== 200) return { error: r.body.error || "Couldn't reset the PIN." };
+    await loadClassData();
+    return { pin: r.body.pin, nickname: s ? s.nickname : "" };
+  }
+
+  async function removeStudent(studentId) {
+    const r = await sb.from("students").delete().eq("id", studentId);
+    if (r.error) return { error: "Couldn't delete the student." };
+    await loadClassData();
+    return {};
+  }
+
+  // teacher-api rename_student checks the nickname rules, the word filter and the class's other nicknames.
+  async function renameStudent(studentId, nickname) {
+    if (!nickname) return { error: "Please type a nickname." };
+    const r = await teacherApi("rename_student", { student_id: studentId, nickname });
+    // A server without rename_student answers an unknown action with its general "Something went wrong" (no problem field).
+    if (r.status === 400 && !r.body.problem && /Something went wrong/.test(r.body.error || ""))
+      return { error: "Renaming needs the newest version of the server (teacher-api). Please try again once it has been updated." };
+    if (r.status !== 200) return { error: r.body.error || "Couldn't rename the student." };
+    await loadClassData();
+    return { nickname: r.body.nickname };
+  }
+
+  // The current password is checked by signing in with it again, so a computer left signed in can't be used to change it.
+  async function changePassword(currentPassword, newPassword) {
+    if (!user) return { error: "Please sign in again." };
+    const check = await sb.auth.signInWithPassword({ email: user.email, password: currentPassword });
+    if (check.error) return { error: "Your current password isn't right." };
+    const r = await sb.auth.updateUser({ password: newPassword });
+    if (r.error) return { error: "Couldn't change the password (" + (r.error.message || r.error.code) + ")." };
+    return {};
+  }
+
+  // Every class of this teacher, with just what the secured score needs: its students, which units they have
+  // started, and their attempts (row-level security: only the teacher's own classes).
+  async function compareClasses() {
+    try {
+      const out = [];
+      for (const c of classes) {
+        const inClass = (table, columns) => () => sb.from(table).select(columns + ", students!inner(class_id)").eq("students.class_id", c.id).order("id");
+        const [st, progress, attempts] = await Promise.all([
+          all(() => sb.from("students").select("id, nickname").eq("class_id", c.id).order("id")),
+          all(() => sb.from("progress").select("student_id, unit, students!inner(class_id)").eq("students.class_id", c.id).order("student_id").order("unit")),
+          all(inClass("attempts", "id, student_id, record_type, timestamp, unit, task_id, phase, task_level, result, hints_used")),
+        ]);
+        const data = { students: {}, progress: {}, attempts: [], levelLog: [] };
+        for (const s of st) { data.students[s.id] = { name: s.nickname }; data.progress[s.id] = { units: {} }; }
+        for (const p of progress) if (data.progress[p.student_id]) data.progress[p.student_id].units[p.unit] = { level: null };
+        data.attempts = attempts.map((a) => ({ studentId: a.student_id, kind: a.record_type, at: a.timestamp, unit: a.unit, taskId: a.task_id,
+          phase: a.phase, taskLevel: a.task_level, result: a.result, hints: a.hints_used }));
+        out.push({ id: c.id, name: c.name, stage: c.stage, data });
+      }
+      return { classes: out };
+    } catch (e) {
+      return { error: "Couldn't load your classes to compare them. Please try again." };
+    }
+  }
+
   async function copy(text, statusId) {
     try { await navigator.clipboard.writeText(text); say(statusId, "Copied."); }
     catch (e) { say(statusId, "Couldn't copy. Select the table and copy it instead.", true); }
@@ -427,9 +522,11 @@
   // ---------- For teacher.js ----------
   self.TeacherBackend = {
     enabled: true,
-    // Shows sign-in or the teacher's classes; calls handler(data) each time a class's data is loaded.
-    async start(handler) {
+    // Shows sign-in or the teacher's classes; calls handler(data) each time a class's data is loaded, and changed()
+    // when the classes change without data to show (no class yet).
+    async start(handler, changed) {
       onData = handler;
+      onChange = changed || (() => {});
       $("local-notice").hidden = true;
       $("teacher-main").hidden = true;
       try { sb = (await loadSupabase()).createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY); }
@@ -464,6 +561,6 @@
       return {};
     },
     currentClass: () => current,
-    copy,
+    copy, resetPin, removeStudent, renameStudent, changePassword, compareClasses,
   };
 })();

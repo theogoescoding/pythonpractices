@@ -1,15 +1,18 @@
 "use strict";
 
-// Teacher view: Overview, Detail log and Workshop pages (switched with #overview, #log, #workshop), and CSV export.
-// Reads the same localStorage data as the student pages (see store.js); the sums are in teacher-data.js.
-// In backend mode, teacher-backend.js signs the teacher in and loads the chosen class into the same data object.
+// Teacher view: a side menu of pages (switched with the address's #): Classes, Students (the default), one student
+// (#student=<id>), Assignments, Reports, Task browser (#tasks, or #tasks=<task id> to open a task) and Settings.
+// Reads the same localStorage data as the student pages (see store.js); the sums are in teacher-data.js and the
+// secured score in secured.js. In backend mode, teacher-backend.js signs the teacher in and loads the chosen class
+// into the same data object. Old addresses (#overview, #log, #workshop) still open the right page.
 (function () {
   const { UNITS, unitTitle } = self.Curriculum;
   const TD = self.TeacherData;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const PAGES = ["overview", "log", "workshop", "assignments", "tasks"];
-  const MAX_LOG_ROWS_SHOWN = 1000;
+  const PAGES = ["classes", "students", "student", "assignments", "reports", "tasks", "settings"];
+  const OLD_PAGES = { overview: "students", log: "reports", workshop: "reports" };
+  const RECENT_ATTEMPTS = 30;
   const REASONS = {
     passes: "Moved up: 2 strong passes in a row",
     fast: "Fast move up: 5 strong passes covering 3+ skills",
@@ -24,6 +27,17 @@
     completed: "Completed Level 10: endless mode unlocked",
     reset: "Student reset their progress in this unit",
   };
+  // The flags show the student's own button presses (unitCell tooEasy and tooHard). Each button moves the student one
+  // level (app.js BUTTON_JUMP_LEVELS).
+  const TOO_EASY_TIP = "This student pressed 'This is too easy' in this unit. It moved them up one level. Check that their level is right.";
+  const WAY_TOO_HARD_TIP = "This student pressed 'This is way too hard' in this unit. It moved them down one level. Check that their level is right.";
+  // The two flags, each with the time of the newest press under it.
+  const buttonFlagsHtml = (c) =>
+    (c.tooEasy ? '<span class="flag-block"><span class="flag flag-easy" title="' + esc(TOO_EASY_TIP) + '">Too easy</span>' +
+      (c.tooEasyAt ? '<span class="small">pressed ' + esc(when(c.tooEasyAt)) + "</span>" : "") + "</span>" : "") +
+    (c.tooHard ? '<span class="flag-block"><span class="flag flag-hard" title="' + esc(WAY_TOO_HARD_TIP) + '">Way too hard</span>' +
+      (c.tooHardAt ? '<span class="small">pressed ' + esc(when(c.tooHardAt)) + "</span>" : "") + "</span>" : "");
+  const NOT_PLACED = '<span class="rag rag-none">Not placed yet</span>';
 
   Store.setupDisplaySettings();
   // Each section heading opens and closes its section (collapse.js, the same as the student view's unit groups).
@@ -34,9 +48,15 @@
   let misconceptions = [];
   let sortKey = "name";
   let sortDir = 1;
-  let unmatchedTask = null; // task whose unmatched attempts are open on the workshop page
+  let unmatchedTask = null; // task whose unmatched attempts are open on the Reports page
 
-  const page = () => (PAGES.includes(location.hash.slice(1)) ? location.hash.slice(1) : "overview");
+  // The page and its argument: "#student=<id>" → ["student", id]; "#tasks=<task id>" → ["tasks", task id].
+  const route = () => {
+    const [name, arg] = location.hash.slice(1).split("=");
+    const p = OLD_PAGES[name] || name;
+    return PAGES.includes(p) ? [p, arg ? decodeURIComponent(arg) : null] : ["students", null];
+  };
+  const page = () => route()[0];
   const when = (iso) => (iso ? new Date(iso).toLocaleString("en-GB", { dateStyle: "short", timeStyle: "short" }) : "–");
   const pct = (x) => Math.round(x * 100) + "%";
   const mName = (id) => (misconceptions.find((m) => m.id === id) || { name: id }).name;
@@ -47,18 +67,24 @@
     if (t.id !== id && t.former_ids_are_replacements) return id + " (a removed task, replaced by " + t.id + " – " + t.title + ")";
     return id + " – " + t.title;
   };
-  const unitShort = (id) => (id ? unitTitle(id) : "–");
+  // A task's name as a link that opens it in the Task browser, ready to try.
+  const taskLink = (id) => (tasksById[id] ? '<a href="#tasks=' + encodeURIComponent(tasksById[id].id) + '">' + esc(taskLabel(id)) + "</a>" : esc(taskLabel(id)));
   const tb = self.TeacherBackend && self.TeacherBackend.enabled ? self.TeacherBackend : null;
   let classData = null; // backend mode: the chosen class, as teacher-backend.js loaded it
   const collect = () => (tb ? classData : TD.collect(Store, UNITS));
   const byName = (students) => Object.entries(students).sort((a, b) => a[1].name.localeCompare(b[1].name));
+  const currentClass = () => (tb ? tb.currentClass() : null);
+  const stage = () => self.Curriculum.stageOf((currentClass() || {}).stage).id;
+  const stageUnitIds = () => self.Curriculum.stageUnits(stage());
+  const bandHtml = (c) => (c.band ? '<span class="rag rag-' + c.band.cls + '">' + c.score + "% · " + esc(c.band.label) + "</span>" : "");
 
   // ---------- Page switching ----------
   function render() {
-    const p = page();
+    const [p, arg] = route();
     for (const id of PAGES) $("page-" + id).hidden = id !== p;
-    document.querySelectorAll(".tab-nav a").forEach((a) => {
-      if (a.dataset.page === p) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    document.querySelectorAll(".side-nav a").forEach((a) => {
+      const on = a.dataset.page === p || (p === "student" && a.dataset.page === "students");
+      if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
     });
     if (!tb) {
       const used = Store.storageUsed();
@@ -66,74 +92,67 @@
       $("storage-warning").textContent = "This browser's storage is nearly full (" + (used / 1048576).toFixed(1) +
         " MB used, about 5 MB allowed). Export the full data now. New attempts may stop being saved.";
     }
-    if (p === "tasks") renderTaskBrowser(); // needs no class
+    $("cl-local").hidden = !!tb;
+    $("cl-main").hidden = !tb;
+    $("set-local").hidden = !!tb;
+    $("pw-form").hidden = !tb;
+    document.querySelectorAll("[data-backend]").forEach((b) => { b.hidden = !tb; });
+    if (p === "tasks") renderTaskBrowser(arg); // needs no class
     const data = collect();
     if (!data) return; // backend mode: no class loaded yet
-    if (p === "overview") renderOverview(data);
-    else if (p === "log") renderLog(data);
-    else if (p === "workshop") renderWorkshop(data);
+    if (p === "students") renderStudents(data);
+    else if (p === "student") renderStudent(data, arg);
+    else if (p === "reports") renderReports(data);
     else if (p === "assignments") renderAssignments(data);
-    $("filtered-help").textContent = {
-      overview: "the student table, with the name filter applied.",
-      log: "the attempts that match the filters, including code and output.",
-      workshop: "the misconception table and the per-task unmatched table.",
-      assignments: "each assignment's tasks: how many students tried and passed each one, and the failed checks.",
-      tasks: "(nothing on this page: use Export full data).",
-    }[p];
-    renderLevelLog(data);
   }
 
-  // ---------- Overview ----------
-  function cellHtml(c) {
+  // ---------- Students ----------
+  function scoreCellHtml(c) {
     if (!c.started) return '<span class="small">Not started</span>';
     const placement = c.placementStatus === "done" ? "Placement: started at " + c.placementStart : "Placement: " + TD.PLACEMENT_STATUS[c.placementStatus];
-    return '<span class="lvl">Level ' + c.level + "</span>" +
+    return (c.placed ? bandHtml(c) + (c.secured ? "" : '<br><span class="small">Not secured yet</span>') : NOT_PLACED) +
+      '<br><span class="lvl">Level ' + c.level + "</span>" +
       (c.complete ? ' <span class="badge-complete" title="Passed a level 10 task">★ Complete</span>' : "") +
       '<br><span class="small">' + esc(placement) + "</span>" +
-      (c.tooEasy || c.tooHard || c.alert ? "<br>" : "") +
-      (c.tooEasy ? '<span class="flag">Too easy used</span>' : "") +
-      (c.tooHard ? '<span class="flag">Too hard used</span>' : "") +
-      (c.alert ? '<span class="flag flag-alert">⚠ ' + c.failsInARow + " fails in a row</span>" : "");
+      (c.tooEasy || c.tooHard ? "<br>" + buttonFlagsHtml(c) : "");
   }
 
-  function overviewRows(data) {
-    return TD.sortOverview(TD.filterByName(TD.overviewRows(data), $("name-filter").value), sortKey, sortDir);
+  const scoreRows = (data) => TD.sortScoreTable(TD.filterByName(TD.scoreTable(data, stageUnitIds()).rows, $("name-filter").value), sortKey, sortDir);
+
+  function renderCodeCards() {
+    const c = currentClass();
+    $("st-code-card").hidden = !c;
+    if (c) $("st-code").textContent = c.class_code;
   }
 
-  function renderOverview(data) {
-    const cols = [{ key: "name", label: "Name" }].concat(UNITS.map((u) => ({ key: u.id, label: u.title })));
-    $("overview-head").innerHTML = cols.map((c) =>
-      '<th scope="col"' + (c.key === sortKey ? ' aria-sort="' + (sortDir === 1 ? "ascending" : "descending") + '"' : "") +
-      '><button type="button" data-sort="' + c.key + '">' + esc(c.label) + "</button></th>").join("");
-    const rows = overviewRows(data);
+  function renderStudents(data) {
+    const unitIds = stageUnitIds();
+    const c = currentClass();
+    $("st-stage").textContent = (c ? c.name + ", " : "") + self.Curriculum.stageOf(stage()).label + ": showing the units for this stage." +
+      (c ? " Change the stage on the Classes page." : " (In this browser every student is shown, with the GCSE units.)");
+    renderCodeCards();
+    const table = TD.scoreTable(data, unitIds);
+    const s = table.summary;
+    $("st-summary").innerHTML = '<div class="rag-tile rag-tile-green"><span>Green</span><strong>' + s.green + '</strong><span class="small">average 80% or more</span></div>' +
+      '<div class="rag-tile rag-tile-amber"><span>Amber</span><strong>' + s.amber + '</strong><span class="small">average 50% to 79%</span></div>' +
+      '<div class="rag-tile rag-tile-red"><span>Red</span><strong>' + s.red + '</strong><span class="small">average under 50%</span></div>' +
+      (s.notPlaced ? '<div class="rag-tile"><span>Not placed yet</span><strong>' + s.notPlaced + '</strong><span class="small">no unit placed yet</span></div>' : "");
+    const started = table.unitAverages.filter((u) => u.average != null);
+    $("st-averages").innerHTML = '<p class="small">Class average per unit (students who have done its placement):</p>' + (started.length
+      ? started.map((u) => '<span class="rag rag-' + u.band.cls + '">' + esc(unitTitle(u.unit)) + ": " + u.average + "% · " + esc(u.band.label) + "</span>").join(" ")
+      : '<span class="small">No student has done a unit\'s placement yet.</span>');
+
+    const cols = [{ key: "name", label: "Name" }, { key: "average", label: "Average" }].concat(unitIds.map((u) => ({ key: u, label: unitTitle(u) })));
+    $("overview-head").innerHTML = cols.map((col) =>
+      '<th scope="col"' + (col.key === sortKey ? ' aria-sort="' + (sortDir === 1 ? "ascending" : "descending") + '"' : "") +
+      '><button type="button" data-sort="' + col.key + '">' + esc(col.label) + "</button></th>").join("");
+    const rows = scoreRows(data);
     $("overview-rows").innerHTML = rows.length ? rows.map((r) =>
-      "<tr" + (UNITS.some((u) => r.cells[u.id].alert) ? ' class="row-alert"' : "") + '><th scope="row">' + esc(r.name) + "</th>" +
-      UNITS.map((u) => '<td class="unit-cell">' + cellHtml(r.cells[u.id]) + "</td>").join("") + "</tr>").join("")
+      '<tr><th scope="row"><a href="#student=' + encodeURIComponent(r.studentId) + '">' + esc(r.name) + "</a>" +
+        '<br><span class="small">Last active ' + esc(when(r.lastActive)) + "</span></th>" +
+      '<td class="unit-cell">' + (r.average == null ? NOT_PLACED : '<span class="rag rag-' + r.band.cls + '">' + r.average + "% · " + esc(r.band.label) + "</span>") + "</td>" +
+      unitIds.map((u) => '<td class="unit-cell">' + scoreCellHtml(r.cells[u]) + "</td>").join("") + "</tr>").join("")
       : '<tr><td colspan="' + cols.length + '">No students to show yet.</td></tr>';
-
-    const q = TD.quickLook(data, misconceptions);
-    const list = (items, empty, ordered) => items.length ? "<" + (ordered ? "ol" : "ul") + ">" + items.join("") + "</" + (ordered ? "ol" : "ul") + ">" : '<p class="small">' + empty + "</p>";
-    $("quick-look").innerHTML =
-      "<section><h3>2+ fails in a row</h3>" + list(q.struggling.map((s) =>
-        "<li><strong>" + esc(s.name) + "</strong> – " + esc(unitTitle(s.unit)) + ": " + s.failsInARow + " fails in a row" +
-        (s.taskId ? ", now on " + esc(taskLabel(s.taskId)) : "") + "</li>"), "No one right now.") + "</section>" +
-      "<section><h3>Most-failed tasks</h3>" + list(q.topFailedTasks.map((t) =>
-        "<li>" + esc(taskLabel(t.taskId)) + ": " + t.fails + " of " + t.attempts + " attempts failed (" + pct(t.failRate) + ")" +
-        '<br><span class="small">Most common: ' + esc(t.topCategory || "–") + " · Top misconception: " + esc(t.topMisconception ? mName(t.topMisconception) : "none matched") + "</span></li>"),
-        "No failed attempts yet.", true) + "</section>" +
-      "<section><h3>Top misconceptions</h3>" + list(q.topMisconceptions.map((m) =>
-        "<li>" + esc(m.name) + ": " + m.attempts + " attempt" + (m.attempts === 1 ? "" : "s") + ", " + m.studentCount + " student" + (m.studentCount === 1 ? "" : "s") + "</li>"),
-        "No misconceptions matched yet.", true) + "</section>";
-
-    // Reset placement controls
-    const keepStudent = $("reset-student").value;
-    const keepUnit = $("reset-unit").value;
-    const students = byName(data.students);
-    $("reset-student").innerHTML = students.map(([id, s]) => '<option value="' + esc(id) + '">' + esc(s.name) + "</option>").join("");
-    $("reset-unit").innerHTML = UNITS.map((u) => '<option value="' + u.id + '">' + esc(u.title) + "</option>").join("");
-    if (keepStudent) $("reset-student").value = keepStudent;
-    if (keepUnit) $("reset-unit").value = keepUnit;
-    $("reset-placement").disabled = !students.length;
   }
 
   $("overview-head").addEventListener("click", (e) => {
@@ -146,6 +165,49 @@
     if (again) again.focus();
   });
   $("name-filter").addEventListener("input", render);
+
+  // ---------- One student ----------
+  let shownStudent = null;
+  function renderStudent(data, studentId) {
+    const s = data.students[studentId];
+    shownStudent = s ? studentId : null;
+    $("reset-student").value = shownStudent || "";
+    $("sd-back").textContent = "← Back to " + (currentClass() ? currentClass().name : "the class");
+    if (!s) {
+      $("student-title").textContent = "Student not found";
+      $("sd-meta").textContent = "This student isn't in the class (they may have been removed).";
+      $("sd-actions").hidden = true;
+      $("sd-scores").innerHTML = "";
+      $("sd-recent").innerHTML = "";
+      return;
+    }
+    $("sd-actions").hidden = false;
+    const unitIds = stageUnitIds();
+    const d = TD.studentDetail(data, studentId, unitIds, null, RECENT_ATTEMPTS);
+    $("student-title").textContent = s.name;
+    $("sd-meta").textContent = "Last active " + when(d.lastActive) + (d.average == null ? "" : " · average secured score " + d.average + "% (" + d.band.label + ")");
+    const keepUnit = $("reset-unit").value;
+    $("reset-unit").innerHTML = UNITS.map((u) => '<option value="' + u.id + '">' + esc(u.title) + "</option>").join("");
+    if (keepUnit) $("reset-unit").value = keepUnit;
+    $("sd-scores").innerHTML = unitIds.map((u) => {
+      const c = d.cells[u];
+      const width = c.score == null ? 0 : c.score;
+      return '<div class="score-bar"><div class="score-bar-head"><strong>' + esc(unitTitle(u)) + "</strong> " +
+        (c.started ? (c.placed ? bandHtml(c) : NOT_PLACED) + ' <span class="small">Level ' + c.level +
+          (c.placed && !c.secured ? " · not secured yet (" + c.levelTenPasses + " of 2 level 10 passes with no hints)" : "") +
+          (c.failsInARow ? " · " + c.failsInARow + " fail" + (c.failsInARow === 1 ? "" : "s") + " in a row" : "") + "</span> " + buttonFlagsHtml(c)
+          : '<span class="small">Not started</span>') +
+        '</div><div class="bar" aria-hidden="true"><span class="' + (c.band ? "rag-" + c.band.cls : "") + '" style="width:' + width + '%"></span></div></div>';
+    }).join("");
+    $("sd-recent").innerHTML = d.recent.length ? '<div class="table-wrap"><table><thead><tr><th scope="col">Time</th><th scope="col">Task</th><th scope="col">Result</th>' +
+      '<th scope="col">Hints</th><th scope="col">Test that failed</th><th scope="col">Misconception matched</th></tr></thead><tbody>' +
+      d.recent.map((a) => "<tr" + (a.result === "fail" ? ' class="row-alert"' : "") + "><td>" + esc(when(a.at)) + "</td><td>" + taskLink(a.taskId) +
+        (a.phase && a.phase !== "practice" ? ' <span class="flag">' + esc(a.phase) + "</span>" : "") +
+        '</td><td class="res-' + (a.result === "pass" ? "pass" : a.result === "fail" ? "fail" : "none") + '">' + esc(a.result) + (a.category ? ' <span class="small">(' + esc(a.category) + ")</span>" : "") +
+        '</td><td class="num">' + a.hints + "</td><td>" + (a.failedTest == null ? "–" : "Test " + esc(a.failedTest)) + "</td><td>" +
+        (a.misconceptions.length ? esc(a.misconceptions.map(mName).join("; ")) : a.result === "fail" ? "None matched" : "–") + "</td></tr>").join("") +
+      "</tbody></table></div>" : '<p class="small">No attempts yet.</p>';
+  }
 
   $("reset-placement").addEventListener("click", () => { $("reset-confirm").hidden = false; $("reset-yes").focus(); });
   $("reset-no").addEventListener("click", () => { $("reset-confirm").hidden = true; $("reset-placement").focus(); });
@@ -174,56 +236,50 @@
     render();
   });
 
-  // ---------- Detail log ----------
-  const FILTERS = { student: "f-student", unit: "f-unit", task: "f-task", category: "f-category", misconception: "f-misconception" };
-  const currentFilters = () => Object.fromEntries(Object.entries(FILTERS).map(([k, id]) => [k, $(id).value]));
+  // Backend mode: Reset PIN, Rename and Remove (the same server calls as the Student logins table on the Classes page).
+  const showResult = (html) => { $("sd-result").innerHTML = html; };
+  $("sd-pin").addEventListener("click", async () => {
+    if (!shownStudent) return;
+    const r = await tb.resetPin(shownStudent);
+    showResult(r.error ? '<p class="problem">' + esc(r.error) + "</p>" : '<p class="notice notice-up">New PIN for <strong>' + esc(r.nickname) + "</strong>: " +
+      '<strong class="class-code">' + esc(r.pin) + "</strong>. Give it to them now: it won't be shown again. Any lock is cleared.</p>");
+  });
+  $("sd-rename").addEventListener("click", () => { $("sd-rename-form").hidden = false; $("sd-new-name").value = (collect().students[shownStudent] || { name: "" }).name; $("sd-new-name").focus(); });
+  $("sd-rename-cancel").addEventListener("click", () => { $("sd-rename-form").hidden = true; });
+  $("sd-rename-save").addEventListener("click", async () => {
+    const r = await tb.renameStudent(shownStudent, $("sd-new-name").value.trim());
+    if (r.error) return showResult('<p class="problem">' + esc(r.error) + "</p>");
+    $("sd-rename-form").hidden = true;
+    showResult('<p class="notice notice-up">Renamed to <strong>' + esc(r.nickname) + "</strong>.</p>");
+  });
+  $("sd-remove").addEventListener("click", () => { $("sd-remove-name").textContent = (collect().students[shownStudent] || { name: "" }).name; $("sd-remove-confirm").hidden = false; $("sd-remove-no").focus(); });
+  $("sd-remove-no").addEventListener("click", () => { $("sd-remove-confirm").hidden = true; });
+  $("sd-remove-yes").addEventListener("click", async () => {
+    const name = (collect().students[shownStudent] || { name: "" }).name;
+    const r = await tb.removeStudent(shownStudent);
+    $("sd-remove-confirm").hidden = true;
+    if (r.error) return showResult('<p class="problem">' + esc(r.error) + "</p>");
+    location.hash = "students";
+    $("tb-status").textContent = name + " and all their data have been deleted.";
+  });
 
-  function fillSelect(id, options) {
-    const keep = $(id).value;
-    $(id).innerHTML = '<option value="">All</option>' + options.map(([v, label]) => '<option value="' + esc(v) + '">' + esc(label) + "</option>").join("");
-    if (options.some(([v]) => v === keep)) $(id).value = keep;
-  }
+  // ---------- Reports ----------
+  function renderReports(data) {
+    const q = TD.quickLook(data, misconceptions);
+    const list = (items, empty, ordered) => items.length ? "<" + (ordered ? "ol" : "ul") + ">" + items.join("") + "</" + (ordered ? "ol" : "ul") + ">" : '<p class="small">' + empty + "</p>";
+    $("quick-look").innerHTML =
+      "<section><h4>Most-failed tasks</h4>" + list(q.topFailedTasks.map((t) =>
+        "<li>" + taskLink(t.taskId) + ": " + t.fails + " of " + t.attempts + " attempts failed (" + pct(t.failRate) + ")" +
+        '<br><span class="small">Most common: ' + esc(t.topCategory || "–") + " · Top misconception: " + esc(t.topMisconception ? mName(t.topMisconception) : "none matched") + "</span></li>"),
+        "No failed attempts yet.", true) + "</section>" +
+      "<section><h4>Top misconceptions</h4>" + list(q.topMisconceptions.map((m) =>
+        "<li>" + esc(m.name) + ": " + m.attempts + " attempt" + (m.attempts === 1 ? "" : "s") + ", " + m.studentCount + " student" + (m.studentCount === 1 ? "" : "s") + "</li>"),
+        "No misconceptions matched yet.", true) + "</section>";
 
-  function codeCell(r) {
-    if (!r.code && !r.output && r.result !== "fail") return "";
-    return "<details><summary>Show</summary><div class=\"side-by-side\">" +
-      "<div><strong>Code</strong><pre>" + esc(r.code || "(none)") + "</pre></div>" +
-      "<div><strong>Output" + (r.failedTest ? " (test " + r.failedTest + ")" : "") + "</strong><pre>" + esc(r.output || "(nothing)") + "</pre>" +
-      (r.expected !== "" ? '<span class="small">Expected:</span><pre>' + esc(r.expected || "(nothing)") + "</pre>" : "") + "</div></div></details>";
-  }
-
-  function filteredLogRows(data) {
-    return TD.filterDetail(TD.detailRows(data), currentFilters());
-  }
-
-  function renderLog(data) {
-    const all = TD.detailRows(data);
-    fillSelect("f-student", byName(data.students).map(([id, s]) => [id, s.name]));
-    fillSelect("f-unit", UNITS.map((u) => [u.id, u.title]));
-    fillSelect("f-task", [...new Set(all.map((r) => r.taskId))].sort().map((id) => [id, taskLabel(id)]));
-    fillSelect("f-category", Checker.CATEGORIES.map((c) => [c, c]));
-    fillSelect("f-misconception", [["none", "(failed, no match)"]].concat(misconceptions.map((m) => [m.id, m.name])));
-    const rows = filteredLogRows(data);
-    $("log-count").textContent = "Showing " + Math.min(rows.length, MAX_LOG_ROWS_SHOWN) + " of " + rows.length + " matching rows (" + all.length + " in total)." +
-      (rows.length > MAX_LOG_ROWS_SHOWN ? " Only the newest " + MAX_LOG_ROWS_SHOWN + " are shown; the filtered export has them all." : "");
-    $("log-rows").innerHTML = rows.length ? rows.slice(0, MAX_LOG_ROWS_SHOWN).map((r) =>
-      "<tr" + (r.result === "fail" ? ' class="row-alert"' : "") + "><td>" + esc(when(r.at)) + "</td><td>" + esc(r.name) + "</td><td>" + esc(unitShort(r.unit)) +
-      "</td><td>" + esc(r.taskId || "") + (r.phase === "placement" ? ' <span class="flag">placement</span>' : r.phase === "assignment" ? ' <span class="flag">assignment</span>' : "") + '</td><td class="num">' + esc(r.level == null ? "" : r.level) +
-      '</td><td class="res-' + (r.result === "pass" ? "pass" : r.result === "fail" ? "fail" : "none") + '">' + esc(r.result) +
-      "</td><td>" + esc(r.category) + "</td><td>" + esc(r.misconceptions.map(mName).join("; ")) + '</td><td class="num">' + esc(r.hints) +
-      "</td><td>" + esc(r.button) + "</td><td>" + esc(r.levelChange) + "</td><td>" + codeCell(r) + "</td></tr>").join("")
-      : '<tr><td colspan="12">No rows match these filters.</td></tr>';
-  }
-
-  Object.values(FILTERS).forEach((id) => $(id).addEventListener("change", render));
-  $("f-clear").addEventListener("click", () => { Object.values(FILTERS).forEach((id) => { $(id).value = ""; }); render(); });
-
-  // ---------- Workshop ----------
-  function renderWorkshop(data) {
     const w = TD.workshop(data, misconceptions, tasksById);
     $("ws-misconceptions").innerHTML = w.misconceptions.length ? w.misconceptions.map((m) =>
       "<tr><th scope=\"row\">" + esc(m.name) + '<br><span class="small">' + esc(m.id) + '</span></th><td class="num">' + m.attempts +
-      '</td><td class="num">' + m.studentCount + "</td><td>" + m.taskList.map((t) => esc(taskLabel(t.taskId)) + " (" + t.matches + ")").join("<br>") +
+      '</td><td class="num">' + m.studentCount + "</td><td>" + m.taskList.map((t) => taskLink(t.taskId) + " (" + t.matches + ")").join("<br>") +
       '</td><td class="num">' + pct(m.failRate) + "</td><td>" + esc(m.studentNames.join(", ")) + "</td></tr>").join("")
       : '<tr><td colspan="6">No misconceptions matched yet.</td></tr>';
     const seen = new Set(w.misconceptions.map((m) => m.id));
@@ -231,20 +287,21 @@
     $("ws-unseen").textContent = unseen.length ? "Not matched yet: " + unseen.map((m) => m.name).join("; ") + "." : "";
 
     $("ws-tasks").innerHTML = w.tasks.length ? w.tasks.map((t) =>
-      "<tr><th scope=\"row\">" + esc(taskLabel(t.taskId)) + '</th><td class="num">' + t.fails + '</td><td class="num">' + t.unmatched +
+      "<tr><th scope=\"row\">" + taskLink(t.taskId) + '</th><td class="num">' + t.fails + '</td><td class="num">' + t.unmatched +
       '</td><td class="num">' + pct(t.unmatchedRate) + "</td><td>" + (t.hasVariants ? "Yes" : "No") + "</td><td>" +
       (t.unmatched ? '<button type="button" class="secondary" data-unmatched="' + esc(t.taskId) + '">View ' + t.unmatched + "</button>" : "–") + "</td></tr>").join("")
       : '<tr><td colspan="6">No failed attempts yet.</td></tr>';
 
     const open = w.tasks.find((t) => t.taskId === unmatchedTask);
     $("ws-unmatched").innerHTML = !open ? "" :
-      '<h3 id="unmatched-h" tabindex="-1">Unmatched attempts: ' + esc(taskLabel(open.taskId)) + "</h3>" +
+      '<h4 id="unmatched-h" tabindex="-1">Unmatched attempts: ' + esc(taskLabel(open.taskId)) + "</h4>" +
       open.unmatchedAttempts.map((r) =>
         '<div class="table-wrap" style="padding:.5rem .9rem; margin-bottom:.75rem"><p class="small"><strong>' + esc(r.name) + "</strong> · " + esc(when(r.at)) + " · " +
         esc(r.category) + (r.failedTest ? " · test " + r.failedTest + (r.inputs && r.inputs.length ? " (inputs: " + esc(r.inputs.join(", ")) + ")" : "") : "") + "</p>" +
         '<div class="side-by-side"><div><strong>Code</strong><pre>' + esc(r.code || "(none)") + "</pre></div>" +
         "<div><strong>Output</strong><pre>" + esc(r.output || "(nothing)") + "</pre>" +
         (r.expected !== "" ? '<span class="small">Expected:</span><pre>' + esc(r.expected || "(nothing)") + "</pre>" : "") + "</div></div></div>").join("");
+    renderLevelLog(data);
   }
 
   $("ws-tasks").addEventListener("click", (e) => {
@@ -255,8 +312,30 @@
     if ($("unmatched-h")) $("unmatched-h").focus();
   });
 
+  // Compare classes: the teacher's own classes only, each one's average secured score per unit.
+  $("compare-load").addEventListener("click", async () => {
+    const unitIds = self.Curriculum.stageUnits("a-level"); // every unit: classes of different stages side by side
+    let classes;
+    if (tb) {
+      $("compare").innerHTML = '<p class="small">Loading your classes…</p>';
+      const r = await tb.compareClasses();
+      if (r.error) { $("compare").innerHTML = '<p class="problem">' + esc(r.error) + "</p>"; return; }
+      classes = r.classes.map((c) => ({ name: c.name + " (" + self.Curriculum.stageOf(c.stage).label + ")", averages: TD.scoreTable(c.data, unitIds).unitAverages }));
+    } else {
+      classes = [{ name: "This browser", averages: TD.scoreTable(collect(), unitIds).unitAverages }];
+    }
+    const used = unitIds.filter((u) => classes.some((c) => c.averages.find((a) => a.unit === u).average != null));
+    $("compare").innerHTML = !used.length ? '<p class="small">No class has a placed unit yet.</p>' :
+      '<div class="table-wrap"><table><thead><tr><th scope="col">Unit</th>' + classes.map((c) => '<th scope="col">' + esc(c.name) + "</th>").join("") + "</tr></thead><tbody>" +
+      used.map((u) => '<tr><th scope="row">' + esc(unitTitle(u)) + "</th>" + classes.map((c) => {
+        const a = c.averages.find((x) => x.unit === u);
+        return "<td>" + (a.average == null ? NOT_PLACED : '<span class="rag rag-' + a.band.cls + '">' + a.average + "% · " + esc(a.band.label) + '</span> <span class="small">(' + a.students + ")</span>") + "</td>";
+      }).join("") + "</tr>").join("") + "</tbody></table></div>" +
+      (tb ? "" : '<p class="small">In local mode there is only this browser to show. In backend mode each of your classes has its own column.</p>');
+  });
+
   // ---------- Assignments (backend mode) ----------
-  let editing = null; // { id?, title, description, task_ids } while the form is open
+  let editing = null; // { id?, status } while the form is open
   const parseTaskIds = (text) => [...new Set(String(text || "").split(/[\s,;]+/).map((s) => s.trim()).filter(Boolean))];
   // The ids typed, each found in the bank (also by an old id), or not.
   function checkTaskIds(ids) {
@@ -276,6 +355,25 @@
     return checked;
   }
 
+  // "Five tasks from one unit": the unit's practice tasks at that level (not placement tasks), in the bank's order.
+  function fillFiveTaskControls() {
+    const keepUnit = $("as-five-unit").value;
+    $("as-five-unit").innerHTML = self.Curriculum.stageUnits(stage()).map((u) => '<option value="' + u + '">' + esc(unitTitle(u)) + "</option>").join("");
+    if (keepUnit && [...$("as-five-unit").options].some((o) => o.value === keepUnit)) $("as-five-unit").value = keepUnit;
+    if (!$("as-five-level").options.length) $("as-five-level").innerHTML = Array.from({ length: 10 }, (_, i) => '<option value="' + (i + 1) + '">Level ' + (i + 1) + "</option>").join("");
+  }
+  $("as-five").addEventListener("click", () => {
+    const unit = $("as-five-unit").value;
+    const level = +$("as-five-level").value;
+    const have = parseTaskIds($("as-tasks").value);
+    const picked = bankTasks.filter((t) => t.unit === unit && t.level === level && !(t.tags || []).includes("placement") && !have.includes(t.id)).slice(0, 5);
+    if (!picked.length) { $("as-five-status").textContent = "There are no more " + unitTitle(unit) + " tasks at level " + level + " to add."; return; }
+    $("as-tasks").value = have.concat(picked.map((t) => t.id)).join("\n");
+    if (!$("as-title").value.trim()) $("as-title").value = unitTitle(unit) + ": level " + level;
+    $("as-five-status").textContent = "Added " + picked.length + " task" + (picked.length === 1 ? "" : "s") + " from " + unitTitle(unit) + " level " + level + ". Change the list below if you like.";
+    renderAssignmentCheck();
+  });
+
   function openAssignmentForm(a) {
     editing = a ? { id: a.id, status: a.status } : {};
     $("as-form").hidden = false;
@@ -285,6 +383,8 @@
     $("as-description").value = a ? a.description : "";
     $("as-tasks").value = a ? a.task_ids.join("\n") : "";
     $("as-form-status").hidden = true;
+    $("as-five-status").textContent = "";
+    fillFiveTaskControls();
     renderAssignmentCheck();
     $("as-form-h").focus();
   }
@@ -298,7 +398,7 @@
     const list = data.assignments || [];
     $("as-list").innerHTML = list.length ? list.map((a) => {
       const s = TD.assignmentStats(data, a);
-      const rows = s.tasks.map((t) => "<tr><th scope=\"row\">" + esc(taskLabel(t.taskId)) + '</th><td class="num">' + t.triedCount + '</td><td class="num">' + t.passedCount +
+      const rows = s.tasks.map((t) => "<tr><th scope=\"row\">" + taskLink(t.taskId) + '</th><td class="num">' + t.triedCount + '</td><td class="num">' + t.passedCount +
         '</td><td class="num">' + t.checks + '</td><td class="num">' + t.fails + '</td><td class="num">' + t.showHow + "</td><td>" + esc(t.topCategory || "–") +
         "</td><td>" + esc(t.topMisconception ? mName(t.topMisconception) : "–") + "</td></tr>").join("");
       const hard = s.struggled.slice(0, 3).map((t) => "<li>" + esc(taskLabel(t.taskId)) + ": " + t.stuckCount + " of " + t.triedCount + " who tried haven't passed it yet, " +
@@ -307,6 +407,7 @@
         '<h3 id="as-' + esc(a.id) + '">' + esc(a.title) + ' <span class="flag' + (a.status === "open" ? "" : " flag-alert") + '">' + (a.status === "open" ? "Open" : "Closed") + "</span></h3>" +
         (a.description ? "<p>" + esc(a.description) + "</p>" : "") +
         '<p class="small">' + a.task_ids.length + " task" + (a.task_ids.length === 1 ? "" : "s") + " · created " + esc(when(a.created_at)) + " · " + s.students + " student" + (s.students === 1 ? "" : "s") + " have tried it</p>" +
+        '<ol class="assignment-tasks">' + a.task_ids.map((id) => "<li>" + taskLink(id) + "</li>").join("") + "</ol>" +
         '<p class="teacher-controls"><button type="button" class="secondary" data-as-edit="' + esc(a.id) + '">Change</button>' +
           '<button type="button" class="secondary" data-as-status="' + esc(a.id) + '" data-to="' + (a.status === "open" ? "closed" : "open") + '">' + (a.status === "open" ? "Close it" : "Open it again") + "</button></p>" +
         "<h4>Struggled with most</h4>" + (hard ? "<ol>" + hard + "</ol>" : '<p class="small">No one has struggled with a task yet.</p>') +
@@ -345,8 +446,14 @@
   });
 
   // ---------- Task browser ----------
+  // The task opens in the student's own practice view (practice.html?preview=<id>, in a frame), where nothing is
+  // recorded (app.js stopRecording). Hint and Check answer press that view's own buttons; Show solution opens the
+  // model solution below it.
   let browsing = null; // id of the task on show
-  function renderTaskBrowser() {
+  let framed = null;   // id of the task in the practice frame
+  const frameButton = (id) => { const f = document.querySelector("#tb-practice iframe"); const doc = f && f.contentDocument; return doc ? doc.getElementById(id) : null; };
+  function renderTaskBrowser(openId) {
+    if (openId && tasksById[openId]) { browsing = tasksById[openId].id; if (!$("tb-search").value) $("tb-search").value = browsing; }
     const found = TaskView.searchTasks(bankTasks, $("tb-search").value, 25);
     const q = $("tb-search").value.trim();
     $("tb-results").innerHTML = !q ? "" : found.length ? found.map((t) =>
@@ -354,7 +461,23 @@
         esc(t.id) + " – " + esc(t.title) + ' <span class="small">(' + esc(unitTitle(t.unit)) + ", level " + t.level + ")</span></button></li>").join("")
       : '<li class="small">No task matches "' + esc(q) + '".</li>';
     const t = bankTasks.find((x) => x.id === browsing);
-    if (!t) { $("tb-view").innerHTML = ""; return; }
+    if (!t) { $("tb-view").innerHTML = ""; $("tb-practice").innerHTML = ""; framed = null; return; }
+    if (framed !== t.id) {
+      framed = t.id;
+      $("tb-practice").innerHTML = '<div class="teacher-controls tb-practice-bar"><strong>' + esc(t.id) + " – " + esc(t.title) + "</strong>" +
+        '<button type="button" class="secondary" id="tb-hint">Hint (free)</button>' +
+        '<button type="button" class="secondary" id="tb-show-solution">Show solution</button>' +
+        '<button type="button" class="primary" id="tb-check">Check answer</button></div>' +
+        '<p class="small">Not recorded: no attempt, pass, progress or level change is saved, here or on the server.</p>' +
+        '<iframe class="practice-frame" title="Try ' + esc(t.id) + ' as a student" src="practice.html?preview=' + encodeURIComponent(t.id) + '"></iframe>';
+      $("tb-hint").addEventListener("click", () => { const b = frameButton("hint-btn"); if (b && !b.disabled) b.click(); });
+      $("tb-check").addEventListener("click", () => { const b = frameButton("check-btn"); if (b && !b.disabled) b.click(); });
+      $("tb-show-solution").addEventListener("click", () => {
+        const btn = $("tb-solution-btn");
+        if (btn && $("tb-solution").hidden) btn.click();
+        if ($("tb-solution")) $("tb-solution").scrollIntoView({ block: "start" });
+      });
+    }
     const canAdd = tb && !$("as-form").hidden && !(t.tags || []).includes("placement");
     $("tb-view").innerHTML = TaskBrowser.html(t, self.initialDraft, unitTitle) +
       (canAdd ? '<p><button type="button" id="tb-add" class="primary">Add ' + esc(t.id) + " to the assignment</button></p>" : "");
@@ -381,6 +504,27 @@
     if ($("tb-task-h")) $("tb-task-h").focus();
   });
 
+  // ---------- Settings ----------
+  $("pw-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const say = (text, problem) => { $("pw-status").hidden = false; $("pw-status").className = problem ? "problem" : "notice notice-up"; $("pw-status").textContent = text; };
+    const current = $("pw-current").value;
+    const next = $("pw-new").value;
+    if (!current) return say("Please type your current password.", true);
+    if (next.length < 10) return say("The new password needs at least 10 characters.", true);
+    if (next !== $("pw-new2").value) return say("The two new passwords aren't the same. Please type them again.", true);
+    const r = await tb.changePassword(current, next);
+    for (const id of ["pw-current", "pw-new", "pw-new2"]) $(id).value = "";
+    if (r.error) return say(r.error, true);
+    say("Your password has been changed.");
+  });
+
+  // Copy the class code (the Students and Classes pages).
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-copy-code]");
+    if (b && currentClass()) tb.copy(currentClass().class_code, "tb-status");
+  });
+
   // ---------- Level-change log ----------
   function renderLevelLog(data) {
     const log = data.levelLog.slice().reverse();
@@ -405,60 +549,74 @@
   }
   const today = () => new Date().toISOString().slice(0, 10);
 
+  $("export-scores").addEventListener("click", () => {
+    const data = collect();
+    if (!data) return;
+    download("python-practice-class-scores-" + today() + ".csv", TD.classScoresCsv(TD.scoreTable(data, stageUnitIds()), stageUnitIds(), unitTitle));
+  });
+
   $("export-full").addEventListener("click", () => {
     if (!collect()) return;
     download("python-practice-full-data-" + today() + ".csv", TD.fullExportCsv(collect()));
     setTimeout(() => download("data-dictionary.csv", TD.dataDictionaryCsv(misconceptions)), 400);
   });
+  $("export-dictionary").addEventListener("click", () => download("data-dictionary.csv", TD.dataDictionaryCsv(misconceptions)));
 
-  $("export-filtered").addEventListener("click", () => {
+  // The levels table (the old Overview's export): every unit, with the Students page's name filter applied.
+  $("export-levels").addEventListener("click", () => {
     const data = collect();
     if (!data) return;
-    const p = page();
-    if (p === "overview") {
-      const cols = [{ key: "name", label: "Name" }];
-      for (const u of UNITS) {
-        cols.push({ key: u.id + "_level", label: u.title + ": level" }, { key: u.id + "_placement", label: u.title + ": placement" },
-          { key: u.id + "_complete", label: u.title + ": level 10 passed" }, { key: u.id + "_too_easy", label: u.title + ": too easy used" },
-          { key: u.id + "_too_hard", label: u.title + ": too hard used" }, { key: u.id + "_fails", label: u.title + ": fails in a row" });
-      }
-      const rows = overviewRows(data).map((r) => {
-        const out = { name: r.name };
-        for (const u of UNITS) {
-          const c = r.cells[u.id];
-          if (!c.started) { out[u.id + "_level"] = "not started"; continue; }
-          Object.assign(out, {
-            [u.id + "_level"]: c.level, [u.id + "_placement"]: c.placementStatus === "done" ? "started at " + c.placementStart : TD.PLACEMENT_STATUS[c.placementStatus],
-            [u.id + "_complete"]: c.complete ? "yes" : "no", [u.id + "_too_easy"]: c.tooEasy ? "yes" : "no", [u.id + "_too_hard"]: c.tooHard ? "yes" : "no",
-            [u.id + "_fails"]: c.failsInARow,
-          });
-        }
-        return out;
-      });
-      download("python-practice-overview-" + today() + ".csv", TD.toCsv(cols, rows));
-    } else if (p === "log") {
-      const cols = ["timestamp", "student", "unit", "task_id", "task_level", "phase", "result", "failure_category", "misconception_matches", "hints_used",
-        "button", "level_change", "failed_test_number", "failed_test_inputs", "expected_output", "student_output", "student_code"].map((key) => ({ key }));
-      const rows = filteredLogRows(data).map((r) => ({
-        timestamp: r.at, student: r.name, unit: r.unit, task_id: r.taskId, task_level: r.level, phase: r.phase, result: r.result,
-        failure_category: r.category, misconception_matches: r.misconceptions.join(";"), hints_used: r.hints, button: r.button,
-        level_change: r.levelChange, failed_test_number: r.failedTest, failed_test_inputs: r.inputs ? JSON.stringify(r.inputs) : "",
-        expected_output: r.expected, student_output: r.output, student_code: r.code,
-      }));
-      download("python-practice-detail-log-" + today() + ".csv", TD.toCsv(cols, rows));
-    } else {
-      const w = TD.workshop(data, misconceptions, tasksById);
-      const cols = ["section", "id", "name", "attempts_matched", "students_affected", "students", "tasks", "failure_rate_on_tasks",
-        "failed_attempts", "unmatched", "unmatched_rate", "has_buggy_variants"].map((key) => ({ key }));
-      const rows = w.misconceptions.map((m) => ({
-        section: "misconception", id: m.id, name: m.name, attempts_matched: m.attempts, students_affected: m.studentCount,
-        students: m.studentNames.join("; "), tasks: m.taskList.map((t) => t.taskId + " (" + t.matches + ")").join("; "), failure_rate_on_tasks: pct(m.failRate),
-      })).concat(w.tasks.map((t) => ({
-        section: "task", id: t.taskId, name: tasksById[t.taskId] ? tasksById[t.taskId].title : "", failed_attempts: t.fails,
-        unmatched: t.unmatched, unmatched_rate: pct(t.unmatchedRate), has_buggy_variants: t.hasVariants ? "yes" : "no",
-      })));
-      download("python-practice-workshop-" + today() + ".csv", TD.toCsv(cols, rows));
+    const cols = [{ key: "name", label: "Name" }];
+    for (const u of UNITS) {
+      cols.push({ key: u.id + "_level", label: u.title + ": level" }, { key: u.id + "_placement", label: u.title + ": placement" },
+        { key: u.id + "_complete", label: u.title + ": level 10 passed" }, { key: u.id + "_too_easy", label: u.title + ": too easy used" },
+        { key: u.id + "_too_hard", label: u.title + ": too hard used" }, { key: u.id + "_fails", label: u.title + ": fails in a row" });
     }
+    const rows = TD.sortOverview(TD.filterByName(TD.overviewRows(data), $("name-filter").value), "name", 1).map((r) => {
+      const out = { name: r.name };
+      for (const u of UNITS) {
+        const c = r.cells[u.id];
+        if (!c.started) { out[u.id + "_level"] = "not started"; continue; }
+        Object.assign(out, {
+          [u.id + "_level"]: c.level, [u.id + "_placement"]: c.placementStatus === "done" ? "started at " + c.placementStart : TD.PLACEMENT_STATUS[c.placementStatus],
+          [u.id + "_complete"]: c.complete ? "yes" : "no", [u.id + "_too_easy"]: c.tooEasy ? "yes" : "no", [u.id + "_too_hard"]: c.tooHard ? "yes" : "no",
+          [u.id + "_fails"]: c.failsInARow,
+        });
+      }
+      return out;
+    });
+    download("python-practice-overview-" + today() + ".csv", TD.toCsv(cols, rows));
+  });
+
+  // The detail log (export only): one row per attempt and button use, newest first, with code and output.
+  $("export-log").addEventListener("click", () => {
+    const data = collect();
+    if (!data) return;
+    const cols = ["timestamp", "student", "unit", "task_id", "task_level", "phase", "result", "failure_category", "misconception_matches", "hints_used",
+      "button", "level_change", "failed_test_number", "failed_test_inputs", "expected_output", "student_output", "student_code"].map((key) => ({ key }));
+    const rows = TD.detailRows(data).map((r) => ({
+      timestamp: r.at, student: r.name, unit: r.unit, task_id: r.taskId, task_level: r.level, phase: r.phase, result: r.result,
+      failure_category: r.category, misconception_matches: r.misconceptions.join(";"), hints_used: r.hints, button: r.button,
+      level_change: r.levelChange, failed_test_number: r.failedTest, failed_test_inputs: r.inputs ? JSON.stringify(r.inputs) : "",
+      expected_output: r.expected, student_output: r.output, student_code: r.code,
+    }));
+    download("python-practice-detail-log-" + today() + ".csv", TD.toCsv(cols, rows));
+  });
+
+  $("export-workshop").addEventListener("click", () => {
+    const data = collect();
+    if (!data) return;
+    const w = TD.workshop(data, misconceptions, tasksById);
+    const cols = ["section", "id", "name", "attempts_matched", "students_affected", "students", "tasks", "failure_rate_on_tasks",
+      "failed_attempts", "unmatched", "unmatched_rate", "has_buggy_variants"].map((key) => ({ key }));
+    const rows = w.misconceptions.map((m) => ({
+      section: "misconception", id: m.id, name: m.name, attempts_matched: m.attempts, students_affected: m.studentCount,
+      students: m.studentNames.join("; "), tasks: m.taskList.map((t) => t.taskId + " (" + t.matches + ")").join("; "), failure_rate_on_tasks: pct(m.failRate),
+    })).concat(w.tasks.map((t) => ({
+      section: "task", id: t.taskId, name: tasksById[t.taskId] ? tasksById[t.taskId].title : "", failed_attempts: t.fails,
+      unmatched: t.unmatched, unmatched_rate: pct(t.unmatchedRate), has_buggy_variants: t.hasVariants ? "yes" : "no",
+    })));
+    download("python-practice-workshop-" + today() + ".csv", TD.toCsv(cols, rows));
   });
 
   // ---------- Start up ----------
@@ -466,7 +624,7 @@
     if (tb && ["#signin", "#signup"].includes(location.hash)) return; // these belong to the sign-in screen
     render(); const h = document.querySelector("#page-" + page() + " h2"); if (h) h.focus();
   });
-  if (tb) tb.start((data) => { classData = data; render(); });
+  if (tb) tb.start((data) => { classData = data; render(); }, () => render());
   else window.addEventListener("storage", render); // refresh if a student page in another tab saves progress
   const loadJson = (file) => fetch(file).then((r) => { if (!r.ok) throw new Error(file); return r.json(); });
   Promise.all([loadJson("tasks.json").catch(() => []), loadJson("misconceptions.json").catch(() => [])]).then(([tasks, ms]) => {

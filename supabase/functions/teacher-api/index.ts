@@ -3,6 +3,8 @@
 //   reveal_codes { class_id }               -> { codes: [{ student_id, nickname, code }] }  (each reveal is logged)
 //   reset_pin { student_id }                -> { pin }  (shown once; also clears a PIN lock)
 //   reset_placement { student_id, unit }    -> { reset }  (false: the student hasn't started that unit)
+//   rename_student { student_id, nickname } -> { nickname }  (the nickname rules and word filter, as for joining;
+//                                              refused if another student in the class has that nickname)
 // Importing a full export (section 8) takes three steps, so a big class fits the Edge Function time limit:
 //   import_check { class_id, students: [{ file_id, nickname }] }
 //       -> { ok, students: [{ file_id, nickname, status, message }] }. Saves nothing.
@@ -136,6 +138,19 @@ const actions: Record<string, (tid: string, body: Record<string, unknown>) => Pr
     const s = await ownStudent(tid, body.student_id);
     if (!UNITS.includes(body.unit as string)) throw bad();
     return { reset: check(await db().rpc("reset_placement", { p_teacher: tid, p_student: s.id, p_unit: body.unit }), "reset placement") };
+  },
+
+  async rename_student(tid, body) {
+    const s = await ownStudent(tid, body.student_id);
+    if (typeof body.nickname !== "string") throw bad();
+    const nickname = body.nickname.trim();
+    if (!validNickname(nickname)) throw new HttpError(400, NICKNAME_RULES, { problem: "invalid" });
+    if (nicknameBlocked(nickname)) throw new HttpError(400, "This nickname isn't allowed. Please choose another.", { problem: "blocked" });
+    const others = check(await db().from("students").select("id, nickname").eq("class_id", s.class_id), "students") as { id: string; nickname: string }[];
+    if (others.some((o) => o.id !== s.id && o.nickname.toLowerCase() === nickname.toLowerCase()))
+      throw new HttpError(400, "Another student in this class already has that nickname.", { problem: "taken" });
+    check(await db().from("students").update({ nickname }).eq("id", s.id), "rename student");
+    return { nickname };
   },
 
   async import_check(tid, body) {

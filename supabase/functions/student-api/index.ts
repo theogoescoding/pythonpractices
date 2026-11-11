@@ -1,5 +1,5 @@
 // student-api: POST { token, action, ... }. Every call checks the session token from resume or join-class.
-//   get_progress                       -> { student, progress: [{ unit, state }], passed: [{ unit, fingerprint }], attempts: [...],
+//   get_progress                       -> { student: { nickname, class_name, class_stage }, progress: [{ unit, state }], passed: [{ unit, fingerprint }], attempts: [...],
 //                                           assignments: [{ id, title, description, task_ids, updated_at }] (open ones of their class) }
 //   save_progress { unit, state }      one unit's saved state (as the app keeps it in progress.units[unit], or progress.endless)
 //   add_attempts { rows }              -> { saved, rejected }  rows use the attempts table's (the export's) column names
@@ -37,6 +37,14 @@ async function classOf(sid: string): Promise<string> {
   return s.class_id as string;
 }
 
+// The class's stage (migration 0013: ks3, gcse or a-level), which decides which sections of the student's unit menu
+// open by default. A server without 0013 has no stage column: then it is null and the app keeps its usual menu.
+async function classStage(classId: string): Promise<string | null> {
+  const r = await db().from("classes").select("stage").eq("id", classId).maybeSingle();
+  if (r.error || !r.data) return null;
+  return (r.data as { stage?: string }).stage ?? null;
+}
+
 // The open assignments of a class, newest first. Closed ones are never sent to students.
 async function openAssignments(classId: string) {
   return check(await db().from("assignments").select("id, title, description, task_ids, updated_at")
@@ -48,7 +56,7 @@ const actions: Record<string, (sid: string, body: Record<string, unknown>) => Pr
     const student = check(await db().from("students").select("nickname, class_id, classes(name)").eq("id", sid).single(), "student");
     const cls = student.classes as unknown as { name: string } | null;
     return {
-      student: { nickname: student.nickname, class_name: cls?.name ?? "" },
+      student: { nickname: student.nickname, class_name: cls?.name ?? "", class_stage: await classStage(student.class_id as string) },
       progress: await allRows("progress", "unit, state", sid, "unit"),
       passed: await allRows("passed_tasks", "unit, fingerprint", sid, "created_at"),
       attempts: await allRows("attempts", ATTEMPT_COLUMNS, sid, "id"),

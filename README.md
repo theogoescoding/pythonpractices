@@ -68,7 +68,7 @@ Then open:
 
 - Student app: http://localhost:8000/
 - Test mode (starting-level control): http://localhost:8000/?test=1
-- Teacher view: http://localhost:8000/teacher.html (pages: `#overview`, `#log`, `#workshop`, `#assignments`, `#tasks`)
+- Teacher view: http://localhost:8000/teacher.html (pages: `#classes`, `#students`, `#assignments`, `#reports`, `#tasks`, `#settings`)
 - A student's progress summary: http://localhost:8000/progress.html
 - Endless mode: http://localhost:8000/endless.html
 
@@ -83,7 +83,7 @@ The pages stay static files (GitHub Pages). With `config.js` setting `BACKEND_EN
   - PINs are stored as PBKDF2-SHA256 hashes (50,000 iterations, built into the function runtime). They used to be bcrypt (bcryptjs), but that was pure JavaScript and about 6 times slower: a class of 30 signing in at once on the test project made some requests hit the function's limit (status 546). A PIN hashed the old way still works and is re-hashed at the student's next correct sign-in. A 4-digit PIN has only 10,000 values, so the real protection is that the hash is never readable and the 5-try lock.
   - If the server answers a sign-in with a 5xx (for example 546 when it is briefly overloaded), the app tries again up to twice, after a short random pause. Joining a class is never retried, because a join that failed after the student was made would come back as a taken nickname.
 - **Saving:** `Store` (store.js) keeps its synchronous API. Its localStorage keys become a cache of the signed-in student's data, filled when a page opens. Every write also goes into an outbox, which `backend.js` sends 1.5 seconds after it changes and then retries until it arrives. Work done offline is kept and sent later. On a shared computer, the next student signing in removes the last student's cached data, but anything they hadn't sent yet is still sent, with their own token.
-- **Teacher view:** sign-in, classes, the class code and end date, classes ending within 30 days, "Show codes" (logged), "Reset PIN", "Reset placement", deleting a student or a class, "Import full export", and a note on what is kept and for how long. The class's data is turned into the same object local mode uses, so the Overview, Detail log, Workshop and both exports are the same.
+- **Teacher view:** sign-in, classes, the class code and end date, classes ending within 30 days, "Show codes" (logged), "Reset PIN", "Reset placement", deleting a student or a class, "Import full export", and a note on what is kept and for how long. The class's data is turned into the same object local mode uses, so the Students page, Reports and every export are the same.
 - **Retention:** program code and output are cleared after 30 days (the hash, category, details and matches stay); classes are deleted after their end date. Both run nightly with pg_cron.
 
 ### How it fits together
@@ -99,6 +99,7 @@ The pages stay static files (GitHub Pages). With `config.js` setting `BACKEND_EN
 | Trace tables and the five searching and sorting units (`trace-tables`, `linear-search`, `binary-search`, `bubble-sort`, `insertion-sort`, `merge-sort`) in every table's unit check, and the task types `trace` and `partial-parsons` in `attempts.task_type` | `supabase/migrations/0010_searching_sorting_trace_units.sql` |
 | The seven A-level programming techniques units (`recursion`, `scope-parameters`, `oop-classes`, `oop-methods`, `oop-encapsulation`, `oop-inheritance`, `debugging`) in every table's unit check (the explainer is content only and needs no column) | `supabase/migrations/0011_a_level_programming_techniques_units.sql` |
 | The five A-level data structures units (`records-tuples`, `stacks-queues`, `linked-lists`, `hash-tables`, `arrays-3d`) in every table's unit check | `supabase/migrations/0012_a_level_data_structures_units.sql` |
+| A class's stage (`classes.stage`: `ks3`, `gcse` or `a-level`; existing classes become `gcse`) | `supabase/migrations/0013_class_stage.sql` |
 | `join-class`, `resume` (no sign-in, 300 requests per IP per 10 minutes) | `supabase/functions/join-class/`, `resume/` |
 | `student-api` (student session token): get/save progress (with the class's open assignments), get assignments, add attempts and events, mark passed, delete my progress | `supabase/functions/student-api/` |
 | `teacher-api` (teacher's Supabase sign-in): reveal codes, reset PIN, reset placement, import | `supabase/functions/teacher-api/` |
@@ -210,7 +211,7 @@ The first time a student opens a unit, they take a short placement test before p
 - Placement attempts don't count towards the adaptive rule (streaks), but they are recorded, classified and matched like any other attempt.
 - The result is shown once ("Quick check done – thank you! You'll start at Level 5 …") on the first practice task. Then it's straight into practice.
 - **Taken once per unit.** A student resetting their own progress keeps their placement result and goes back to their placement starting level.
-- **Teacher reset:** on the teacher view's Overview page, choose a student and unit and press **Reset placement**. The student takes it once more the next time they open the unit. Tasks they've already had are avoided, so they get different ones. The reset is logged.
+- **Teacher reset:** on the teacher view, open the student (select their name on the Students page), choose a unit and press **Reset placement**. The student takes it once more the next time they open the unit. Tasks they've already had are avoided, so they get different ones. The reset is logged.
 - Placement tasks are tagged `placement` in `tasks.json` and are never used in normal practice. There are at least 2 per placement level per unit (192 in total), so one reset never repeats a task.
 - Students who started a unit before placement existed don't take it ("Started before placement" in the teacher view).
 
@@ -752,52 +753,66 @@ All values are named constants at the top of `app.js`:
 - **Backend mode:** `teacher.html` shows only the teacher sign-in form until a confirmed teacher signs in. A student who opens it sees that form and nothing else: no classes, no class data, and none of the student data cached in their browser. Their code and PIN don't work there, because students aren't Supabase users. A signed-in teacher sees only their own classes (row-level security). Teacher sign-up is still open, though: see Known limitations.
 - **Local mode:** `teacher.html` has no sign-in. **Anyone who opens it can see all the data saved in that browser**: every student's name, levels, attempts and code. Removing the link only hides the page. This is a limit of local mode, not a security control.
 
-`teacher.html` starts with the note "Data is stored in this browser only. Results from other devices won't appear here." It warns when the browser's storage is nearly full (about 4 of the 5 MB a site may use). It has five pages, each with its own link:
+`teacher.html` starts with the note "Data is stored in this browser only. Results from other devices won't appear here." (local mode). It warns when the browser's storage is nearly full (about 4 of the 5 MB a site may use). A **side menu** opens its pages: Classes, Students, Assignments, Reports, Task browser and Settings. Each page has its own address (`#classes`, `#students`, …), and the old addresses still work (`#overview` opens Students; `#log` and `#workshop` open Reports). In backend mode the class being looked at is chosen at the top, with who is signed in and Sign out.
 
-**Collapsible sections.** Each section heading (Students in this class, Delete this class, Quick look, Students, Reset placement, the two Workshop tables and Export) is a button that collapses or expands that section, like the unit groups in the student view (`collapse.js`). Every section starts expanded. The collapsed ones are remembered in this browser under `pythonPractice.teacherCollapsedSections`, separate from the student view's key. If storage is blocked, the sections still open and close but start expanded each time.
+**Collapsible sections.** Each section heading (Name and stage, Student logins, Delete this class, Secured score per unit, Exports, Compare classes, Misconceptions workshop and the two workshop tables) is a button that collapses or expands that section, like the unit groups in the student view (`collapse.js`). Every section starts expanded. The collapsed ones are remembered in this browser under `pythonPractice.teacherCollapsedSections`, separate from the student view's key. If storage is blocked, the sections still open and close but start expanded each time.
 
-**Overview (`#overview`, the default)**
+**Classes (`#classes`, backend mode)**
 
-- **Quick look**, above the table:
-  - students with 2+ fails in a row, and the task they're on
-  - the 10 most-failed tasks, each with its failure rate, most common failure category and top misconception matched
-  - the top misconceptions across the class, with the number of attempts and students affected
-- **Student table**: one row per student, one column per unit. Each cell shows the current level, the placement result, **★ Complete** once a level 10 task is passed, and flags for "Too easy used", "Too hard used" and "⚠ 2+ fails in a row". "Fails in a row" is only reset by a pass, so it stays visible after the level drops.
-  - Select any column heading to sort (unit columns sort by level); select it again to reverse.
-  - Filter by name.
-- **Reset placement** for one student in one unit (see Placement test).
+- **Create a class** with a name and a **stage**: KS3, GCSE or A-level (`classes.stage`, migration `0013_class_stage.sql`; classes made before it are GCSE).
+- The chosen class's **class code** (with Copy code) and end date; **Rename** and **Save stage**. The stage decides which units the Students page shows and which sections of the students' unit menu open by default (see [Class stage](#class-stage)).
+- **Student logins**: Show codes (logged), Copy codes, Reset PIN, Delete, Refresh, and **Import full export** (see Importing a full export).
+- **Delete this class**, and what is kept and for how long.
 
-**Detail log (`#log`)**
+**Students (`#students`, the default)**
 
-- One row per attempt (every Check press and every skip), per use of "Show me how" (result `show-me-how`) and per button use, newest first. Columns: time, student, unit, task id, level, result, failure category, misconception matches, hints used, button used, level change, and the code and output (with the expected output) under **Show**.
-- Filter by student, unit, task, category and misconception. "(failed, no match)" shows failed attempts with no misconception match.
-- Only the filtered rows are shown. The export options stay below.
+- The class code card (with Copy code), then a **summary strip**: how many students are green (average secured score 80% or more), amber (50% to 79%) and red (under 50%), and how many have no placed unit yet; then the **class average per unit**. Only placed units count in these (see below).
+- **The table**: one row per student, one column per unit of the class's stage (local mode: GCSE), plus the student's average. Each cell shows the [secured score](#secured-score) and its label in its colour (with "Not secured yet" under a placed unit that isn't secured), the level, the placement result and **★ Complete** once a level 10 task is passed.
+  - **Grey, "Not placed yet"**: a unit the student has started but whose placement test isn't done yet (its placement record is still pending or in progress, the same rule as the app's). It has no score or colour, and doesn't count in the student's average, the green, amber and red counts or the class averages. A unit with no placement test (the searching and sorting units), or one started before placement existed, counts as placed.
+  - **Flags: the student's own button presses**, each with a tooltip and the time of the newest press under it (from the unit's `buttonsUsed` and the button log, which the app already records; no new record). Each button moves the student one level (`BUTTON_JUMP_LEVELS`). They replace the earlier "Too easy used" and "Too hard used" badges, which showed the same presses.
+    - **Too easy** (green): the student pressed "This is too easy" in this unit. "It moved them up one level. Check that their level is right."
+    - **Way too hard** (red): the student pressed "This is way too hard" in this unit. "It moved them down one level. Check that their level is right."
+- Select a column heading to sort (unit columns by secured score); select it again to reverse. Filter by name. Select a name to open that student.
+- The old "2+ fails in a row" panel is gone. How many fails in a row a student has is still on their own page and in the levels export, but it is never a flag or a colour.
 
-**Workshop (`#workshop`)**
+**One student (`#student=<id>`)**: a back link, then **Reset placement** (for any unit, as before), and in backend mode **Reset PIN**, **Rename** (teacher-api `rename_student`, with the same nickname rules and word filter as joining) and **Remove student**. Then the secured score per unit as a bar with its label ("Not placed yet" until its placement is done), the button flags with the time of the newest press, the number of fails in a row (as text), and the newest 30 attempts: the task (a link to it in the Task browser), the result, the time, the hints used, which test failed, and the misconception matched. The full log of every attempt is only in the export.
 
-- For each misconception matched: the tasks it shows up in, the number of attempts and students affected, the failure rate on those tasks, and the list of students, to plan a workshop.
-- For each task with failed attempts: the number of failed attempts with no misconception match ("unmatched"), the unmatched rate as a percentage of that task's failures, whether the task has buggy variants, and a **View** button. View shows those unmatched attempts with the code and output side by side, which helps when writing new buggy variants.
+**Assignments (`#assignments`, backend mode)**: see [Class assignments](#class-assignments-backend-mode). The form also has **Five tasks from one unit**: choose a unit and a level, and **Add 5 tasks** fills in five practice tasks from them (never placement tasks), which can then be changed. Each assignment lists its tasks.
 
-**Assignments (`#assignments`, backend mode)**: see [Class assignments](#class-assignments-backend-mode).
+**Reports (`#reports`)**
 
-**Task browser (`#tasks`)**
+- **Exports**, all free:
+  - **Class scores (CSV)**: `python-practice-class-scores-<date>.csv`, each student's average and each stage unit's secured score, label and level.
+  - **Full attempt log (CSV)**: `python-practice-full-data-<date>.csv` with every attempt, skip, use of "Show me how", level change, button use and placement result (and reset) for the whole class, one row each, with `data-dictionary.csv`. Two columns were added at the end: `hint_type` and `variant_fingerprint`. Then `assignment_id` was added after them, with the new `phase` value `assignment` (backend mode). Every earlier column and value is unchanged. The `record_type` column says which. The browser may ask before allowing two downloads.
+  - **Data dictionary**: `data-dictionary.csv` on its own. It explains every column and every coded value (record types, failure categories, error kinds, level-change reasons and misconception ids) in plain English, so an AI tool can analyse the data without other context.
+  - **Levels table**, **Detail log** and **Workshop tables (CSV)**: the three exports the old pages had, with the same columns (the levels table uses the Students page's name filter; the detail log has every row, including code and output).
+  - **All level changes**: every level change, newest first, with the reason, under a fold.
+- **Compare classes**: the teacher's own classes only, each one's average secured score per unit, side by side (local mode: this browser).
+- **Misconceptions workshop**: the 10 most-failed tasks (failure rate, most common failure category, top misconception) and the top misconceptions across the class; then for each misconception matched, the tasks it shows up in, the attempts and students affected, the failure rate on those tasks and the students; then each task's failed attempts with no misconception match, with **View** (the code and output side by side); then the misconceptions not matched yet. Every task name opens that task in the Task browser.
+
+**Task browser (`#tasks`, or `#tasks=<task id>` to open a task)**
 
 - A search box finds a task by its id (`var-L9d`, in any case; an old id from `former_ids`; a template variant id like `d-var-L9d#123`; or an id with a number on the end like `var-l9d-2`) or by words in its title.
-- For the chosen task it shows:
-  - the question as students see it (for Parsons tasks, the lines they get)
-  - the starter code
-  - the **Expected output** box exactly as students see it (on predict tasks, which students see without the box, the output on its own)
-  - every test, marked as the example or hidden (teacher only)
-  - the hints
-  - the **model solution** behind a Show / Hide button
-- In backend mode, while an assignment form is open, an **Add to the assignment** button adds the task to it.
-- Everything is read from `tasks.json`, the data the practice page uses. The browser is in `task-browser.js`, which only `teacher.html` loads, so no student page ever shows a model solution.
+- The task opens in **the student's own practice view** (`practice.html?preview=<task id>`, in a frame): the code editor, Run, the same output and feedback. **Hint (free)** and **Check answer** can be used as often as the teacher likes; **Show solution** opens the model solution below. **Teacher practice is never recorded**: `app.js` `stopRecording` replaces every Store function that writes before the page reads anything, so no attempt, pass, progress, level change, button use or event is saved in the browser or sent to the server, and the page only runs inside `teacher.html`. A feature test calls every Store function after `stopRecording` and checks nothing was saved.
+- Below it: the question as students see it, the starter code, the **Expected output** box, every test (teacher only), the hints, the explainer and the **model solution** behind a Show / Hide button. In backend mode, while an assignment form is open, **Add to the assignment** adds the task to it.
+- The model solution is in `task-browser.js`, which only `teacher.html` loads, so no student page ever shows one.
 
-**Export** (below every page)
+**Settings (`#settings`, backend mode)**: **Change password**: the current password (checked by signing in with it again), then the new one twice. Sign-up asks for the password twice as well.
 
-- **Export full data** downloads `python-practice-full-data-<date>.csv` with every attempt, skip, use of "Show me how", level change, button use and placement result (and reset) for the whole class, one row each. Two columns were added at the end: `hint_type` and `variant_fingerprint`. Then `assignment_id` was added after them, with the new `phase` value `assignment` (backend mode). Every earlier column and value is unchanged. The `record_type` column says which. It also downloads `data-dictionary.csv`, which explains every column and every coded value (record types, failure categories, error kinds, level-change reasons and misconception ids) in plain English, so an AI tool can analyse the data without other context. The browser may ask before allowing two downloads.
-- **Export filtered view** downloads only what the current page shows: the student table with the name filter, the filtered detail log including code and output, or the two workshop tables.
-- **All level changes**: every level change, newest first, with the reason, under a fold below the export buttons.
+### Secured score
+
+`secured.js` works out a unit's secured score from the student's attempts. The teacher view (`teacher-data.js`) and the student view (`home.js`) both use it, so they always agree.
+
+- A **level 10 pass** is a pass in endless mode, or a pass of a level 10 task on the ladder, with **no hints**. Placement and assignment passes don't count.
+- **Two** level 10 passes give **100%** (Secured). Before that the unit isn't secured: once its placement is done, the teacher's table shows it as 0%, "Not secured yet"; before its placement it is grey, "Not placed yet".
+- From 100% the score drops **5 points for each full week** since the last level 10 pass, but never below the **floor**. One more level 10 pass brings it back to 100%.
+- The floor is 50% the first time the unit reaches 100%, and 10 points higher each time it comes back to 100% (60%, 70%, …), up to **95%**. A pass while the score is still 100% keeps it fresh but doesn't raise the floor.
+- Colour bands, each shown with its label: gold, glowing, **100% Secured**; light green **95% Fresh**; green **80–90% Fading**; amber **50–75% Revisit soon**; red **under 50% Revisit now**.
+- In the student view a secured unit glows gold at 100% and shows its colour and label as the score falls. A unit with a level 10 pass that isn't secured yet keeps its "★ Level 10 passed" note.
+
+### Class stage
+
+A class's stage (`classes.stage`: `ks3`, `gcse` or `a-level`) decides which units the Students page shows and which sections of its students' unit menu open by default: KS3 opens Programming fundamentals and Advanced programming; GCSE adds Validation, and Searching and sorting; A-level opens every section. Students can still open any section. The stage reaches the student app through student-api `get_progress` (`student.class_stage`) and is kept with the student's other cached data (`Store.classStage`). The first time a stage is seen on a computer, or when the teacher changes it, the open and closed sections start again from the stage (`Collapse.resetForStage`); after that the student's own opening and closing is kept. Local mode has no class, so every section starts open, as before. A server without migration 0013 sends no stage, and everything works as before (the teacher view shows every class as GCSE).
 
 ## Re-checking past attempts with new buggy variants (`recheck.py`)
 
@@ -978,7 +993,8 @@ The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, n
 | `practice.html`, `app.js` | Practice session for one unit, or Endless mode: task types, hints, the editor, the adaptive rules and their constants |
 | `progress.html`, `progress.js` | Progress summary and skill drill-down |
 | `endless.html`, `endless.js` | Endless mode set-up: choosing units |
-| `teacher.html`, `teacher.js` | Teacher view (Overview, Detail log, Workshop, Assignments, Task browser) and export |
+| `teacher.html`, `teacher.js` | Teacher view: a side menu of Classes, Students, one student, Assignments, Reports (exports, compare classes, the misconceptions workshop), Task browser (with teacher practice) and Settings |
+| `secured.js` | The secured score of a unit and its colour bands (shared by the teacher view and the student view) |
 | `collapse.js` | Collapsible sections, shared by the student view's unit groups and the teacher view's sections (each remembered under its own localStorage key) |
 | `task-view.js` | The Expected output box and example test (practice page and Task browser), and the task search |
 | `task-browser.js` | The teacher's Task browser, with the model solutions (loaded by `teacher.html` only) |
@@ -997,7 +1013,7 @@ The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, n
 | `tools/add-a-level-data-structures-misconceptions.js`, `tools/add-a-level-data-structures-templates.js` | One-off: the data structures units' fifteen misconceptions, and their combined and from-scratch templates |
 | `tests/sql/a-level-data-structures-units.sql` | SQL test for migration 0012 (the five data structures units in every unit check) |
 | `tools/archive/print-commas.js`, `tools/archive/print-commas-templates.js`, `tools/archive/casting-words.js`, `tools/archive/replace-sep-end.js`, `tools/archive/replace-types-round-if.js` | Archived: one-off rewrites that were each run once (the printing rule's commas and casting, `sep=`/`end=`, and the Data types tasks that used `round()` or `if`), kept as a record. Nothing needs them to rebuild anything |
-| `teacher-data.js` | Teacher view sums, filters, full export and data dictionary (no DOM, so it's tested in Node) |
+| `teacher-data.js` | Teacher view sums, filters, the secured score table and flags, the student page, the exports and data dictionary (no DOM, so it's tested in Node) |
 | `misconceptions.json` | The fixed list of misconception ids, names and descriptions |
 | `recheck.py` | Re-runs misconception matching over an exported full-data CSV |
 | `tools/build-variants.js` | Stores each buggy variant's outputs in `tasks.json` |

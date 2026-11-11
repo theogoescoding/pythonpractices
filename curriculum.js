@@ -338,6 +338,18 @@
   const A_LEVEL_UNIT_IDS = (UNIT_GROUPS.find((g) => g.id === "a-level") || { units: [] }).units;
   const isALevel = (unitId) => A_LEVEL_UNIT_IDS.includes(unitId);
 
+  // A class's stage (classes.stage, migration 0013): which unit groups its students' menu opens by default, and which
+  // units the teacher's Students page shows. Classes made before 0013, and local mode, are GCSE.
+  const STAGES = {
+    ks3: { id: "ks3", label: "KS3", groups: ["fundamentals", "advanced"] },
+    gcse: { id: "gcse", label: "GCSE", groups: ["fundamentals", "advanced", "validation", "searching-sorting"] },
+    "a-level": { id: "a-level", label: "A-level", groups: UNIT_GROUPS.map((g) => g.id) },
+  };
+  const DEFAULT_STAGE = "gcse";
+  const stageOf = (id) => STAGES[id] || STAGES[DEFAULT_STAGE];
+  const stageGroups = (id) => stageOf(id).groups;
+  const stageUnits = (id) => UNITS.map((u) => u.id).filter((u) => UNIT_GROUPS.some((g) => stageGroups(id).includes(g.id) && g.units.includes(u)));
+
   return { UNITS, UNIT_GROUPS, LEVELS, TYPE_INFO, SCRATCH_LEVEL, unitById, unitTitle, levelName, levelType, levelTypes, hasScratch, hasPlacement,
-    A_LEVEL_UNIT_IDS, isALevel };
+    A_LEVEL_UNIT_IDS, isALevel, STAGES, DEFAULT_STAGE, stageOf, stageGroups, stageUnits };
 });

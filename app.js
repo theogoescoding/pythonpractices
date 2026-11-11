@@ -647,6 +647,27 @@ if (typeof module === "object" && module.exports) {
   };
 }
 
+// ---------- Teacher practice ----------
+// practice.html?preview=<task id>, opened inside teacher.html (its Task browser): one task, practised exactly as a
+// student would, with free hints and as many checks as the teacher likes. Nothing is ever recorded: stopRecording
+// replaces every Store function that writes, so no attempt, pass, progress, level change, button use, placement or
+// assignment work is saved in this browser or sent to the server (backend.js only sends what those functions queue).
+const RECORDING_FUNCTIONS = ["writeJson", "addStudent", "setCurrent", "saveProgress", "logLevelChange", "logAttempt", "logButton", "logPlacement",
+  "saveAssignments", "saveAssignmentWork", "saveClassStage"];
+const PREVIEW_STUDENT = { id: "teacher-practice", name: "Teacher practice (not recorded)" };
+function stopRecording(store) {
+  for (const name of RECORDING_FUNCTIONS) {
+    if (typeof store[name] !== "function") continue;
+    store[name] = name === "logAttempt" ? (studentId, record) => Object.assign({ id: "not-recorded" }, record) : () => true;
+  }
+  return store;
+}
+// Teacher practice only runs inside teacher.html on this site, never as a page of its own.
+function previewAllowed(win) {
+  try { return win.parent !== win && /\/teacher\.html$/.test(win.parent.location.pathname); } catch (e) { return false; }
+}
+if (typeof module === "object" && module.exports) Object.assign(module.exports, { RECORDING_FUNCTIONS, PREVIEW_STUDENT, stopRecording, previewAllowed });
+
 // ===================== Browser app (practice.html only) =====================
 if (typeof document !== "undefined" && document.getElementById("task")) Store.whenReady(function () {
 
@@ -654,10 +675,17 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   // practice.html?unit=maths              practise one unit
   // practice.html?mode=endless&units=a,b  endless mode over the ticked (and completed) units
   // practice.html?assignment=<id>        a class assignment (backend mode): practice only, see ASSIGNMENT RULES below
+  // practice.html?preview=<task id>     teacher practice inside teacher.html: nothing is recorded (see stopRecording)
   const params = new URLSearchParams(location.search);
-  const student = Store.currentStudent();
-  const assignmentId = params.get("assignment");
-  const assignment = assignmentId && student ? Store.assignments(student.id).find((a) => a.id === assignmentId) || null : null;
+  const previewId = params.get("preview");
+  const preview = !!previewId && previewAllowed(self);
+  if (previewId && !preview) { location.replace("app.html"); return; }
+  if (preview) { stopRecording(Store); document.body.classList.add("teacher-practice"); }
+  // Teacher practice runs as a one-task assignment: practice only, free hints, unlimited checks, no level changes.
+  const student = preview ? PREVIEW_STUDENT : Store.currentStudent();
+  const assignmentId = preview ? "teacher-practice" : params.get("assignment");
+  const assignment = preview ? { id: assignmentId, title: "Teacher practice", description: "Nothing you do here is recorded or saved.", task_ids: [previewId] }
+    : assignmentId && student ? Store.assignments(student.id).find((a) => a.id === assignmentId) || null : null;
   const inAssignment = !!assignmentId;
   const endless = !inAssignment && params.get("mode") === "endless";
   const unitId = endless || inAssignment ? null : params.get("unit");
@@ -685,7 +713,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   const levelIn = (u) => (progress.units[u] ? progress.units[u].level : null);
 
   Store.setupDisplaySettings();
-  const pageTitle = inAssignment ? "Assignment: " + (assignment ? assignment.title : "not found") : endless ? "Endless mode" : unit.title;
+  const pageTitle = preview ? "Teacher practice" : inAssignment ? "Assignment: " + (assignment ? assignment.title : "not found") : endless ? "Endless mode" : unit.title;
   document.title = pageTitle + " – Python Practice";
   document.getElementById("unit-title").textContent = pageTitle;
   document.getElementById("student-name").textContent = student.name;
@@ -1077,7 +1105,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
           return '<li><button type="button" class="secondary assignment-task' + (c && c.taskId === t.id ? " current" : "") + '" data-assignment-task="' + i + '"' +
             (c && c.taskId === t.id ? ' aria-current="step"' : "") + ">" + (i + 1) + ". " + esc(t.title) + ' <span class="small">· ' + esc(mark) + "</span></button></li>";
         }).join("");
-      $("streak-info").textContent = "This is practice set by your teacher. It doesn't change your level or your progress: try as often as you like, and hints are free.";
+      $("streak-info").textContent = preview ? "Teacher practice: nothing you do here is recorded or saved. Hints are free, and you can check as often as you like."
+        : "This is practice set by your teacher. It doesn't change your level or your progress: try as often as you like, and hints are free.";
       return;
     }
     if (inPlacement()) {
@@ -1118,7 +1147,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
 
   function header(t) {
     return '<h2 id="task-title">' + esc(t.title) + "</h2>" +
-      '<p class="meta">' + (inAssignment ? '<span class="cat-tag">Assignment · task ' + (work.index + 1) + " of " + assignmentTasks.length + "</span>" : "") +
+      '<p class="meta">' + (preview ? '<span class="cat-tag">Teacher practice · not recorded</span>' : inAssignment ? '<span class="cat-tag">Assignment · task ' + (work.index + 1) + " of " + assignmentTasks.length + "</span>" : "") +
         unitsOf(t).map((u) => '<span class="cat-tag">' + esc(unitTitle(u)) + "</span>").join("") +
         " Level " + t.level + " · " + esc(t.type === "scratch" ? "Write from scratch" : levelName(t.level, t.unit)) + " · Task " + esc(t.id) + "</p>" +
       '<p class="description">' + esc(t.description) + "</p>" +
@@ -2107,8 +2136,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
         resolveAssignmentTasks();
         if (!assignment || !assignmentTasks.length) {
           $("unit-levels").innerHTML = "";
-          $("task").innerHTML = '<p class="problem">' + (assignment ? "This assignment has no tasks yet." : "This assignment is closed, or it couldn't be found.") +
-            ' <a href="app.html">Back to your units</a></p>';
+          $("task").innerHTML = '<p class="problem">' + (preview ? "That task isn't in the task bank." : assignment ? "This assignment has no tasks yet." : "This assignment is closed, or it couldn't be found.") +
+            (preview ? "" : ' <a href="app.html">Back to your units</a>') + "</p>";
           return;
         }
         const open = work.current && assignmentTasks.findIndex((t) => t.id === work.current.taskId);

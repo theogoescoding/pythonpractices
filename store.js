@@ -114,6 +114,11 @@
   // which tasks were tried) is kept in this browser only: it is practice, so it never touches the saved progress.
   const assignments = (studentId) => readJson(ASSIGNMENTS_PREFIX + studentId) || [];
   const saveAssignments = (studentId, list) => writeJson(ASSIGNMENTS_PREFIX + studentId, list);
+  // The stage of the student's class (ks3, gcse or a-level), as get_progress sent it; null in local mode, or before
+  // the server stores stages (migration 0013). home.js opens the stage's sections of the unit menu.
+  const CLASS_STAGE_PREFIX = "pyPractice.classStage.v1."; // + student id
+  const classStage = (studentId) => readJson(CLASS_STAGE_PREFIX + studentId) || null;
+  const saveClassStage = (studentId, stage) => writeJson(CLASS_STAGE_PREFIX + studentId, stage || null);
   const loadAssignmentWork = (studentId, assignmentId) => (readJson(ASSIGNMENT_WORK_PREFIX + studentId) || {})[assignmentId] || null;
   function saveAssignmentWork(studentId, assignmentId, work) {
     const all = readJson(ASSIGNMENT_WORK_PREFIX + studentId) || {};
@@ -252,5 +257,6 @@
     loadProgress, saveProgress, logLevelChange, levelLog, setupDisplaySettings,
     logAttempt, attempts, logButton, buttonLog, logPlacement, placementLog, storageUsed,
     ASSIGNMENTS_PREFIX, ASSIGNMENT_WORK_PREFIX, assignments, saveAssignments, loadAssignmentWork, saveAssignmentWork,
+    CLASS_STAGE_PREFIX, classStage, saveClassStage,
   };
 });

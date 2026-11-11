@@ -43,151 +43,265 @@
         <input type="email" id="tb-new-email" class="text-input" autocomplete="username">
         <label for="tb-new-password" class="editor-label">Password (at least 10 characters)</label>
         <input type="password" id="tb-new-password" class="text-input" autocomplete="new-password" minlength="10">
+        <label for="tb-new-password2" class="editor-label">Type the password again</label>
+        <input type="password" id="tb-new-password2" class="text-input" autocomplete="new-password" minlength="10">
         <p><button type="submit" class="primary">Create account</button></p>
         <p class="small">Already have an account? <a href="#signin" id="tb-to-signin">Sign in</a></p>
       </form>
       <p id="tb-auth-status" role="alert" hidden></p>
     </section>
 
-    <!-- ===== Backend mode: classes and students ===== -->
-    <section id="tb-classes" hidden aria-labelledby="tb-classes-h">
+    <!-- ===== Backend mode: the class being looked at, and who is signed in ===== -->
+    <section id="tb-classes" class="class-bar" hidden aria-label="Your class">
       <div class="teacher-controls">
-        <h2 id="tb-classes-h" style="margin:0">My classes</h2>
         <label>Class <select id="tb-class"></select></label>
         <span class="small">Signed in as <strong id="tb-who"></strong></span>
         <button type="button" id="tb-signout" class="secondary">Sign out</button>
       </div>
       <div id="tb-ending" class="notice notice-down" hidden></div>
-      <form id="tb-new-class" class="teacher-controls" novalidate>
-        <label>New class name <input type="text" id="tb-new-class-name" class="text-input" style="width:auto" maxlength="100"></label>
-        <button type="submit" class="secondary">Create class</button>
-      </form>
       <p id="tb-status" role="status"></p>
-
-      <div id="tb-class-info" hidden>
-        <p>Class code: <strong id="tb-code" class="class-code"></strong>
-          <span class="small">Students join with this code.</span> ·
-          Ends: <strong id="tb-end"></strong>
-          <span class="small">(then the class, its students and all their data are deleted)</span></p>
-        <section class="teacher-section" data-collapse="class-students">
-        <h3>Students in this class</h3>
-        <div class="teacher-controls">
-          <button type="button" id="tb-show-codes" class="secondary">Show codes</button>
-          <button type="button" id="tb-copy-codes" class="secondary" hidden>Copy codes</button>
-          <button type="button" id="tb-reload" class="secondary">Refresh</button>
-        </div>
-        <p class="small">Showing codes is logged. PINs are never shown again after they are made: use Reset PIN if a student forgets theirs.</p>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th scope="col">Nickname</th><th scope="col">Login code</th><th scope="col">How they joined</th><th scope="col">PIN</th><th scope="col">Actions</th></tr></thead>
-            <tbody id="tb-students"></tbody>
-          </table>
-        </div>
-        <div id="tb-pin-result" role="status"></div>
-
-        <div id="tb-import"></div>
-        </section>
-
-        <section class="teacher-section" data-collapse="class-delete">
-        <h3>Delete this class</h3>
-        <p class="small">Deletes the class, its students and all their progress and attempts for good.</p>
-        <p><button type="button" id="tb-delete-class" class="danger">Delete class</button>
-          <span id="tb-delete-confirm" hidden>Type the class name to confirm: <input type="text" id="tb-delete-name" class="text-input" style="width:auto" autocomplete="off">
-            <button type="button" id="tb-delete-yes" class="danger">Delete for good</button>
-            <button type="button" id="tb-delete-no" class="secondary">Cancel</button></span></p>
-        </section>
-      </div>
-
-      <details class="retention-note">
-        <summary>What is kept, and for how long</summary>
-        <ul>
-          <li><strong>Nicknames, progress and attempts</strong> are kept until the class ends (its end date) or is deleted. A student can delete all their own progress from the landing page; you can delete a single student or the whole class here.</li>
-          <li><strong>Program code and output</strong> from failed attempts are kept in full for 30 days, then cleared every night. The failure category, misconception matches and a fingerprint of the code stay.</li>
-          <li><strong>Login codes</strong> are kept encrypted until the class is deleted or ends. Only you can reveal them (with "Show codes"), and each reveal is logged.</li>
-          <li><strong>PINs</strong> are stored only as a one-way hash. No one can see them, not even you.</li>
-          <li>The data is held by Supabase in the EU (Ireland).</li>
-        </ul>
-      </details>
     </section>
 
-    <div id="teacher-main">
-    <nav class="tab-nav" aria-label="Teacher view pages">
-      <a href="#overview" data-page="overview">Overview</a>
-      <a href="#log" data-page="log">Detail log</a>
-      <a href="#workshop" data-page="workshop">Workshop</a>
+    <div id="teacher-main" class="teacher-shell">
+    <nav class="side-nav" aria-label="Teacher view pages">
+      <a href="#classes" data-page="classes">Classes</a>
+      <a href="#students" data-page="students">Students</a>
       <a href="#assignments" data-page="assignments">Assignments</a>
+      <a href="#reports" data-page="reports">Reports</a>
       <a href="#tasks" data-page="tasks">Task browser</a>
+      <a href="#settings" data-page="settings">Settings</a>
     </nav>
+    <div class="teacher-pages">
 
-    <!-- ===== Overview ===== -->
-    <section id="page-overview" aria-labelledby="page-title">
-      <h2 id="page-title" tabindex="-1">Overview</h2>
-      <section class="teacher-section" data-collapse="quick-look">
-      <h3>Quick look</h3>
-      <div id="quick-look" class="quick-look" aria-live="polite"></div>
-      </section>
+    <!-- ===== Classes ===== -->
+    <section id="page-classes" aria-labelledby="classes-title" hidden>
+      <h2 id="classes-title" tabindex="-1">Classes</h2>
+      <p id="cl-local" class="small" hidden>Classes need backend mode (the class server). In this browser, every student who has used it is shown on the Students page.</p>
+      <div id="cl-main">
+        <form id="tb-new-class" class="teacher-controls" novalidate>
+          <label>New class name <input type="text" id="tb-new-class-name" class="text-input" style="width:auto" maxlength="100"></label>
+          <label>Stage <select id="tb-new-class-stage"><option value="ks3">KS3</option><option value="gcse" selected>GCSE</option><option value="a-level">A-level</option></select></label>
+          <button type="submit" class="secondary">Create class</button>
+        </form>
+
+        <div id="tb-class-info" hidden>
+          <div class="code-card">
+            <div><span class="small">Class code: students join with it</span><br><strong id="tb-code" class="class-code big-code"></strong></div>
+            <button type="button" class="secondary" data-copy-code>Copy code</button>
+          </div>
+          <p>Ends: <strong id="tb-end"></strong> <span class="small">(then the class, its students and all their data are deleted)</span></p>
+
+          <section class="teacher-section" data-collapse="class-settings">
+          <h3>Name and stage</h3>
+          <div class="teacher-controls">
+            <label>Class name <input type="text" id="tb-class-name" class="text-input" style="width:auto" maxlength="100"></label>
+            <button type="button" id="tb-rename-class" class="secondary">Rename</button>
+          </div>
+          <div class="teacher-controls">
+            <label>Stage <select id="tb-stage"><option value="ks3">KS3</option><option value="gcse">GCSE</option><option value="a-level">A-level</option></select></label>
+            <button type="button" id="tb-stage-save" class="secondary">Save stage</button>
+          </div>
+          <p class="small">The stage decides which units the Students page shows, and which sections of the unit menu open by default for your students
+            (KS3: Programming fundamentals and Advanced programming; GCSE: those, Validation, and Searching and sorting; A-level: every section).
+            Changing it resets your students' open and closed sections the next time they open the app. They can still open any section.</p>
+          </section>
+
+          <section class="teacher-section" data-collapse="class-students">
+          <h3>Student logins</h3>
+          <div class="teacher-controls">
+            <button type="button" id="tb-show-codes" class="secondary">Show codes</button>
+            <button type="button" id="tb-copy-codes" class="secondary" hidden>Copy codes</button>
+            <button type="button" id="tb-reload" class="secondary">Refresh</button>
+          </div>
+          <p class="small">Showing codes is logged. PINs are never shown again after they are made: use Reset PIN if a student forgets theirs.</p>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th scope="col">Nickname</th><th scope="col">Login code</th><th scope="col">How they joined</th><th scope="col">PIN</th><th scope="col">Actions</th></tr></thead>
+              <tbody id="tb-students"></tbody>
+            </table>
+          </div>
+          <div id="tb-pin-result" role="status"></div>
+
+          <div id="tb-import"></div>
+          </section>
+
+          <section class="teacher-section" data-collapse="class-delete">
+          <h3>Delete this class</h3>
+          <p class="small">Deletes the class, its students and all their progress and attempts for good.</p>
+          <p><button type="button" id="tb-delete-class" class="danger">Delete class</button>
+            <span id="tb-delete-confirm" hidden>Type the class name to confirm: <input type="text" id="tb-delete-name" class="text-input" style="width:auto" autocomplete="off">
+              <button type="button" id="tb-delete-yes" class="danger">Delete for good</button>
+              <button type="button" id="tb-delete-no" class="secondary">Cancel</button></span></p>
+          </section>
+        </div>
+
+        <details class="retention-note">
+          <summary>What is kept, and for how long</summary>
+          <ul>
+            <li><strong>Nicknames, progress and attempts</strong> are kept until the class ends (its end date) or is deleted. A student can delete all their own progress from the landing page; you can delete a single student or the whole class here.</li>
+            <li><strong>Program code and output</strong> from failed attempts are kept in full for 30 days, then cleared every night. The failure category, misconception matches and a fingerprint of the code stay.</li>
+            <li><strong>Login codes</strong> are kept encrypted until the class is deleted or ends. Only you can reveal them (with "Show codes"), and each reveal is logged.</li>
+            <li><strong>PINs</strong> are stored only as a one-way hash. No one can see them, not even you.</li>
+            <li>The data is held by Supabase in the EU (Ireland).</li>
+          </ul>
+        </details>
+      </div>
+    </section>
+
+    <!-- ===== Students (the default page) ===== -->
+    <section id="page-students" aria-labelledby="page-title" hidden>
+      <h2 id="page-title" tabindex="-1">Students</h2>
+      <p id="st-stage" class="small"></p>
+      <div id="st-code-card" class="code-card" hidden>
+        <div><span class="small">Class code</span><br><strong id="st-code" class="class-code big-code"></strong></div>
+        <button type="button" class="secondary" data-copy-code>Copy code</button>
+      </div>
+      <div id="st-summary" class="rag-tiles" aria-live="polite"></div>
+      <div id="st-averages" class="unit-averages"></div>
 
       <section class="teacher-section" data-collapse="students">
-      <h3>Students</h3>
-      <p class="small">One row per student, one column per unit. Each cell shows the current level, the placement result,
-        <span class="badge-complete">★ Complete</span> once a level 10 task is passed, and flags for the
-        "This is too easy" and "This is way too hard" buttons and for <span class="flag flag-alert">⚠ 2+ fails in a row</span>.</p>
+      <h3>Secured score per unit</h3>
+      <p class="small">One row per student, one column per unit for this class's stage. Each cell shows the secured score and its label, the level,
+        the placement result, <span class="badge-complete">★ Complete</span> once a level 10 task is passed, and these flags, with the time of the newest press:</p>
+      <ul class="small flag-key">
+        <li><span class="flag flag-easy">Too easy</span> the student pressed "This is too easy" in this unit, which moved them up one level: check that their level is right</li>
+        <li><span class="flag flag-hard">Way too hard</span> the student pressed "This is way too hard" in this unit, which moved them down one level: check that their level is right</li>
+      </ul>
       <div class="teacher-controls">
         <label>Filter by name <input type="search" id="name-filter" class="text-input" style="width:auto" autocomplete="off"></label>
       </div>
       <div class="table-wrap">
         <table id="overview-table">
-          <caption class="small" style="text-align:left; padding:.5rem .7rem">Select a column heading to sort. Select it again to reverse the order. Unit columns sort by level.</caption>
+          <caption class="small" style="text-align:left; padding:.5rem .7rem">Select a column heading to sort. Select it again to reverse the order. Unit columns sort by secured score. Select a name to open that student.</caption>
           <thead><tr id="overview-head"></tr></thead>
           <tbody id="overview-rows"></tbody>
         </table>
       </div>
+      <p class="small rag-key">Colour key: <span class="rag rag-gold">100% Secured</span> <span class="rag rag-fresh">95% Fresh</span>
+        <span class="rag rag-fading">80–90% Fading</span> <span class="rag rag-soon">50–75% Revisit soon</span> <span class="rag rag-now">under 50% Revisit now</span>
+        <span class="rag rag-none">grey: Not placed yet</span>.
+        A unit stays grey until the student has done its placement test; only placed units count in the averages and the green, amber and red counts.
+        A unit is secured after two level 10 passes with no hints. It then drops 5 points a week, never below its floor, and one more
+        level 10 pass with no hints brings it back to 100%. A placed unit that isn't secured yet shows 0%.</p>
       </section>
+    </section>
 
-      <section class="teacher-section" data-collapse="reset-placement">
-      <h3>Reset placement</h3>
-      <p class="small">The student takes the placement test once more, with different tasks, the next time they open the unit. Their other progress is kept. The reset is logged.</p>
-      <div class="teacher-controls">
-        <label>Student <select id="reset-student"></select></label>
+    <!-- ===== One student ===== -->
+    <section id="page-student" aria-labelledby="student-title" hidden>
+      <p><a href="#students" id="sd-back">← Back to the class</a></p>
+      <h2 id="student-title" tabindex="-1">Student</h2>
+      <p id="sd-meta" class="small"></p>
+      <div class="teacher-controls" id="sd-actions">
         <label>Unit <select id="reset-unit"></select></label>
         <button type="button" id="reset-placement" class="secondary">Reset placement</button>
         <span id="reset-confirm" hidden>Are you sure?
           <button type="button" id="reset-yes" class="danger">Yes, reset</button>
           <button type="button" id="reset-no" class="secondary">Cancel</button></span>
+        <button type="button" id="sd-pin" class="secondary" data-backend>Reset PIN</button>
+        <button type="button" id="sd-rename" class="secondary" data-backend>Rename</button>
+        <button type="button" id="sd-remove" class="danger" data-backend>Remove student</button>
       </div>
+      <input type="hidden" id="reset-student">
+      <div id="sd-rename-form" class="teacher-controls" hidden>
+        <label>New nickname <input type="text" id="sd-new-name" class="text-input" style="width:auto" maxlength="20" autocomplete="off"></label>
+        <button type="button" id="sd-rename-save" class="primary">Save name</button>
+        <button type="button" id="sd-rename-cancel" class="secondary">Cancel</button>
+      </div>
+      <p id="sd-remove-confirm" hidden>Remove <strong id="sd-remove-name"></strong> and all their data for good?
+        <button type="button" id="sd-remove-yes" class="danger">Yes, remove</button>
+        <button type="button" id="sd-remove-no" class="secondary">Cancel</button></p>
       <p id="reset-status" class="small" role="status"></p>
+      <div id="sd-result" role="status"></div>
+      <h3>Secured score per unit</h3>
+      <div id="sd-scores" class="score-bars"></div>
+      <h3>Recent attempts</h3>
+      <p class="small">The newest checks, skips and uses of "Show me how". The full log of every attempt is in the export (Reports).</p>
+      <div id="sd-recent"></div>
+    </section>
+
+    <!-- ===== Assignments (backend mode) ===== -->
+    <section id="page-assignments" aria-labelledby="assignments-title" hidden>
+      <h2 id="assignments-title" tabindex="-1">Assignments</h2>
+      <p class="small">An assignment is a set of tasks for the whole class. Every student sees the open ones at the top of their home page.
+        It is practice only: no score, no effect on their level or progress, unlimited tries, free hints, and "Show me how" on every task.
+        Their work is still recorded, so you can see below what happened.</p>
+      <p id="as-local" class="notice notice-down" hidden>Assignments need backend mode (the class server), because students must be able to see them on their own computers.</p>
+      <div id="as-main">
+        <p><button type="button" id="as-new" class="primary">Create an assignment</button></p>
+        <form id="as-form" class="task-card" hidden novalidate aria-labelledby="as-form-h">
+          <h3 id="as-form-h" tabindex="-1">New assignment</h3>
+          <label for="as-title" class="editor-label">Title</label>
+          <input type="text" id="as-title" class="text-input" maxlength="100" autocomplete="off">
+          <label for="as-description" class="editor-label">Short description (students see it)</label>
+          <textarea id="as-description" class="text-input" rows="2" maxlength="1000"></textarea>
+          <fieldset class="five-tasks">
+            <legend>Five tasks from one unit</legend>
+            <div class="teacher-controls">
+              <label>Unit <select id="as-five-unit"></select></label>
+              <label>Level <select id="as-five-level"></select></label>
+              <button type="button" id="as-five" class="secondary">Add 5 tasks</button>
+            </div>
+            <p id="as-five-status" class="small" role="status"></p>
+          </fieldset>
+          <label for="as-tasks" class="editor-label">Task ids, in order (one per line, or separated by commas)</label>
+          <textarea id="as-tasks" class="text-input" rows="4" spellcheck="false" aria-describedby="as-tasks-help"></textarea>
+          <p id="as-tasks-help" class="small">Any bank task: predict, Parsons, fill in the blanks or write (not placement tasks). Find ids in the
+            <a href="#tasks">Task browser</a>, which also has an "Add to the assignment" button.</p>
+          <div id="as-task-check" aria-live="polite"></div>
+          <p id="as-form-status" role="alert" hidden></p>
+          <p><button type="submit" class="primary" id="as-save">Save and open it for students</button>
+            <button type="button" id="as-cancel" class="secondary">Cancel</button></p>
+        </form>
+        <div id="as-list" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- ===== Reports ===== -->
+    <section id="page-reports" aria-labelledby="reports-title" hidden>
+      <h2 id="reports-title" tabindex="-1">Reports</h2>
+
+      <section class="teacher-section" data-collapse="export">
+      <h3>Exports</h3>
+      <div class="teacher-controls">
+        <button type="button" id="export-scores" class="primary">Class scores (CSV)</button>
+        <button type="button" id="export-full" class="secondary">Full attempt log (CSV)</button>
+        <button type="button" id="export-dictionary" class="secondary">Data dictionary</button>
+      </div>
+      <div class="teacher-controls">
+        <button type="button" id="export-levels" class="secondary">Levels table (CSV)</button>
+        <button type="button" id="export-log" class="secondary">Detail log (CSV)</button>
+        <button type="button" id="export-workshop" class="secondary">Workshop tables (CSV)</button>
+      </div>
+      <p class="small">Every export is free. <strong>Class scores</strong>: each student's secured score, label and level in every unit of the class's stage.
+        <strong>Full attempt log</strong>: every attempt, level change, button use and placement result for the whole class (with the data dictionary, which explains
+        every column in plain English; your browser may ask whether to allow two downloads). <strong>Levels table</strong>: each student's level, placement,
+        level 10 and button flags in every unit. <strong>Detail log</strong>: one row per attempt and button use, including code and output.
+        <strong>Workshop tables</strong>: the misconception table and the per-task unmatched table below.</p>
+      <details style="margin-top:1rem">
+        <summary>All level changes</summary>
+        <div class="table-wrap" style="margin-top:.5rem">
+          <table>
+            <thead><tr><th scope="col">Time</th><th scope="col">Name</th><th scope="col">Unit</th><th scope="col">From</th><th scope="col">To</th><th scope="col">Why</th></tr></thead>
+            <tbody id="level-log"></tbody>
+          </table>
+        </div>
+      </details>
       </section>
-    </section>
 
-    <!-- ===== Detail log ===== -->
-    <section id="page-log" aria-labelledby="log-title" hidden>
-      <h2 id="log-title" tabindex="-1">Detail log</h2>
-      <p class="small">One row per attempt (every press of Check, and every skipped task) and per use of the "too easy" / "way too hard" buttons, newest first. Failure categories and misconception matches are worked out automatically.</p>
-      <div class="teacher-controls" id="log-filters">
-        <label>Student <select id="f-student"><option value="">All</option></select></label>
-        <label>Unit <select id="f-unit"><option value="">All</option></select></label>
-        <label>Task <select id="f-task"><option value="">All</option></select></label>
-        <label>Category <select id="f-category"><option value="">All</option></select></label>
-        <label>Misconception <select id="f-misconception"><option value="">All</option></select></label>
-        <button type="button" id="f-clear" class="secondary">Clear filters</button>
-      </div>
-      <p id="log-count" class="small" role="status"></p>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th scope="col">Time</th><th scope="col">Student</th><th scope="col">Unit</th><th scope="col">Task</th><th scope="col">Level</th>
-              <th scope="col">Result</th><th scope="col">Failure category</th><th scope="col">Misconception matches</th><th scope="col">Hints</th>
-              <th scope="col">Button</th><th scope="col">Level change</th><th scope="col">Code and output</th></tr>
-          </thead>
-          <tbody id="log-rows"></tbody>
-        </table>
-      </div>
-    </section>
+      <section class="teacher-section" data-collapse="compare">
+      <h3>Compare classes</h3>
+      <p class="small">Your own classes only: each class's average secured score per unit, side by side.</p>
+      <p><button type="button" id="compare-load" class="secondary">Compare my classes</button></p>
+      <div id="compare" aria-live="polite"></div>
+      </section>
 
-    <!-- ===== Workshop ===== -->
-    <section id="page-workshop" aria-labelledby="workshop-title" hidden>
-      <h2 id="workshop-title" tabindex="-1">Workshop</h2>
-      <p class="small">Misconceptions matched in failed attempts, to help plan small-group workshops. A match means the student's program gave exactly the same result as a short buggy program showing that mistake.</p>
+      <section class="teacher-section" data-collapse="quick-look">
+      <h3>Misconceptions workshop</h3>
+      <p class="small">Misconceptions matched in failed attempts, to help plan small-group workshops. A match means the student's program gave exactly the same result as a short buggy program showing that mistake.
+        Select a task to open it in the Task browser.</p>
+      <div id="quick-look" class="quick-look" aria-live="polite"></div>
+      </section>
+
       <section class="teacher-section" data-collapse="ws-misconceptions">
       <h3>Misconceptions</h3>
       <div class="table-wrap">
@@ -218,72 +332,44 @@
       </section>
     </section>
 
-    <!-- ===== Assignments (backend mode) ===== -->
-    <section id="page-assignments" aria-labelledby="assignments-title" hidden>
-      <h2 id="assignments-title" tabindex="-1">Assignments</h2>
-      <p class="small">An assignment is a set of tasks for the whole class. Every student sees the open ones at the top of their home page.
-        It is practice only: no score, no effect on their level or progress, unlimited tries, free hints, and "Show me how" on every task.
-        Their work is still recorded, so you can see below what happened.</p>
-      <p id="as-local" class="notice notice-down" hidden>Assignments need backend mode (the class server), because students must be able to see them on their own computers.</p>
-      <div id="as-main">
-        <p><button type="button" id="as-new" class="primary">Create an assignment</button></p>
-        <form id="as-form" class="task-card" hidden novalidate aria-labelledby="as-form-h">
-          <h3 id="as-form-h" tabindex="-1">New assignment</h3>
-          <label for="as-title" class="editor-label">Title</label>
-          <input type="text" id="as-title" class="text-input" maxlength="100" autocomplete="off">
-          <label for="as-description" class="editor-label">Short description (students see it)</label>
-          <textarea id="as-description" class="text-input" rows="2" maxlength="1000"></textarea>
-          <label for="as-tasks" class="editor-label">Task ids, in order (one per line, or separated by commas)</label>
-          <textarea id="as-tasks" class="text-input" rows="4" spellcheck="false" aria-describedby="as-tasks-help"></textarea>
-          <p id="as-tasks-help" class="small">Any bank task: predict, Parsons, fill in the blanks or write (not placement tasks). Find ids in the
-            <a href="#tasks">Task browser</a>, which also has an "Add to the assignment" button.</p>
-          <div id="as-task-check" aria-live="polite"></div>
-          <p id="as-form-status" role="alert" hidden></p>
-          <p><button type="submit" class="primary" id="as-save">Save and open it for students</button>
-            <button type="button" id="as-cancel" class="secondary">Cancel</button></p>
-        </form>
-        <div id="as-list" aria-live="polite"></div>
-      </div>
-    </section>
-
     <!-- ===== Task browser ===== -->
     <section id="page-tasks" aria-labelledby="tasks-title" hidden>
       <h2 id="tasks-title" tabindex="-1">Task browser</h2>
-      <p class="small">Find a task by its id (for example var-L9d) or by words in its title. You'll see the question as students see it,
-        its expected output, all its tests and the model solution. Tests and solutions are shown here only, never to students.</p>
+      <p class="small">Find a task by its id (for example var-L9d) or by words in its title. Try it exactly as a student would: the code editor, Run and
+        Check answer work the same, hints are free and you can check as often as you like. <strong>Your practice here is never recorded.</strong>
+        Below it are the task's expected output, all its tests and the model solution. Tests and solutions are shown here only, never to students.</p>
       <div class="teacher-controls">
         <label>Search <input type="search" id="tb-search" class="text-input" style="width:auto" autocomplete="off" spellcheck="false"></label>
       </div>
       <ul id="tb-results" class="tb-results" aria-label="Matching tasks"></ul>
+      <div id="tb-practice"></div>
       <div id="tb-view" aria-live="polite"></div>
     </section>
 
-    <!-- ===== Export (every page) ===== -->
-    <section class="export-bar teacher-section" data-collapse="export">
-      <h3>Export</h3>
-      <div class="teacher-controls">
-        <button type="button" id="export-full" class="primary">Export full data</button>
-        <button type="button" id="export-filtered" class="secondary">Export filtered view</button>
-      </div>
-      <p class="small"><strong>Export full data</strong> downloads two files: a CSV of every attempt, level change, button use and placement result for the whole class,
-        and <code>data-dictionary.csv</code>, which explains every column in plain English. Your browser may ask whether to allow two downloads.
-        <strong>Export filtered view</strong> downloads only what is shown on this page now: <span id="filtered-help"></span></p>
-      <details style="margin-top:1rem">
-        <summary>All level changes</summary>
-        <div class="table-wrap" style="margin-top:.5rem">
-          <table>
-            <thead><tr><th scope="col">Time</th><th scope="col">Name</th><th scope="col">Unit</th><th scope="col">From</th><th scope="col">To</th><th scope="col">Why</th></tr></thead>
-            <tbody id="level-log"></tbody>
-          </table>
-        </div>
-      </details>
+    <!-- ===== Settings ===== -->
+    <section id="page-settings" aria-labelledby="settings-title" hidden>
+      <h2 id="settings-title" tabindex="-1">Settings</h2>
+      <p id="set-local" class="small" hidden>Teacher accounts need backend mode (the class server). In this browser there is no account or password.</p>
+      <form id="pw-form" class="task-card name-card" novalidate aria-labelledby="pw-h">
+        <h3 id="pw-h">Change password</h3>
+        <label for="pw-current" class="editor-label">Current password</label>
+        <input type="password" id="pw-current" class="text-input" autocomplete="current-password">
+        <label for="pw-new" class="editor-label">New password (at least 10 characters)</label>
+        <input type="password" id="pw-new" class="text-input" autocomplete="new-password" minlength="10">
+        <label for="pw-new2" class="editor-label">Retype new password</label>
+        <input type="password" id="pw-new2" class="text-input" autocomplete="new-password" minlength="10">
+        <p><button type="submit" class="primary">Save password</button></p>
+        <p id="pw-status" role="alert" hidden></p>
+      </form>
     </section>
+    </div>
     </div>
   </main>
 
   <script src="curriculum.js"></script>
   <script src="checker.js"></script>
   <script src="app.js"></script>
+  <script src="secured.js"></script>
   <script src="teacher-data.js"></script>
   <script src="task-view.js"></script>
   <script src="task-browser.js"></script>

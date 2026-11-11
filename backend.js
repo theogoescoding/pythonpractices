@@ -269,6 +269,7 @@
     orig.saveProgress(s.sid, progress);
     write(Store.ATTEMPTS_PREFIX + s.sid, r.body.attempts.map((a) => Rows.rowToAttempt(a, s.sid)));
     Store.saveAssignments(s.sid, r.body.assignments || []); // only the open ones of the student's class
+    Store.saveClassStage(s.sid, r.body.student.class_stage || null); // null until the server stores stages (migration 0013)
     const synced = { units: {}, passed: {} };
     for (const row of r.body.progress) synced.units[row.unit] = JSON.stringify(row.state);
     for (const p of r.body.passed) synced.passed[p.unit + "|" + p.fingerprint] = 1;

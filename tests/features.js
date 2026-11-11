@@ -890,8 +890,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const teacher = read("teacher.html");
     const teacherSrc = read("teacher.js");
     const sections = [...teacher.matchAll(/<section class="[^"]*teacher-section[^"]*" data-collapse="([^"]+)">\s*<h3>([^<]+)<\/h3>/g)].map((m) => m[2]);
-    check(sections.join() === "Students in this class,Delete this class,Quick look,Students,Reset placement,Misconceptions,Failed attempts with no match, by task,Export",
-      "Teacher view: every section (class students, delete class, quick look, students, reset placement, both workshop tables, export) is collapsible");
+    check(sections.join() === "Name and stage,Student logins,Delete this class,Secured score per unit,Exports,Compare classes,Misconceptions workshop,Misconceptions,Failed attempts with no match, by task",
+      "Teacher view: every section (class name and stage, student logins, delete class, the score table, exports, compare classes, the workshop and both workshop tables) is collapsible");
     const key = (teacherSrc.match(/Collapse\.enhance\(document\.querySelector\("main"\), "([^"]+)"\)/) || [])[1];
     check(key && key !== "pythonPractice.collapsedGroups" && /<script src="collapse\.js"><\/script>\s*<script src="teacher\.js">/.test(teacher) && !/localStorage\./.test(teacherSrc),
       "Teacher view: sections open and close with collapse.js, remembered under their own key (not the student view's)");
@@ -942,6 +942,207 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     b.press();
     check(blockedOpen && b.body.hidden, "With storage blocked, sections start expanded and still open and close");
     check(!/Haven't started a unit/.test(teacherSrc + teacher), "Teacher overview: the \"Haven't started a unit\" box is gone (the student table still shows Not started cells)");
+  }
+
+  // ===================== Teacher area: pages, secured score, stages and teacher practice =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const Secured = require(path.join(ROOT, "secured.js"));
+    const teacher = read("teacher.html");
+    const teacherSrc = read("teacher.js");
+    const backendSrc = read("teacher-backend.js");
+
+    // The side menu, in order, with Students as the default page; old addresses still open the right page.
+    const nav = [...teacher.matchAll(/<a href="#(\w+)" data-page="\w+">([^<]+)<\/a>/g)].map((m) => m[2]);
+    check(nav.join() === "Classes,Students,Assignments,Reports,Task browser,Settings" && !/tab-nav/.test(teacher) &&
+      ["classes", "students", "student", "assignments", "reports", "tasks", "settings"].every((p) => teacher.includes('id="page-' + p + '"')) &&
+      /\["students", null\]/.test(teacherSrc) && /overview: "students", log: "reports", workshop: "reports"/.test(teacherSrc) && /"#students"\)/.test(backendSrc),
+      "Teacher view: a side menu (Classes, Students, Assignments, Reports, Task browser, Settings) replaces the tabs; Students is the default page, and #overview, #log and #workshop still open Students or Reports");
+
+    // The secured score: worked examples (one place, secured.js).
+    const D = Date.parse("2026-01-05T09:00:00Z"), W = Secured.WEEK_MS, H = 3600000;
+    const pass = (t, extra) => Object.assign({ kind: "attempt", result: "pass", hints: 0, unit: "selection", phase: "practice", taskLevel: 10, at: new Date(t).toISOString() }, extra || {});
+    const two = [pass(D), pass(D + H)];
+    const s = (list, at) => Secured.score(list, "selection", at);
+    const back = two.concat([pass(D + H + 2 * W + 60000)]);
+    // Back to 100% four more times, each after four weeks away: the floor goes 50, 60, 70, 80, 90, then stops at 95.
+    let many = two.slice();
+    for (let k = 1; k <= 6; k++) many = many.concat([pass(D + H + k * 4 * W)]);
+    check(s(two, D + 2 * H).score === 100 && s(two, D + 2 * H).secured && s([pass(D)], D + H).score === null && !s([pass(D)], D + H).secured,
+      "Secured score: two level 10 passes with no hints give 100% (one isn't enough)");
+    check(s(two, D + H + 2 * W).score === 90 && s(two, D + H + W).score === 95 && s(two, D + H + W - 1).score === 100,
+      "Secured score: it drops 5 points for each full week, so it is 90% after two weeks");
+    check(s(back, D + H + 2 * W + 120000).score === 100 && s(back, D + H + 2 * W + 120000).floor === 60,
+      "Secured score: one level 10 pass with no hints brings it back to 100%, and raises the floor");
+    check(s(two, D + 30 * W).score === 50 && s(two, D + 30 * W).floor === 50 && s(back, D + 40 * W).score === 60 &&
+      s(many, D + 80 * W).floor === 95 && s(many, D + 80 * W).score === 95 && s(many, D + 80 * W).timesAt100 === 7,
+      "Secured score: the floor is 50% at first, 60% after coming back once, and never more than 95%");
+    check(s([pass(D, { hints: 1 }), pass(D + H, { hints: 2 })], D + 2 * H).secured === false && s([pass(D, { phase: "endless", taskLevel: 6 }), pass(D + H, { phase: "endless", taskLevel: 3 })], D + 2 * H).score === 100 &&
+      !s([pass(D, { taskLevel: 9 }), pass(D + H, { taskLevel: 9 })], D + 2 * H).secured && !s([pass(D, { phase: "assignment" }), pass(D + H, { phase: "placement" })], D + 2 * H).secured &&
+      !s([pass(D), pass(D + H, { unit: "maths" })], D + 2 * H).secured && !s([pass(D), pass(D + H, { result: "fail" })], D + 2 * H).secured,
+      "Secured score: only passes with no hints count, in endless mode or at level 10 of the ladder, in that unit (not level 9, placement or assignment passes, or fails)");
+    check(s([pass(D), pass(D + H), pass(D + 2 * H)], D + 3 * H).timesAt100 === 1,
+      "Secured score: a pass while still at 100% keeps it fresh but isn't a return (the floor doesn't go up)");
+    const labels = [100, 95, 90, 80, 75, 50, 45, 0].map((x) => Secured.band(x).label + ":" + Secured.band(x).cls).join();
+    check(labels === "Secured:gold,Fresh:fresh,Fading:fading,Fading:fading,Revisit soon:soon,Revisit soon:soon,Revisit now:now,Revisit now:now" &&
+      ["gold", "fresh", "fading", "soon", "now"].every((c) => read("styles.css").includes(".rag-" + c + " ")) && /rag-gold \{[^}]*box-shadow/.test(read("styles.css")),
+      "Colour bands: gold (glowing) 100% Secured, light green 95% Fresh, green 80–90% Fading, amber 50–75% Revisit soon, red under 50% Revisit now, each with its label");
+    // One calculation, used by both views.
+    const others = ["teacher.js", "teacher-data.js", "home.js", "app.js", "teacher-backend.js"].filter((f) => /DROP_PER_WEEK|WEEK_MS|FLOOR_START|\b5 \* Math\.floor/.test(read(f)));
+    check(!others.length && /Secured\.score\(/.test(read("teacher-data.js")) && /self\.Secured\.score\(/.test(read("home.js")) &&
+      /<script src="secured\.js"><\/script>\s*<script src="teacher-data\.js">/.test(teacher) && /<script src="secured\.js"><\/script>/.test(read("app.html")),
+      "Secured score: worked out in secured.js only, which the teacher view (teacher-data.js) and the student view (home.js) both use");
+    // The attempts table records hints: the score can be worked out from it.
+    const rec = App.attemptRecord({ task: byId["if-L5a"], unit: "selection", phase: "practice", kind: "attempt", hints: 2, result: "pass" });
+    check(rec.hints === 2 && rec.taskLevel === byId["if-L5a"].level && TD.FULL_COLUMNS.some(([c]) => c === "hints_used") && /hints_used/.test(read("supabase/migrations/0001_schema.sql")) &&
+      /hints: r\.hints_used/.test(read("backend-rows.js")),
+      "Attempts record the hints used (attempts.hints_used), so the secured score is worked out from them");
+
+    // The Students page: the flags are the student's own button presses, and a unit is grey until it is placed.
+    const done = (level, extra) => Object.assign({ level, placement: { status: "done", startLevel: level } }, extra || {});
+    const fail = (t, extra) => Object.assign({ kind: "attempt", result: "fail", hints: 0, unit: "selection", phase: "practice", taskLevel: 6, taskId: "if-L6a", at: new Date(t).toISOString() }, extra || {});
+    const sd = {
+      students: { a: { name: "Ann" }, b: { name: "Bo" }, c: { name: "Cy" }, d: { name: "Di" }, e: { name: "Ed" } },
+      levelLog: [],
+      progress: {
+        a: { units: { selection: done(10, { buttonsUsed: { "too-easy": true } }) } },
+        b: { units: { selection: done(6, { buttonsUsed: { "too-hard": true } }) } },
+        c: { units: {} },
+        d: { units: { selection: { level: 3, placement: { status: "in-progress" } }, maths: { level: 1, placement: { status: "pending" } } } },
+        e: { units: { "linear-search": { level: 2, placement: null } } },
+      },
+      buttonLog: [
+        { studentId: "a", unit: "selection", button: "too-easy", at: new Date(D).toISOString(), from: 8, to: 9 },
+        { studentId: "a", unit: "selection", button: "too-easy", at: new Date(D + 2 * H).toISOString(), from: 9, to: 10 },
+        { studentId: "b", unit: "selection", button: "too-hard", at: new Date(D + H).toISOString(), from: 7, to: 6 },
+      ],
+      attempts: [pass(D, { studentId: "a" }), pass(D + H, { studentId: "a" }),
+        fail(D, { studentId: "b" }), fail(D + H, { studentId: "b" }), fail(D + 2 * H, { studentId: "b" }), // the same task failed three times in a row
+        fail(D, { studentId: "d" }), fail(D + H, { studentId: "d" })],
+    };
+    const tab = TD.scoreTable(sd, ["selection", "maths", "linear-search"], D + 3 * H);
+    const byStudent = Object.fromEntries(tab.rows.map((r) => [r.name, r]));
+    const cell = (n, u) => byStudent[n].cells[u];
+    check(cell("Ann", "selection").tooEasy && cell("Ann", "selection").tooEasyAt === new Date(D + 2 * H).toISOString() && !cell("Ann", "selection").tooHard &&
+      cell("Bo", "selection").tooHard && cell("Bo", "selection").tooHardAt === new Date(D + H).toISOString() && !cell("Bo", "selection").tooEasy &&
+      !cell("Di", "selection").tooHard && !cell("Di", "selection").tooEasy,
+      "Flags: Too easy and Way too hard show the student's own button presses in that unit (the unit's buttonsUsed), with the time of the newest press from the button log");
+    check(!("tooEasyFlag" in cell("Bo", "selection")) && !("wayTooHardFlag" in cell("Bo", "selection")) && !("tooEasyFlag" in TD) && !("wayTooHardFlag" in TD) &&
+      !/wayTooHard|tooEasyFlag|failed the same task two or more times/.test(read("teacher.js") + read("teacher-data.js") + teacher) &&
+      cell("Bo", "selection").failsInARow === 0 && TD.studentDetail(sd, "b", ["selection"], D + 3 * H).failsInARow.selection === 0,
+      "Flags: the old rule (the same task failed twice or more in a row) is gone; failing a task three times in a row raises no flag");
+    const failingStudent = { units: { selection: done(6, { failsInARow: 3 }) } };
+    const withFails = TD.studentDetail({ students: { f: { name: "Fi" } }, progress: { f: failingStudent }, attempts: [], buttonLog: [] }, "f", ["selection"], D);
+    check(withFails.failsInARow.selection === 3 && !withFails.cells.selection.tooHard && /c\.failsInARow \? " · " \+ c\.failsInARow \+ " fail"/.test(teacherSrc) &&
+      /\[u\.id \+ "_fails"\]: c\.failsInARow/.test(teacherSrc),
+      "Fails in a row: still on the student page and in the levels export, but never a flag or a colour");
+    check(teacherSrc.includes("This student pressed 'This is too easy' in this unit. It moved them up one level. Check that their level is right.") &&
+      teacherSrc.includes("This student pressed 'This is way too hard' in this unit. It moved them down one level. Check that their level is right.") &&
+      /pressed ' \+ esc\(when\(c\.tooEasyAt\)\)/.test(teacherSrc) && /buttonFlagsHtml\(c\)/.test(teacherSrc.slice(teacherSrc.indexOf("function renderStudent("))) &&
+      !/Too easy used<\/span>|Too hard used<\/span>/.test(teacherSrc + teacher) && /badge-complete/.test(teacherSrc) && /Placement: started at/.test(teacherSrc) &&
+      App.BUTTON_JUMP_LEVELS === 1,
+      "Students page: each flag has its tooltip and the time of the newest press, on the cell and on the student page (they replace the Too easy used and Too hard used badges); ★ Complete and the placement result are kept");
+    check(!/2\+ fails in a row/.test(teacher + teacherSrc) && !/log-rows|f-student|Detail log<\/h2>/.test(teacher) && !/Needs help|backup reminder|Teach First/i.test(teacher + teacherSrc),
+      "Teacher view: the \"2+ fails in a row\" panel and the on-screen detail log are gone (the log is in the export); no Needs help panel, backup reminder or demo class");
+    check(cell("Ann", "selection").placed && cell("Ann", "selection").score === 100 && cell("Ann", "selection").band.label === "Secured" &&
+      cell("Bo", "selection").placed && cell("Bo", "selection").score === 0 && cell("Bo", "selection").band.label === "Revisit now" &&
+      !cell("Di", "selection").placed && cell("Di", "selection").score === null && cell("Di", "selection").band === null && !cell("Di", "maths").placed &&
+      cell("Cy", "selection").score === null && cell("Ed", "linear-search").placed && cell("Ed", "linear-search").score === 0,
+      "Not placed yet: a started unit whose placement is pending or in progress has no score or colour (grey), not 0% red; a placed unit gets its colour, and a unit with no placement test counts as placed");
+    check(tab.summary.green === 1 && tab.summary.red === 2 && tab.summary.amber === 0 && tab.summary.notPlaced === 2 && byStudent.Di.average === null && byStudent.Di.rag === null &&
+      tab.unitAverages[0].average === 50 && tab.unitAverages[0].students === 2 && tab.unitAverages[1].average === null && tab.unitAverages[2].students === 1,
+      "Students page: the green, amber and red counts and the class average per unit count only placed units (a student with no placed unit is in none of them)");
+    check(/rag-none[^<]*>grey: Not placed yet</.test(teacher) && /--rag-none:/.test(read("styles.css")) && /NOT_PLACED = '<span class="rag rag-none">Not placed yet<\/span>'/.test(teacherSrc),
+      "Colour key: grey means Not placed yet");
+    const csv = TD.classScoresCsv(tab, ["selection"], (u) => u);
+    check(csv.split("\r\n")[0] === "Name,Average secured score,RAG,selection: secured score,selection: label,selection: level" && /Ann,100,green,100,Secured,10/.test(csv) &&
+      /Di,not placed yet,,not placed yet,Not placed yet,3/.test(csv) && /Bo,0,red,0,Revisit now \(not secured yet\),6/.test(csv),
+      "Reports: the class scores export has each student's average and each unit's secured score, label and level (Not placed yet for a unit still to be placed)");
+    const detail = TD.studentDetail(sd, "a", ["selection"], D + 3 * H, 5);
+    check(detail.name === "Ann" && detail.recent.length === 2 && detail.recent[0].at > detail.recent[1].at && detail.cells.selection.score === 100 && detail.cells.selection.tooEasyAt,
+      "Student page: the secured score per unit, the flags with their time, and the newest attempts, newest first");
+
+    // Stages: which units the Students page shows, and which sections of the student's menu open by default.
+    const C = Curriculum;
+    check(C.stageGroups("ks3").join() === "fundamentals,advanced" && C.stageGroups("gcse").join() === "fundamentals,advanced,validation,searching-sorting" &&
+      C.stageGroups("a-level").join() === C.UNIT_GROUPS.map((g) => g.id).join() && C.stageOf(undefined).id === "gcse" && C.stageUnits("ks3").includes("arrays-2d") &&
+      !C.stageUnits("ks3").includes("validation") && !C.stageUnits("gcse").includes("recursion") && C.stageUnits("a-level").length === C.UNITS.length,
+      "Stages: KS3 opens Programming fundamentals and Advanced programming; GCSE adds Validation and Searching and sorting; A-level opens every section; no stage means GCSE");
+    const stageRun = () => {
+      const mem = {};
+      const ctx = { localStorage: { getItem: (k) => (k in mem ? mem[k] : null), setItem: (k, v) => { mem[k] = String(v); } }, document: {} };
+      ctx.self = ctx;
+      require("vm").runInNewContext(read("collapse.js"), ctx);
+      return { C2: ctx.Collapse, mem };
+    };
+    const { C2, mem } = stageRun();
+    const first = C2.resetForStage("g", "ks3", ["validation", "a-level"]);
+    C2.saveCollapsed("g", ["a-level"]); // the student opens Validation
+    const again = C2.resetForStage("g", "ks3", ["validation", "a-level"]);
+    const changed = C2.resetForStage("g", "a-level", []);
+    check(first && !again && mem.g === "[]" && changed && C2.collapsedIds("g").length === 0 && /Collapse\.resetForStage\(COLLAPSED_KEY, stage/.test(read("home.js")) &&
+      /saveClassStage\(s\.sid, r\.body\.student\.class_stage/.test(read("backend.js")) && /class_stage: await classStage/.test(read("supabase/functions/student-api/index.ts")),
+      "Student menu: the class's stage sets which sections start open; the student's own opening is kept, and a stage change resets it (the stage comes from get_progress)");
+    check(/stage text not null default 'gcse'/.test(read("supabase/migrations/0013_class_stage.sql")) && /^begin;$/m.test(read("supabase/migrations/0013_class_stage.sql")) &&
+      /^commit;$/m.test(read("supabase/migrations/0013_class_stage.sql")) && /check \(stage in \('ks3', 'gcse', 'a-level'\)\)/.test(read("supabase/migrations/0013_class_stage.sql")) &&
+      /noStage\(r\.error\)/.test(backendSrc) && /if \(r\.error \|\| !r\.data\) return null;/.test(read("supabase/functions/student-api/index.ts")),
+      "Class stage: migration 0013 adds classes.stage (KS3, GCSE or A-level; existing classes GCSE); the teacher view and student-api still work on a server without it");
+
+    // Teacher practice is never recorded: with stopRecording, no Store function writes anything, and every Store
+    // function that can write is one stopRecording replaces.
+    const storeRun = () => {
+      const mem = {};
+      const ls = { getItem: (k) => (k in mem ? mem[k] : null), setItem: (k, v) => { mem[k] = String(v); }, removeItem: (k) => { delete mem[k]; },
+        key: (i) => Object.keys(mem)[i], get length() { return Object.keys(mem).length; } };
+      const ctx = { localStorage: ls };
+      ctx.self = ctx;
+      require("vm").runInNewContext(read("store.js"), ctx);
+      return { S: ctx.Store, mem };
+    };
+    const callAll = (S) => {
+      for (const [name, f] of Object.entries(S)) {
+        if (typeof f !== "function" || name === "setupDisplaySettings" || name === "whenReady") continue;
+        try { f("s1", { unit: "selection", taskId: "if-L5a", at: new Date().toISOString(), units: {} }, { x: 1 }); } catch (e) { /* a read with odd arguments */ }
+      }
+    };
+    const plain = storeRun();
+    const writers = [];
+    for (const [name, f] of Object.entries(plain.S)) {
+      if (typeof f !== "function" || name === "setupDisplaySettings" || name === "whenReady") continue;
+      const fresh = storeRun();
+      try { fresh.S[name]("s1", { unit: "selection", taskId: "if-L5a", at: new Date().toISOString(), units: {} }, { x: 1 }); } catch (e) { /* ignore */ }
+      if (Object.keys(fresh.mem).length) writers.push(name);
+    }
+    const guarded = storeRun();
+    App.stopRecording(guarded.S);
+    callAll(guarded.S);
+    check(writers.length >= 8 && writers.every((w) => App.RECORDING_FUNCTIONS.includes(w)) && !Object.keys(guarded.mem).length,
+      "Teacher practice: after stopRecording, calling every Store function saves nothing (no attempt, pass, progress, event or assignment work); every Store function that writes (" + writers.join(", ") + ") is stopped");
+    const appSrc = read("app.js");
+    const browser = appSrc.slice(appSrc.indexOf("// ===================== Browser app"));
+    check(browser.indexOf("if (preview) { stopRecording(Store);") > 0 && browser.indexOf("if (preview) { stopRecording(Store);") < browser.indexOf("Store.loadProgress(") &&
+      /const student = preview \? PREVIEW_STUDENT : Store\.currentStudent\(\)/.test(browser) && /if \(previewId && !preview\) \{ location\.replace\("app\.html"\); return; \}/.test(browser) &&
+      App.previewAllowed({ parent: null }) === false && (() => { const w = {}; w.parent = w; return App.previewAllowed(w) === false; })() &&
+      App.previewAllowed({ parent: { location: { pathname: "/pythonpractices/teacher.html" } } }) === true,
+      "Teacher practice: practice.html?preview=<id> stops recording before it reads or saves anything, uses no student, and only runs inside teacher.html");
+    check(/src="practice\.html\?preview=' \+ encodeURIComponent\(t\.id\)/.test(teacherSrc) && /id="tb-hint">Hint \(free\)/.test(teacherSrc) && /id="tb-show-solution">Show solution/.test(teacherSrc) &&
+      /id="tb-check">Check answer/.test(teacherSrc) && /href="#tasks=' \+ encodeURIComponent/.test(teacherSrc) && /route\(\)/.test(teacherSrc),
+      "Task browser: the task opens in the student's own practice view, with Hint (free), Show solution and Check answer; a task name in Reports opens it there");
+
+    // Settings and accounts.
+    check(/id="pw-current"/.test(teacher) && /id="pw-new"/.test(teacher) && /id="pw-new2"/.test(teacher) && /next !== \$\("pw-new2"\)\.value/.test(teacherSrc) &&
+      /signInWithPassword\(\{ email: user\.email, password: currentPassword \}\)/.test(backendSrc) && /updateUser\(\{ password: newPassword \}\)/.test(backendSrc) &&
+      /id="tb-new-password2"/.test(teacher) && /password !== \$\("tb-new-password2"\)\.value/.test(backendSrc),
+      "Settings: change password checks the current one, and asks for the new one twice (sign-up asks twice too)");
+    const tapi = read("supabase/functions/teacher-api/index.ts");
+    check(/async rename_student\(tid, body\)/.test(tapi) && /validNickname\(nickname\)/.test(tapi) && /nicknameBlocked\(nickname\)/.test(tapi) && /ownStudent\(tid, body\.student_id\)/.test(tapi) &&
+      /teacherApi\("rename_student"/.test(backendSrc) && /resetPin, removeStudent, renameStudent, changePassword, compareClasses/.test(backendSrc),
+      "Student page: Rename uses teacher-api rename_student (the nickname rules and word filter); Reset PIN and Remove use the same calls as the logins table");
+    check(["export-scores", "export-full", "export-dictionary", "export-levels", "export-log", "export-workshop"].every((id) => teacher.includes('id="' + id + '"')) &&
+      /python-practice-overview-/.test(teacherSrc) && /python-practice-detail-log-/.test(teacherSrc) && /python-practice-workshop-/.test(teacherSrc) && /python-practice-full-data-/.test(teacherSrc),
+      "Reports: class scores, full attempt log, data dictionary, and the earlier levels table, detail log and workshop exports (with their columns)");
+    check(/id="as-five"/.test(teacher) && /slice\(0, 5\)/.test(teacherSrc) && /!\(t\.tags \|\| \[\]\)\.includes\("placement"\)/.test(teacherSrc),
+      "Assignments: Add 5 tasks fills in five practice tasks from one unit and level (never placement tasks)");
   }
 
   // ===================== Class assignments =====================

@@ -39,6 +39,16 @@
   --selection: #c7d6ff;
   --glow: #b8860b;          /* gold border of a completed unit card */
   --glow-outer: #f5c518;    /* the soft glow around it */
+  /* Secured score bands (secured.js): the same in every theme, dark text on each (white on red), always with a label. */
+  --rag-ink: #111111;
+  --rag-ink-on-red: #ffffff;
+  --rag-gold: #ffd34d;
+  --rag-gold-glow: #f5c518;
+  --rag-fresh: #a8f0c4;
+  --rag-fading: #4fcb7d;
+  --rag-soon: #f5a524;
+  --rag-now: #c62828;
+  --rag-none: #d0d4dc;      /* grey: not placed yet */
   color-scheme: light;
 }
 
@@ -511,9 +521,48 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .res-pass { color: var(--pass); font-weight: 700; }
 .res-fail { color: var(--fail); font-weight: 700; }
 .res-none { color: var(--muted); }
-.tab-nav { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0; border-bottom: 2px solid var(--border); }
-.tab-nav a { padding: .45rem 1rem; text-decoration: none; font-weight: 700; border: 2px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0; }
-.tab-nav a[aria-current="page"] { background: var(--card); border-color: var(--border); color: var(--text); }
+/* The teacher view: a side menu of pages, beside the page on show (stacked on narrow screens). */
+.teacher-shell { display: flex; flex-wrap: wrap; gap: 1.25rem; align-items: flex-start; margin-top: 1rem; }
+.side-nav { flex: 0 0 12rem; display: flex; flex-direction: column; gap: .3rem; position: sticky; top: .75rem; }
+.side-nav a { padding: .55rem .9rem; text-decoration: none; font-weight: 700; border: 2px solid transparent; border-radius: 8px; }
+.side-nav a[aria-current="page"] { background: var(--card); border-color: var(--border); color: var(--text); }
+.teacher-pages { flex: 999 1 32rem; min-width: 0; }
+@media (max-width: 700px) { .side-nav { flex-basis: 100%; flex-direction: row; flex-wrap: wrap; position: static; } }
+.class-bar .teacher-controls { margin-bottom: .5rem; }
+.code-card { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; background: var(--card); border: 2px solid var(--border); border-radius: 8px; padding: .75rem 1rem; margin: .75rem 0; }
+.big-code { font-size: 1.8rem; letter-spacing: .15em; }
+.five-tasks { border: 2px solid var(--border); border-radius: 8px; margin: .75rem 0; padding: .25rem .9rem .5rem; }
+.assignment-tasks { margin: .25rem 0 .75rem; }
+.practice-frame { width: 100%; height: 46rem; border: 2px solid var(--border); border-radius: 8px; background: var(--bg); }
+.tb-practice-bar { margin-top: .5rem; }
+/* Teacher practice (practice.html inside the teacher view's Task browser): no student header or links. */
+.teacher-practice .site-header, .teacher-practice .privacy, .teacher-practice .skip-link { display: none; }
+
+/* Secured score bands. Fixed colours with dark text (white on red) read the same in every theme, and each band always
+   shows its label too, so colour is never the only signal. */
+.rag { display: inline-block; font-weight: 700; font-size: .85rem; border-radius: 6px; padding: .1rem .45rem; color: var(--rag-ink); border: 1px solid var(--rag-ink); }
+.rag-gold { background: var(--rag-gold); box-shadow: 0 0 .6rem var(--rag-gold-glow); }
+.rag-fresh { background: var(--rag-fresh); }
+.rag-fading { background: var(--rag-fading); }
+.rag-soon { background: var(--rag-soon); }
+.rag-now { background: var(--rag-now); color: var(--rag-ink-on-red); }
+.rag-none { background: var(--rag-none); }
+.rag-key .rag { margin: .1rem .1rem; }
+.flag-block { display: inline-flex; flex-direction: column; align-items: flex-start; margin-right: .3rem; vertical-align: top; }
+.rag-tiles { display: flex; flex-wrap: wrap; gap: .75rem; margin: .75rem 0; }
+.rag-tile { flex: 1 1 8rem; border: 2px solid var(--border); border-radius: 8px; padding: .5rem .9rem; background: var(--card); }
+.rag-tile strong { display: block; font-size: 1.8rem; }
+.rag-tile-green { border-left: 10px solid var(--rag-fading); }
+.rag-tile-amber { border-left: 10px solid var(--rag-soon); }
+.rag-tile-red { border-left: 10px solid var(--rag-now); }
+.unit-averages { margin: .5rem 0 1rem; line-height: 2; }
+.flag-easy { background: var(--rag-fading); color: var(--rag-ink); border-color: var(--rag-ink); cursor: help; }
+.flag-hard { background: var(--rag-now); color: var(--rag-ink-on-red); border-color: var(--rag-ink); cursor: help; }
+.flag-key { margin: .25rem 0 .75rem; }
+.score-bar { margin-bottom: .9rem; }
+.score-bar .bar { height: .6rem; border: 1px solid var(--border); border-radius: 999px; background: var(--code-bg); overflow: hidden; margin-top: .3rem; }
+.score-bar .bar span { display: block; height: 100%; }
+.secured-note { margin-top: .5rem !important; }
 .quick-look { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
 .quick-look section { background: var(--card); border: 2px solid var(--border); border-radius: 8px; padding: .5rem .9rem; }
 .quick-look h3 { margin: .25rem 0 .5rem; font-size: 1.05rem; }

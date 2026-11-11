@@ -164,6 +164,7 @@ Store.whenReady(function () {
   // ---------- Unit groups ----------
   // Groups a student has collapsed, remembered on this device only (collapse.js, shared with the teacher view).
   const COLLAPSED_KEY = "pythonPractice.collapsedGroups";
+  let studentAttempts = []; // the student's attempts, for the secured scores on the unit cards
 
   // The units under their group headings (Curriculum.UNIT_GROUPS), in the same order as UNITS. A unit missing from
   // every group is still shown, in a last group, so no unit can disappear from the menu. A group with no units isn't shown.
@@ -181,6 +182,12 @@ Store.whenReady(function () {
     if (!tasks || !student) return; // still loading, or waiting for a name
     renderAssignments(student);
     const progress = Store.loadProgress(student.id);
+    studentAttempts = Store.attempts(student.id);
+    // Backend mode: the sections for the class's stage open by default and the rest start closed. When the stage
+    // changes (or the first time), the open and closed sections start again from the stage; the student can still
+    // open any section. Local mode has no class, so every section starts open as before.
+    const stage = Store.classStage(student.id);
+    if (stage) Collapse.resetForStage(COLLAPSED_KEY, stage, groupsToShow().map((g) => g.id).filter((id) => !self.Curriculum.stageGroups(stage).includes(id)));
     const collapsed = Collapse.collapsedIds(COLLAPSED_KEY);
     $("unit-list").innerHTML = groupsToShow().map((g) => {
       const open = !collapsed.includes(g.id);
@@ -213,11 +220,17 @@ Store.whenReady(function () {
     if (level == null) levelText = u.noPlacement ? "Not started – you'll start at Level 1" : "Not started – a quick check will find your starting level";
     else if (needsPlacement(s)) levelText = "Quick check to finish";
     else levelText = "Your level: " + level + " (" + levelName(level, u.id) + ")" + (s.completedTop ? " ✓ completed" : "");
-    // A unit glows once a level 10 task has been passed in it.
-    const glow = s && (s.passedTop || s.completedTop);
-    return '<li><a class="unit-card' + (glow ? " unit-complete" : "") + '" href="practice.html?unit=' + encodeURIComponent(u.id) + '">' + title +
+    // The secured score (secured.js, the same as the teacher sees): a secured unit glows gold at 100%, and shows its
+    // colour and label as the score falls. A unit with a level 10 pass that isn't secured yet keeps its note.
+    const sec = s ? self.Secured.score(studentAttempts, u.id) : { secured: false };
+    const b = sec.secured ? self.Secured.band(sec.score) : null;
+    const glow = sec.secured && sec.score >= 100;
+    const passedTen = s && (s.passedTop || s.completedTop);
+    return '<li><a class="unit-card' + (glow ? " unit-complete" : b ? " unit-scored" : "") + '" href="practice.html?unit=' + encodeURIComponent(u.id) + '">' + title +
       '<p class="unit-meta"><span>' + count + " tasks</span><span><strong>" + esc(levelText) + "</strong></span></p>" +
-      (glow ? '<p class="complete-note">★ Level 10 passed</p>' : "") + "</a></li>";
+      (b ? '<p class="secured-note"><span class="rag rag-' + b.cls + '">' + sec.score + "% · " + esc(b.label) + "</span>" +
+        (sec.score < 100 ? ' <span class="small">One level 10 pass with no hints brings it back to 100%.</span>' : "") + "</p>"
+        : passedTen ? '<p class="complete-note">★ Level 10 passed</p>' : "") + "</a></li>";
   }
 
   function showUnits() {

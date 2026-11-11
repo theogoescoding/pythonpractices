@@ -2,9 +2,9 @@
 // No DOM here, so tests/features.js can check it. Works in the browser (window.TeacherData) and in Node.
 
 (function (root, factory) {
-  if (typeof module === "object" && module.exports) module.exports = factory();
-  else root.TeacherData = factory();
-})(typeof self !== "undefined" ? self : this, function () {
+  if (typeof module === "object" && module.exports) module.exports = factory(require("./secured.js"));
+  else root.TeacherData = factory(root.Secured); // teacher.html loads secured.js first
+})(typeof self !== "undefined" ? self : this, function (Secured) {
 
   const FAILS_IN_A_ROW_ALERT = 2;
   const TOP_FAILED_TASKS = 10;
@@ -218,6 +218,116 @@
     return { tasks, struggled, students: new Set(rows.map((a) => a.studentId)).size };
   }
 
+  // ---------- Secured scores (the Students page) ----------
+  // Each student's attempt records by unit, oldest first.
+  function attemptsByStudentUnit(data) {
+    const by = {};
+    for (const a of data.attempts.slice().sort((x, y) => (x.at < y.at ? -1 : x.at > y.at ? 1 : 0))) {
+      const s = by[a.studentId] || (by[a.studentId] = {});
+      (s[a.unit] || (s[a.unit] = [])).push(a);
+    }
+    return by;
+  }
+
+  // A unit is placed once its placement test is done: the same rule as app.js needsPlacement (a placement still
+  // pending or in progress). A unit with no placement test, or started before placement existed, counts as placed.
+  const placed = (c) => c.started && !["pending", "in-progress"].includes(c.placementStatus);
+
+  // The newest press of each level button ("This is too easy", "This is way too hard"), by student and unit, from
+  // the button log (store.js logButton; button_use events in backend mode). unitCell's tooEasy and tooHard say
+  // whether the student has pressed it (the unit's buttonsUsed); this gives the time of the press.
+  function lastButtonPresses(data) {
+    const last = {};
+    for (const b of data.buttonLog || []) {
+      const k = b.studentId + "|" + b.unit + "|" + b.button;
+      if (!last[k] || b.at > last[k]) last[k] = b.at;
+    }
+    return last;
+  }
+
+  // The RAG group of a score: green (Secured, Fresh, Fading), amber (Revisit soon) or red (Revisit now).
+  const ragOf = (score) => (score == null ? null : score >= 80 ? "green" : score >= 50 ? "amber" : "red");
+
+  // One row per student, one cell per unit in unitIds. A cell has unitCell's fields (tooEasy and tooHard: the student
+  // pressed that button in the unit), plus tooEasyAt and tooHardAt (the newest press), placed, and score: the secured
+  // score once the unit is placed (0 if placed but not secured yet), or null (not started, or not placed yet: grey).
+  // Only placed units count in the student's average, the green, amber and red counts, and the class averages.
+  function scoreTable(data, unitIds, now) {
+    const by = attemptsByStudentUnit(data);
+    const pressed = lastButtonPresses(data);
+    const rows = Object.entries(data.students).map(([id, s]) => {
+      const units = (data.progress[id] || { units: {} }).units || {};
+      const mine = by[id] || {};
+      const cells = {};
+      for (const u of unitIds) {
+        const base = unitCell(units[u]);
+        const sec = Secured.score(mine[u] || [], u, now);
+        const isPlaced = placed(base);
+        const score = !isPlaced ? null : sec.secured ? sec.score : 0;
+        cells[u] = Object.assign(base, {
+          placed: isPlaced, secured: sec.secured, score, band: score == null ? null : Secured.band(score), rag: ragOf(score), levelTenPasses: sec.passes, floor: sec.floor,
+          tooEasyAt: base.tooEasy ? pressed[id + "|" + u + "|too-easy"] || null : null,
+          tooHardAt: base.tooHard ? pressed[id + "|" + u + "|too-hard"] || null : null,
+        });
+      }
+      const scored = unitIds.map((u) => cells[u].score).filter((x) => x != null);
+      const average = scored.length ? Math.round(scored.reduce((a, b) => a + b, 0) / scored.length) : null;
+      const times = data.attempts.filter((a) => a.studentId === id).map((a) => a.at).sort();
+      return { studentId: id, name: s.name, cells, average, band: average == null ? null : Secured.band(average), rag: ragOf(average), lastActive: times[times.length - 1] || null };
+    });
+    const summary = { green: 0, amber: 0, red: 0, notPlaced: 0 };
+    for (const r of rows) summary[r.rag || "notPlaced"] += 1;
+    const unitAverages = unitIds.map((u) => {
+      const xs = rows.map((r) => r.cells[u].score).filter((x) => x != null);
+      const average = xs.length ? Math.round(xs.reduce((a, b) => a + b, 0) / xs.length) : null;
+      return { unit: u, average, band: average == null ? null : Secured.band(average), students: xs.length };
+    });
+    return { rows, summary, unitAverages };
+  }
+
+  // key: "name", "average" or a unit id (by score; not started or not placed first).
+  function sortScoreTable(rows, key, dir) {
+    const val = (r) => (key === "name" ? r.name.toLowerCase() : key === "average" ? (r.average == null ? -1 : r.average) : r.cells[key] && r.cells[key].score != null ? r.cells[key].score : -1);
+    return rows.slice().sort((a, b) => {
+      const x = val(a), y = val(b);
+      if (x < y) return -dir;
+      if (x > y) return dir;
+      return a.name.localeCompare(b.name);
+    });
+  }
+
+  // One student's page: their row of scoreTable, and their newest attempts (Check presses, skips and "Show me how").
+  function studentDetail(data, studentId, unitIds, now, max) {
+    const row = scoreTable({ students: { [studentId]: data.students[studentId] || { name: "(removed)" } }, progress: data.progress,
+      attempts: data.attempts.filter((a) => a.studentId === studentId), buttonLog: (data.buttonLog || []).filter((b) => b.studentId === studentId) }, unitIds, now).rows[0];
+    const recent = data.attempts.filter((a) => a.studentId === studentId).sort(byTimeDesc).slice(0, max || 30).map((a) => ({
+      at: a.at, unit: a.unit, taskId: a.taskId, phase: a.phase || "", level: a.taskLevel,
+      result: a.kind === "skip" ? "skipped" : a.kind === "hint" ? "Show me how" : a.result, hints: a.hints || 0,
+      failedTest: a.failedTest == null ? null : a.failedTest, category: a.category || "", misconceptions: a.misconceptions || [],
+    }));
+    return Object.assign(row, { recent, failsInARow: Object.fromEntries(unitIds.map((u) => [u, row.cells[u].failsInARow || 0])) });
+  }
+
+  // The class scores export: per student, the average and each unit's secured score, its label and the level.
+  function classScoresCsv(table, unitIds, unitTitle) {
+    const cols = [{ key: "name", label: "Name" }, { key: "average", label: "Average secured score" }, { key: "rag", label: "RAG" }];
+    for (const u of unitIds) {
+      const t = unitTitle ? unitTitle(u) : u;
+      cols.push({ key: u + "_score", label: t + ": secured score" }, { key: u + "_label", label: t + ": label" }, { key: u + "_level", label: t + ": level" });
+    }
+    const rows = table.rows.map((r) => {
+      const out = { name: r.name, average: r.average == null ? "not placed yet" : r.average, rag: r.rag || "" };
+      for (const u of unitIds) {
+        const c = r.cells[u];
+        out[u + "_score"] = !c.started ? "not started" : !c.placed ? "not placed yet" : c.score;
+        out[u + "_label"] = !c.started ? "" : !c.placed ? "Not placed yet" : c.band.label + (c.secured ? "" : " (not secured yet)");
+        out[u + "_level"] = c.started ? c.level : "";
+      }
+      return out;
+    });
+    return toCsv(cols, rows);
+  }
+
   // ---------- CSV ----------
   function csvCell(v) {
     const s = String(v == null ? "" : v);
@@ -358,5 +468,6 @@
     FAILS_IN_A_ROW_ALERT, TOP_FAILED_TASKS, BUTTON_NAMES, PLACEMENT_STATUS, FULL_COLUMNS,
     collect, overviewRows, sortOverview, filterByName, taskStats, misconceptionStats, quickLook,
     detailRows, filterDetail, workshop, toCsv, fullExportRows, fullExportCsv, dataDictionaryCsv, assignmentStats,
+    lastButtonPresses, ragOf, scoreTable, sortScoreTable, studentDetail, classScoresCsv,
   };
 });
