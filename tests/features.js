@@ -1088,6 +1088,61 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       /noStage\(r\.error\)/.test(backendSrc) && /if \(r\.error \|\| !r\.data\) return null;/.test(read("supabase/functions/student-api/index.ts")),
       "Class stage: migration 0013 adds classes.stage (KS3, GCSE or A-level; existing classes GCSE); the teacher view and student-api still work on a server without it");
 
+    // Creating a class: runs teacher-backend.js's real "Create class" handler against a fake Supabase client, in a
+    // child process (the handler is async and these checks are not).
+    const createClass = (mode, stage) => {
+      const scenario = async (root, mode, stage) => {
+        const fs = require("fs"), vm = require("vm");
+        const els = {}, handlers = {}, inserts = [];
+        const el = (id) => els[id] || (els[id] = { id, value: "", textContent: "", innerHTML: "", hidden: false, className: "", disabled: false,
+          addEventListener: (type, fn) => { handlers[id + ":" + type] = fn; }, focus() {} });
+        el("tb-new-class-name").value = " 7X ";
+        el("tb-new-class-stage").value = stage;
+        const made = { data: { id: "c1", class_code: "ABCDEF" } };
+        const respond = (q) => {
+          if (!q.insert) return { data: [] };
+          inserts.push(q.insert);
+          if (mode === "error") return { error: { code: "23514", message: 'new row for relation "classes" violates check constraint "classes_stage_check"' } };
+          if (mode === "no-reason") return { error: {} };
+          if (mode === "refused" && "stage" in q.insert) return { error: { code: "42501", message: "permission denied for table classes" } };
+          return made;
+        };
+        const query = () => { const q = {}; const b = { insert: (row) => { q.insert = row; return b; }, then: (ok) => ok(respond(q)) };
+          ["select", "order", "eq", "single", "maybeSingle", "range"].forEach((m) => { b[m] = () => b; }); return b; };
+        const sb = { from: query, auth: { getSession: async () => ({ data: { session: null } }) } };
+        const ctx = { document: { getElementById: el, head: { appendChild() {} } }, location: { hash: "", pathname: "/teacher.html", origin: "" },
+          history: { replaceState() {} }, localStorage: { getItem: () => null, setItem() {} }, console,
+          APP_CONFIG: { BACKEND_ENABLED: true, SUPABASE_URL: "https://example.test", SUPABASE_ANON_KEY: "test" },
+          supabase: { createClient: () => sb }, Curriculum: { DEFAULT_STAGE: "gcse", stageOf: (s) => ({ label: s }) } };
+        ctx.self = ctx;
+        vm.createContext(ctx);
+        vm.runInContext(fs.readFileSync(require("path").join(root, "teacher-backend.js"), "utf8"), ctx);
+        await ctx.TeacherBackend.start(() => {}, () => {});
+        await handlers["tb-new-class:submit"]({ preventDefault() {} });
+        console.log(JSON.stringify({ inserts, status: el("tb-status").textContent, problem: el("tb-status").className === "problem" }));
+      };
+      const out = require("child_process").execFileSync(process.execPath,
+        ["-e", "(" + scenario.toString() + ")(" + JSON.stringify(ROOT) + ", " + JSON.stringify(mode) + ", " + JSON.stringify(stage) + ")"], { encoding: "utf8" });
+      return JSON.parse(out.trim().split("\n").pop());
+    };
+    const stageOptions = [...(teacher.match(/<select id="tb-new-class-stage">([\s\S]*?)<\/select>/) || ["", ""])[1].matchAll(/value="([^"]*)"/g)].map((m) => m[1]);
+    const allowed = (read("supabase/migrations/0013_class_stage.sql").match(/check \(stage in \(([^)]*)\)\)/) || ["", ""])[1].match(/'[^']*'/g).map((s) => s.slice(1, -1));
+    const okKs3 = createClass("ok", "ks3");
+    check(stageOptions.join() === "ks3,gcse,a-level" && stageOptions.every((s) => allowed.includes(s)) &&
+      okKs3.inserts.length === 1 && okKs3.inserts[0].name === "7X" && okKs3.inserts[0].stage === "ks3" && !okKs3.problem && /Class 7X created\. Its class code is ABCDEF/.test(okKs3.status) &&
+      /^grant insert \(stage\), update \(stage\) on public\.classes to authenticated;$/m.test(read("supabase/migrations/0014_class_stage_grants.sql")) &&
+      /^begin;$/m.test(read("supabase/migrations/0014_class_stage_grants.sql")) && /^commit;$/m.test(read("supabase/migrations/0014_class_stage_grants.sql")),
+      "Creating a class sends a valid stage (each option is one 0013 allows, lowercase), and migration 0014 lets a teacher insert and update the stage column");
+    const failed = createClass("error", "gcse");
+    const noReason = createClass("no-reason", "gcse");
+    check(failed.problem && failed.status === 'Couldn\'t create the class (new row for relation "classes" violates check constraint "classes_stage_check"). Please try again.' &&
+      noReason.problem && noReason.status === "Couldn't create the class. Please try again.",
+      "Creating a class: the error shows the server's reason with \"Please try again\", and keeps the old message when the server gives no reason");
+    const refused = createClass("refused", "a-level");
+    check(refused.inserts.length === 2 && refused.inserts[0].stage === "a-level" && !("stage" in refused.inserts[1]) && !refused.problem &&
+      /needs migration 0014\), so it was made as GCSE/.test(refused.status),
+      "Creating a class on a server without migration 0014 (stage refused) still makes the class, as GCSE, and says so");
+
     // Teacher practice is never recorded: with stopRecording, no Store function writes anything, and every Store
     // function that can write is one stopRecording replaces.
     const storeRun = () => {

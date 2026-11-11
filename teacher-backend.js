@@ -262,11 +262,18 @@
       if (!name) return say("tb-status", "Please type a name for the class.", true);
       let r = await sb.from("classes").insert(stageOnServer ? { name, stage } : { name }).select("id, class_code").single();
       if (r.error && noStage(r.error)) { stageOnServer = false; r = await sb.from("classes").insert({ name }).select("id, class_code").single(); }
-      if (r.error) return say("tb-status", "Couldn't create the class. Please try again.", true);
+      // A server with migration 0013 but not 0014 refuses the stage column (permission denied, 42501): make the class
+      // without it (GCSE, the column's default), so a class can still be made.
+      let stageRefused = false;
+      if (r.error && r.error.code === "42501" && stageOnServer) { stageRefused = true; r = await sb.from("classes").insert({ name }).select("id, class_code").single(); }
+      // The server's reason, when it gives one, so the teacher (and Theo) can see why.
+      const reason = r.error && (r.error.message || r.error.code);
+      if (r.error) return say("tb-status", "Couldn't create the class" + (reason ? " (" + reason + ")" : "") + ". Please try again.", true);
       $("tb-new-class-name").value = "";
       await loadClasses(r.data.id);
       say("tb-status", "Class " + name + " created. Its class code is " + r.data.class_code + ": give it to your students so they can join." +
-        (stageOnServer ? "" : " (The server doesn't store a class's stage yet, so it is shown as GCSE.)"));
+        (!stageOnServer ? " (The server doesn't store a class's stage yet, so it is shown as GCSE.)"
+          : stageRefused && stage !== self.Curriculum.DEFAULT_STAGE ? " (The server can't save its stage yet (it needs migration 0014), so it was made as GCSE.)" : ""));
       location.hash = "students";
     });
 
