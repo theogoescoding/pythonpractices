@@ -41,7 +41,8 @@
       result: r.result, hints: r.hints_used, levelBefore: r.student_level_before, levelAfter: r.student_level_after,
     };
     if (r.variant_fingerprint != null) a.fingerprint = r.variant_fingerprint;
-    if (kind === "hint") a.hintType = r.hint_type;
+    // A hint row's type, or "show-me-how" on an attempt made after "Show me how" (older attempt rows have none).
+    if (kind === "hint" || r.hint_type != null) a.hintType = r.hint_type;
     if (r.assignment_id != null) a.assignmentId = r.assignment_id;
     if (r.failure_category != null) {
       Object.assign(a, {

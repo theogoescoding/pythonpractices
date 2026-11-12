@@ -248,10 +248,22 @@
   // The RAG group of a score: green (Secured, Fresh, Fading), amber (Revisit soon) or red (Revisit now).
   const ragOf = (score) => (score == null ? null : score >= 80 ? "green" : score >= 50 ? "amber" : "red");
 
+  // The colour of a placed unit that isn't secured yet: its level (1-3 red, 4-6 amber, 7-9 green, 10 light green),
+  // drawn with the bands' own colour classes. { cls, label: "Level 8", rag }.
+  function levelBand(level) {
+    const l = Math.max(1, Math.min(10, Math.round(level) || 1));
+    const [cls, rag] = l <= 3 ? ["now", "red"] : l <= 6 ? ["soon", "amber"] : l <= 9 ? ["fading", "green"] : ["fresh", "green"];
+    return { cls, label: "Level " + l, rag };
+  }
+
   // One row per student, one cell per unit in unitIds. A cell has unitCell's fields (tooEasy and tooHard: the student
-  // pressed that button in the unit), plus tooEasyAt and tooHardAt (the newest press), placed, and score: the secured
-  // score once the unit is placed (0 if placed but not secured yet), or null (not started, or not placed yet: grey).
-  // Only placed units count in the student's average, the green, amber and red counts, and the class averages.
+  // pressed that button in the unit), plus tooEasyAt and tooHardAt (the newest press), placed, and:
+  //   - a secured unit: score (its secured score) and band (its freshness band);
+  //   - a placed unit that isn't secured yet: score null and levelBand (the level's colour), never 0%;
+  //   - not started, or not placed yet (grey): score, band and levelBand null.
+  // A student's average is of their secured units only, and their RAG comes from it. A student with placed units but
+  // none secured gets the RAG of their average level instead (averageLevel); one with no placed unit has none.
+  // The class average per unit is of the students who have secured it.
   function scoreTable(data, unitIds, now) {
     const by = attemptsByStudentUnit(data);
     const pressed = lastButtonPresses(data);
@@ -263,17 +275,24 @@
         const base = unitCell(units[u]);
         const sec = Secured.score(mine[u] || [], u, now);
         const isPlaced = placed(base);
-        const score = !isPlaced ? null : sec.secured ? sec.score : 0;
+        const secured = isPlaced && sec.secured;
+        const score = secured ? sec.score : null;
+        const lb = isPlaced && !secured ? levelBand(base.level) : null;
         cells[u] = Object.assign(base, {
-          placed: isPlaced, secured: sec.secured, score, band: score == null ? null : Secured.band(score), rag: ragOf(score), levelTenPasses: sec.passes, floor: sec.floor,
+          placed: isPlaced, secured, score, band: secured ? Secured.band(score) : null, levelBand: lb, rag: secured ? ragOf(score) : lb ? lb.rag : null,
+          levelTenPasses: sec.passes, floor: sec.floor,
           tooEasyAt: base.tooEasy ? pressed[id + "|" + u + "|too-easy"] || null : null,
           tooHardAt: base.tooHard ? pressed[id + "|" + u + "|too-hard"] || null : null,
         });
       }
       const scored = unitIds.map((u) => cells[u].score).filter((x) => x != null);
       const average = scored.length ? Math.round(scored.reduce((a, b) => a + b, 0) / scored.length) : null;
+      const levels = unitIds.filter((u) => cells[u].placed).map((u) => cells[u].level).filter((x) => typeof x === "number");
+      const averageLevel = average == null && levels.length ? Math.round(levels.reduce((a, b) => a + b, 0) / levels.length) : null;
+      const levelColour = averageLevel == null ? null : levelBand(averageLevel);
       const times = data.attempts.filter((a) => a.studentId === id).map((a) => a.at).sort();
-      return { studentId: id, name: s.name, cells, average, band: average == null ? null : Secured.band(average), rag: ragOf(average), lastActive: times[times.length - 1] || null };
+      return { studentId: id, name: s.name, cells, average, band: average == null ? null : Secured.band(average), averageLevel, levelBand: levelColour,
+        rag: average != null ? ragOf(average) : levelColour ? levelColour.rag : null, lastActive: times[times.length - 1] || null };
     });
     const summary = { green: 0, amber: 0, red: 0, notPlaced: 0 };
     for (const r of rows) summary[r.rag || "notPlaced"] += 1;
@@ -285,9 +304,11 @@
     return { rows, summary, unitAverages };
   }
 
-  // key: "name", "average" or a unit id (by score; not started or not placed first).
+  // key: "name", "average" or a unit id: not started or not placed first, then not secured yet by level, then
+  // secured by score (a secured score is at least 50, so 10 + score is always above a level).
   function sortScoreTable(rows, key, dir) {
-    const val = (r) => (key === "name" ? r.name.toLowerCase() : key === "average" ? (r.average == null ? -1 : r.average) : r.cells[key] && r.cells[key].score != null ? r.cells[key].score : -1);
+    const cellVal = (c) => (!c ? -1 : c.score != null ? 10 + c.score : c.levelBand ? c.level : -1);
+    const val = (r) => (key === "name" ? r.name.toLowerCase() : key === "average" ? (r.average != null ? 10 + r.average : r.averageLevel != null ? r.averageLevel : -1) : cellVal(r.cells[key]));
     return rows.slice().sort((a, b) => {
       const x = val(a), y = val(b);
       if (x < y) return -dir;
@@ -316,11 +337,11 @@
       cols.push({ key: u + "_score", label: t + ": secured score" }, { key: u + "_label", label: t + ": label" }, { key: u + "_level", label: t + ": level" });
     }
     const rows = table.rows.map((r) => {
-      const out = { name: r.name, average: r.average == null ? "not placed yet" : r.average, rag: r.rag || "" };
+      const out = { name: r.name, average: r.average != null ? r.average : r.averageLevel != null ? "not secured yet" : "not placed yet", rag: r.rag || "" };
       for (const u of unitIds) {
         const c = r.cells[u];
-        out[u + "_score"] = !c.started ? "not started" : !c.placed ? "not placed yet" : c.score;
-        out[u + "_label"] = !c.started ? "" : !c.placed ? "Not placed yet" : c.band.label + (c.secured ? "" : " (not secured yet)");
+        out[u + "_score"] = !c.started ? "not started" : !c.placed ? "not placed yet" : c.secured ? c.score : "not secured yet";
+        out[u + "_label"] = !c.started ? "" : !c.placed ? "Not placed yet" : c.secured ? c.band.label : c.levelBand.label + " (not secured yet)";
         out[u + "_level"] = c.started ? c.level : "";
       }
       return out;
@@ -372,7 +393,7 @@
     ["level_change_reason", "For level changes: why the level changed. One of the level_change_reason values listed below."],
     ["placement_start_level", "For placement results: the level the student started practice at (the highest placement level passed, at least 1 and at most 8)."],
     ["placement_results", "For placement results: each placement task as JSON – its level, task id, whether it was passed, the number of attempts and the hints used."],
-    ["hint_type", "For hint rows: which kind of help was used. show-me-how means the student pressed 'Show me how' and saw a worked example (see the hint_type values below). Ordinary hints are not separate rows: they are counted in hints_used."],
+    ["hint_type", "For hint rows: which kind of help was used. show-me-how means the student pressed 'Show me how' and saw a worked example (see the hint_type values below). Ordinary hints are not separate rows: they are counted in hints_used. On an attempt row, show-me-how means the student had used 'Show me how' on that task first, so a pass doesn't count towards the secured score (empty on attempts recorded before this was added)."],
     ["variant_fingerprint", "For tasks made from a template: the template id and the values drawn for this variant. Two rows with the same fingerprint are the same task. A passed fingerprint is never given to that student again in that unit. Empty for bank tasks (their task_id is their fingerprint)."],
     ["assignment_id", "For rows with phase assignment: the id of the class assignment the task was set in (backend mode only). Assignment work is practice only: it never changes the student's level, streaks, passed tasks or progress, tries are unlimited, hints are free and 'Show me how' is always offered, so student_level_before and student_level_after are the same (empty if the student hadn't started the unit). Empty for every other row, and for an assignment the teacher has since deleted."],
   ];
@@ -428,7 +449,7 @@
         task_id: a.taskId, template_id: a.templateId || "", phase: a.phase || "", task_type: a.taskType || "", task_level: a.taskLevel,
         student_level_before: a.levelBefore, student_level_after: a.levelAfter, attempt_number: a.attemptNumber,
         result: type === "skip" ? "skipped" : type === "hint" ? a.hintType || "hint" : a.result, failure_category: a.category || "", failure_details: a.category ? json(a.details) : "",
-        hint_type: type === "hint" ? a.hintType || "" : "", variant_fingerprint: a.fingerprint || "",
+        hint_type: type === "skip" ? "" : a.hintType || "", variant_fingerprint: a.fingerprint || "",
         misconception_matches: (a.misconceptions || []).join(";"), hints_used: a.hints,
         failed_test_number: a.failedTest == null ? "" : a.failedTest, failed_test_inputs: a.inputs ? json(a.inputs) : "",
         expected_output: a.expected == null ? "" : a.expected, student_output: a.output == null ? "" : a.output,
@@ -468,6 +489,6 @@
     FAILS_IN_A_ROW_ALERT, TOP_FAILED_TASKS, BUTTON_NAMES, PLACEMENT_STATUS, FULL_COLUMNS,
     collect, overviewRows, sortOverview, filterByName, taskStats, misconceptionStats, quickLook,
     detailRows, filterDetail, workshop, toCsv, fullExportRows, fullExportCsv, dataDictionaryCsv, assignmentStats,
-    lastButtonPresses, ragOf, scoreTable, sortScoreTable, studentDetail, classScoresCsv,
+    lastButtonPresses, ragOf, levelBand, scoreTable, sortScoreTable, studentDetail, classScoresCsv,
   };
 });

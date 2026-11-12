@@ -161,7 +161,7 @@
 
       <section class="teacher-section" data-collapse="students">
       <h3>Secured score per unit</h3>
-      <p class="small">One row per student, one column per unit for this class's stage. Each cell shows the secured score and its label, the level,
+      <p class="small">One row per student, one column per unit for this class's stage. Each cell shows the secured score and its label (or, if the unit isn't secured yet, the level in its colour), the level,
         the placement result, <span class="badge-complete">★ Complete</span> once a level 10 task is passed, and these flags, with the time of the newest press:</p>
       <ul class="small flag-key">
         <li><span class="flag flag-easy">Too easy</span> the student pressed "This is too easy" in this unit, which moved them up one level: check that their level is right</li>
@@ -180,9 +180,12 @@
       <p class="small rag-key">Colour key: <span class="rag rag-gold">100% Secured</span> <span class="rag rag-fresh">95% Fresh</span>
         <span class="rag rag-fading">80–90% Fading</span> <span class="rag rag-soon">50–75% Revisit soon</span> <span class="rag rag-now">under 50% Revisit now</span>
         <span class="rag rag-none">grey: Not placed yet</span>.
-        A unit stays grey until the student has done its placement test; only placed units count in the averages and the green, amber and red counts.
-        A unit is secured after two level 10 passes with no hints. It then drops 5 points a week, never below its floor, and one more
-        level 10 pass with no hints brings it back to 100%. A placed unit that isn't secured yet shows 0%.</p>
+        Not secured yet, the level's colour: <span class="rag rag-now">Level 1–3</span> <span class="rag rag-soon">Level 4–6</span>
+        <span class="rag rag-fading">Level 7–9</span> <span class="rag rag-fresh">Level 10</span>.
+        A unit stays grey until the student has done its placement test. A placed unit that isn't secured yet shows its level in that level's colour, never 0%.
+        A student's average is of their secured units; with none secured yet, the green, amber and red counts use their average level's colour.
+        A unit is secured after two level 10 passes with no hints (a pass after "Show me how" doesn't count). It then drops 5 points a week, never below its floor, and one more
+        level 10 pass with no hints brings it back to 100%.</p>
       </section>
     </section>
 
@@ -290,7 +293,7 @@
 
       <section class="teacher-section" data-collapse="compare">
       <h3>Compare classes</h3>
-      <p class="small">Your own classes only: each class's average secured score per unit, side by side.</p>
+      <p class="small">Your own classes only: each class's average secured score per unit, side by side (students who have secured the unit; the number in brackets).</p>
       <p><button type="button" id="compare-load" class="secondary">Compare my classes</button></p>
       <div id="compare" aria-live="polite"></div>
       </section>

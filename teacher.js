@@ -76,7 +76,12 @@
   const currentClass = () => (tb ? tb.currentClass() : null);
   const stage = () => self.Curriculum.stageOf((currentClass() || {}).stage).id;
   const stageUnitIds = () => self.Curriculum.stageUnits(stage());
-  const bandHtml = (c) => (c.band ? '<span class="rag rag-' + c.band.cls + '">' + c.score + "% · " + esc(c.band.label) + "</span>" : "");
+  // A secured unit: its score and freshness band. A placed unit that isn't secured yet: its level in the level's colour.
+  const bandHtml = (c) => (c.band ? '<span class="rag rag-' + c.band.cls + '">' + c.score + "% · " + esc(c.band.label) + "</span>"
+    : c.levelBand ? '<span class="rag rag-' + c.levelBand.cls + '">' + esc(c.levelBand.label) + "</span>" : "");
+  // A student's average: of their secured units, or (none secured yet) their average level in its colour.
+  const averageHtml = (r) => (r.band ? '<span class="rag rag-' + r.band.cls + '">' + r.average + "% · " + esc(r.band.label) + "</span>"
+    : r.levelBand ? '<span class="rag rag-' + r.levelBand.cls + '">Average ' + esc(r.levelBand.label.toLowerCase()) + '</span><br><span class="small">No unit secured yet</span>' : NOT_PLACED);
 
   // ---------- Page switching ----------
   function render() {
@@ -111,7 +116,8 @@
     if (!c.started) return '<span class="small">Not started</span>';
     const placement = c.placementStatus === "done" ? "Placement: started at " + c.placementStart : "Placement: " + TD.PLACEMENT_STATUS[c.placementStatus];
     return (c.placed ? bandHtml(c) + (c.secured ? "" : '<br><span class="small">Not secured yet</span>') : NOT_PLACED) +
-      '<br><span class="lvl">Level ' + c.level + "</span>" +
+      (c.secured || !c.placed ? '<br><span class="lvl">Level ' + c.level + "</span>" : "") + // an unsecured unit already shows its level
+
       (c.complete ? ' <span class="badge-complete" title="Passed a level 10 task">★ Complete</span>' : "") +
       '<br><span class="small">' + esc(placement) + "</span>" +
       (c.tooEasy || c.tooHard ? "<br>" + buttonFlagsHtml(c) : "");
@@ -133,14 +139,15 @@
     renderCodeCards();
     const table = TD.scoreTable(data, unitIds);
     const s = table.summary;
-    $("st-summary").innerHTML = '<div class="rag-tile rag-tile-green"><span>Green</span><strong>' + s.green + '</strong><span class="small">average 80% or more</span></div>' +
-      '<div class="rag-tile rag-tile-amber"><span>Amber</span><strong>' + s.amber + '</strong><span class="small">average 50% to 79%</span></div>' +
-      '<div class="rag-tile rag-tile-red"><span>Red</span><strong>' + s.red + '</strong><span class="small">average under 50%</span></div>' +
+    // A student counts by their secured units' average; with none secured yet, by their average level's colour.
+    $("st-summary").innerHTML = '<div class="rag-tile rag-tile-green"><span>Green</span><strong>' + s.green + '</strong><span class="small">secured average 80% or more (none secured: level 7 or more)</span></div>' +
+      '<div class="rag-tile rag-tile-amber"><span>Amber</span><strong>' + s.amber + '</strong><span class="small">secured average 50% to 79% (none secured: level 4 to 6)</span></div>' +
+      '<div class="rag-tile rag-tile-red"><span>Red</span><strong>' + s.red + '</strong><span class="small">secured average under 50% (none secured: level 1 to 3)</span></div>' +
       (s.notPlaced ? '<div class="rag-tile"><span>Not placed yet</span><strong>' + s.notPlaced + '</strong><span class="small">no unit placed yet</span></div>' : "");
     const started = table.unitAverages.filter((u) => u.average != null);
-    $("st-averages").innerHTML = '<p class="small">Class average per unit (students who have done its placement):</p>' + (started.length
+    $("st-averages").innerHTML = '<p class="small">Class average secured score per unit (students who have secured it):</p>' + (started.length
       ? started.map((u) => '<span class="rag rag-' + u.band.cls + '">' + esc(unitTitle(u.unit)) + ": " + u.average + "% · " + esc(u.band.label) + "</span>").join(" ")
-      : '<span class="small">No student has done a unit\'s placement yet.</span>');
+      : '<span class="small">No student has secured a unit yet.</span>');
 
     const cols = [{ key: "name", label: "Name" }, { key: "average", label: "Average" }].concat(unitIds.map((u) => ({ key: u, label: unitTitle(u) })));
     $("overview-head").innerHTML = cols.map((col) =>
@@ -150,7 +157,7 @@
     $("overview-rows").innerHTML = rows.length ? rows.map((r) =>
       '<tr><th scope="row"><a href="#student=' + encodeURIComponent(r.studentId) + '">' + esc(r.name) + "</a>" +
         '<br><span class="small">Last active ' + esc(when(r.lastActive)) + "</span></th>" +
-      '<td class="unit-cell">' + (r.average == null ? NOT_PLACED : '<span class="rag rag-' + r.band.cls + '">' + r.average + "% · " + esc(r.band.label) + "</span>") + "</td>" +
+      '<td class="unit-cell">' + averageHtml(r) + "</td>" +
       unitIds.map((u) => '<td class="unit-cell">' + scoreCellHtml(r.cells[u]) + "</td>").join("") + "</tr>").join("")
       : '<tr><td colspan="' + cols.length + '">No students to show yet.</td></tr>';
   }
@@ -191,13 +198,15 @@
     if (keepUnit) $("reset-unit").value = keepUnit;
     $("sd-scores").innerHTML = unitIds.map((u) => {
       const c = d.cells[u];
-      const width = c.score == null ? 0 : c.score;
+      // The bar: the secured score, or for a unit not secured yet its level (out of 10) in the level's colour.
+      const width = c.score != null ? c.score : c.levelBand ? c.level * 10 : 0;
+      const barCls = c.band ? c.band.cls : c.levelBand ? c.levelBand.cls : "";
       return '<div class="score-bar"><div class="score-bar-head"><strong>' + esc(unitTitle(u)) + "</strong> " +
-        (c.started ? (c.placed ? bandHtml(c) : NOT_PLACED) + ' <span class="small">Level ' + c.level +
-          (c.placed && !c.secured ? " · not secured yet (" + c.levelTenPasses + " of 2 level 10 passes with no hints)" : "") +
+        (c.started ? (c.placed ? bandHtml(c) : NOT_PLACED) + ' <span class="small">' +
+          (c.placed && !c.secured ? "Not secured yet (" + c.levelTenPasses + " of 2 level 10 passes with no hints)" : "Level " + c.level) +
           (c.failsInARow ? " · " + c.failsInARow + " fail" + (c.failsInARow === 1 ? "" : "s") + " in a row" : "") + "</span> " + buttonFlagsHtml(c)
           : '<span class="small">Not started</span>') +
-        '</div><div class="bar" aria-hidden="true"><span class="' + (c.band ? "rag-" + c.band.cls : "") + '" style="width:' + width + '%"></span></div></div>';
+        '</div><div class="bar" aria-hidden="true"><span class="' + (barCls ? "rag-" + barCls : "") + '" style="width:' + width + '%"></span></div></div>';
     }).join("");
     $("sd-recent").innerHTML = d.recent.length ? '<div class="table-wrap"><table><thead><tr><th scope="col">Time</th><th scope="col">Task</th><th scope="col">Result</th>' +
       '<th scope="col">Hints</th><th scope="col">Test that failed</th><th scope="col">Misconception matched</th></tr></thead><tbody>' +
@@ -325,11 +334,12 @@
       classes = [{ name: "This browser", averages: TD.scoreTable(collect(), unitIds).unitAverages }];
     }
     const used = unitIds.filter((u) => classes.some((c) => c.averages.find((a) => a.unit === u).average != null));
-    $("compare").innerHTML = !used.length ? '<p class="small">No class has a placed unit yet.</p>' :
+    // Only students who have secured the unit count in its average (an unsecured unit has no score, never 0%).
+    $("compare").innerHTML = !used.length ? '<p class="small">No class has a secured unit yet.</p>' :
       '<div class="table-wrap"><table><thead><tr><th scope="col">Unit</th>' + classes.map((c) => '<th scope="col">' + esc(c.name) + "</th>").join("") + "</tr></thead><tbody>" +
       used.map((u) => '<tr><th scope="row">' + esc(unitTitle(u)) + "</th>" + classes.map((c) => {
         const a = c.averages.find((x) => x.unit === u);
-        return "<td>" + (a.average == null ? NOT_PLACED : '<span class="rag rag-' + a.band.cls + '">' + a.average + "% · " + esc(a.band.label) + '</span> <span class="small">(' + a.students + ")</span>") + "</td>";
+        return "<td>" + (a.average == null ? '<span class="rag rag-none">None secured yet</span>' : '<span class="rag rag-' + a.band.cls + '">' + a.average + "% · " + esc(a.band.label) + '</span> <span class="small">(' + a.students + ")</span>") + "</td>";
       }).join("") + "</tr>").join("") + "</tbody></table></div>" +
       (tb ? "" : '<p class="small">In local mode there is only this browser to show. In backend mode each of your classes has its own column.</p>');
   });
@@ -452,6 +462,21 @@
   let browsing = null; // id of the task on show
   let framed = null;   // id of the task in the practice frame
   const frameButton = (id) => { const f = document.querySelector("#tb-practice iframe"); const doc = f && f.contentDocument; return doc ? doc.getElementById(id) : null; };
+  // Sets the frame's height to the task view's, and again whenever the view grows or shrinks (a hint, the output,
+  // a wider or narrower window), so there is never a scrollbar inside the frame. The code editor scrolls as before.
+  function fitFrame(f) {
+    const doc = f.contentDocument;
+    if (!doc || !doc.documentElement) return;
+    const fit = () => {
+      if (!doc.body) return;
+      const h = Math.ceil(Math.max(doc.documentElement.getBoundingClientRect().height, doc.body.scrollHeight));
+      if (h > 0 && f.style.height !== h + "px") f.style.height = h + "px";
+    };
+    fit();
+    const RO = f.contentWindow && f.contentWindow.ResizeObserver;
+    if (RO) new RO(fit).observe(doc.body);
+    else f.contentWindow.addEventListener("resize", fit);
+  }
   function renderTaskBrowser(openId) {
     if (openId && tasksById[openId]) { browsing = tasksById[openId].id; if (!$("tb-search").value) $("tb-search").value = browsing; }
     const found = TaskView.searchTasks(bankTasks, $("tb-search").value, 25);
@@ -470,6 +495,8 @@
         '<button type="button" class="primary" id="tb-check">Check answer</button></div>' +
         '<p class="small">Not recorded: no attempt, pass, progress or level change is saved, here or on the server.</p>' +
         '<iframe class="practice-frame" title="Try ' + esc(t.id) + ' as a student" src="practice.html?preview=' + encodeURIComponent(t.id) + '"></iframe>';
+      const frame = $("tb-practice").querySelector("iframe");
+      frame.addEventListener("load", () => { try { fitFrame(frame); } catch (e) { /* keeps the starting height */ } });
       $("tb-hint").addEventListener("click", () => { const b = frameButton("hint-btn"); if (b && !b.disabled) b.click(); });
       $("tb-check").addEventListener("click", () => { const b = frameButton("check-btn"); if (b && !b.disabled) b.click(); });
       $("tb-show-solution").addEventListener("click", () => {

@@ -1072,20 +1072,77 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "Students page: each flag has its tooltip and the time of the newest press, on the cell and on the student page (they replace the Too easy used and Too hard used badges); ★ Complete and the placement result are kept");
     check(!/2\+ fails in a row/.test(teacher + teacherSrc) && !/log-rows|f-student|Detail log<\/h2>/.test(teacher) && !/Needs help|backup reminder|Teach First/i.test(teacher + teacherSrc),
       "Teacher view: the \"2+ fails in a row\" panel and the on-screen detail log are gone (the log is in the export); no Needs help panel, backup reminder or demo class");
-    check(cell("Ann", "selection").placed && cell("Ann", "selection").score === 100 && cell("Ann", "selection").band.label === "Secured" &&
-      cell("Bo", "selection").placed && cell("Bo", "selection").score === 0 && cell("Bo", "selection").band.label === "Revisit now" &&
-      !cell("Di", "selection").placed && cell("Di", "selection").score === null && cell("Di", "selection").band === null && !cell("Di", "maths").placed &&
-      cell("Cy", "selection").score === null && cell("Ed", "linear-search").placed && cell("Ed", "linear-search").score === 0,
-      "Not placed yet: a started unit whose placement is pending or in progress has no score or colour (grey), not 0% red; a placed unit gets its colour, and a unit with no placement test counts as placed");
-    check(tab.summary.green === 1 && tab.summary.red === 2 && tab.summary.amber === 0 && tab.summary.notPlaced === 2 && byStudent.Di.average === null && byStudent.Di.rag === null &&
-      tab.unitAverages[0].average === 50 && tab.unitAverages[0].students === 2 && tab.unitAverages[1].average === null && tab.unitAverages[2].students === 1,
-      "Students page: the green, amber and red counts and the class average per unit count only placed units (a student with no placed unit is in none of them)");
+    check(cell("Ann", "selection").placed && cell("Ann", "selection").score === 100 && cell("Ann", "selection").band.label === "Secured" && cell("Ann", "selection").levelBand === null &&
+      cell("Bo", "selection").placed && cell("Bo", "selection").score === null && cell("Bo", "selection").band === null && cell("Bo", "selection").levelBand.label === "Level 6" &&
+      !cell("Di", "selection").placed && cell("Di", "selection").score === null && cell("Di", "selection").band === null && cell("Di", "selection").levelBand === null && !cell("Di", "maths").placed &&
+      cell("Cy", "selection").score === null && cell("Ed", "linear-search").placed && cell("Ed", "linear-search").score === null && cell("Ed", "linear-search").levelBand.label === "Level 2",
+      "Not placed yet: a started unit whose placement is pending or in progress has no score or colour (grey); a placed unit that isn't secured shows its level, never 0%; a unit with no placement test counts as placed");
+    check(tab.summary.green === 1 && tab.summary.amber === 1 && tab.summary.red === 1 && tab.summary.notPlaced === 2 && byStudent.Di.average === null && byStudent.Di.rag === null &&
+      byStudent.Bo.average === null && byStudent.Bo.averageLevel === 6 && byStudent.Bo.rag === "amber" && byStudent.Ed.rag === "red" &&
+      tab.unitAverages[0].average === 100 && tab.unitAverages[0].students === 1 && tab.unitAverages[1].average === null && tab.unitAverages[2].students === 0 && tab.unitAverages[2].average === null,
+      "Students page: a student counts by their secured units' average, or (none secured) their average level's colour; the class average per unit is of the students who secured it (a student with no placed unit is in none of them)");
     check(/rag-none[^<]*>grey: Not placed yet</.test(teacher) && /--rag-none:/.test(read("styles.css")) && /NOT_PLACED = '<span class="rag rag-none">Not placed yet<\/span>'/.test(teacherSrc),
       "Colour key: grey means Not placed yet");
+
+    // Fix 3: a placed unit that isn't secured shows its level in the level's colour, never "0% · Revisit now".
+    const lv = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((l) => TD.levelBand(l).cls + "/" + TD.levelBand(l).rag + "/" + TD.levelBand(l).label);
+    check(lv.join() === "now/red/Level 1,now/red/Level 2,now/red/Level 3,soon/amber/Level 4,soon/amber/Level 5,soon/amber/Level 6," +
+      "fading/green/Level 7,fading/green/Level 8,fading/green/Level 9,fresh/green/Level 10",
+      "Level colours: levels 1 to 3 red, 4 to 6 amber, 7 to 9 green, 10 light green (the bands' own colour classes)");
+    const levelData = { students: { g: { name: "Gus" }, h: { name: "Hal" }, k: { name: "Kim" } }, levelLog: [], buttonLog: [],
+      progress: { g: { units: { selection: done(8) } }, h: { units: { selection: done(10), maths: done(9) } }, k: { units: { selection: done(10, { level: 10 }), maths: done(2) } } },
+      attempts: [pass(D, { studentId: "k" }), pass(D + H, { studentId: "k" })] };
+    const lt = TD.scoreTable(levelData, ["selection", "maths"], D + 2 * H);
+    const lc = (n, u) => lt.rows.find((r) => r.name === n).cells[u];
+    const lrow = (n) => lt.rows.find((r) => r.name === n);
+    check(lc("Gus", "selection").score === null && lc("Gus", "selection").band === null && lc("Gus", "selection").levelBand.label === "Level 8" && lc("Gus", "selection").levelBand.cls === "fading" &&
+      lc("Hal", "selection").levelBand.cls === "fresh" && lc("Kim", "selection").score === 100 && lc("Kim", "selection").band.label === "Secured" && lc("Kim", "selection").levelBand === null &&
+      lc("Kim", "maths").levelBand.label === "Level 2" && lc("Kim", "maths").score === null,
+      "Students page: an unsecured unit reads \"Level 8\" in the level's colour (score null, not 0%); a secured unit keeps its secured percentage and freshness colour");
+    check(lrow("Kim").average === 100 && lrow("Kim").rag === "green" && lrow("Gus").average === null && lrow("Gus").averageLevel === 8 && lrow("Gus").rag === "green" &&
+      lrow("Hal").rag === "green" && lt.summary.red === 0 && lt.summary.green === 3 && lt.unitAverages[1].average === null && lt.unitAverages[0].average === 100 && lt.unitAverages[0].students === 1,
+      "Summary strip: a student counts by their secured units' average (Kim's level 2 unsecured unit doesn't pull her to red), or with none secured by their average level's colour; a placed but unsecured unit is never counted as red for being 0%");
+    const sorted = TD.sortScoreTable(lt.rows, "selection", 1).map((r) => r.name).join();
+    check(sorted === "Gus,Hal,Kim", "Sorting a unit column: units not secured yet by level, then secured units by score");
+    check(/c\.levelBand \? '<span class="rag rag-' \+ c\.levelBand\.cls \+ '">' \+ esc\(c\.levelBand\.label\)/.test(teacherSrc) &&
+      /const width = c\.score != null \? c\.score : c\.levelBand \? c\.level \* 10 : 0;/.test(teacherSrc) && !/shows 0%/.test(teacher) &&
+      /rag-fading">Level 7–9</.test(teacher) && /rag-fresh">Level 10</.test(teacher) && /None secured yet/.test(teacherSrc),
+      "Teacher view: the cell, the student page's bar and the colour key show the level colour for a unit not secured yet; Compare classes says None secured yet, never 0%");
+
+    // Fix 2: a pass after "Show me how" isn't counted towards the secured score.
+    const showTask = { id: "sel-L10x", unit: "selection", level: 10, type: "write" };
+    const showRec = (showHow, kind) => App.attemptRecord({ task: showTask, unit: "selection", phase: "practice", kind: kind || "attempt", hintType: kind === "hint" ? "show-me-how" : undefined,
+      attemptNumber: 1, hints: 0, showHow, result: kind === "hint" ? "show-me-how" : "pass", levelBefore: 10, levelAfter: 10 });
+    check(showRec(true).hintType === "show-me-how" && !("hintType" in showRec(false)) && showRec(true, "hint").hintType === "show-me-how" &&
+      /hints: c\.hints, showHow: \(c\.showHow \|\| 0\) > 0, result: o\.result/.test(read("app.js")) && (read("app.js").match(/showHow: \(c\.showHow \|\| 0\) > 0/g) || []).length >= 3,
+      "Show me how: an attempt made after \"Show me how\" carries hintType show-me-how (like the Show me how row itself); other attempts have none");
+    const stamp = (a, t) => Object.assign(a, { at: new Date(t).toISOString() });
+    check(!s([stamp(showRec(true), D), stamp(showRec(false), D + H)], D + 2 * H).secured && s([stamp(showRec(true), D), stamp(showRec(false), D + H)], D + 2 * H).passes === 1 &&
+      !s([pass(D, { hintType: "show-me-how" }), pass(D + H, { hintType: "show-me-how" })], D + 2 * H).secured &&
+      s([stamp(showRec(false), D), stamp(showRec(false), D + H)], D + 2 * H).score === 100 && s([pass(D), pass(D + H)], D + 2 * H).score === 100,
+      "Secured score: a pass after \"Show me how\" doesn't count; two passes with no hints still secure the unit (older attempts, with no hintType, count as before)");
+    const showRow = Rows.attemptToRow(Object.assign(stamp(showRec(true), D), { id: "a-x1" }));
+    const oldRow = Rows.attemptToRow(Object.assign(stamp(showRec(false), D), { id: "a-x2" }));
+    const back1 = Rows.rowToAttempt(Object.assign({}, showRow, { timestamp: showRow.timestamp }), "s1");
+    const back2 = Rows.rowToAttempt(oldRow, "s1");
+    const exported = TD.fullExportRows({ students: { s1: { name: "Sam" } }, attempts: [back1, back2], levelLog: [], buttonLog: [], placementLog: [] });
+    check(showRow.hint_type === "show-me-how" && oldRow.hint_type === null && back1.hintType === "show-me-how" && !("hintType" in back2) &&
+      exported.find((r) => r.record_id === "a-x1").hint_type === "show-me-how" && exported.find((r) => r.record_id === "a-x2").hint_type === "" &&
+      /hint_type: \{ kind: "text", max: 40 \}/.test(read("supabase/functions/_shared/rows.ts")) && /hint_type/.test(read("supabase/functions/student-api/index.ts")) &&
+      /hint_type: text\(r\.hint_type\)/.test(read("backend-import.js")),
+      "Show me how on an attempt goes through the server unchanged (the existing hint_type column, which student-api already accepts and returns), the full export and import");
+
+    // Fix 1: the task browser's frame takes its content's height, so the page scrolls instead of the frame.
+    const css = read("styles.css");
+    const frameRule = (css.match(/\.practice-frame \{[^}]*\}/) || [""])[0];
+    check(!/46rem/.test(frameRule) && /box-sizing: border-box/.test(frameRule) && /width: 100%/.test(frameRule) &&
+      /function fitFrame\(f\)/.test(teacherSrc) && /ResizeObserver/.test(teacherSrc) && /frame\.addEventListener\("load", \(\) => \{ try \{ fitFrame\(frame\)/.test(teacherSrc) &&
+      /id="tb-show-solution"/.test(teacherSrc) && /id="tb-hint"/.test(teacherSrc) && /id="tb-check"/.test(teacherSrc),
+      "Task browser: the practice frame has no fixed height (it is set to the task view's height, and follows it), and fits the width with its border");
     const csv = TD.classScoresCsv(tab, ["selection"], (u) => u);
     check(csv.split("\r\n")[0] === "Name,Average secured score,RAG,selection: secured score,selection: label,selection: level" && /Ann,100,green,100,Secured,10/.test(csv) &&
-      /Di,not placed yet,,not placed yet,Not placed yet,3/.test(csv) && /Bo,0,red,0,Revisit now \(not secured yet\),6/.test(csv),
-      "Reports: the class scores export has each student's average and each unit's secured score, label and level (Not placed yet for a unit still to be placed)");
+      /Di,not placed yet,,not placed yet,Not placed yet,3/.test(csv) && /Bo,not secured yet,amber,not secured yet,Level 6 \(not secured yet\),6/.test(csv) && !/,0,red,0,/.test(csv),
+      "Reports: the class scores export has each student's average and each unit's secured score, label and level (Not placed yet for a unit still to be placed, the level for one not secured yet, never 0)");
     const detail = TD.studentDetail(sd, "a", ["selection"], D + 3 * H, 5);
     check(detail.name === "Ann" && detail.recent.length === 2 && detail.recent[0].at > detail.recent[1].at && detail.cells.selection.score === 100 && detail.cells.selection.tooEasyAt,
       "Student page: the secured score per unit, the flags with their time, and the newest attempts, newest first");

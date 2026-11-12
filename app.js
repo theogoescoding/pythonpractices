@@ -329,7 +329,10 @@ const checkerLib = () => (typeof module === "object" && module.exports ? require
 
 // The record saved for one attempt (Store.logAttempt) and exported for the teacher.
 // o = { task, unit, phase, kind ("attempt" | "skip" | "hint"), hintType ("show-me-how", for kind "hint"),
-//       attemptNumber, hints, result, failure (Checker.classifyAttempt), code, levelBefore, levelAfter }
+//       attemptNumber, hints, showHow ("Show me how" was used on this task first), result, failure
+//       (Checker.classifyAttempt), code, levelBefore, levelAfter }
+// An attempt made after "Show me how" carries hintType "show-me-how", as the "Show me how" row itself does (the
+// existing hint_type column, so the server stores it unchanged). It then can't count towards a secured score.
 function attemptRecord(o) {
   const t = o.task;
   const rec = {
@@ -339,6 +342,7 @@ function attemptRecord(o) {
   };
   if (t.generated && t.fingerprint) rec.fingerprint = t.fingerprint;
   if (o.kind === "hint") rec.hintType = o.hintType;
+  else if (rec.kind === "attempt" && o.showHow) rec.hintType = "show-me-how";
   if (o.assignmentId) rec.assignmentId = o.assignmentId; // an attempt on a class assignment (phase "assignment")
   const f = o.failure;
   if (f) {
@@ -942,7 +946,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       // The level is only noted (it doesn't change), and failed checks aren't counted for "Show me how".
       if (!work.tried[t.id]) { work.tried[t.id] = "tried"; save(); renderSide(); }
       return Store.logAttempt(student.id, attemptRecord({
-        task: t, unit: u, phase: "assignment", assignmentId, kind: o.kind, attemptNumber: c.attempts, hints: c.hints,
+        task: t, unit: u, phase: "assignment", assignmentId, kind: o.kind, attemptNumber: c.attempts, hints: c.hints, showHow: (c.showHow || 0) > 0,
         result: o.result, failure: o.failure, code: o.code, levelBefore: levelIn(u), levelAfter: levelIn(u),
       }));
     }
@@ -951,7 +955,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     if ((o.kind || "attempt") === "attempt" && o.result === "fail") { unitsOf(t).forEach((x) => noteFailedAttempt(us(x), t)); save(); }
     return Store.logAttempt(student.id, attemptRecord({
       task: t, unit: u, phase: c.placement ? "placement" : endless ? "endless" : "practice", kind: o.kind,
-      attemptNumber: c.attempts, hints: c.hints, result: o.result, failure: o.failure, code: o.code, levelBefore: lv.from, levelAfter: lv.to,
+      attemptNumber: c.attempts, hints: c.hints, showHow: (c.showHow || 0) > 0, result: o.result, failure: o.failure, code: o.code, levelBefore: lv.from, levelAfter: lv.to,
     }));
   }
 

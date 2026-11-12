@@ -29,9 +29,10 @@
   const band = (score) => BANDS.find((b) => score >= b.min);
 
   // An attempt record as Store.logAttempt saves it (or BackendRows.rowToAttempt makes it). "No hints" means the hints
-  // field is there and is the number 0: a record with it missing, null, empty or text isn't counted.
+  // field is there and is the number 0: a record with it missing, null, empty or text isn't counted. A pass after
+  // "Show me how" (hintType "show-me-how", app.js attemptRecord) isn't counted either; older attempts have no hintType.
   function isTopPass(a, unit) {
-    if ((a.kind || "attempt") !== "attempt" || a.result !== "pass" || a.hints !== 0 || a.unit !== unit) return false;
+    if ((a.kind || "attempt") !== "attempt" || a.result !== "pass" || a.hints !== 0 || a.hintType != null || a.unit !== unit) return false;
     const phase = a.phase || "practice";
     return phase === "endless" || (phase === "practice" && a.taskLevel === 10);
   }
