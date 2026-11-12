@@ -68,6 +68,7 @@
       <a href="#students" data-page="students">Students</a>
       <a href="#assignments" data-page="assignments">Assignments</a>
       <a href="#reports" data-page="reports">Reports</a>
+      <a href="#misconceptions" data-page="misconceptions">Misconceptions</a>
       <a href="#tasks" data-page="tasks">Task browser</a>
       <a href="#settings" data-page="settings">Settings</a>
     </nav>
@@ -238,19 +239,27 @@
           <label for="as-description" class="editor-label">Short description (students see it)</label>
           <textarea id="as-description" class="text-input" rows="2" maxlength="1000"></textarea>
           <fieldset class="five-tasks">
-            <legend>Five tasks from one unit</legend>
+            <legend>Tasks from one unit, spread across the levels</legend>
             <div class="teacher-controls">
               <label>Unit <select id="as-five-unit"></select></label>
-              <label>Level <select id="as-five-level"></select></label>
-              <button type="button" id="as-five" class="secondary">Add 5 tasks</button>
+              <label>Tasks <select id="as-count"></select></label>
+              <label>From level <select id="as-from"></select></label>
+              <label>To level <select id="as-to"></select></label>
+              <button type="button" id="as-five" class="secondary">Build the list</button>
             </div>
+            <p class="small">Practice tasks only, spread evenly from the lowest to the highest level you choose. Building replaces the list below; then change, remove or add single tasks.</p>
             <p id="as-five-status" class="small" role="status"></p>
           </fieldset>
+          <h4 id="as-list-h" tabindex="-1">The tasks, in order</h4>
+          <div id="as-task-check" aria-live="polite"></div>
+          <div class="teacher-controls" id="as-add-row">
+            <label>Add a task from the unit <select id="as-add-task"></select></label>
+            <button type="button" id="as-add" class="secondary">Add</button>
+          </div>
           <label for="as-tasks" class="editor-label">Task ids, in order (one per line, or separated by commas)</label>
           <textarea id="as-tasks" class="text-input" rows="4" spellcheck="false" aria-describedby="as-tasks-help"></textarea>
-          <p id="as-tasks-help" class="small">Any bank task: predict, Parsons, fill in the blanks or write (not placement tasks). Find ids in the
+          <p id="as-tasks-help" class="small">Any bank task: predict, Parsons, fill in the blanks or write (not placement tasks). You can also type or paste ids here; find them in the
             <a href="#tasks">Task browser</a>, which also has an "Add to the assignment" button.</p>
-          <div id="as-task-check" aria-live="polite"></div>
           <p id="as-form-status" role="alert" hidden></p>
           <p><button type="submit" class="primary" id="as-save">Save and open it for students</button>
             <button type="button" id="as-cancel" class="secondary">Cancel</button></p>
@@ -279,7 +288,7 @@
         <strong>Full attempt log</strong>: every attempt, level change, button use and placement result for the whole class (with the data dictionary, which explains
         every column in plain English; your browser may ask whether to allow two downloads). <strong>Levels table</strong>: each student's level, placement,
         level 10 and button flags in every unit. <strong>Detail log</strong>: one row per attempt and button use, including code and output.
-        <strong>Workshop tables</strong>: the misconception table and the per-task unmatched table below.</p>
+        <strong>Workshop tables</strong>: the misconception table and the per-task unmatched table from the Misconceptions page.</p>
       <details style="margin-top:1rem">
         <summary>All level changes</summary>
         <div class="table-wrap" style="margin-top:.5rem">
@@ -298,15 +307,26 @@
       <div id="compare" aria-live="polite"></div>
       </section>
 
-      <section class="teacher-section" data-collapse="quick-look">
-      <h3>Misconceptions workshop</h3>
-      <p class="small">Misconceptions matched in failed attempts, to help plan small-group workshops. A match means the student's program gave exactly the same result as a short buggy program showing that mistake.
-        Select a task to open it in the Task browser.</p>
-      <div id="quick-look" class="quick-look" aria-live="polite"></div>
+      <p class="small">The misconceptions workshop (most-failed tasks, the misconception table and unmatched attempts) is on its own page:
+        <a href="#misconceptions">Misconceptions</a>. Its tables are in the Workshop tables export above.</p>
+    </section>
+
+    <!-- ===== Misconceptions ===== -->
+    <section id="page-misconceptions" aria-labelledby="misconceptions-title" hidden>
+      <h2 id="misconceptions-title" tabindex="-1">Misconceptions</h2>
+      <p class="small">Where this class goes wrong, to help plan small-group workshops. A misconception is matched when a student's failed program gives exactly the same result as a short buggy program showing that mistake.</p>
+      <div class="teacher-controls">
+        <label>Unit <select id="mc-unit"></select></label>
+      </div>
+      <section class="teacher-section" aria-labelledby="mc-failed-h">
+      <h3 id="mc-failed-h">Most-failed tasks</h3>
+      <p class="small">This class's tasks with the most failed attempts in the chosen unit. Select a task to open it in the Task browser, ready to try.</p>
+      <div id="mc-failed" aria-live="polite"></div>
       </section>
 
-      <section class="teacher-section" data-collapse="ws-misconceptions">
-      <h3>Misconceptions</h3>
+      <section class="teacher-section" data-collapse="ws-misconceptions" data-collapse-default="closed">
+      <h3>Misconception table</h3>
+      <p class="small">Every misconception matched in this class, in every unit: how often, for how many students, and in which tasks.</p>
       <div class="table-wrap">
         <table>
           <thead>
@@ -316,12 +336,11 @@
           <tbody id="ws-misconceptions"></tbody>
         </table>
       </div>
-      <p id="ws-unseen" class="small"></p>
       </section>
 
-      <section class="teacher-section" data-collapse="ws-unmatched">
+      <section class="teacher-section" data-collapse="ws-unmatched" data-collapse-default="closed">
       <h3>Failed attempts with no match, by task</h3>
-      <p class="small"><strong>Unmatched</strong> failed attempts didn't match any buggy example program for the task. A high unmatched rate suggests a mistake that the task's buggy variants don't cover yet. Tasks without buggy variants can never match.</p>
+      <p class="small">Failed attempts that matched no buggy program for their task: a high unmatched rate suggests a mistake the task's buggy programs don't cover yet, and a task without buggy programs can never match. Select View to see the code and output.</p>
       <div class="table-wrap">
         <table>
           <thead>
@@ -332,6 +351,12 @@
         </table>
       </div>
       <div id="ws-unmatched" aria-live="polite"></div>
+      </section>
+
+      <section class="teacher-section" data-collapse="ws-unseen" data-collapse-default="closed">
+      <h3>Not matched yet</h3>
+      <p class="small">Misconceptions the app checks for that no student in this class has shown yet.</p>
+      <div id="ws-unseen"></div>
       </section>
     </section>
 

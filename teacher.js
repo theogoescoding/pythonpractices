@@ -1,17 +1,17 @@
 "use strict";
 
 // Teacher view: a side menu of pages (switched with the address's #): Classes, Students (the default), one student
-// (#student=<id>), Assignments, Reports, Task browser (#tasks, or #tasks=<task id> to open a task) and Settings.
-// Reads the same localStorage data as the student pages (see store.js); the sums are in teacher-data.js and the
-// secured score in secured.js. In backend mode, teacher-backend.js signs the teacher in and loads the chosen class
-// into the same data object. Old addresses (#overview, #log, #workshop) still open the right page.
+// (#student=<id>), Assignments, Reports, Misconceptions (the workshop), Task browser (#tasks, or #tasks=<task id> to
+// open a task) and Settings. Reads the same localStorage data as the student pages (see store.js); the sums are in
+// teacher-data.js and the secured score in secured.js. In backend mode, teacher-backend.js signs the teacher in and
+// loads the chosen class into the same data object. Old addresses (#overview, #log, #workshop) still open the right page.
 (function () {
   const { UNITS, unitTitle } = self.Curriculum;
   const TD = self.TeacherData;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const PAGES = ["classes", "students", "student", "assignments", "reports", "tasks", "settings"];
-  const OLD_PAGES = { overview: "students", log: "reports", workshop: "reports" };
+  const PAGES = ["classes", "students", "student", "assignments", "reports", "misconceptions", "tasks", "settings"];
+  const OLD_PAGES = { overview: "students", log: "reports", workshop: "misconceptions" }; // the workshop was on Reports
   const RECENT_ATTEMPTS = 30;
   const REASONS = {
     passes: "Moved up: 2 strong passes in a row",
@@ -48,7 +48,8 @@
   let misconceptions = [];
   let sortKey = "name";
   let sortDir = 1;
-  let unmatchedTask = null; // task whose unmatched attempts are open on the Reports page
+  let unmatchedTask = null; // task whose unmatched attempts are open on the Misconceptions page
+  let mcUnit = null;        // the unit chosen on the Misconceptions page ("all" for every unit)
 
   // The page and its argument: "#student=<id>" → ["student", id]; "#tasks=<task id>" → ["tasks", task id].
   const route = () => {
@@ -108,6 +109,7 @@
     if (p === "students") renderStudents(data);
     else if (p === "student") renderStudent(data, arg);
     else if (p === "reports") renderReports(data);
+    else if (p === "misconceptions") renderMisconceptions(data);
     else if (p === "assignments") renderAssignments(data);
   }
 
@@ -273,17 +275,27 @@
   });
 
   // ---------- Reports ----------
+  // The exports, the level changes and Compare classes. The workshop is on the Misconceptions page.
   function renderReports(data) {
-    const q = TD.quickLook(data, misconceptions);
-    const list = (items, empty, ordered) => items.length ? "<" + (ordered ? "ol" : "ul") + ">" + items.join("") + "</" + (ordered ? "ol" : "ul") + ">" : '<p class="small">' + empty + "</p>";
-    $("quick-look").innerHTML =
-      "<section><h4>Most-failed tasks</h4>" + list(q.topFailedTasks.map((t) =>
-        "<li>" + taskLink(t.taskId) + ": " + t.fails + " of " + t.attempts + " attempts failed (" + pct(t.failRate) + ")" +
-        '<br><span class="small">Most common: ' + esc(t.topCategory || "–") + " · Top misconception: " + esc(t.topMisconception ? mName(t.topMisconception) : "none matched") + "</span></li>"),
-        "No failed attempts yet.", true) + "</section>" +
-      "<section><h4>Top misconceptions</h4>" + list(q.topMisconceptions.map((m) =>
-        "<li>" + esc(m.name) + ": " + m.attempts + " attempt" + (m.attempts === 1 ? "" : "s") + ", " + m.studentCount + " student" + (m.studentCount === 1 ? "" : "s") + "</li>"),
-        "No misconceptions matched yet.", true) + "</section>";
+    renderLevelLog(data);
+  }
+
+  // ---------- Misconceptions (the workshop) ----------
+  // The unit picker lists the class's stage's units (curriculum.js stageUnits), first unit by default, then "All units".
+  function renderMisconceptions(data) {
+    const unitIds = stageUnitIds();
+    if (mcUnit !== "all" && !unitIds.includes(mcUnit)) mcUnit = unitIds[0];
+    const options = unitIds.map((u) => '<option value="' + esc(u) + '">' + esc(unitTitle(u)) + "</option>").join("") + '<option value="all">All units</option>';
+    if ($("mc-unit").dataset.options !== options) { $("mc-unit").innerHTML = options; $("mc-unit").dataset.options = options; } // keeps focus on the picker
+    $("mc-unit").value = mcUnit;
+    const where = mcUnit === "all" ? "any unit" : unitTitle(mcUnit);
+    const failedTasks = TD.mostFailedTasks(data, mcUnit === "all" ? null : mcUnit);
+    $("mc-failed").innerHTML = !failedTasks.length ? '<p class="small">No failed attempts in ' + esc(where) + " yet.</p>" :
+      '<div class="table-wrap"><table><thead><tr><th scope="col">Task</th><th scope="col">Failed attempts</th><th scope="col">Failure rate</th>' +
+      '<th scope="col">Most common failure type</th><th scope="col">Top misconception</th></tr></thead><tbody>' +
+      failedTasks.map((t) => '<tr><th scope="row">' + taskLink(t.taskId) + '</th><td class="num">' + t.fails + " of " + t.attempts + '</td><td class="num">' + pct(t.failRate) +
+        "</td><td>" + esc(t.topCategory || "–") + "</td><td>" + esc(t.topMisconception ? mName(t.topMisconception) : "none matched") + "</td></tr>").join("") +
+      "</tbody></table></div>";
 
     const w = TD.workshop(data, misconceptions, tasksById);
     $("ws-misconceptions").innerHTML = w.misconceptions.length ? w.misconceptions.map((m) =>
@@ -293,7 +305,8 @@
       : '<tr><td colspan="6">No misconceptions matched yet.</td></tr>';
     const seen = new Set(w.misconceptions.map((m) => m.id));
     const unseen = misconceptions.filter((m) => !seen.has(m.id));
-    $("ws-unseen").textContent = unseen.length ? "Not matched yet: " + unseen.map((m) => m.name).join("; ") + "." : "";
+    $("ws-unseen").innerHTML = unseen.length ? '<ul class="small">' + unseen.map((m) => "<li>" + esc(m.name) + "</li>").join("") + "</ul>"
+      : '<p class="small">Every misconception has been matched at least once.</p>';
 
     $("ws-tasks").innerHTML = w.tasks.length ? w.tasks.map((t) =>
       "<tr><th scope=\"row\">" + taskLink(t.taskId) + '</th><td class="num">' + t.fails + '</td><td class="num">' + t.unmatched +
@@ -310,8 +323,9 @@
         '<div class="side-by-side"><div><strong>Code</strong><pre>' + esc(r.code || "(none)") + "</pre></div>" +
         "<div><strong>Output</strong><pre>" + esc(r.output || "(nothing)") + "</pre>" +
         (r.expected !== "" ? '<span class="small">Expected:</span><pre>' + esc(r.expected || "(nothing)") + "</pre>" : "") + "</div></div></div>").join("");
-    renderLevelLog(data);
   }
+
+  $("mc-unit").addEventListener("change", () => { mcUnit = $("mc-unit").value; render(); });
 
   $("ws-tasks").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-unmatched]");
@@ -357,31 +371,101 @@
     });
   }
 
+  // The list of tasks, each with Change (another practice task of the same unit and level, not in the list) and
+  // Remove. The task ids box below stays the list itself, so typing, pasting and the Task browser's "Add to the
+  // assignment" work as before. builderNotes: the note next to a task the builder took from a nearer level.
+  let builderNotes = {};
+  let swapOpen = null; // the index whose Change list is open
+  const setTaskIds = (ids) => { $("as-tasks").value = ids.join("\n"); renderAssignmentCheck(); };
   function renderAssignmentCheck() {
     const checked = checkTaskIds(parseTaskIds($("as-tasks").value));
-    $("as-task-check").innerHTML = checked.length ? '<ol class="small">' + checked.map((c) => c.task
-      ? "<li>" + esc(c.id) + " – " + esc(c.task.title) + " (" + esc(unitTitle(c.task.unit)) + ", level " + c.task.level + ", " + esc(c.task.type) + ")</li>"
-      : '<li class="problem">' + esc(c.id) + " " + esc(c.problem) + "</li>").join("") + "</ol>" : "";
+    const ids = checked.map((c) => c.id);
+    $("as-task-check").innerHTML = checked.length ? '<ol class="small as-task-list">' + checked.map((c, i) => {
+      const remove = ' <button type="button" class="secondary" data-as-remove="' + i + '">Remove</button>';
+      if (!c.task) return '<li class="problem">' + esc(c.id) + " " + esc(c.problem) + remove + "</li>";
+      const others = TD.swapOptions(bankTasks, ids, i);
+      const note = builderNotes[c.id];
+      return "<li>" + esc(c.id) + " – " + esc(c.task.title) + " (" + esc(unitTitle(c.task.unit)) + ", level " + c.task.level + ", " + esc(c.task.type) + ")" +
+        (note ? ' <span class="flag">' + esc(note) + "</span>" : "") + " " +
+        (others.length ? '<button type="button" class="secondary" data-as-change="' + i + '" aria-expanded="' + (swapOpen === i) + '">Change</button>'
+          : '<button type="button" class="secondary" disabled>No other level ' + c.task.level + " tasks in this unit</button>") + remove +
+        (swapOpen === i && others.length ? '<ul class="as-swap" aria-label="Other level ' + c.task.level + ' tasks">' + others.map((t) =>
+          '<li><button type="button" class="secondary" data-as-swap="' + i + '" data-to="' + esc(t.id) + '">Use ' + esc(t.id) + " – " + esc(t.title) + " (" + esc(t.type) + ")</button></li>").join("") + "</ul>" : "") +
+        "</li>";
+    }).join("") + "</ol>" : '<p class="small">No tasks yet: build the list above, add one below, or type ids.</p>';
+    // Adding: the chosen unit's practice tasks not in the list, while it has fewer than 10.
+    const full = ids.length >= TD.BUILDER_MAX_TASKS;
+    const options = TD.addOptions(bankTasks, $("as-five-unit").value, ids);
+    $("as-add-task").innerHTML = options.map((t) => '<option value="' + esc(t.id) + '">Level ' + t.level + ": " + esc(t.id) + " – " + esc(t.title) + "</option>").join("");
+    $("as-add-task").disabled = full || !options.length;
+    $("as-add").disabled = full || !options.length;
+    $("as-add").textContent = full ? "The list has " + TD.BUILDER_MAX_TASKS + " tasks" : options.length ? "Add" : "No more tasks in this unit";
     return checked;
   }
 
-  // "Five tasks from one unit": the unit's practice tasks at that level (not placement tasks), in the bank's order.
+  // The builder controls: the stage's units, how many tasks (1 to 10, 5 at first) and the levels (1 to 10 at first).
   function fillFiveTaskControls() {
     const keepUnit = $("as-five-unit").value;
     $("as-five-unit").innerHTML = self.Curriculum.stageUnits(stage()).map((u) => '<option value="' + u + '">' + esc(unitTitle(u)) + "</option>").join("");
     if (keepUnit && [...$("as-five-unit").options].some((o) => o.value === keepUnit)) $("as-five-unit").value = keepUnit;
-    if (!$("as-five-level").options.length) $("as-five-level").innerHTML = Array.from({ length: 10 }, (_, i) => '<option value="' + (i + 1) + '">Level ' + (i + 1) + "</option>").join("");
+    const numbers = (prefix) => Array.from({ length: 10 }, (_, i) => '<option value="' + (i + 1) + '">' + prefix + (i + 1) + "</option>").join("");
+    if (!$("as-count").options.length) { $("as-count").innerHTML = numbers(""); $("as-count").value = "5"; }
+    if (!$("as-from").options.length) { $("as-from").innerHTML = numbers("Level "); $("as-from").value = "1"; }
+    if (!$("as-to").options.length) { $("as-to").innerHTML = numbers("Level "); $("as-to").value = "10"; }
   }
+  // Build the list: count practice tasks from the unit, spread across the levels (TD.buildSpread). It replaces the list.
   $("as-five").addEventListener("click", () => {
     const unit = $("as-five-unit").value;
-    const level = +$("as-five-level").value;
-    const have = parseTaskIds($("as-tasks").value);
-    const picked = bankTasks.filter((t) => t.unit === unit && t.level === level && !(t.tags || []).includes("placement") && !have.includes(t.id)).slice(0, 5);
-    if (!picked.length) { $("as-five-status").textContent = "There are no more " + unitTitle(unit) + " tasks at level " + level + " to add."; return; }
-    $("as-tasks").value = have.concat(picked.map((t) => t.id)).join("\n");
-    if (!$("as-title").value.trim()) $("as-title").value = unitTitle(unit) + ": level " + level;
-    $("as-five-status").textContent = "Added " + picked.length + " task" + (picked.length === 1 ? "" : "s") + " from " + unitTitle(unit) + " level " + level + ". Change the list below if you like.";
-    renderAssignmentCheck();
+    const count = +$("as-count").value;
+    const lo = Math.min(+$("as-from").value, +$("as-to").value), hi = Math.max(+$("as-from").value, +$("as-to").value);
+    const had = parseTaskIds($("as-tasks").value).length;
+    const built = TD.buildSpread(bankTasks, unit, lo, hi, count);
+    if (!built.length) { $("as-five-status").textContent = unitTitle(unit) + " has no practice tasks to add."; return; }
+    builderNotes = Object.fromEntries(built.filter((b) => b.note).map((b) => [b.id, b.note]));
+    swapOpen = null;
+    setTaskIds(built.map((b) => b.id));
+    const range = lo === hi ? "level " + lo : "levels " + lo + " to " + hi;
+    if (!$("as-title").value.trim()) $("as-title").value = unitTitle(unit) + ": " + range;
+    $("as-five-status").textContent = "Built " + built.length + " task" + (built.length === 1 ? "" : "s") + " from " + unitTitle(unit) + ", " + range +
+      " (levels " + built.map((b) => b.level).join(", ") + ")." + (built.length < count ? " The unit doesn't have " + count + " different practice tasks." : "") +
+      (had ? " This replaced the previous list." : "") + " Change, remove or add single tasks below.";
+  });
+  $("as-five-unit").addEventListener("change", renderAssignmentCheck); // the Add list follows the unit
+  $("as-task-check").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-as-change], button[data-as-swap], button[data-as-remove]");
+    if (!b) return;
+    const ids = checkTaskIds(parseTaskIds($("as-tasks").value)).map((c) => c.id);
+    if (b.dataset.asChange != null) {
+      const i = +b.dataset.asChange;
+      swapOpen = swapOpen === i ? null : i;
+      renderAssignmentCheck();
+      const first = $("as-task-check").querySelector('button[data-as-swap="' + i + '"]');
+      if (first) first.focus();
+      return;
+    }
+    if (b.dataset.asSwap != null) {
+      const i = +b.dataset.asSwap;
+      delete builderNotes[ids[i]];
+      ids[i] = b.dataset.to;
+      swapOpen = null;
+      setTaskIds(ids);
+      const again = $("as-task-check").querySelector('button[data-as-change="' + i + '"]');
+      if (again) again.focus();
+      return;
+    }
+    const i = +b.dataset.asRemove;
+    delete builderNotes[ids[i]];
+    ids.splice(i, 1);
+    swapOpen = null;
+    setTaskIds(ids);
+    $("as-list-h").focus();
+  });
+  $("as-add").addEventListener("click", () => {
+    const ids = checkTaskIds(parseTaskIds($("as-tasks").value)).map((c) => c.id);
+    const id = $("as-add-task").value;
+    if (!id || ids.includes(id) || ids.length >= TD.BUILDER_MAX_TASKS) return;
+    swapOpen = null;
+    setTaskIds(ids.concat(id));
   });
 
   function openAssignmentForm(a) {
@@ -394,6 +478,8 @@
     $("as-tasks").value = a ? a.task_ids.join("\n") : "";
     $("as-form-status").hidden = true;
     $("as-five-status").textContent = "";
+    builderNotes = {};
+    swapOpen = null;
     fillFiveTaskControls();
     renderAssignmentCheck();
     $("as-form-h").focus();

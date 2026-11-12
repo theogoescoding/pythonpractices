@@ -178,6 +178,15 @@
       (!f.misconception || (f.misconception === "none" ? r.result === "fail" && !r.misconceptions.length : r.misconceptions.includes(f.misconception))));
   }
 
+  // ---------- Misconceptions page: the most-failed tasks ----------
+  // For one unit (or every unit, unit null): this class's tasks with the most failed attempts, counting only the
+  // class's own students (data.students). Each is taskStats' row: fails, attempts, failRate, topCategory, topMisconception.
+  function mostFailedTasks(data, unit, max) {
+    const mine = Object.assign({}, data, { attempts: data.attempts.filter((a) => a.studentId in data.students && (!unit || a.unit === unit)) });
+    return taskStats(mine).filter((s) => s.fails > 0)
+      .sort((a, b) => b.fails - a.fails || b.failRate - a.failRate || a.taskId.localeCompare(b.taskId)).slice(0, max || TOP_FAILED_TASKS);
+  }
+
   // ---------- Workshop ----------
   function workshop(data, misconceptions, tasksById) {
     const failedRows = detailRows(data).filter((r) => r.result === "fail");
@@ -188,6 +197,63 @@
     const ms = misconceptionStats(data, misconceptions).map((m) => Object.assign(m, { studentNames: m.studentIds.map((id) => nameOf(data, id)).sort() }));
     return { misconceptions: ms, tasks };
   }
+
+  // ---------- The assignment builder (teacher.js) ----------
+  // Only what goes into the form: the list is saved as task ids, as before.
+  const BUILDER_MAX_TASKS = 10;
+  const isPracticeTask = (t) => !(t.tags || []).includes("placement");
+  const practiceTasks = (tasks, unit) => tasks.filter((t) => t.unit === unit && isPracticeTask(t));
+
+  // The levels for count tasks spread across from..to (both included). With no more tasks than levels, task i (from 0)
+  // gets level from + floor(i × (to − from) / (count − 1)), so the first is the lowest and the last the highest (5
+  // across 1 to 10: 1, 3, 5, 7, 10); one task gets the lowest level. With more tasks than levels, task i gets level
+  // from + floor(i × levels / count), so every level gets the same number of tasks, give or take one.
+  function spreadLevels(from, to, count) {
+    const lo = Math.min(from, to), hi = Math.max(from, to);
+    const n = Math.max(1, Math.min(BUILDER_MAX_TASKS, Math.round(count) || 1));
+    const levels = hi - lo + 1;
+    if (n === 1) return [lo];
+    if (n <= levels) return Array.from({ length: n }, (_, i) => lo + Math.floor((i * (hi - lo)) / (n - 1)));
+    return Array.from({ length: n }, (_, i) => lo + Math.floor((i * levels) / n));
+  }
+
+  // Builds the list: one practice task of the unit (never a placement task, never one twice) per spread level, the
+  // first in the bank's order. A level with no task left uses the nearest level that has one (inside the chosen range
+  // first, then the lower level), and says so (note). Returns [{ id, task, wanted, level, note }].
+  function buildSpread(tasks, unit, from, to, count) {
+    const pool = practiceTasks(tasks, unit);
+    const lo = Math.min(from, to), hi = Math.max(from, to);
+    const used = new Set();
+    const out = [];
+    for (const wanted of spreadLevels(from, to, count)) {
+      const free = (l) => pool.find((t) => t.level === l && !used.has(t.id));
+      let task = free(wanted);
+      let level = wanted;
+      if (!task) {
+        const near = [];
+        for (let d = 1; d <= 9; d++) for (const l of [wanted - d, wanted + d]) if (l >= 1 && l <= 10) near.push({ l, d, outside: l < lo || l > hi });
+        near.sort((a, b) => a.d - b.d || a.outside - b.outside || a.l - b.l);
+        const hit = near.find((x) => free(x.l));
+        if (!hit) continue; // the unit has no practice task left
+        level = hit.l;
+        task = free(level);
+      }
+      used.add(task.id);
+      out.push({ id: task.id, task, wanted, level, note: level === wanted ? "" : "Level " + level + ": the unit has no other level " + wanted + " task" });
+    }
+    return out;
+  }
+
+  // "Change": the other practice tasks of the same unit at the same level as ids[index], not already in the list.
+  function swapOptions(tasks, ids, index) {
+    const t = tasks.find((x) => x.id === ids[index]);
+    if (!t) return [];
+    return practiceTasks(tasks, t.unit).filter((x) => x.level === t.level && !ids.includes(x.id));
+  }
+
+  // "Add a task": the unit's practice tasks not already in the list, by level then in the bank's order.
+  const addOptions = (tasks, unit, ids) => practiceTasks(tasks, unit).filter((t) => !ids.includes(t.id))
+    .map((t, i) => ({ t, i })).sort((a, b) => a.t.level - b.t.level || a.i - b.i).map((x) => x.t);
 
   // ---------- Class assignments ----------
   // For one assignment ({ id, task_ids }): per task, how many students tried it (any Check press or "Show me how")
@@ -501,7 +567,7 @@
   return {
     FAILS_IN_A_ROW_ALERT, TOP_FAILED_TASKS, BUTTON_NAMES, PLACEMENT_STATUS, FULL_COLUMNS,
     collect, overviewRows, sortOverview, filterByName, taskStats, misconceptionStats, quickLook,
-    detailRows, filterDetail, workshop, toCsv, fullExportRows, fullExportCsv, dataDictionaryCsv, assignmentStats,
+    detailRows, filterDetail, mostFailedTasks, workshop, BUILDER_MAX_TASKS, spreadLevels, buildSpread, swapOptions, addOptions, toCsv, fullExportRows, fullExportCsv, dataDictionaryCsv, assignmentStats,
     lastButtonPresses, ragOf, levelBand, SUMMARY_TILES, summaryTileOf, scoreTable, sortScoreTable, studentDetail, classScoresCsv,
   };
 });

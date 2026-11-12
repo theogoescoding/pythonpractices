@@ -2,7 +2,7 @@
 
 // Collapsible sections, shared by the student view (the unit groups, home.js) and the teacher view (teacher.js).
 // Each section has a heading whose whole text is a button (aria-expanded, aria-controls) and a body that is hidden
-// when it is collapsed. Every section starts expanded. The ids of the collapsed ones are remembered on this device
+// when it is collapsed. Every section starts expanded (unless it is marked closed by default). The ids of the collapsed ones are remembered on this device
 // under the key each page passes in. Storage can be blocked: then nothing is remembered and every section simply
 // starts expanded again next time.
 (function () {
@@ -13,9 +13,11 @@
     try { localStorage.setItem(key, JSON.stringify(ids)); } catch (e) { /* blocked: not remembered */ }
   }
 
-  // The heading button. titleHtml and extraHtml must already be escaped. The body's id is bodyId.
-  function buttonHtml(id, bodyId, titleHtml, open, extraHtml) {
-    return '<button type="button" class="group-toggle" data-group="' + id + '" aria-expanded="' + open + '" aria-controls="' + bodyId + '">' +
+  // The heading button. titleHtml and extraHtml must already be escaped. The body's id is bodyId. closedByDefault:
+  // the section starts collapsed, and the ones opened are remembered instead (as "open:<id>" in the same list).
+  function buttonHtml(id, bodyId, titleHtml, open, extraHtml, closedByDefault) {
+    return '<button type="button" class="group-toggle" data-group="' + id + '" aria-expanded="' + open + '" aria-controls="' + bodyId + '"' +
+      (closedByDefault ? ' data-closed-by-default="true"' : "") + '>' +
       '<span class="group-arrow" aria-hidden="true"></span>' + titleHtml + (extraHtml || "") + "</button>";
   }
 
@@ -28,6 +30,11 @@
       b.setAttribute("aria-expanded", String(open));
       const body = document.getElementById(b.getAttribute("aria-controls"));
       if (body) body.hidden = !open;
+      if (b.dataset.closedByDefault === "true") {
+        const ids = collapsedIds(key).filter((id) => id !== "open:" + b.dataset.group);
+        saveCollapsed(key, open ? ids.concat(["open:" + b.dataset.group]) : ids);
+        return;
+      }
       const ids = collapsedIds(key).filter((id) => id !== b.dataset.group);
       saveCollapsed(key, open ? ids : ids.concat([b.dataset.group]));
     });
@@ -35,12 +42,14 @@
 
   // Turns every <section data-collapse="id"> inside root into a collapsible section: its first child must be its
   // heading, and everything after the heading becomes the body. Used for sections written in the page's HTML.
+  // A section with data-collapse-default="closed" starts collapsed until it has been opened on this device.
   function enhance(root, key) {
     const collapsed = collapsedIds(key);
     root.querySelectorAll("section[data-collapse]").forEach((s) => {
       const id = s.dataset.collapse;
       const h = s.firstElementChild;
-      const open = !collapsed.includes(id);
+      const closedByDefault = s.dataset.collapseDefault === "closed";
+      const open = closedByDefault ? collapsed.includes("open:" + id) : !collapsed.includes(id);
       const body = document.createElement("div");
       body.className = "group-body";
       body.id = "section-" + id;
@@ -48,7 +57,7 @@
       while (h.nextSibling) body.appendChild(h.nextSibling);
       s.appendChild(body);
       h.classList.add("group-heading");
-      h.innerHTML = buttonHtml(id, body.id, h.innerHTML, open);
+      h.innerHTML = buttonHtml(id, body.id, h.innerHTML, open, "", closedByDefault);
     });
     wire(root, key);
   }

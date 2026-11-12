@@ -753,9 +753,9 @@ All values are named constants at the top of `app.js`:
 - **Backend mode:** `teacher.html` shows only the teacher sign-in form until a confirmed teacher signs in. A student who opens it sees that form and nothing else: no classes, no class data, and none of the student data cached in their browser. Their code and PIN don't work there, because students aren't Supabase users. A signed-in teacher sees only their own classes (row-level security). Teacher sign-up is still open, though: see Known limitations.
 - **Local mode:** `teacher.html` has no sign-in. **Anyone who opens it can see all the data saved in that browser**: every student's name, levels, attempts and code. Removing the link only hides the page. This is a limit of local mode, not a security control.
 
-`teacher.html` starts with the note "Data is stored in this browser only. Results from other devices won't appear here." (local mode). It warns when the browser's storage is nearly full (about 4 of the 5 MB a site may use). A **side menu** opens its pages: Classes, Students, Assignments, Reports, Task browser and Settings. Each page has its own address (`#classes`, `#students`, …), and the old addresses still work (`#overview` opens Students; `#log` and `#workshop` open Reports). In backend mode the class being looked at is chosen at the top, with who is signed in and Sign out.
+`teacher.html` starts with the note "Data is stored in this browser only. Results from other devices won't appear here." (local mode). It warns when the browser's storage is nearly full (about 4 of the 5 MB a site may use). A **side menu** opens its pages: Classes, Students, Assignments, Reports, Misconceptions, Task browser and Settings. Each page has its own address (`#classes`, `#students`, `#misconceptions`, …), and the old addresses still work (`#overview` opens Students; `#log` opens Reports; `#workshop` opens Misconceptions). In backend mode the class being looked at is chosen at the top, with who is signed in and Sign out.
 
-**Collapsible sections.** Each section heading (Name and stage, Student logins, Delete this class, Secured score per unit, Exports, Compare classes, Misconceptions workshop and the two workshop tables) is a button that collapses or expands that section, like the unit groups in the student view (`collapse.js`). Every section starts expanded. The collapsed ones are remembered in this browser under `pythonPractice.teacherCollapsedSections`, separate from the student view's key. If storage is blocked, the sections still open and close but start expanded each time.
+**Collapsible sections.** Each section heading (Name and stage, Student logins, Delete this class, Secured score per unit, Exports, Compare classes, and on the Misconceptions page the misconception table, the unmatched attempts and the not-matched-yet list) is a button that collapses or expands that section, like the unit groups in the student view (`collapse.js`). Every section starts expanded, except the three on the Misconceptions page, which start collapsed until they are opened (then remembered as `open:<id>`). The collapsed ones are remembered in this browser under `pythonPractice.teacherCollapsedSections`, separate from the student view's key. If storage is blocked, the sections still open and close but start expanded each time.
 
 **Classes (`#classes`, backend mode)**
 
@@ -783,7 +783,7 @@ All values are named constants at the top of `app.js`:
 
 **One student (`#student=<id>`)**: a back link, then **Reset placement** (for any unit, as before), and in backend mode **Reset PIN**, **Rename** (teacher-api `rename_student`, with the same nickname rules and word filter as joining) and **Remove student**. Then the secured score per unit as a bar with its label ("Not placed yet" until its placement is done), the button flags with the time of the newest press, the number of fails in a row (as text), and the newest 30 attempts: the task (a link to it in the Task browser), the result, the time, the hints used, which test failed, and the misconception matched. The full log of every attempt is only in the export.
 
-**Assignments (`#assignments`, backend mode)**: see [Class assignments](#class-assignments-backend-mode). The form also has **Five tasks from one unit**: choose a unit and a level, and **Add 5 tasks** fills in five practice tasks from them (never placement tasks), which can then be changed. Each assignment lists its tasks.
+**Assignments (`#assignments`, backend mode)**: see [Class assignments](#class-assignments-backend-mode). The form also has a builder, **Tasks from one unit, spread across the levels**: choose a unit, how many tasks (1 to 10, 5 at first) and a level range (from 1 to 10 at first), and **Build the list** fills in practice tasks from that unit only (never placement tasks, never one twice), spread evenly from the lowest to the highest level chosen (`teacher-data.js` `spreadLevels`: 5 across 1 to 10 gives levels 1, 3, 5, 7 and 10). A level with no task left uses the nearest level that has one, noted next to the task. It replaces the list. Each task then has **Change** (another practice task of the same unit and level that isn't in the list, or a note that there is none) and **Remove**, and **Add a task from the unit** adds one more, up to 10. The task ids box still works as before (type or paste ids, and the Task browser's "Add to the assignment"). Each assignment lists its tasks.
 
 **Reports (`#reports`)**
 
@@ -794,7 +794,14 @@ All values are named constants at the top of `app.js`:
   - **Levels table**, **Detail log** and **Workshop tables (CSV)**: the three exports the old pages had, with the same columns (the levels table uses the Students page's name filter; the detail log has every row, including code and output).
   - **All level changes**: every level change, newest first, with the reason, under a fold.
 - **Compare classes**: the teacher's own classes only, each one's average secured score per unit, side by side (local mode: this browser).
-- **Misconceptions workshop**: the 10 most-failed tasks (failure rate, most common failure category, top misconception) and the top misconceptions across the class; then for each misconception matched, the tasks it shows up in, the attempts and students affected, the failure rate on those tasks and the students; then each task's failed attempts with no misconception match, with **View** (the code and output side by side); then the misconceptions not matched yet. Every task name opens that task in the Task browser.
+- **Workshop tables** and the misconceptions workshop itself are on the **Misconceptions** page (a line here links to it).
+
+### Misconceptions page
+
+`#misconceptions` (the old `#workshop` opens it), between Reports and Task browser in the side menu. Where the class goes wrong, to help plan small-group workshops.
+- **Unit picker**: the units of the class's stage (`curriculum.js` `stageUnits`), the first one by default, then **All units**.
+- **Most-failed tasks** for that unit, this class's students only: up to 10 tasks, each with its failed attempts out of all attempts, the failure rate, the most common failure type and the top misconception (or "none matched"). Every task name opens that task in the Task browser, ready to try. A unit with no failed attempts says so.
+- Then three sections, collapsed until opened (remembered in this browser): the **Misconception table** (for each misconception matched, in every unit: the attempts matched, students affected, the tasks it shows up in, the failure rate on those tasks and the students); **Failed attempts with no match, by task**, with **View** (the code and output side by side); and **Not matched yet**, the misconceptions no student in the class has shown yet.
 
 **Task browser (`#tasks`, or `#tasks=<task id>` to open a task)**
 
@@ -1002,7 +1009,7 @@ The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, n
 | `practice.html`, `app.js` | Practice session for one unit, or Endless mode: task types, hints, the editor, the adaptive rules and their constants |
 | `progress.html`, `progress.js` | Progress summary and skill drill-down |
 | `endless.html`, `endless.js` | Endless mode set-up: choosing units |
-| `teacher.html`, `teacher.js` | Teacher view: a side menu of Classes, Students, one student, Assignments, Reports (exports, compare classes, the misconceptions workshop), Task browser (with teacher practice) and Settings |
+| `teacher.html`, `teacher.js` | Teacher view: a side menu of Classes, Students, one student, Assignments, Reports (exports, compare classes), Misconceptions (the workshop), Task browser (with teacher practice) and Settings |
 | `secured.js` | The secured score of a unit and its colour bands (shared by the teacher view and the student view) |
 | `collapse.js` | Collapsible sections, shared by the student view's unit groups and the teacher view's sections (each remembered under its own localStorage key) |
 | `task-view.js` | The Expected output box and example test (practice page and Task browser), and the task search |

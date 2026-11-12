@@ -541,6 +541,11 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .big-code { font-size: 1.8rem; letter-spacing: .15em; }
 .five-tasks { border: 2px solid var(--border); border-radius: 8px; margin: .75rem 0; padding: .25rem .9rem .5rem; }
 .assignment-tasks { margin: .25rem 0 .75rem; }
+/* The assignment builder's list: each task with Change and Remove; Change opens the other tasks at that level. */
+.as-task-list li { margin: .35rem 0; }
+.as-task-list button { margin-left: .25rem; padding: .15rem .55rem; font-size: .85rem; }
+.as-swap { list-style: none; padding-left: 1rem; margin: .35rem 0; }
+.as-swap li { margin: .2rem 0; }
 /* The frame takes the height of the task view inside it (teacher.js fitFrame), so the page scrolls, not the frame.
    The height here is only used until the task view has loaded. */
 .practice-frame { display: block; box-sizing: border-box; width: 100%; max-width: 100%; height: 20rem; border: 2px solid var(--border); border-radius: 8px; background: var(--bg); }

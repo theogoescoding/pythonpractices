@@ -889,15 +889,15 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     // The teacher view's sections use the same component, with their own storage key, all starting expanded.
     const teacher = read("teacher.html");
     const teacherSrc = read("teacher.js");
-    const sections = [...teacher.matchAll(/<section class="[^"]*teacher-section[^"]*" data-collapse="([^"]+)">\s*<h3>([^<]+)<\/h3>/g)].map((m) => m[2]);
-    check(sections.join() === "Name and stage,Student logins,Delete this class,Secured score per unit,Exports,Compare classes,Misconceptions workshop,Misconceptions,Failed attempts with no match, by task",
-      "Teacher view: every section (class name and stage, student logins, delete class, the score table, exports, compare classes, the workshop and both workshop tables) is collapsible");
+    const sections = [...teacher.matchAll(/<section class="[^"]*teacher-section[^"]*" data-collapse="([^"]+)"(?: data-collapse-default="closed")?>\s*<h3>([^<]+)<\/h3>/g)].map((m) => m[2]);
+    check(sections.join() === "Name and stage,Student logins,Delete this class,Secured score per unit,Exports,Compare classes,Misconception table,Failed attempts with no match, by task,Not matched yet",
+      "Teacher view: every section (class name and stage, student logins, delete class, the score table, exports, compare classes, and the Misconceptions page's table, unmatched attempts and not-matched-yet list) is collapsible");
     const key = (teacherSrc.match(/Collapse\.enhance\(document\.querySelector\("main"\), "([^"]+)"\)/) || [])[1];
     check(key && key !== "pythonPractice.collapsedGroups" && /<script src="collapse\.js"><\/script>\s*<script src="teacher\.js">/.test(teacher) && !/localStorage\./.test(teacherSrc),
       "Teacher view: sections open and close with collapse.js, remembered under their own key (not the student view's)");
     // Run collapse.js on a tiny fake page: sections start expanded, a press collapses one and saves it, and a
     // "reload" keeps it collapsed. With storage blocked, every section still opens and closes.
-    const runCollapse = (storage) => {
+    const runCollapse = (storage, closedByDefault) => {
       const els = {};
       const mk = (tag, attrs) => {
         const el = { tagName: tag, attrs: Object.assign({}, attrs), children: [], hidden: false, className: "", dataset: {}, classList: { add() {} },
@@ -908,7 +908,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
         return el;
       };
       const h = mk("h3"); h.innerHTML = "Students";
-      const s = mk("section"); s.dataset.collapse = "students"; s.children.push(h);
+      const s = mk("section"); s.dataset.collapse = "students"; if (closedByDefault) s.dataset.collapseDefault = "closed"; s.children.push(h);
       let handler = null;
       const root = { querySelectorAll: () => [s], addEventListener: (_, f) => { handler = f; }, contains: () => true };
       const doc = { createElement: (t) => mk(t), getElementById: (id) => els[id] };
@@ -919,7 +919,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       const body = s.children[1];
       const press = () => {
         const open = /aria-expanded="true"/.test(h.innerHTML) ? "true" : "false";
-        const b = { dataset: { group: "students" }, attrs: { "aria-expanded": open, "aria-controls": body.id },
+        const b = { dataset: Object.assign({ group: "students" }, /data-closed-by-default="true"/.test(h.innerHTML) ? { closedByDefault: "true" } : {}), attrs: { "aria-expanded": open, "aria-controls": body.id },
           getAttribute(n) { return this.attrs[n]; }, setAttribute(n, v) { this.attrs[n] = v; h.innerHTML = h.innerHTML.replace(/aria-expanded="\w+"/, 'aria-expanded="' + v + '"'); } };
         handler({ target: { closest: () => b } });
       };
@@ -941,6 +941,21 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const blockedOpen = !b.body.hidden;
     b.press();
     check(blockedOpen && b.body.hidden, "With storage blocked, sections start expanded and still open and close");
+    // A section marked closed by default (the Misconceptions page's three): starts collapsed, opens and is remembered
+    // open after a reload, and closes again; the other sections' remembered state is untouched.
+    const mem2 = { k: '["other"]' };
+    const store2 = { getItem: (k) => (k in mem2 ? mem2[k] : null), setItem: (k, v) => { mem2[k] = String(v); } };
+    const c1 = runCollapse(store2, true);
+    const startsClosed = c1.body.hidden && /aria-expanded="false"/.test(c1.h.innerHTML) && /data-closed-by-default="true"/.test(c1.h.innerHTML);
+    c1.press();
+    const openedSaved = !c1.body.hidden && mem2.k === '["other","open:students"]';
+    const c2 = runCollapse(store2, true);
+    const keptOpen = !c2.body.hidden;
+    c2.press();
+    check(startsClosed && openedSaved && keptOpen && c2.body.hidden && mem2.k === '["other"]' &&
+      (teacher.match(/data-collapse-default="closed"/g) || []).length === 3 &&
+      ["ws-misconceptions", "ws-unmatched", "ws-unseen"].every((id) => new RegExp('data-collapse="' + id + '" data-collapse-default="closed"').test(teacher)),
+      "Misconceptions page: the misconception table, unmatched attempts and not-matched-yet sections start collapsed, and each one's open or closed state is remembered in this browser");
     check(!/Haven't started a unit/.test(teacherSrc + teacher), "Teacher overview: the \"Haven't started a unit\" box is gone (the student table still shows Not started cells)");
   }
 
@@ -954,10 +969,53 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
 
     // The side menu, in order, with Students as the default page; old addresses still open the right page.
     const nav = [...teacher.matchAll(/<a href="#(\w+)" data-page="\w+">([^<]+)<\/a>/g)].map((m) => m[2]);
-    check(nav.join() === "Classes,Students,Assignments,Reports,Task browser,Settings" && !/tab-nav/.test(teacher) &&
-      ["classes", "students", "student", "assignments", "reports", "tasks", "settings"].every((p) => teacher.includes('id="page-' + p + '"')) &&
-      /\["students", null\]/.test(teacherSrc) && /overview: "students", log: "reports", workshop: "reports"/.test(teacherSrc) && /"#students"\)/.test(backendSrc),
-      "Teacher view: a side menu (Classes, Students, Assignments, Reports, Task browser, Settings) replaces the tabs; Students is the default page, and #overview, #log and #workshop still open Students or Reports");
+    check(nav.join() === "Classes,Students,Assignments,Reports,Misconceptions,Task browser,Settings" && !/tab-nav/.test(teacher) &&
+      ["classes", "students", "student", "assignments", "reports", "misconceptions", "tasks", "settings"].every((p) => teacher.includes('id="page-' + p + '"')) &&
+      /\["students", null\]/.test(teacherSrc) && /overview: "students", log: "reports", workshop: "misconceptions"/.test(teacherSrc) && /"#students"\)/.test(backendSrc),
+      "Teacher view: a side menu (Classes, Students, Assignments, Reports, Misconceptions, Task browser, Settings) replaces the tabs; Students is the default page, and #overview, #log and #workshop still open Students, Reports or Misconceptions");
+
+    // The Misconceptions page (the workshop, moved from Reports).
+    const pageOf = (id) => { const i = teacher.indexOf('<section id="page-' + id + '"'); return teacher.slice(i, teacher.indexOf("<!-- =====", i + 10)); };
+    const mcPage = pageOf("misconceptions"), reportsPage = pageOf("reports");
+    check(/<a href="#reports" data-page="reports">Reports<\/a>\s*<a href="#misconceptions" data-page="misconceptions">Misconceptions<\/a>\s*<a href="#tasks"/.test(teacher) &&
+      /const PAGES = \[[^\]]*"reports", "misconceptions", "tasks"/.test(teacherSrc) && /else if \(p === "misconceptions"\) renderMisconceptions\(data\);/.test(teacherSrc),
+      "Misconceptions: its own side menu item, between Reports and Task browser (#misconceptions)");
+    // The old address: route() maps #workshop to the new page (run on its own).
+    const routeSrc = teacherSrc.slice(teacherSrc.indexOf("const route = () =>"), teacherSrc.indexOf("const page = () =>"));
+    const routeFor = (hash) => new Function("location", "PAGES", "OLD_PAGES", routeSrc + "; return route();")({ hash },
+      JSON.parse(teacherSrc.match(/const PAGES = (\[[^\]]*\])/)[1]), { overview: "students", log: "reports", workshop: "misconceptions" });
+    check(routeFor("#workshop")[0] === "misconceptions" && routeFor("#misconceptions")[0] === "misconceptions" && routeFor("#log")[0] === "reports" && routeFor("#nothing")[0] === "students",
+      "Misconceptions: the old workshop address (#workshop) opens the new page; #log still opens Reports");
+    check(/if \(mcUnit !== "all" && !unitIds\.includes\(mcUnit\)\) mcUnit = unitIds\[0\];/.test(teacherSrc) && /const stageUnitIds = \(\) => self\.Curriculum\.stageUnits\(stage\(\)\);/.test(teacherSrc) &&
+      /function renderMisconceptions\(data\) \{\s*const unitIds = stageUnitIds\(\);/.test(teacherSrc) && /<option value="all">All units<\/option>/.test(teacherSrc) &&
+      ["ks3", "gcse", "a-level"].every((st) => Curriculum.stageUnits(st).length > 0) && /<select id="mc-unit">/.test(mcPage),
+      "Misconceptions: the unit picker lists the class's stage's units and starts at the first one (then All units, the old class-wide list)");
+    const mcAttempt = (result, dt, extra) => Object.assign({ kind: "attempt", result, hints: 0, phase: "practice", taskLevel: 6, at: new Date(Date.parse("2026-01-05T09:00:00Z") + dt).toISOString() }, extra);
+    const mcData = { students: { a: { name: "Ann" }, b: { name: "Bo" } }, levelLog: [], buttonLog: [], progress: {}, attempts: [
+      mcAttempt("fail", 0, { studentId: "a", taskId: "if-L6a", unit: "selection", category: "WRONG_OUTPUT", misconceptions: ["M1"] }), mcAttempt("fail", 3600000, { studentId: "b", taskId: "if-L6a", unit: "selection", category: "WRONG_OUTPUT" }),
+      mcAttempt("pass", 7200000, { studentId: "a", taskId: "if-L6a", unit: "selection" }), mcAttempt("fail", 0, { studentId: "a", taskId: "if-L5a", unit: "selection", category: "SYNTAX" }),
+      mcAttempt("fail", 0, { studentId: "z", taskId: "if-L6a", unit: "selection" }), mcAttempt("fail", 0, { studentId: "z", taskId: "if-L9a", unit: "selection" }), // z isn't in this class
+      mcAttempt("fail", 0, { studentId: "a", taskId: "maths-L3a", unit: "maths" })] };
+    const mf = TD.mostFailedTasks(mcData, "selection");
+    check(mf.map((t) => t.taskId).join() === "if-L6a,if-L5a" && mf[0].fails === 2 && mf[0].attempts === 3 && Math.round(mf[0].failRate * 100) === 67 && mf[0].topCategory === "WRONG_OUTPUT" &&
+      mf[0].topMisconception === "M1" && mf[1].topMisconception === "" && TD.mostFailedTasks(mcData, "maths").length === 1 && TD.mostFailedTasks(mcData, null).length === 3 &&
+      TD.mostFailedTasks(mcData, "loops-count").length === 0,
+      "Misconceptions: the most-failed list counts only this class's students and the chosen unit, with failed out of total attempts, the rate, the top failure type and misconception");
+    const mcSrc = teacherSrc.slice(teacherSrc.indexOf("function renderMisconceptions("), teacherSrc.indexOf('$("mc-unit").addEventListener'));
+    check(/'<tr><th scope="row">' \+ taskLink\(t\.taskId\)/.test(mcSrc) && /t\.fails \+ " of " \+ t\.attempts/.test(mcSrc) && /"none matched"/.test(mcSrc) &&
+      /No failed attempts in ' \+ esc\(where\) \+ " yet\./.test(mcSrc) && /href="#tasks=' \+ encodeURIComponent\(tasksById\[id\]\.id\)/.test(teacherSrc) &&
+      /if \(p === "tasks"\) renderTaskBrowser\(arg\);/.test(teacherSrc) && (mcSrc.match(/taskLink\(/g) || []).length >= 3,
+      "Misconceptions: each task name (most-failed, misconception table, unmatched table) opens that task in the Task browser, ready to try; a unit with no failed attempts says so");
+    check(["mc-failed", "ws-misconceptions", "ws-tasks", "ws-unmatched", "ws-unseen"].every((id) => mcPage.includes('id="' + id + '"')) &&
+      !/id="(ws-|quick-look|mc-)/.test(reportsPage) && /<a href="#misconceptions">Misconceptions<\/a>/.test(reportsPage) && reportsPage.includes('id="export-workshop"') &&
+      /data-unmatched="' \+ esc\(t\.taskId\) \+ '">View ' \+ t\.unmatched/.test(mcSrc) && /\$\("ws-tasks"\)\.addEventListener\("click"/.test(teacherSrc) &&
+      /<th scope="col">Students<\/th>/.test(mcPage) && /m\.studentNames\.join\(", "\)/.test(mcSrc) && /unseen\.map\(\(m\) => "<li>" \+ esc\(m\.name\)/.test(mcSrc),
+      "Misconceptions: the misconception table (with its Students column), the unmatched table with View, and the not-matched-yet list are on the new page; Reports keeps the workshop export and links to it");
+    const wsExport = teacherSrc.slice(teacherSrc.indexOf('$("export-workshop").addEventListener'), teacherSrc.indexOf('$("export-workshop").addEventListener') + 1200);
+    const wsOut = TD.workshop(mcData, [{ id: "M1", name: "Mistake one" }], {});
+    check(/TD\.workshop\(data, misconceptions, tasksById\)/.test(wsExport) && /python-practice-workshop-/.test(wsExport) &&
+      wsOut.misconceptions.length === 1 && wsOut.misconceptions[0].name === "Mistake one" && wsOut.tasks.some((t) => t.taskId === "if-L6a" && t.unmatched === 2),
+      "Reports: the Workshop tables (CSV) export still builds the misconception and unmatched tables");
 
     // The secured score: worked examples (one place, secured.js).
     const D = Date.parse("2026-01-05T09:00:00Z"), W = Secured.WEEK_MS, H = 3600000;
@@ -1357,8 +1415,51 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(["export-scores", "export-full", "export-dictionary", "export-levels", "export-log", "export-workshop"].every((id) => teacher.includes('id="' + id + '"')) &&
       /python-practice-overview-/.test(teacherSrc) && /python-practice-detail-log-/.test(teacherSrc) && /python-practice-workshop-/.test(teacherSrc) && /python-practice-full-data-/.test(teacherSrc),
       "Reports: class scores, full attempt log, data dictionary, and the earlier levels table, detail log and workshop exports (with their columns)");
-    check(/id="as-five"/.test(teacher) && /slice\(0, 5\)/.test(teacherSrc) && /!\(t\.tags \|\| \[\]\)\.includes\("placement"\)/.test(teacherSrc),
-      "Assignments: Add 5 tasks fills in five practice tasks from one unit and level (never placement tasks)");
+    // The assignment builder: tasks from one unit spread across the levels (teacher-data.js), then Change, Remove and Add.
+    check(/id="as-five"/.test(teacher) && /id="as-count"/.test(teacher) && /id="as-from"/.test(teacher) && /id="as-to"/.test(teacher) && /id="as-add-task"/.test(teacher) &&
+      /\$\("as-count"\)\.value = "5"/.test(teacherSrc) && /\$\("as-from"\)\.value = "1"/.test(teacherSrc) && /\$\("as-to"\)\.value = "10"/.test(teacherSrc) &&
+      /TD\.buildSpread\(bankTasks, unit, lo, hi, count\)/.test(teacherSrc) && /!\(t\.tags \|\| \[\]\)\.includes\("placement"\)/.test(teacherSrc),
+      "Assignments: the builder takes a unit, how many tasks (5 at first) and a level range (1 to 10 at first), and builds the list with TD.buildSpread");
+    const lvlsOf = (list) => list.map((b) => b.level).join();
+    const sel = TD.buildSpread(tasks, "selection", 1, 10, 5);
+    check(TD.spreadLevels(1, 10, 5).join() === "1,3,5,7,10" && sel.length === 5 && lvlsOf(sel) === "1,3,5,7,10" && sel.every((b) => b.task.unit === "selection" && b.wanted === b.level && !b.note),
+      "Assignment builder: by default 5 tasks spread across levels 1 to 10 (levels 1, 3, 5, 7 and 10), all from the chosen unit");
+    const narrow = TD.buildSpread(tasks, "maths", 3, 7, 5);
+    check(TD.spreadLevels(3, 7, 5).join() === "3,4,5,6,7" && TD.spreadLevels(3, 7, 3).join() === "3,5,7" && TD.spreadLevels(7, 3, 2).join() === "3,7" &&
+      TD.spreadLevels(4, 4, 3).join() === "4,4,4" && TD.spreadLevels(1, 3, 7).join() === "1,1,1,2,2,3,3" && lvlsOf(narrow) === "3,4,5,6,7" && narrow.every((b) => b.task.unit === "maths"),
+      "Assignment builder: a narrowed range (3 to 7) keeps every task inside it, always including the lowest and highest level; more tasks than levels share them out evenly");
+    const fakeBank = [
+      { id: "u-1", unit: "u", level: 1 }, { id: "u-2a", unit: "u", level: 2 }, { id: "u-2b", unit: "u", level: 2 }, { id: "u-P3", unit: "u", level: 3, tags: ["placement"] },
+      { id: "u-4a", unit: "u", level: 4 }, { id: "u-4b", unit: "u", level: 4 }, { id: "v-3", unit: "v", level: 3 },
+    ];
+    const gapList = TD.buildSpread(fakeBank, "u", 1, 4, 4);
+    check(gapList.map((b) => b.id).join() === "u-1,u-2a,u-2b,u-4a" && gapList[2].wanted === 3 && gapList[2].level === 2 && /Level 2: the unit has no other level 3 task/.test(gapList[2].note) &&
+      gapList.filter((b) => b.note).length === 1 && /' <span class="flag">' \+ esc\(note\)/.test(teacherSrc),
+      "Assignment builder: a level with no practice task in the unit uses the nearest level that has one (not the placement task, not another unit's), and says so next to the task");
+    const fewer = TD.buildSpread(fakeBank, "u", 1, 1, 10);
+    const builderUnits = Curriculum.UNITS.map((u) => u.id);
+    check(fewer.map((b) => b.id).join() === "u-1,u-2a,u-2b,u-4a,u-4b" && new Set(fewer.map((b) => b.id)).size === fewer.length &&
+      builderUnits.every((u) => { const b = TD.buildSpread(tasks, u, 1, 10, 10); return new Set(b.map((x) => x.id)).size === b.length; }),
+      "Assignment builder: never the same task twice (a unit with fewer tasks than asked for gives each one once)");
+    check(builderUnits.every((u) => TD.buildSpread(tasks, u, 1, 10, 10).every((b) => !(b.task.tags || []).includes("placement")) &&
+      TD.addOptions(tasks, u, []).every((t) => !(t.tags || []).includes("placement") && t.unit === u)) && !TD.buildSpread(fakeBank, "u", 3, 3, 1).some((b) => b.id === "u-P3"),
+      "Assignment builder: placement tasks are never added (building or Add a task), in any unit");
+    const selIds = sel.map((b) => b.id);
+    const swaps = selIds.map((_, i) => TD.swapOptions(tasks, selIds, i));
+    check(swaps.every((list, i) => list.length > 0 && list.every((t) => t.unit === "selection" && t.level === sel[i].level && !selIds.includes(t.id) && !(t.tags || []).includes("placement"))) &&
+      TD.swapOptions(fakeBank, ["u-1", "u-2a"], 0).length === 0 && TD.swapOptions(fakeBank, ["u-2a", "u-4a"], 0).map((t) => t.id).join() === "u-2b" &&
+      TD.swapOptions(fakeBank, ["u-4a", "u-4b"], 1).length === 0 && TD.swapOptions(fakeBank, ["nope"], 0).length === 0 &&
+      /No other level ' \+ c\.task\.level \+ " tasks in this unit<\/button>/.test(teacherSrc) && /data-as-swap="' \+ i \+ '" data-to="/.test(teacherSrc),
+      "Assignment builder: Change offers only other practice tasks of the same unit and level that aren't in the list, and says so when there are none");
+    check(TD.BUILDER_MAX_TASKS === 10 && TD.spreadLevels(1, 10, 0).length === 1 && TD.spreadLevels(1, 10, 1).join() === "1" &&
+      TD.spreadLevels(1, 10, 10).join() === "1,2,3,4,5,6,7,8,9,10" && TD.spreadLevels(1, 10, 25).length === 10 && TD.buildSpread(tasks, "selection", 1, 10, 11).length === 10 &&
+      TD.buildSpread(tasks, "selection", 1, 10, 1).length === 1 && /const full = ids\.length >= TD\.BUILDER_MAX_TASKS;/.test(teacherSrc) &&
+      /ids\.length >= TD\.BUILDER_MAX_TASKS\) return;/.test(teacherSrc) && /data-as-remove="' \+ i \+ '">Remove<\/button>/.test(teacherSrc),
+      "Assignment builder: from 1 to 10 tasks (the count is kept between 1 and 10, and Add stops at 10); single tasks can be removed");
+    check(/tb\.saveAssignment\(\{ id: editing && editing\.id, status: \(editing && editing\.status\) \|\| "open", title,/.test(teacherSrc) && /checked\.length > 50/.test(teacherSrc) &&
+      /tb\.setAssignmentStatus\(/.test(teacherSrc) && /Add ' \+ esc\(t\.id\) \+ " to the assignment/.test(teacherSrc) && /if \(!ids\.includes\(t\.id\)\) \$\("as-tasks"\)\.value = ids\.concat\(t\.id\)/.test(teacherSrc) &&
+      /'<ol class="assignment-tasks">' \+ a\.task_ids\.map/.test(teacherSrc) && /id="as-tasks"/.test(teacher),
+      "Assignments: saving, changing (title, description, tasks), closing and reopening, the Task browser's Add button and each assignment's task list work as before");
   }
 
   // ===================== Class assignments =====================
