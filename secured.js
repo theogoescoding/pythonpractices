@@ -18,15 +18,23 @@
   const FLOOR_STEP = 10;
   const FLOOR_CAP = 95;
 
-  // Colour bands: each has its label, so colour is never the only signal.
+  // The freshness ramp, for a secured unit: each band has its label, so colour is never the only signal. A secured
+  // unit never falls below its floor (at least 50%), so there is no red band: anything under 80% is Revisit soon.
   const BANDS = [
-    { min: 100, cls: "gold", label: "Secured" },
-    { min: 95, cls: "fresh", label: "Fresh" },
-    { min: 80, cls: "fading", label: "Fading" },
-    { min: 50, cls: "soon", label: "Revisit soon" },
-    { min: -Infinity, cls: "now", label: "Revisit now" },
+    { min: 100, cls: "gold", label: "Secured" },     // gold, glowing
+    { min: 95, cls: "fresh", label: "Fresh" },       // light blue
+    { min: 80, cls: "fading", label: "Fading" },     // blue
+    { min: -Infinity, cls: "soon", label: "Revisit soon" }, // indigo (50-75%)
   ];
   const band = (score) => BANDS.find((b) => score >= b.min);
+
+  // The level ramp, for a placed unit that isn't secured yet: 1-3 red, 4-6 amber, 7-9 green, 10 light green.
+  // { cls, label: "Level 8", rag }. The teacher view (teacher-data.js) and the student's unit cards (home.js) both use it.
+  function levelBand(level) {
+    const l = Math.max(1, Math.min(10, Math.round(level) || 1));
+    const [cls, rag] = l <= 3 ? ["lv-red", "red"] : l <= 6 ? ["lv-amber", "amber"] : l <= 9 ? ["lv-green", "green"] : ["lv-top", "green"];
+    return { cls, label: "Level " + l, rag };
+  }
 
   // An attempt record as Store.logAttempt saves it (or BackendRows.rowToAttempt makes it). "No hints" means the hints
   // field is there and is the number 0: a record with it missing, null, empty or text isn't counted. A pass after
@@ -56,5 +64,17 @@
     return { secured: true, score: valueAt(last, times, at), passes: passes.length, timesAt100: times, floor: floorFor(times), lastPass: new Date(last).toISOString() };
   }
 
-  return { WEEK_MS, DROP_PER_WEEK, PASSES_TO_SECURE, FLOOR_START, FLOOR_STEP, FLOOR_CAP, BANDS, band, isTopPass, score };
+  // A unit's colour on the student's unit card: blue "Placement to do" until the placement is done, then the level
+  // ramp, then the freshness ramp once secured. u = { started, placed, level, secured, score }. Returns
+  // { cls, label, ramp: "placement" | "level" | "freshness", band? } or null (not started: no colour).
+  // The teacher view uses the same band and levelBand, and grey "Not placed yet" before the placement is done.
+  function unitColour(u) {
+    if (!u || !u.started) return null;
+    if (!u.placed) return { cls: "placement", label: "Placement to do", ramp: "placement" };
+    if (u.secured) { const b = band(u.score); return { cls: b.cls, label: u.score + "% · " + b.label, ramp: "freshness", band: b }; }
+    const lb = levelBand(u.level);
+    return { cls: lb.cls, label: lb.label, ramp: "level" };
+  }
+
+  return { WEEK_MS, DROP_PER_WEEK, PASSES_TO_SECURE, FLOOR_START, FLOOR_STEP, FLOOR_CAP, BANDS, band, levelBand, unitColour, isTopPass, score };
 });

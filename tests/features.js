@@ -1011,10 +1011,21 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(madeEarly.every((list) => !s(list, D + 2 * H).secured && !s(viaServer(list), D + 2 * H).secured) &&
       s(madeTop, D + 2 * H).score === 100 && s(viaServer(madeTop), D + 2 * H).score === 100,
       "Secured score: the app's own attempt records (and the same records after the server round trip) secure only after two level 10 passes with no hints");
-    const labels = [100, 95, 90, 80, 75, 50, 45, 0].map((x) => Secured.band(x).label + ":" + Secured.band(x).cls).join();
-    check(labels === "Secured:gold,Fresh:fresh,Fading:fading,Fading:fading,Revisit soon:soon,Revisit soon:soon,Revisit now:now,Revisit now:now" &&
-      ["gold", "fresh", "fading", "soon", "now"].every((c) => read("styles.css").includes(".rag-" + c + " ")) && /rag-gold \{[^}]*box-shadow/.test(read("styles.css")),
-      "Colour bands: gold (glowing) 100% Secured, light green 95% Fresh, green 80–90% Fading, amber 50–75% Revisit soon, red under 50% Revisit now, each with its label");
+    const labels = [100, 95, 90, 80, 75, 50].map((x) => Secured.band(x).label + ":" + Secured.band(x).cls).join();
+    const cssAll = read("styles.css");
+    const token = (name) => ((cssAll.match(new RegExp("--" + name + ":\\s*(#[0-9a-fA-F]{6})")) || [])[1] || "").toLowerCase();
+    check(labels === "Secured:gold,Fresh:fresh,Fading:fading,Fading:fading,Revisit soon:soon,Revisit soon:soon" &&
+      ["gold", "fresh", "fading", "soon"].every((c) => cssAll.includes(".rag-" + c + " ")) && /rag-gold \{[^}]*box-shadow/.test(cssAll) &&
+      token("rag-gold") === "#ffd34d" && token("rag-fresh") === "#a9d6ff" && token("rag-fading") === "#1f63c6" && token("rag-soon") === "#3f2f9e",
+      "Freshness ramp: gold (glowing) 100% Secured, light blue 95% Fresh, blue 80–90% Fading, indigo 50–75% Revisit soon, each with its label");
+    // No secured unit can show red: the floor is at least 50%, every band below 80% is Revisit soon (indigo), and
+    // no freshness band uses a red, amber or green level colour.
+    const securedScores = [];
+    for (let k = 0; k <= 60; k++) securedScores.push(s(many, D + H + k * 2 * W).score);
+    check(securedScores.every((x) => x >= 50) && [0, 10, 49, 50].every((x) => Secured.band(x).cls === "soon") && Secured.BANDS.map((b) => b.cls).join() === "gold,fresh,fading,soon" && !Secured.BANDS.some((b) => /Revisit now/.test(b.label)) &&
+      !/rag-now|Revisit now/.test(cssAll + read("teacher.html") + read("app.html") + read("teacher.js") + read("home.js")) &&
+      !["rag-gold", "rag-fresh", "rag-fading", "rag-soon"].some((t) => ["lvl-red", "lvl-amber", "lvl-green", "lvl-top"].map(token).includes(token(t))),
+      "No secured unit can show red: secured scores stay at 50% or more, the freshness ramp has no red band, and it shares no colour with the level ramp");
     // One calculation, used by both views.
     const others = ["teacher.js", "teacher-data.js", "home.js", "app.js", "teacher-backend.js"].filter((f) => /DROP_PER_WEEK|WEEK_MS|FLOOR_START|\b5 \* Math\.floor/.test(read(f)));
     check(!others.length && /Secured\.score\(/.test(read("teacher-data.js")) && /self\.Secured\.score\(/.test(read("home.js")) &&
@@ -1086,28 +1097,93 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
 
     // Fix 3: a placed unit that isn't secured shows its level in the level's colour, never "0% · Revisit now".
     const lv = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((l) => TD.levelBand(l).cls + "/" + TD.levelBand(l).rag + "/" + TD.levelBand(l).label);
-    check(lv.join() === "now/red/Level 1,now/red/Level 2,now/red/Level 3,soon/amber/Level 4,soon/amber/Level 5,soon/amber/Level 6," +
-      "fading/green/Level 7,fading/green/Level 8,fading/green/Level 9,fresh/green/Level 10",
-      "Level colours: levels 1 to 3 red, 4 to 6 amber, 7 to 9 green, 10 light green (the bands' own colour classes)");
+    check(lv.join() === "lv-red/red/Level 1,lv-red/red/Level 2,lv-red/red/Level 3,lv-amber/amber/Level 4,lv-amber/amber/Level 5,lv-amber/amber/Level 6," +
+      "lv-green/green/Level 7,lv-green/green/Level 8,lv-green/green/Level 9,lv-top/green/Level 10" &&
+      token("lvl-red") === "#c62828" && token("lvl-amber") === "#f5a524" && token("lvl-green") === "#4fcb7d" && token("lvl-top") === "#a8f0c4",
+      "Level ramp: levels 1 to 3 red, 4 to 6 amber, 7 to 9 green, 10 light green (its own colour classes, separate from the freshness ramp)");
     const levelData = { students: { g: { name: "Gus" }, h: { name: "Hal" }, k: { name: "Kim" } }, levelLog: [], buttonLog: [],
       progress: { g: { units: { selection: done(8) } }, h: { units: { selection: done(10), maths: done(9) } }, k: { units: { selection: done(10, { level: 10 }), maths: done(2) } } },
       attempts: [pass(D, { studentId: "k" }), pass(D + H, { studentId: "k" })] };
     const lt = TD.scoreTable(levelData, ["selection", "maths"], D + 2 * H);
     const lc = (n, u) => lt.rows.find((r) => r.name === n).cells[u];
     const lrow = (n) => lt.rows.find((r) => r.name === n);
-    check(lc("Gus", "selection").score === null && lc("Gus", "selection").band === null && lc("Gus", "selection").levelBand.label === "Level 8" && lc("Gus", "selection").levelBand.cls === "fading" &&
-      lc("Hal", "selection").levelBand.cls === "fresh" && lc("Kim", "selection").score === 100 && lc("Kim", "selection").band.label === "Secured" && lc("Kim", "selection").levelBand === null &&
+    check(lc("Gus", "selection").score === null && lc("Gus", "selection").band === null && lc("Gus", "selection").levelBand.label === "Level 8" && lc("Gus", "selection").levelBand.cls === "lv-green" &&
+      lc("Hal", "selection").levelBand.cls === "lv-top" && lc("Kim", "selection").score === 100 && lc("Kim", "selection").band.label === "Secured" && lc("Kim", "selection").levelBand === null &&
       lc("Kim", "maths").levelBand.label === "Level 2" && lc("Kim", "maths").score === null,
       "Students page: an unsecured unit reads \"Level 8\" in the level's colour (score null, not 0%); a secured unit keeps its secured percentage and freshness colour");
     check(lrow("Kim").average === 100 && lrow("Kim").rag === "green" && lrow("Gus").average === null && lrow("Gus").averageLevel === 8 && lrow("Gus").rag === "green" &&
       lrow("Hal").rag === "green" && lt.summary.red === 0 && lt.summary.green === 3 && lt.unitAverages[1].average === null && lt.unitAverages[0].average === 100 && lt.unitAverages[0].students === 1,
       "Summary strip: a student counts by their secured units' average (Kim's level 2 unsecured unit doesn't pull her to red), or with none secured by their average level's colour; a placed but unsecured unit is never counted as red for being 0%");
+    // The summary tiles: one per group, each student in exactly one, each in a colour the unit cards use.
+    const tileData = { levelLog: [], buttonLog: [],
+      students: { a: { name: "Ava" }, b: { name: "Ben" }, c: { name: "Cal" }, e: { name: "Eve" }, f: { name: "Fay" }, g: { name: "Gil" }, n: { name: "Nia" }, m: { name: "Max" } },
+      progress: { a: { units: { selection: done(10) } }, b: { units: { selection: done(10) } }, c: { units: { selection: done(2) } }, e: { units: { selection: done(5) } },
+        f: { units: { selection: done(8) } }, g: { units: { selection: done(10) } }, n: { units: { selection: { level: 3, placement: { status: "pending" } } } }, m: { units: {} } },
+      attempts: [pass(D + 8 * W, { studentId: "a" }), pass(D + 8 * W + H, { studentId: "a" }), pass(D, { studentId: "b" }), pass(D + H, { studentId: "b" })] };
+    const tt = TD.scoreTable(tileData, ["selection"], D + H + 8 * W + 2 * H);
+    const tileOf = (n) => tt.rows.find((r) => r.name === n).summaryTile;
+    check(TD.SUMMARY_TILES.map((t) => t.key + "/" + t.cls + "/" + t.label).join("|") === "fresh/fresh/Fresh (80%+)|soon/soon/Revisit soon|" +
+      "lv-red/lv-red/Levels 1 to 3: still learning|lv-amber/lv-amber/Levels 4 to 6: still learning|lv-green/lv-green/Levels 7 to 9: still learning|" +
+      "lv-top/lv-top/Level 10: not secured yet|none/none/Not placed yet" && TD.SUMMARY_TILES.every((t) => t.note && t.note.length > 10) &&
+      ["Ava:fresh", "Ben:soon", "Cal:lv-red", "Eve:lv-amber", "Fay:lv-green", "Gil:lv-top", "Nia:none", "Max:none"].every((x) => tileOf(x.split(":")[0]) === x.split(":")[1]),
+      "Summary tiles: Fresh (80%+) light blue, Revisit soon indigo, then (nothing secured yet) a tile per average level band in its level colour, and Not placed yet grey, each label saying what it counts");
+    const tileTotal = Object.values(tt.summary.tiles).reduce((x, y) => x + y, 0);
+    check(tileTotal === Object.keys(tileData.students).length && tt.rows.every((r) => r.summaryTile in tt.summary.tiles) &&
+      Object.entries(tt.summary.tiles).every(([k, v]) => v === tt.rows.filter((r) => r.summaryTile === k).length) &&
+      Object.values(lt.summary.tiles).reduce((x, y) => x + y, 0) === lt.rows.length && Object.values(tab.summary.tiles).reduce((x, y) => x + y, 0) === tab.rows.length,
+      "Summary tiles: each student is counted once, and the counts add up to the number of students");
+    const tileCls = TD.SUMMARY_TILES.map((t) => t.cls);
+    const cardCls = Secured.BANDS.map((b) => b.cls).concat([1, 4, 7, 10].map((l) => Secured.levelBand(l).cls), ["none"]);
+    const edge = (cls) => ((cssAll.match(new RegExp("\\.rag-tile-" + cls + " \\{[^}]*var\\(--([\\w-]+)\\)")) || [])[1]);
+    const fill = (cls) => ((cssAll.match(new RegExp("\\.rag-" + cls + " \\{[^}]*background: var\\(--([\\w-]+)\\)")) || [])[1]);
+    check(tileCls.every((c) => cardCls.includes(c)) && tileCls.every((c) => edge(c) && edge(c) === fill(c)) && !/rag-tile-(green|amber|red)\b/.test(cssAll + teacherSrc) &&
+      /TD\.SUMMARY_TILES\.map\(\(t\) => '<div class="rag-tile rag-tile-' \+ t\.cls \+ '"><span class="rag rag-' \+ t\.cls \+ '">' \+ esc\(t\.label\)/.test(teacherSrc) &&
+      tt.rows.find((r) => r.name === "Ava").band.cls === "gold" && tt.rows.find((r) => r.name === "Ben").band.cls === "soon" && tt.rows.find((r) => r.name === "Fay").levelBand.cls === "lv-green",
+      "Summary tiles and unit cards use the same colours: each tile's edge and label chip are the cells' own band and level colours (no separate green, amber and red tiles)");
     const sorted = TD.sortScoreTable(lt.rows, "selection", 1).map((r) => r.name).join();
     check(sorted === "Gus,Hal,Kim", "Sorting a unit column: units not secured yet by level, then secured units by score");
     check(/c\.levelBand \? '<span class="rag rag-' \+ c\.levelBand\.cls \+ '">' \+ esc\(c\.levelBand\.label\)/.test(teacherSrc) &&
       /const width = c\.score != null \? c\.score : c\.levelBand \? c\.level \* 10 : 0;/.test(teacherSrc) && !/shows 0%/.test(teacher) &&
-      /rag-fading">Level 7–9</.test(teacher) && /rag-fresh">Level 10</.test(teacher) && /None secured yet/.test(teacherSrc),
+      /rag-lv-green">Level 7–9</.test(teacher) && /rag-lv-top">Level 10</.test(teacher) && /None secured yet/.test(teacherSrc),
       "Teacher view: the cell, the student page's bar and the colour key show the level colour for a unit not secured yet; Compare classes says None secured yet, never 0%");
+
+    // The student's unit cards: blue "Placement to do" until the placement is done, then the level colour, then the
+    // freshness colour once secured (secured.js unitColour), the same bands as the teacher view.
+    const uc = (o) => Secured.unitColour(Object.assign({ started: true, placed: true, level: 5, secured: false, score: null }, o));
+    check(Secured.unitColour({ started: false }) === null && uc({ placed: false }).cls === "placement" && uc({ placed: false }).label === "Placement to do" &&
+      uc({ placed: false, level: 9, secured: true, score: 100 }).ramp === "placement" &&
+      uc({ level: 2 }).cls === "lv-red" && uc({ level: 2 }).label === "Level 2" && uc({ level: 8 }).cls === "lv-green" && uc({ level: 10 }).cls === "lv-top" &&
+      /rag-placement \{[^}]*var\(--placement-bg\)[^}]*var\(--placement-ink\)[^}]*dashed/.test(cssAll) &&
+      !/--(rag|lvl)-[\w-]+:\s*#1f4fd1/i.test(cssAll) && (cssAll.match(/var\(--placement-ink\)/g) || []).length === 2,
+      "Unit cards: before the placement is done the unit shows blue \"Placement to do\" (a dashed outline, its own blue, used for nothing else), then its level colour");
+    check(uc({ secured: true, score: 100 }).cls === "gold" && uc({ secured: true, score: 100 }).label === "100% · Secured" && uc({ secured: true, score: 95 }).label === "95% · Fresh" &&
+      uc({ secured: true, score: 85 }).cls === "fading" && uc({ secured: true, score: 60 }).cls === "soon" && uc({ secured: true, score: 60 }).label === "60% · Revisit soon" &&
+      /self\.Secured\.unitColour\(\{ started: !!s, placed: !!s && !placing, level: s && s\.level, secured: sec\.secured, score: sec\.score \}\)/.test(read("home.js")) &&
+      /const placing = s && needsPlacement\(s\);/.test(read("home.js")) && /★ Level 10 passed/.test(read("home.js")) && /One level 10 pass with no hints brings it back to 100%/.test(read("home.js")),
+      "Unit cards: a secured unit shows the freshness colour and \"N% · band\"; the card keeps its level text, the \"★ Level 10 passed\" note and the come-back note");
+    // The same rules on both sides: the teacher's cell and the student's card come from the same secured.js functions.
+    const both = [3, 6, 9, 10].every((l) => uc({ level: l }).cls === TD.levelBand(l).cls) && [100, 95, 85, 60].every((x) => uc({ secured: true, score: x }).cls === Secured.band(x).cls) &&
+      lc("Kim", "selection").band.cls === uc({ secured: true, score: lc("Kim", "selection").score }).cls && lc("Gus", "selection").levelBand.cls === uc({ level: 8 }).cls;
+    check(both && /const levelBand = \(level\) => Secured\.levelBand\(level\);/.test(read("teacher-data.js")) && !/function levelBand/.test(read("teacher-data.js")),
+      "Teacher and student views use the same band rules (secured.js band and levelBand)");
+    // The colour key on both pages shows the two ramps.
+    const appHtml = read("app.html");
+    const keyOf = (html) => ((html.match(/<p class="small rag-key"[^>]*>([\s\S]*?)<\/p>/) || [])[1] || "");
+    const studentKey = keyOf(appHtml), teacherKey = keyOf(teacher);
+    const ramps = (k) => ["rag-gold\">100% Secured", "rag-fresh\">95% Fresh", "rag-fading\">80–90% Fading", "rag-soon\">50–75% Revisit soon",
+      "rag-lv-red\">Level 1–3", "rag-lv-amber\">Level 4–6", "rag-lv-green\">Level 7–9", "rag-lv-top\">Level 10"].every((x) => k.includes(x));
+    check(ramps(studentKey) && ramps(teacherKey) && studentKey.includes('rag-placement">Placement to do') && teacherKey.includes('rag-none">grey: Not placed yet'),
+      "Colour key: the student's page and the teacher's Students page each show the level ramp and the freshness ramp (and the placement colour)");
+    // Contrast: every chip's text against its own background, at least 4.5:1 (the chips are small bold text).
+    const lum = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)))
+      .reduce((sum, c, i) => sum + c * [0.2126, 0.7152, 0.0722][i], 0);
+    const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+    const chipInk = (cls) => { const rule = (cssAll.match(new RegExp("\\.rag-" + cls + " \\{([^}]*)\\}")) || [])[1] || "";
+      const bg = (rule.match(/background: var\(--([\w-]+)\)/) || [])[1]; const ink = (rule.match(/(?:^|;)\s*color: var\(--([\w-]+)\)/) || [])[1] || "rag-ink"; return [token(ink), token(bg)]; };
+    const chips = ["gold", "fresh", "fading", "soon", "lv-red", "lv-amber", "lv-green", "lv-top", "none", "placement"];
+    const ratios = chips.map((c) => { const [ink, bg] = chipInk(c); return ink && bg ? ratio(ink, bg) : 0; });
+    check(ratios.every((r) => r >= 4.5),
+      "Contrast: every chip label reaches 4.5:1 on its own background (" + chips.map((c, i) => c + " " + ratios[i].toFixed(2)).join(", ") + ")");
 
     // Fix 2: a pass after "Show me how" isn't counted towards the secured score.
     const showTask = { id: "sel-L10x", unit: "selection", level: 10, type: "write" };

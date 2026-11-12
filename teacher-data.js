@@ -248,13 +248,24 @@
   // The RAG group of a score: green (Secured, Fresh, Fading), amber (Revisit soon) or red (Revisit now).
   const ragOf = (score) => (score == null ? null : score >= 80 ? "green" : score >= 50 ? "amber" : "red");
 
-  // The colour of a placed unit that isn't secured yet: its level (1-3 red, 4-6 amber, 7-9 green, 10 light green),
-  // drawn with the bands' own colour classes. { cls, label: "Level 8", rag }.
-  function levelBand(level) {
-    const l = Math.max(1, Math.min(10, Math.round(level) || 1));
-    const [cls, rag] = l <= 3 ? ["now", "red"] : l <= 6 ? ["soon", "amber"] : l <= 9 ? ["fading", "green"] : ["fresh", "green"];
-    return { cls, label: "Level " + l, rag };
-  }
+  // The colour of a placed unit that isn't secured yet: its level (secured.js levelBand, the same rule as the
+  // student's unit cards: 1-3 red, 4-6 amber, 7-9 green, 10 light green). { cls, label: "Level 8", rag }.
+  const levelBand = (level) => Secured.levelBand(level);
+
+  // The summary tiles on the Students page, in order. Each student is in exactly one (summaryTileOf), and each tile's
+  // colour is one the unit cards use: the freshness ramp for a secured average, the level ramp for a student with
+  // nothing secured yet (by their average level), grey for a student with no placed unit.
+  const SUMMARY_TILES = [
+    { key: "fresh", cls: "fresh", label: "Fresh (80%+)", note: "secured average 80% or more" },
+    { key: "soon", cls: "soon", label: "Revisit soon", note: "secured average 50% to 79%" },
+    { key: "lv-red", cls: "lv-red", label: "Levels 1 to 3: still learning", note: "nothing secured yet, average level 1 to 3" },
+    { key: "lv-amber", cls: "lv-amber", label: "Levels 4 to 6: still learning", note: "nothing secured yet, average level 4 to 6" },
+    { key: "lv-green", cls: "lv-green", label: "Levels 7 to 9: still learning", note: "nothing secured yet, average level 7 to 9" },
+    { key: "lv-top", cls: "lv-top", label: "Level 10: not secured yet", note: "nothing secured yet, average level 10" },
+    { key: "none", cls: "none", label: "Not placed yet", note: "no unit placed yet" },
+  ];
+  // A secured average is at least 50% (every secured score is), so anything under 80% is Revisit soon.
+  const summaryTileOf = (r) => (r.average != null ? (r.average >= 80 ? "fresh" : "soon") : r.levelBand ? r.levelBand.cls : "none");
 
   // One row per student, one cell per unit in unitIds. A cell has unitCell's fields (tooEasy and tooHard: the student
   // pressed that button in the unit), plus tooEasyAt and tooHardAt (the newest press), placed, and:
@@ -294,8 +305,10 @@
       return { studentId: id, name: s.name, cells, average, band: average == null ? null : Secured.band(average), averageLevel, levelBand: levelColour,
         rag: average != null ? ragOf(average) : levelColour ? levelColour.rag : null, lastActive: times[times.length - 1] || null };
     });
-    const summary = { green: 0, amber: 0, red: 0, notPlaced: 0 };
-    for (const r of rows) summary[r.rag || "notPlaced"] += 1;
+    // green, amber, red and notPlaced: the RAG counts (as the class scores export's RAG column). tiles: the summary
+    // tiles' counts (SUMMARY_TILES), each student in one tile.
+    const summary = { green: 0, amber: 0, red: 0, notPlaced: 0, tiles: Object.fromEntries(SUMMARY_TILES.map((t) => [t.key, 0])) };
+    for (const r of rows) { summary[r.rag || "notPlaced"] += 1; r.summaryTile = summaryTileOf(r); summary.tiles[r.summaryTile] += 1; }
     const unitAverages = unitIds.map((u) => {
       const xs = rows.map((r) => r.cells[u].score).filter((x) => x != null);
       const average = xs.length ? Math.round(xs.reduce((a, b) => a + b, 0) / xs.length) : null;
@@ -489,6 +502,6 @@
     FAILS_IN_A_ROW_ALERT, TOP_FAILED_TASKS, BUTTON_NAMES, PLACEMENT_STATUS, FULL_COLUMNS,
     collect, overviewRows, sortOverview, filterByName, taskStats, misconceptionStats, quickLook,
     detailRows, filterDetail, workshop, toCsv, fullExportRows, fullExportCsv, dataDictionaryCsv, assignmentStats,
-    lastButtonPresses, ragOf, levelBand, scoreTable, sortScoreTable, studentDetail, classScoresCsv,
+    lastButtonPresses, ragOf, levelBand, SUMMARY_TILES, summaryTileOf, scoreTable, sortScoreTable, studentDetail, classScoresCsv,
   };
 });

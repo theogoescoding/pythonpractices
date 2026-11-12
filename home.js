@@ -220,17 +220,21 @@ Store.whenReady(function () {
     if (level == null) levelText = u.noPlacement ? "Not started – you'll start at Level 1" : "Not started – a quick check will find your starting level";
     else if (needsPlacement(s)) levelText = "Quick check to finish";
     else levelText = "Your level: " + level + " (" + levelName(level, u.id) + ")" + (s.completedTop ? " ✓ completed" : "");
-    // The secured score (secured.js, the same as the teacher sees): a secured unit glows gold at 100%, and shows its
-    // colour and label as the score falls. A unit with a level 10 pass that isn't secured yet keeps its note.
-    const sec = s ? self.Secured.score(studentAttempts, u.id) : { secured: false };
-    const b = sec.secured ? self.Secured.band(sec.score) : null;
+    // The unit's colour (secured.js, the same rules as the teacher sees): blue "Placement to do" until the placement
+    // is done, then the level ramp ("Level N"), then the freshness ramp once secured (glowing gold at 100%, then its
+    // colour and label as the score falls). A unit with a level 10 pass that isn't secured yet keeps its note.
+    const placing = s && needsPlacement(s);
+    const sec = s && !placing ? self.Secured.score(studentAttempts, u.id) : { secured: false };
+    const colour = self.Secured.unitColour({ started: !!s, placed: !!s && !placing, level: s && s.level, secured: sec.secured, score: sec.score });
+    const b = colour && colour.ramp === "freshness" ? colour.band : null;
     const glow = sec.secured && sec.score >= 100;
     const passedTen = s && (s.passedTop || s.completedTop);
+    const chip = colour && !b ? '<p class="secured-note"><span class="rag rag-' + colour.cls + '">' + esc(colour.label) + "</span></p>" : "";
     return '<li><a class="unit-card' + (glow ? " unit-complete" : b ? " unit-scored" : "") + '" href="practice.html?unit=' + encodeURIComponent(u.id) + '">' + title +
       '<p class="unit-meta"><span>' + count + " tasks</span><span><strong>" + esc(levelText) + "</strong></span></p>" +
-      (b ? '<p class="secured-note"><span class="rag rag-' + b.cls + '">' + sec.score + "% · " + esc(b.label) + "</span>" +
+      (b ? '<p class="secured-note"><span class="rag rag-' + colour.cls + '">' + esc(colour.label) + "</span>" +
         (sec.score < 100 ? ' <span class="small">One level 10 pass with no hints brings it back to 100%.</span>' : "") + "</p>"
-        : passedTen ? '<p class="complete-note">★ Level 10 passed</p>' : "") + "</a></li>";
+        : chip + (passedTen ? '<p class="complete-note">★ Level 10 passed</p>' : "")) + "</a></li>";
   }
 
   function showUnits() {

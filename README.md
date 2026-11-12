@@ -766,10 +766,15 @@ All values are named constants at the top of `app.js`:
 
 **Students (`#students`, the default)**
 
-- The class code card (with Copy code), then a **summary strip**: how many students are green, amber and red, and how many have no placed unit yet; then the **class average secured score per unit** (of the students who have secured it). A student with a secured unit counts by the average of their secured units (80% or more green, 50% to 79% amber, under 50% red); a student with placed units but none secured counts by their average level's colour (below). A unit that isn't secured never counts as 0% or red for that reason.
+- The class code card (with Copy code), then a **summary strip** of seven tiles that count students, each student in exactly one; then the **class average secured score per unit** (of the students who have secured it). Each tile's label is a chip in a colour the unit cells use, and says what it counts:
+  - a student with a secured unit, by the average of their secured units: light blue **Fresh (80%+)**, or indigo **Revisit soon** (50% to 79%; a secured average is never under 50%);
+  - a student with placed units but nothing secured yet, by their average level: red **Levels 1 to 3: still learning**, amber **Levels 4 to 6: still learning**, green **Levels 7 to 9: still learning**, light green **Level 10: not secured yet**;
+  - grey **Not placed yet**: no placed unit.
+
+  A unit that isn't secured never counts as 0% or red for that reason. (The class scores export keeps its RAG column: green, amber or red by the same averages.)
 - **The table**: one row per student, one column per unit of the class's stage (local mode: GCSE), plus the student's average (of their secured units; with none secured, their average level in its colour). Each cell shows the [secured score](#secured-score) and its label in its colour, the level, the placement result and **★ Complete** once a level 10 task is passed.
   - **Not secured yet**: a placed unit that isn't secured shows its level in the level's colour, "Level 8", never 0%: levels 1 to 3 red, 4 to 6 amber, 7 to 9 green, 10 light green. The student's page shows it the same way, with a bar for the level.
-  - **Grey, "Not placed yet"**: a unit the student has started but whose placement test isn't done yet (its placement record is still pending or in progress, the same rule as the app's). It has no score or colour, and doesn't count in the student's average, the green, amber and red counts or the class averages. A unit with no placement test (the searching and sorting units), or one started before placement existed, counts as placed.
+  - **Grey, "Not placed yet"**: a unit the student has started but whose placement test isn't done yet (its placement record is still pending or in progress, the same rule as the app's). It has no score or colour, and doesn't count in the student's average, the summary tiles' groups or the class averages. A unit with no placement test (the searching and sorting units), or one started before placement existed, counts as placed.
   - **Flags: the student's own button presses**, each with a tooltip and the time of the newest press under it (from the unit's `buttonsUsed` and the button log, which the app already records; no new record). Each button moves the student one level (`BUTTON_JUMP_LEVELS`). They replace the earlier "Too easy used" and "Too hard used" badges, which showed the same presses.
     - **Too easy** (green): the student pressed "This is too easy" in this unit. "It moved them up one level. Check that their level is right."
     - **Way too hard** (red): the student pressed "This is way too hard" in this unit. "It moved them down one level. Check that their level is right."
@@ -808,8 +813,11 @@ All values are named constants at the top of `app.js`:
 - **Two** level 10 passes give **100%** (Secured). Before that the unit isn't secured: once its placement is done, the teacher's table shows its level in the level's colour, "Not secured yet"; before its placement it is grey, "Not placed yet".
 - From 100% the score drops **5 points for each full week** since the last level 10 pass, but never below the **floor**. One more level 10 pass brings it back to 100%.
 - The floor is 50% the first time the unit reaches 100%, and 10 points higher each time it comes back to 100% (60%, 70%, …), up to **95%**. A pass while the score is still 100% keeps it fresh but doesn't raise the floor.
-- Colour bands, each shown with its label: gold, glowing, **100% Secured**; light green **95% Fresh**; green **80–90% Fading**; amber **50–75% Revisit soon**; red **under 50% Revisit now**.
-- In the student view a secured unit glows gold at 100% and shows its colour and label as the score falls. A unit with a level 10 pass that isn't secured yet keeps its "★ Level 10 passed" note.
+- Two colour ramps (`secured.js`, used by both views), each colour always shown with its label:
+  - **Freshness ramp**, a secured unit: gold, glowing, **100% Secured**; light blue **95% Fresh**; blue **80–90% Fading**; indigo **50–75% Revisit soon**. A secured unit never falls below 50%, so this ramp has no red.
+  - **Level ramp**, a placed unit that isn't secured yet ("Level N"): red **levels 1–3**, amber **4–6**, green **7–9**, light green **10**.
+  - Before its placement is done a unit is grey, **Not placed yet**, in the teacher view, and a dashed blue outline, **Placement to do**, on the student's unit card.
+- In the student view a secured unit glows gold at 100% and shows its colour and label as the score falls; a placed unit that isn't secured shows its level in its colour. A unit with a level 10 pass that isn't secured yet keeps its "★ Level 10 passed" note. Both pages have a colour key.
 
 ### Class stage
 

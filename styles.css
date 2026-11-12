@@ -39,16 +39,24 @@
   --selection: #c7d6ff;
   --glow: #b8860b;          /* gold border of a completed unit card */
   --glow-outer: #f5c518;    /* the soft glow around it */
-  /* Secured score bands (secured.js): the same in every theme, dark text on each (white on red), always with a label. */
+  /* Unit colours (secured.js): the same in every theme, always with a label, so colour is never the only signal.
+     Two ramps: the freshness ramp for a secured unit (gold, light blue, blue, indigo: no red, a secured unit never
+     falls below 50%) and the level ramp for a placed unit that isn't secured (red, amber, green, light green).
+     Ink: dark on the light chips, white on the dark ones (contrast checked in tests/features.js). */
   --rag-ink: #111111;
-  --rag-ink-on-red: #ffffff;
-  --rag-gold: #ffd34d;
+  --rag-ink-light: #ffffff;
+  --rag-gold: #ffd34d;      /* 100% Secured (glowing) */
   --rag-gold-glow: #f5c518;
-  --rag-fresh: #a8f0c4;
-  --rag-fading: #4fcb7d;
-  --rag-soon: #f5a524;
-  --rag-now: #c62828;
-  --rag-none: #d0d4dc;      /* grey: not placed yet */
+  --rag-fresh: #a9d6ff;     /* 95% Fresh: light blue */
+  --rag-fading: #1f63c6;    /* 80-90% Fading: blue */
+  --rag-soon: #3f2f9e;      /* 50-75% Revisit soon: indigo */
+  --lvl-red: #c62828;       /* levels 1-3 */
+  --lvl-amber: #f5a524;     /* levels 4-6 */
+  --lvl-green: #4fcb7d;     /* levels 7-9 */
+  --lvl-top: #a8f0c4;       /* level 10: light green */
+  --rag-none: #d0d4dc;      /* grey: not placed yet (teacher view) */
+  --placement-bg: #ffffff;  /* "Placement to do" (student cards): a dashed blue outline, blue text */
+  --placement-ink: #1f4fd1;
   color-scheme: light;
 }
 
@@ -543,23 +551,34 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
 /* Secured score bands. Fixed colours with dark text (white on red) read the same in every theme, and each band always
    shows its label too, so colour is never the only signal. */
 .rag { display: inline-block; font-weight: 700; font-size: .85rem; border-radius: 6px; padding: .1rem .45rem; color: var(--rag-ink); border: 1px solid var(--rag-ink); }
+/* Freshness ramp: a secured unit. */
 .rag-gold { background: var(--rag-gold); box-shadow: 0 0 .6rem var(--rag-gold-glow); }
 .rag-fresh { background: var(--rag-fresh); }
-.rag-fading { background: var(--rag-fading); }
-.rag-soon { background: var(--rag-soon); }
-.rag-now { background: var(--rag-now); color: var(--rag-ink-on-red); }
+.rag-fading { background: var(--rag-fading); color: var(--rag-ink-light); }
+.rag-soon { background: var(--rag-soon); color: var(--rag-ink-light); }
+/* Level ramp: a placed unit that isn't secured yet ("Level N"). */
+.rag-lv-red { background: var(--lvl-red); color: var(--rag-ink-light); }
+.rag-lv-amber { background: var(--lvl-amber); }
+.rag-lv-green { background: var(--lvl-green); }
+.rag-lv-top { background: var(--lvl-top); }
 .rag-none { background: var(--rag-none); }
+.rag-placement { background: var(--placement-bg); color: var(--placement-ink); border: 2px dashed var(--placement-ink); }
 .rag-key .rag { margin: .1rem .1rem; }
 .flag-block { display: inline-flex; flex-direction: column; align-items: flex-start; margin-right: .3rem; vertical-align: top; }
 .rag-tiles { display: flex; flex-wrap: wrap; gap: .75rem; margin: .75rem 0; }
 .rag-tile { flex: 1 1 8rem; border: 2px solid var(--border); border-radius: 8px; padding: .5rem .9rem; background: var(--card); }
 .rag-tile strong { display: block; font-size: 1.8rem; }
-.rag-tile-green { border-left: 10px solid var(--rag-fading); }
-.rag-tile-amber { border-left: 10px solid var(--rag-soon); }
-.rag-tile-red { border-left: 10px solid var(--rag-now); }
+/* Summary tiles (teacher.js): the band's colour on the left edge and on the label chip, the same colours as the cells. */
+.rag-tile-fresh { border-left: 10px solid var(--rag-fresh); }
+.rag-tile-soon { border-left: 10px solid var(--rag-soon); }
+.rag-tile-lv-red { border-left: 10px solid var(--lvl-red); }
+.rag-tile-lv-amber { border-left: 10px solid var(--lvl-amber); }
+.rag-tile-lv-green { border-left: 10px solid var(--lvl-green); }
+.rag-tile-lv-top { border-left: 10px solid var(--lvl-top); }
+.rag-tile-none { border-left: 10px solid var(--rag-none); }
 .unit-averages { margin: .5rem 0 1rem; line-height: 2; }
-.flag-easy { background: var(--rag-fading); color: var(--rag-ink); border-color: var(--rag-ink); cursor: help; }
-.flag-hard { background: var(--rag-now); color: var(--rag-ink-on-red); border-color: var(--rag-ink); cursor: help; }
+.flag-easy { background: var(--lvl-green); color: var(--rag-ink); border-color: var(--rag-ink); cursor: help; }
+.flag-hard { background: var(--lvl-red); color: var(--rag-ink-light); border-color: var(--rag-ink); cursor: help; }
 .flag-key { margin: .25rem 0 .75rem; }
 .score-bar { margin-bottom: .9rem; }
 .score-bar .bar { height: .6rem; border: 1px solid var(--border); border-radius: 999px; background: var(--code-bg); overflow: hidden; margin-top: .3rem; }

@@ -139,11 +139,11 @@
     renderCodeCards();
     const table = TD.scoreTable(data, unitIds);
     const s = table.summary;
-    // A student counts by their secured units' average; with none secured yet, by their average level's colour.
-    $("st-summary").innerHTML = '<div class="rag-tile rag-tile-green"><span>Green</span><strong>' + s.green + '</strong><span class="small">secured average 80% or more (none secured: level 7 or more)</span></div>' +
-      '<div class="rag-tile rag-tile-amber"><span>Amber</span><strong>' + s.amber + '</strong><span class="small">secured average 50% to 79% (none secured: level 4 to 6)</span></div>' +
-      '<div class="rag-tile rag-tile-red"><span>Red</span><strong>' + s.red + '</strong><span class="small">secured average under 50% (none secured: level 1 to 3)</span></div>' +
-      (s.notPlaced ? '<div class="rag-tile"><span>Not placed yet</span><strong>' + s.notPlaced + '</strong><span class="small">no unit placed yet</span></div>' : "");
+    // One tile per group (TD.SUMMARY_TILES), each student in exactly one: by their secured average, or with nothing
+    // secured yet by their average level, or Not placed yet. Each tile's label is a chip in the colour the unit cards
+    // use for that band, so the label says what it counts and the colour matches the cells.
+    $("st-summary").innerHTML = TD.SUMMARY_TILES.map((t) => '<div class="rag-tile rag-tile-' + t.cls + '"><span class="rag rag-' + t.cls + '">' + esc(t.label) + "</span><strong>" +
+      s.tiles[t.key] + '</strong><span class="small">' + esc(t.note) + "</span></div>").join("");
     const started = table.unitAverages.filter((u) => u.average != null);
     $("st-averages").innerHTML = '<p class="small">Class average secured score per unit (students who have secured it):</p>' + (started.length
       ? started.map((u) => '<span class="rag rag-' + u.band.cls + '">' + esc(unitTitle(u.unit)) + ": " + u.average + "% · " + esc(u.band.label) + "</span>").join(" ")
