@@ -67,7 +67,6 @@ python -m http.server 8000
 Then open:
 
 - Student app: http://localhost:8000/
-- Test mode (starting-level control): http://localhost:8000/?test=1
 - Teacher view: http://localhost:8000/teacher.html (pages: `#classes`, `#students`, `#assignments`, `#reports`, `#tasks`, `#settings`)
 - A student's progress summary: http://localhost:8000/progress.html
 - Endless mode: http://localhost:8000/endless.html
@@ -187,18 +186,9 @@ If CodeMirror can't be loaded, the page falls back to the plain text editor, whi
 - **Unit menu.** `app.html` shows a card for each unit, with its description, number of tasks and the student's level, under five headings (`UNIT_GROUPS` in `curriculum.js`): **Programming fundamentals** (Output to Count-controlled loops), **Advanced programming** (Strings to 2D arrays), **Validation** (Validation, Authentication and Trace tables), **Searching and sorting** and **A-level**. A group can split its units into subsections (`subsections`), each under its own heading: the A-level group has two, **Programming techniques** (Recursion, Scope and parameters, the four object-oriented programming units, then Debugging) and **Data structures** (Records and tuples, Stacks and queues, Linked lists, Hash tables, then 3D arrays), and their unit cards' headings are one level lower (`h5`). A group with no units isn't shown. Within a group the units keep the order of `UNITS`. Each heading is a button that collapses or expands its group; groups start expanded, and a collapsed group is remembered on that device (`localStorage`, ignored if storage is blocked). Unit ids and saved progress don't depend on the groups. Units with no tasks in `tasks.json` are greyed out as "Coming soon". Clicking a card opens `practice.html?unit=<id>`.
 - **Progress is stored per student, per unit.**
 
-### Test mode (`?test=1`)
+### No test mode
 
-With `?test=1` in the URL, the landing page shows a starting-level control. Pick a unit and a level (1–10) and press **Set level**. This:
-
-- sets the current student's level in that unit only, and resets its streaks and ceiling
-- keeps the student's attempt counts and history, buttons used and level 10 pass
-- skips the placement test for that unit (shown as "Skipped" in the teacher view), unless it was already done
-- is logged in the teacher view as "Set by the teacher in test mode"
-
-Without `?test=1`, every new unit starts with the placement test.
-
-Test mode also has **Mark unit completed**. It puts the student at Level 10 in that unit and marks it completed, so Endless mode and the from-scratch tasks can be tried without passing every level. The unit card glows as if a level 10 task had been passed. This is logged as well.
+There used to be a `?test=1` starting-level control on the student's home page (Set level, Mark unit completed). It has been removed: a student can't set their own level or mark a unit completed, and `?test=1` does nothing on any student page. Every new unit starts with the placement test. Level changes made with it in the past are still shown in the teacher view and the exports, with their reasons `test-mode` ("Set by the teacher in test mode") and `test-mode-completed`.
 
 ## Placement test
 
@@ -703,7 +693,7 @@ All values are named constants at the top of `app.js`:
 
 | Constant | Default | Meaning |
 |---|---|---|
-| `START_LEVEL` | 1 | Level a unit starts at (outside test mode) |
+| `START_LEVEL` | 1 | Level a unit starts at when there is no placement result (a unit with no placement test, or a reset before placement) |
 | `MAX_HINTS_FOR_A_STRONG_PASS` | 1 | A pass only counts towards moving up if it used this many hints or fewer |
 | `PASSES_IN_A_ROW_TO_LEVEL_UP` | 2 | Strong passes in a row for a normal move up |
 | `NORMAL_LEVEL_STEP` | 1 | Levels gained by a normal move up |
@@ -1013,7 +1003,7 @@ The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, n
 | File | Purpose |
 |---|---|
 | `index.html` | Home page: logo, tagline, and the student and teacher buttons (opens in the Dark theme) |
-| `app.html`, `home.js` | Student view: joining or signing in (or the name screen), the grouped unit menu, links to My progress and Endless mode, test-mode controls |
+| `app.html`, `home.js` | Student view: joining or signing in (or the name screen), the grouped unit menu, links to My progress and Endless mode |
 | `assets/logo/` | The logos (main, wordmark and icon, each in a light and a dark version) |
 | `practice.html`, `app.js` | Practice session for one unit, or Endless mode: task types, hints, the editor, the adaptive rules and their constants |
 | `progress.html`, `progress.js` | Progress summary and skill drill-down |
@@ -1097,7 +1087,6 @@ The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, n
 - **Misconception matching covers bank and placement tasks with buggy variants, and the variants made from them.** The hand-written templates (single-unit, combined, write-from-scratch) are classified but never matched.
 - **No misconception ids yet for Output and sequence ideas** such as `sep=`/`end=` or the order of statements, so most of that unit's placement tasks have no variants.
 - **Placement uses the highest level passed**, as the brief says, even if an earlier one was failed. For example, failing 2 but passing 5 starts at 5.
-- **Test mode is not protected.** Anyone who adds `?test=1` to the URL can set levels. Every change is logged in the teacher view.
 - **Internet is needed the first time.** Pyodide comes from cdn.jsdelivr.net. If it can't load, the page says so and code can't be run.
 - **Answers are visible to a determined student.** `tasks.json`, including the solutions and the hidden tests, is downloaded to the browser (in backend mode too: answers are still checked in the browser). No student page *shows* a model solution or a hidden test, but the data is there for anyone who opens the browser's developer tools.
 - **Assignment work is kept per browser.** Which task is open, the answers so far and the ✓ marks on an assignment are kept in that browser only. The attempts themselves are saved to the server as usual, so the teacher sees everything, but a student who moves to another computer starts the assignment's tasks with empty answers.

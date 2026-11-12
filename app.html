@@ -117,18 +117,6 @@
         Once it is secured (two level 10 passes with no hints), how fresh it is: <span class="rag rag-gold">100% Secured</span>
         <span class="rag rag-fresh">95% Fresh</span> <span class="rag rag-fading">80–90% Fading</span> <span class="rag rag-soon">50–75% Revisit soon</span>.</p>
 
-      <div id="test-panel" class="test-panel" hidden>
-        <h3>Test mode: starting level</h3>
-        <p class="small">Sets the level for <strong id="test-student"></strong> in one unit. Only that unit's level is reset; the change is logged in the teacher view.</p>
-        <div class="teacher-controls">
-          <label>Unit <select id="test-unit"></select></label>
-          <label>Level <select id="test-level"></select></label>
-          <button type="button" id="test-set" class="primary">Set level</button>
-          <button type="button" id="test-complete" class="secondary">Mark unit completed (unlocks endless mode)</button>
-        </div>
-        <p id="test-status" class="small" role="status"></p>
-      </div>
-
       <!-- The units, grouped under headings that can be collapsed (Curriculum.UNIT_GROUPS, home.js) -->
       <div id="unit-list" class="unit-groups"><p class="loading">Loading units…</p></div>
       <p class="privacy" id="privacy-note">Your progress is saved in this browser only. Nothing is sent anywhere.</p>

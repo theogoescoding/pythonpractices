@@ -959,6 +959,24 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(!/Haven't started a unit/.test(teacherSrc + teacher), "Teacher overview: the \"Haven't started a unit\" box is gone (the student table still shows Not started cells)");
   }
 
+  // ===================== No test mode for students =====================
+  // ?test=1 used to show a starting-level control on the student's home page (set a level, mark a unit completed).
+  // Now no student page, and no script a student page loads, reads a test flag from the address, so ?test=1 changes
+  // nothing and shows nothing. Teacher practice (?preview=) is unchanged (its own checks are below).
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const studentPages = ["index.html", "app.html", "practice.html", "progress.html", "endless.html"];
+    const scriptsOf = (html) => [...html.matchAll(/<script src="([^":]+)"><\/script>/g)].map((m) => m[1]).filter((s) => fs.existsSync(path.join(ROOT, s)));
+    const scripts = [...new Set(studentPages.flatMap((p) => scriptsOf(read(p))))];
+    const src = scripts.map((s) => [s, read(s)]);
+    const paramsRead = [...new Set(src.flatMap(([, t]) => [...t.matchAll(/(?:params|URLSearchParams\([^)]*\))\.(?:get|has)\("([\w-]+)"\)/g)].map((m) => m[1])))].sort();
+    check(scripts.includes("home.js") && scripts.includes("app.js") && scripts.includes("tour.js") &&
+      src.every(([, t]) => !/(?:get|has)\("test"\)|[?&]test=1|testMode/.test(t)) && paramsRead.join() === "assignment,mode,preview,unit,units" &&
+      studentPages.every((p) => !/test-panel|test-set|test-complete|test-level|test-unit|Test mode/.test(read(p))) &&
+      !/reason: "test-mode/.test(read("home.js")) && !/completedTop: true/.test(read("home.js")) && !/saveProgress/.test(read("home.js")) && !/\.test-panel/.test(read("styles.css")),
+      "Student pages: ?test=1 does nothing (no script reads a test flag, so no level is set, no unit is marked completed and no test controls are shown); the address is only read for preview, assignment, mode, unit and units");
+  }
+
   // ===================== Unique ids on every page =====================
   // Each page's own ids, and the ids the scripts add to it later (the practice page's task card from app.js, the
   // teacher view's from teacher.js): none may appear twice, or the wrong element answers a click or a lookup.

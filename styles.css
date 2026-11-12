@@ -474,8 +474,6 @@ a.unit-card:hover { border-color: var(--primary); }
   .unit-card.unit-complete, a.unit-card.unit-complete:hover { animation: none; } /* static glow, no pulsing */
 }
 .complete-note { font-weight: 700; margin-top: .5rem !important; }
-.test-panel { background: var(--down-bg); border: 2px dashed var(--predict); border-radius: 12px; padding: .75rem 1.25rem; margin-bottom: 1.25rem; }
-.test-panel h3 { margin: .25rem 0; }
 .unit-levels { list-style: none; padding: 0; margin: .5rem 0 .75rem; }
 .unit-progress { display: grid; gap: .2rem; margin: .5rem 0 .75rem; }
 .unit-name { font-weight: 700; }

@@ -1,13 +1,13 @@
 "use strict";
 
-// The student view (app.html): student name, unit menu and (with ?test=1) the starting-level control.
+// The student view (app.html): student name and unit menu. (The old test-mode starting-level control is gone: a
+// student can't set their own level or mark a unit completed from this page.)
 // index.html is the public home page; its student buttons open app.html#join and app.html#signin.
 // In backend mode (config.js), the name screen is replaced by joining a class or signing in with a code and PIN.
 Store.whenReady(function () {
   const { UNITS, levelName } = self.Curriculum;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const testMode = new URLSearchParams(location.search).get("test") === "1";
   const backend = self.Backend && self.Backend.enabled ? self.Backend : null;
 
   Store.setupDisplaySettings();
@@ -256,69 +256,7 @@ Store.whenReady(function () {
     $("student-area").hidden = false;
     $("student-name").textContent = student.name;
     renderUnits();
-    renderTestPanel();
   }
-
-  // ---------- Test mode: starting level ----------
-  function renderTestPanel() {
-    if (!testMode || !tasks) return;
-    const student = Store.currentStudent();
-    $("test-panel").hidden = false;
-    $("test-student").textContent = student.name;
-    const available = UNITS.filter((u) => tasks.some((t) => t.unit === u.id));
-    const chosen = $("test-unit").value;
-    $("test-unit").innerHTML = available.map((u) => '<option value="' + u.id + '">' + esc(u.title) + "</option>").join("");
-    if (chosen) $("test-unit").value = chosen;
-    syncTestLevel();
-  }
-
-  function syncTestLevel() {
-    const progress = Store.loadProgress(Store.currentStudent().id);
-    const level = unitLevel(progress, $("test-unit").value) || START_LEVEL;
-    $("test-level").innerHTML = Array.from({ length: MAX_LEVEL }, (_, i) =>
-      '<option value="' + (i + 1) + '"' + (i + 1 === level ? " selected" : "") + ">" + (i + 1) + " – " + esc(levelName(i + 1, $("test-unit").value)) + "</option>").join("");
-  }
-
-  $("test-unit").addEventListener("change", syncTestLevel);
-
-  // Resets only this unit's level (and its streaks and ceiling). Attempts and history are kept.
-  $("test-set").addEventListener("click", () => {
-    const student = Store.currentStudent();
-    const unitId = $("test-unit").value;
-    const level = +$("test-level").value;
-    const progress = Store.loadProgress(student.id);
-    const old = progress.units[unitId];
-    const fresh = freshUnitState(level);
-    fresh.placement = { status: "skipped", used: (old && old.placement && old.placement.used) || [] }; // the level was set here instead
-    if (old) {
-      Object.assign(fresh, { stats: old.stats, log: old.log, history: old.history, lastAttempt: old.lastAttempt, lastTaskId: old.lastTaskId,
-        buttonsUsed: old.buttonsUsed || {}, passedTop: !!old.passedTop });
-      if (old.placement && old.placement.status === "done") fresh.placement = old.placement;
-      fresh.highest = Math.max(old.highest || old.level, level);
-    }
-    progress.units[unitId] = fresh;
-    Store.saveProgress(student.id, progress);
-    Store.logLevelChange({ studentId: student.id, unit: unitId, from: old ? old.level : null, to: level, reason: "test-mode" });
-    $("test-status").textContent = student.name + " is now at Level " + level + " in " + self.Curriculum.unitTitle(unitId) + ".";
-    renderUnits();
-  });
-
-  // Puts the student at Level 10 in the unit and marks it completed, so endless mode can be tried.
-  $("test-complete").addEventListener("click", () => {
-    const student = Store.currentStudent();
-    const unitId = $("test-unit").value;
-    const progress = Store.loadProgress(student.id);
-    const s = progress.units[unitId] || freshUnitState();
-    const from = progress.units[unitId] ? s.level : null;
-    Object.assign(s, { level: MAX_LEVEL, highest: MAX_LEVEL, completedTop: true, passedTop: true, ceiling: null, ceilingTasksLeft: 0, passStreak: 0, failStreak: 0 });
-    if (from == null || needsPlacement(s)) s.placement ={ status: "skipped", used: (s.placement && s.placement.used) || [] };
-    progress.units[unitId] = s;
-    Store.saveProgress(student.id, progress);
-    Store.logLevelChange({ studentId: student.id, unit: unitId, from, to: MAX_LEVEL, reason: "test-mode-completed" });
-    $("test-status").textContent = student.name + " has completed " + self.Curriculum.unitTitle(unitId) + " (Level " + MAX_LEVEL + "). Endless mode is unlocked for it.";
-    syncTestLevel();
-    renderUnits();
-  });
 
   // ---------- Start up ----------
   if (!Store.currentStudent()) showNameScreen(); // ask for the name before anything else, even while tasks load
