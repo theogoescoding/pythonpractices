@@ -2101,8 +2101,9 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   document.addEventListener("dragend", () => { dragId = null; });
 
   // ---------- Reset ----------
-  $("reset-btn").addEventListener("click", () => { $("reset-confirm").hidden = false; $("reset-yes").focus(); });
-  $("reset-no").addEventListener("click", () => { $("reset-confirm").hidden = true; $("reset-btn").focus(); });
+  // The side panel's "Reset my progress in this unit" (reset-progress-btn; the task's own "Reset this task" is reset-btn).
+  $("reset-progress-btn").addEventListener("click", () => { $("reset-confirm").hidden = false; $("reset-yes").focus(); });
+  $("reset-no").addEventListener("click", () => { $("reset-confirm").hidden = true; $("reset-progress-btn").focus(); });
   $("reset-yes").addEventListener("click", async () => {
     if (serving) return;
     const old = us();

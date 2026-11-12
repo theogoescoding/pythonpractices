@@ -959,6 +959,29 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(!/Haven't started a unit/.test(teacherSrc + teacher), "Teacher overview: the \"Haven't started a unit\" box is gone (the student table still shows Not started cells)");
   }
 
+  // ===================== Unique ids on every page =====================
+  // Each page's own ids, and the ids the scripts add to it later (the practice page's task card from app.js, the
+  // teacher view's from teacher.js): none may appear twice, or the wrong element answers a click or a lookup.
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const idsOf = (html) => [...html.replace(/<!--[\s\S]*?-->/g, "").matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
+    const twice = (ids) => [...new Set(ids.filter((x, i) => ids.indexOf(x) !== i))];
+    const pages = ["index.html", "app.html", "practice.html", "progress.html", "endless.html", "teacher.html"];
+    const dups = pages.map((p) => [p, twice(idsOf(read(p)))]).filter(([, d]) => d.length);
+    const appSrc = read("app.js");
+    const added = (src) => [...new Set([...src.matchAll(/id="([\w-]+)"/g)].map((m) => m[1]))];
+    const practiceClash = added(appSrc.slice(appSrc.indexOf("// ===================== Browser app"))).filter((id) => idsOf(read("practice.html")).includes(id));
+    const teacherClash = added(read("teacher.js")).filter((id) => idsOf(read("teacher.html")).includes(id));
+    check(!dups.length && !practiceClash.length && !teacherClash.length,
+      "No id appears twice on any student or teacher page, counting the ids the scripts add (task card, teacher view)" +
+      (dups.length || practiceClash.length || teacherClash.length ? ": " + JSON.stringify({ dups, practiceClash, teacherClash }) : ""));
+    check(/id="reset-progress-btn" class="secondary">Reset my progress in this unit<\/button>/.test(read("practice.html")) &&
+      /\$\("reset-progress-btn"\)\.addEventListener\("click", \(\) => \{ \$\("reset-confirm"\)\.hidden = false; \$\("reset-yes"\)\.focus\(\); \}\);/.test(appSrc) &&
+      /\$\("reset-confirm"\)\.hidden = true; \$\("reset-progress-btn"\)\.focus\(\);/.test(appSrc) &&
+      /'<button type="button" id="reset-btn" class="secondary"><\/button>'/.test(appSrc) && /\$\("reset-btn"\)\.addEventListener\("click", resetTask\);/.test(appSrc),
+      "Practice page: \"Reset my progress in this unit\" is reset-progress-btn (Cancel gives focus back to it), and the task's \"Reset this task\" keeps reset-btn");
+  }
+
   // ===================== Tutorial overlay (tour.js) =====================
   {
     const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
