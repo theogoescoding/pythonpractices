@@ -746,6 +746,15 @@ All values are named constants at the top of `app.js`:
   - `var-L2e` shows text being joined (`"4" + "5"` is `45`) next to cast values being added (`9`).
 - `tools/archive/print-commas.js`, `tools/archive/print-commas-templates.js` and `tools/archive/casting-words.js` made these changes once. Each one checks that every changed solution still prints its expected output.
 
+## Tutorial (`tour.js`)
+
+A walkthrough over the real screen, one step at a time, on the student pages only (never the teacher view, teacher practice or a frame).
+- **New students** (nothing started, nothing remembered in this browser) get the full walkthrough the first time the unit menu opens: signing in (backend mode) or choosing a unit (local mode), the quick check, the unit cards, the task, Run and Check my answer, hints, Show me how, the level buttons, freshness, My progress and Help. Each step rings the control it is about and scrolls to it; a step whose control is on the task page says so, and those steps run again, pointing at the real buttons, the first time the student opens a task.
+- **Returning students** get a short reminder above the unit cards only when something is new for them: a new assignment, a unit whose quick check isn't done, a unit whose freshness has dropped to a new band, or a new unit. Each reminder has a link to the thing and Dismiss, and is shown once (at most 3 at a time; the rest on the next visit). A student who had already started a unit before this was added starts with everything counted as seen, so they get no flood of reminders and no walkthrough.
+- **Help** (home page, and My progress, which links to `app.html#help`) opens the walkthrough from step 1 again.
+- The card sits at the bottom of the screen (16px from each side, at most 28rem wide), never as a backdrop. Skip closes it at any step, Escape closes it, and the arrow keys move between steps. Closing removes everything it added and gives focus back.
+- What has been seen is kept in this browser only, per student, under `pythonPractice.tutorial.<student id>`, with every storage error caught. If storage is blocked nothing opens by itself (it couldn't be remembered); Help still works.
+
 ## Teacher view
 
 **Teachers start from the home page.** Its **New teacher** and **Returning teacher** buttons open `teacher.html#signup` and `teacher.html#signin`. The student pages (`app.html`, `practice.html`, `progress.html`, `endless.html`) have no "Teacher view" link, so a signed-in student is never pointed at it. A feature test checks that no student page, and no script one loads, links to it.
@@ -1011,6 +1020,7 @@ The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, n
 | `endless.html`, `endless.js` | Endless mode set-up: choosing units |
 | `teacher.html`, `teacher.js` | Teacher view: a side menu of Classes, Students, one student, Assignments, Reports (exports, compare classes), Misconceptions (the workshop), Task browser (with teacher practice) and Settings |
 | `secured.js` | The secured score of a unit and its colour bands (shared by the teacher view and the student view) |
+| `tour.js` | The student app's tutorial: the walkthrough, the reminders and Help (see [Tutorial](#tutorial-tourjs)) |
 | `collapse.js` | Collapsible sections, shared by the student view's unit groups and the teacher view's sections (each remembered under its own localStorage key) |
 | `task-view.js` | The Expected output box and example test (practice page and Task browser), and the task search |
 | `task-browser.js` | The teacher's Task browser, with the model solutions (loaded by `teacher.html` only) |

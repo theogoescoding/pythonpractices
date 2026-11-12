@@ -98,7 +98,10 @@
       <nav class="menu-links" aria-label="More">
         <a href="progress.html" class="menu-link">My progress</a>
         <a href="endless.html" class="menu-link">Endless mode</a>
+        <a href="#help" id="tour-help" class="menu-link">Help</a>
       </nav>
+      <!-- Short reminders of anything new since the last visit (tour.js) -->
+      <div id="tour-reminders" class="tour-reminders" hidden></div>
       <!-- Backend mode: the class's open assignments, above the unit cards -->
       <section id="assignments" class="assignments" hidden aria-labelledby="assignments-h">
         <h2 id="assignments-h">From your teacher</h2>
@@ -143,6 +146,7 @@
   <script src="curriculum.js"></script>
   <script src="app.js"></script>
   <script src="secured.js"></script>
+  <script src="tour.js"></script>
   <script src="collapse.js"></script>
   <script src="home.js"></script>
 </body>

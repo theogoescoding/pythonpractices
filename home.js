@@ -165,6 +165,7 @@ Store.whenReady(function () {
   // Groups a student has collapsed, remembered on this device only (collapse.js, shared with the teacher view).
   const COLLAPSED_KEY = "pythonPractice.collapsedGroups";
   let studentAttempts = []; // the student's attempts, for the secured scores on the unit cards
+  let bandsShown = {};      // each secured unit's freshness band as drawn, for the tutorial's reminders (tour.js)
 
   // The units under their group headings (Curriculum.UNIT_GROUPS), in the same order as UNITS. A unit missing from
   // every group is still shown, in a last group, so no unit can disappear from the menu. A group with no units isn't shown.
@@ -186,6 +187,7 @@ Store.whenReady(function () {
     // Backend mode: the sections for the class's stage open by default and the rest start closed. When the stage
     // changes (or the first time), the open and closed sections start again from the stage; the student can still
     // open any section. Local mode has no class, so every section starts open as before.
+    bandsShown = {};
     const stage = Store.classStage(student.id);
     if (stage) Collapse.resetForStage(COLLAPSED_KEY, stage, groupsToShow().map((g) => g.id).filter((id) => !self.Curriculum.stageGroups(stage).includes(id)));
     const collapsed = Collapse.collapsedIds(COLLAPSED_KEY);
@@ -204,6 +206,13 @@ Store.whenReady(function () {
         '<h3 class="group-heading" id="group-' + g.id + '-h">' + Collapse.buttonHtml(g.id, "group-" + g.id, esc(g.title), open, count) + "</h3>" +
         '<div class="group-body" id="group-' + g.id + '"' + (open ? "" : " hidden") + ">" + body + "</div></section>";
     }).join("");
+    // The tutorial (tour.js): the walkthrough for a new student, or reminders of anything new since the last visit.
+    if (self.Tour) self.Tour.home({
+      studentId: student.id, backend: !!backend, units: UNITS.map((u) => ({ id: u.id, title: u.title })),
+      started: UNITS.filter((u) => progress.units[u.id]).map((u) => u.id),
+      placing: UNITS.filter((u) => progress.units[u.id] && needsPlacement(progress.units[u.id])).map((u) => u.id),
+      assignments: Store.assignments(student.id).map((a) => ({ id: a.id, title: a.title })), bands: bandsShown,
+    });
   }
 
   Collapse.wire($("unit-list"), COLLAPSED_KEY);
@@ -227,6 +236,7 @@ Store.whenReady(function () {
     const sec = s && !placing ? self.Secured.score(studentAttempts, u.id) : { secured: false };
     const colour = self.Secured.unitColour({ started: !!s, placed: !!s && !placing, level: s && s.level, secured: sec.secured, score: sec.score });
     const b = colour && colour.ramp === "freshness" ? colour.band : null;
+    if (b) bandsShown[u.id] = { cls: b.cls, label: b.label, score: sec.score };
     const glow = sec.secured && sec.score >= 100;
     const passedTen = s && (s.passedTop || s.completedTop);
     const chip = colour && !b ? '<p class="secured-note"><span class="rag rag-' + colour.cls + '">' + esc(colour.label) + "</span></p>" : "";

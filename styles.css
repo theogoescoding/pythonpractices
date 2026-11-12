@@ -480,6 +480,26 @@ a.unit-card:hover { border-color: var(--primary); }
 .unit-progress { display: grid; gap: .2rem; margin: .5rem 0 .75rem; }
 .unit-name { font-weight: 700; }
 .menu-links { display: flex; flex-wrap: wrap; gap: .75rem; margin-bottom: 1rem; }
+
+/* ---------- Tutorial overlay (tour.js) ----------
+   A card fixed to the bottom of the screen, not a backdrop: the page stays usable, and closing it removes it.
+   The control a step is about gets a ring (tour-target). While it is open the page gets room at the bottom
+   (tour-open), so every control can be scrolled above the card. */
+.tour-card {
+  position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 1000; box-sizing: border-box;
+  max-width: 28rem; margin-left: auto; max-height: 50vh; overflow: auto;
+  background: var(--card); color: var(--text); border: 3px solid var(--primary); border-radius: 10px; padding: .6rem 1rem .75rem;
+}
+.tour-card .tour-title { font-size: 1.15rem; margin: .1rem 0 .4rem; }
+.tour-card .tour-text { margin: 0 0 .5rem; }
+.tour-card .tour-count, .tour-card .tour-where { margin: 0 0 .35rem; color: var(--muted); }
+.tour-buttons { display: flex; flex-wrap: wrap; gap: .5rem; margin: .5rem 0 0; }
+.tour-buttons .tour-skip { margin-left: auto; }
+.tour-target { outline: 4px solid var(--focus); outline-offset: 4px; scroll-margin-top: 5rem; }
+body.tour-open { padding-bottom: 55vh; }
+.tour-reminders { display: grid; gap: .5rem; margin-bottom: 1rem; }
+.tour-reminder p { margin: .2rem 0; }
+.tour-reminder .teacher-controls { margin-bottom: 0; }
 .menu-link {
   display: inline-block; font-weight: 700; text-decoration: none; padding: .5rem 1rem;
   border: 2px solid var(--primary); border-radius: 8px; color: var(--link); background: var(--card);

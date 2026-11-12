@@ -959,6 +959,188 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(!/Haven't started a unit/.test(teacherSrc + teacher), "Teacher overview: the \"Haven't started a unit\" box is gone (the student table still shows Not started cells)");
   }
 
+  // ===================== Tutorial overlay (tour.js) =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const tourSrc = read("tour.js");
+    // A fresh copy of tour.js each time (it remembers, per page load, that the home page has been handled).
+    const loadTour = () => { const m = { exports: {} }; require("vm").runInNewContext(tourSrc, { module: m, URLSearchParams, console }); return m.exports; };
+    const Tour = loadTour();
+    const App = require(path.join(ROOT, "app.js"));
+    const SecuredT = require(path.join(ROOT, "secured.js"));
+    // A tiny page: elements with classes, children, clicks and focus, and the document's keydown listeners.
+    const fakeDoc = () => {
+      const listeners = {};
+      const doc = { activeElement: null, targets: {}, byId: {},
+        createElement: (tag) => mkEl(tag),
+        querySelectorAll(sel) { return this.targets[sel] ? [this.targets[sel]] : []; },
+        querySelector(sel) { return this.targets[sel] || null; },
+        getElementById(id) { return this.byId[id] || null; },
+        addEventListener(t, f) { (listeners[t] = listeners[t] || []).push(f); },
+        removeEventListener(t, f) { listeners[t] = (listeners[t] || []).filter((x) => x !== f); },
+        key(k, target) { (listeners.keydown || []).slice().forEach((f) => f({ key: k, target: target || doc.activeElement, preventDefault() {} })); },
+        listeners };
+      function mkEl(tag) {
+        const classes = new Set();
+        const el = { tagName: tag, children: [], parent: null, attrs: {}, hidden: false, disabled: false, textContent: "", className: "", id: "", dataset: {}, handlers: {},
+          classList: { add: (c) => classes.add(c), remove: (c) => classes.delete(c), contains: (c) => classes.has(c) },
+          setAttribute(n, v) { this.attrs[n] = v; }, appendChild(c) { c.parent = this; this.children.push(c); return c; },
+          remove() { if (this.parent) { this.parent.children = this.parent.children.filter((x) => x !== this); this.parent = null; } },
+          addEventListener(t, f) { (this.handlers[t] = this.handlers[t] || []).push(f); },
+          click() { if (!this.disabled) (this.handlers.click || []).forEach((f) => f({ target: this, preventDefault() {} })); },
+          focus() { doc.activeElement = this; },
+          contains(x) { for (let n = x; n; n = n.parent) if (n === this) return true; return false; },
+          getClientRects() { return this.hidden ? [] : [1]; }, scrollIntoView() { this.scrolled = (this.scrolled || 0) + 1; } };
+        return el;
+      }
+      doc.body = mkEl("body");
+      return doc;
+    };
+    const cardOf = (doc) => doc.body.children.find((c) => c.className === "tour-card");
+    const buttonsOf = (card) => { const row = card.children.find((c) => c.className === "tour-buttons"); return { back: row.children[0], next: row.children[1], skip: row.children[2] }; };
+    const titleOf = (card) => card.children.find((c) => c.className === "tour-title").textContent;
+
+    // 1. The new-student steps, in order, in short plain sentences, matching what the app does.
+    const ids = Tour.STEPS.map((s) => s.id).join();
+    const sentences = (t) => (t.match(/[.!?](\s|$)/g) || []).length;
+    const both = Tour.stepsFor(true).concat(Tour.stepsFor(false));
+    check(ids === "join,placement,unit-card,task-view,check-run,hints,show-how,level-buttons,freshness,progress,help" &&
+      /class code/.test(Tour.stepsFor(true)[0].text) && /8-digit code and 4-digit PIN/.test(Tour.stepsFor(true)[0].text) &&
+      /choosing a unit/.test(Tour.stepsFor(false)[0].text) && Tour.stepsFor(false)[0].targets[0] === "#unit-list" &&
+      both.every((s) => sentences(s.text) >= 2 && sentences(s.text) <= 3 && !/[\n•;]| - /.test(s.text) && s.title && s.targets.length),
+      "Tutorial: the walkthrough's 11 steps, in order (joining a class, or in local mode choosing a unit, then placement, the unit card, the task, Run and Check, hints, Show me how, the level buttons, freshness, My progress, Help), each two or three short sentences, never a list");
+    const text = (id) => Tour.STEPS.find((s) => s.id === id).text;
+    const maxHints = Math.max(...tasks.map((t) => (t.hints || []).length));
+    check(/four questions/.test(text("placement")) && App.PLACEMENT_LEVELS.length === 4 && /once in each unit/.test(text("placement")) &&
+      /up to three/.test(text("hints")) && maxHints === 3 && /not towards your freshness/.test(text("hints")) &&
+      /After two failed tries/.test(text("show-how")) && App.SHOW_HOW_AFTER_FAILS === 2 && /doesn't count towards your freshness/.test(text("show-how")) &&
+      /up one level/.test(text("level-buttons")) && /down one level/.test(text("level-buttons")) && App.BUTTON_JUMP_LEVELS === 1 &&
+      /two programs with no hints/.test(text("freshness")) && /5% a week/.test(text("freshness")) && SecuredT.DROP_PER_WEEK === 5 && SecuredT.PASSES_TO_SECURE === 2 &&
+      ["#student-area", "#unit-list", "#unit-colour-key", 'href="progress.html"', 'id="tour-help"'].every((x) => read("app.html").includes(x.replace(/^#/, 'id="').replace(/^id="(.*)$/, (m, v) => v.includes('"') ? m : 'id="' + v + '"'))) &&
+      ["#check-btn", "#hint-btn", "#show-how-btn", "level-buttons", "task-body", '"actions"'].every((x) => read("app.js").includes(x.replace(/^#/, 'id="').replace(/^(id="[\w-]+)$/, '$1"'))),
+      "Tutorial: what each step says matches the app (4 placement questions, up to 3 hints, Show me how after 2 fails, one level per button, two level 10 passes, 5% a week), and every control it points at exists");
+
+    // 2. The walkthrough runs in order, points at the controls on this screen, and says where the others are.
+    const doc1 = fakeDoc();
+    const unitList = doc1.createElement("div"); doc1.targets["#unit-list .unit-card"] = unitList;
+    const editor = doc1.body.appendChild(doc1.createElement("textarea")); editor.focus();
+    let closed = null;
+    const t1 = Tour.run({ doc: doc1, steps: Tour.stepsFor(true), onClose: (reason, i) => { closed = { reason, i }; }, elsewhere: "Elsewhere." });
+    const seen = [];
+    for (let k = 0; k < 11; k++) { seen.push(titleOf(t1.card)); if (k === 2) var ringed = unitList.classList.contains("tour-target") && unitList.scrolled === 1; if (k < 10) buttonsOf(t1.card).next.click(); }
+    const lastLabel = buttonsOf(t1.card).next.textContent;
+    buttonsOf(t1.card).next.click();
+    check(seen.join("|") === Tour.stepsFor(true).map((s) => s.title).join("|") && ringed && lastLabel === "Finish" && closed && closed.reason === "finished" && !cardOf(doc1) &&
+      doc1.activeElement === editor && !unitList.classList.contains("tour-target"),
+      "Tutorial: the steps come one at a time in order, the control a step is about is scrolled to and ringed, and Finish closes it");
+    // 3. Skip at any step, and Escape, close it and leave nothing behind (nothing over the editor or Check my answer).
+    const skipOk = Tour.stepsFor(true).map((_, k) => {
+      const d = fakeDoc();
+      const check = d.createElement("button"); d.targets["#task .actions"] = check;
+      const ed = d.body.appendChild(d.createElement("textarea")); ed.focus();
+      let r = null;
+      const t = Tour.run({ doc: d, steps: Tour.stepsFor(true), onClose: (reason, i) => { r = { reason, i }; } });
+      for (let n = 0; n < k; n++) t.next();
+      buttonsOf(t.card).skip.click();
+      return r && r.reason === "skipped" && r.i === k && !cardOf(d) && !d.body.classList.contains("tour-open") && !check.classList.contains("tour-target") &&
+        (d.listeners.keydown || []).length === 0 && d.activeElement === ed && !t.isOpen();
+    });
+    const d2 = fakeDoc();
+    let esc = null;
+    const t2 = Tour.run({ doc: d2, steps: Tour.stepsFor(false), onClose: (reason) => { esc = reason; } });
+    t2.next();
+    d2.key("ArrowLeft", t2.card.children[1]);
+    const backed = t2.index() === 0;
+    d2.key("Escape");
+    check(skipOk.every(Boolean) && backed && esc === "escape" && !cardOf(d2) && (d2.listeners.keydown || []).length === 0,
+      "Tutorial: Skip closes it at any of the 11 steps, Escape closes it, the arrow keys move between steps, and once closed nothing is left on the page (no card, no ring, no key handler; focus goes back, so the editor and Check my answer are free)");
+    const css = read("styles.css");
+    check(/\.tour-card \{[^}]*position: fixed;[^}]*left: 16px; right: 16px;[^}]*box-sizing: border-box;[^}]*max-width: 28rem;[^}]*max-height: 50vh; overflow: auto;/.test(css) &&
+      !/tour-backdrop|inert/.test(tourSrc + css) && /body\.tour-open \{ padding-bottom: 55vh; \}/.test(css) && /\.tour-target \{[^}]*scroll-margin-top/.test(css),
+      "Tutorial: a card fixed to the bottom with a 16px gap (no sideways scrolling at phone width, at most 28rem wide on a wide screen), never a backdrop over the page; the page gets room so a control can always be scrolled above it");
+
+    // 4. Reminders for returning students: only when something is new, once per thing.
+    const ctx = (o) => Object.assign({ backend: true, units: [{ id: "maths", title: "Maths" }, { id: "selection", title: "Selection" }], started: ["maths"], placing: [], assignments: [], bands: {} }, o);
+    const first = Tour.planHome(null, ctx({ started: [] }), true);
+    const again = Tour.planHome(first.state, ctx({ started: [] }), true);
+    const returning = Tour.planHome(null, ctx({ placing: ["maths"], assignments: [{ id: "a1", title: "Loops" }], bands: { maths: { cls: "gold", label: "Secured", score: 100 } } }), true);
+    check(first.walkthrough && first.state.taskTour === false && !first.reminders.length && !again.walkthrough && !again.reminders.length &&
+      !returning.walkthrough && !returning.reminders.length && returning.state.taskTour === true,
+      "Tutorial: a new student (nothing started) gets the walkthrough once; a student who has started a unit gets no walkthrough, and what is there already counts as seen");
+    const s0 = returning.state;
+    const withNew = Tour.planHome(s0, ctx({ placing: ["maths"], assignments: [{ id: "a1", title: "Loops" }, { id: "a2", title: "Lists" }], bands: { maths: { cls: "gold", label: "Secured", score: 100 } } }), true);
+    const sameAgain = Tour.planHome(withNew.state, ctx({ placing: ["maths"], assignments: [{ id: "a1", title: "Loops" }, { id: "a2", title: "Lists" }], bands: { maths: { cls: "gold", label: "Secured", score: 100 } } }), true);
+    const dropped = Tour.planHome(sameAgain.state, ctx({ assignments: [{ id: "a2", title: "Lists" }], bands: { maths: { cls: "fading", label: "Fading", score: 85 } } }), true);
+    const stillFading = Tour.planHome(dropped.state, ctx({ bands: { maths: { cls: "fading", label: "Fading", score: 85 } } }), true);
+    const newUnit = Tour.planHome(stillFading.state, ctx({ units: [{ id: "maths", title: "Maths" }, { id: "selection", title: "Selection" }, { id: "recursion", title: "Recursion" }], bands: { maths: { cls: "fading", label: "Fading", score: 85 } } }), true);
+    const placingNew = Tour.planHome(newUnit.state, ctx({ placing: ["selection"], started: ["maths", "selection"] }), true);
+    const placingAgain = Tour.planHome(placingNew.state, ctx({ placing: ["selection"], started: ["maths", "selection"] }), true);
+    check(withNew.reminders.map((r) => r.key).join() === "assignment:a2" && /new practice set: Lists/.test(withNew.reminders[0].text) && withNew.reminders[0].href === "practice.html?assignment=a2" &&
+      !sameAgain.reminders.length && dropped.reminders.map((r) => r.key).join() === "band:maths:fading" && /faded to Fading \(85%\)/.test(dropped.reminders[0].text) &&
+      !stillFading.reminders.length && newUnit.reminders.map((r) => r.key).join() === "unit:recursion" && placingNew.reminders.map((r) => r.key).join() === "placement:selection" &&
+      !placingAgain.reminders.length && [withNew, dropped, newUnit, placingNew].every((p) => p.reminders.every((r) => r.go && r.href && sentences(r.text) <= 2)),
+      "Tutorial: a reminder (one or two sentences, with a link to the thing) only for something new: a new assignment, a drop to a new freshness band, a new unit, a unit whose quick check isn't done; each one once, never on every visit");
+    const recovered = Tour.planHome(stillFading.state, ctx({ bands: { maths: { cls: "gold", label: "Secured", score: 100 } } }), true);
+    const droppedAgain = Tour.planHome(recovered.state, ctx({ bands: { maths: { cls: "fading", label: "Fading", score: 90 } } }), true);
+    const lots = Tour.planHome(s0, ctx({ assignments: [1, 2, 3, 4, 5].map((n) => ({ id: "x" + n, title: "Set " + n })) }), true);
+    const rest = Tour.planHome(lots.state, ctx({ assignments: [1, 2, 3, 4, 5].map((n) => ({ id: "x" + n, title: "Set " + n })) }), true);
+    check(!recovered.reminders.length && droppedAgain.reminders.map((r) => r.key).join() === "band:maths:fading" && lots.reminders.length === Tour.MAX_REMINDERS && rest.reminders.length === 2 &&
+      !Tour.planHome(rest.state, ctx({ assignments: [1, 2, 3, 4, 5].map((n) => ({ id: "x" + n, title: "Set " + n })) }), true).reminders.length,
+      "Tutorial: going back up to 100% shows nothing, and a later drop is reminded again; at most 3 reminders at once, the others on the next visit");
+    const d3 = fakeDoc();
+    const host = d3.createElement("div"); host.hidden = true; host.querySelector = () => host.children.find((c) => /tour-reminder/.test(c.className)) || null;
+    Tour.showReminders(d3, host, withNew.reminders);
+    const box = host.children[0];
+    const goLink = box.children[1].children[0], dismiss = box.children[1].children[1];
+    const shownOk = !host.hidden && goLink.href === "practice.html?assignment=a2" && dismiss.textContent === "Dismiss" && box.attrs.role === "status";
+    dismiss.click();
+    check(shownOk && host.children.length === 0 && host.hidden && /id="tour-reminders" class="tour-reminders" hidden/.test(read("app.html")),
+      "Tutorial: each reminder sits above the unit cards (not over the page) with a button to go to it and Dismiss");
+
+    // 5. Help opens the walkthrough from step 1 again (home page and My progress), and the task view's steps next time.
+    const restarted = Tour.restartState(stillFading.state);
+    check(Tour.helpRequested("#help") && !Tour.helpRequested("#join") && restarted.walkthrough === true && restarted.taskTour === false && restarted.shown.length === stillFading.state.shown.length &&
+      /<a href="#help" id="tour-help" class="menu-link">Help<\/a>/.test(read("app.html")) && /<a href="app\.html#help" id="tour-help" class="menu-link">/.test(read("progress.html")) &&
+      /if \(helpRequested\(win\.location\.hash\)\)/.test(tourSrc) && /help\.addEventListener\("click", \(e\) => \{ e\.preventDefault\(\); startWalkthrough/.test(tourSrc) &&
+      /run\(\{ doc: win\.document, steps: stepsFor\(ctx\.backend\)/.test(tourSrc) && !/start: /.test(tourSrc.slice(tourSrc.indexOf("function startWalkthrough"))),
+      "Tutorial: Help on the home page and on My progress (app.html#help) opens the walkthrough from step 1 again, and shows the task view's steps on the next task");
+    // A Help press while it is open starts it again (one overlay at a time).
+    const d4 = fakeDoc();
+    const a = Tour.run({ doc: d4, steps: Tour.stepsFor(true) });
+    a.next(); a.next();
+    const b = Tour.run({ doc: d4, steps: Tour.stepsFor(true) });
+    check(!a.isOpen() && b.isOpen() && b.index() === 0 && d4.body.children.filter((c) => c.className === "tour-card").length === 1,
+      "Tutorial: opening it again while it is open starts from step 1, with only one overlay");
+
+    // 6. Never on the teacher pages, or inside them (teacher practice frames practice.html?preview=<id>).
+    const win = (pathname, search, framed) => { const w = { location: { pathname, search: search || "", hash: "" } }; w.parent = framed ? {} : w; return w; };
+    check(!/tour\.js/.test(read("teacher.html")) && !Tour.allowed(win("/pythonpractices/teacher.html")) && !Tour.allowed(win("/practice.html", "?preview=var-L9d")) &&
+      !Tour.allowed(win("/practice.html", "", true)) && Tour.allowed(win("/app.html")) && Tour.allowed(win("/practice.html", "?unit=maths")) &&
+      /<script src="tour\.js"><\/script>\s*<script src="collapse\.js"><\/script>\s*<script src="home\.js">/.test(read("app.html")) && /<script src="app\.js"><\/script>\s*<script src="tour\.js"><\/script>/.test(read("practice.html")),
+      "Tutorial: the student pages load it; the teacher pages don't, and it never runs in teacher practice or in a frame");
+
+    // 7. Storage blocked: nothing throws, nothing opens by itself (it couldn't be remembered), and the app still works.
+    const blocked = { getItem() { throw new Error("blocked"); }, setItem() { throw new Error("blocked"); }, removeItem() { throw new Error("blocked"); } };
+    const winBlocked = Object.assign(win("/app.html"), { document: fakeDoc(), history: { replaceState() {} } });
+    Object.defineProperty(winBlocked, "localStorage", { get() { throw new Error("blocked"); } });
+    const T2 = loadTour();
+    let threw = false;
+    try { T2.home(ctx({ started: [], studentId: "s1" }), winBlocked); } catch (e) { threw = true; }
+    check(!threw && Tour.getStorage(winBlocked) === null && !Tour.storageWorks(blocked) && Tour.load(blocked, "s1") === null && Tour.save(blocked, "s1", {}) === false &&
+      Tour.planHome(null, ctx({ started: [] }), false).walkthrough === false && !cardOf(winBlocked.document) && /if \(ok\) save\(storage/.test(tourSrc),
+      "Tutorial: with storage blocked nothing throws and nothing opens by itself (Help still opens the walkthrough); the seen state is kept in this browser only, with every storage error caught");
+    // The same with working storage: the first visit opens the walkthrough, the next one doesn't.
+    const mem = {};
+    const okStore = { getItem: (k) => (k in mem ? mem[k] : null), setItem: (k, v) => { mem[k] = String(v); }, removeItem: (k) => { delete mem[k]; } };
+    const winOk = () => Object.assign(win("/app.html"), { document: fakeDoc(), history: { replaceState() {} }, localStorage: okStore });
+    const w1 = winOk(), w2 = winOk();
+    loadTour().home(ctx({ started: [], studentId: "s9" }), w1);
+    loadTour().home(ctx({ started: [], studentId: "s9" }), w2);
+    check(cardOf(w1.document) && !cardOf(w2.document) && JSON.parse(mem["pythonPractice.tutorial.s9"]).walkthrough === true &&
+      /if \(self\.Tour\) self\.Tour\.home\(\{/.test(read("home.js")) && /bands: bandsShown/.test(read("home.js")),
+      "Tutorial: the first visit of a new student opens the walkthrough, the next visit doesn't (remembered per student in this browser); home.js hands it the units, placements, assignments and freshness bands");
+  }
+
   // ===================== Teacher area: pages, secured score, stages and teacher practice =====================
   {
     const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
