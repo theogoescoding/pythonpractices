@@ -983,6 +983,34 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "Secured score: only passes with no hints count, in endless mode or at level 10 of the ladder, in that unit (not level 9, placement or assignment passes, or fails)");
     check(s([pass(D), pass(D + H), pass(D + 2 * H)], D + 3 * H).timesAt100 === 1,
       "Secured score: a pass while still at 100% keeps it fresh but isn't a return (the floor doesn't go up)");
+    // Ways a secured score could appear too early: each pair of passes, built by hand, must not secure the unit.
+    const noHints = (extra) => { const a = pass(D, extra); delete a.hints; return a; };
+    const early = {
+      "two level 9 practice passes with no hints": [pass(D, { taskLevel: 9 }), pass(D + H, { taskLevel: 9 })],
+      "two placement passes at level 10 with no hints": [pass(D, { phase: "placement" }), pass(D + H, { phase: "placement" })],
+      "two assignment passes at level 10 with no hints": [pass(D, { phase: "assignment", assignmentId: "x" }), pass(D + H, { phase: "assignment", assignmentId: "x" })],
+      "two level 10 passes, one with a hint": [pass(D), pass(D + H, { hints: 1 })],
+      "two level 10 passes with the hints field missing": [noHints(), Object.assign(noHints(), { at: new Date(D + H).toISOString() })],
+      "two level 10 passes with hints null (a server row with no hints_used)": [pass(D, { hints: null }), pass(D + H, { hints: null })],
+      "two level 10 passes with hints as empty text (\"\")": [pass(D, { hints: "" }), pass(D + H, { hints: "" })],
+      "two level 10 passes with hints as text (\"0\")": [pass(D, { hints: "0" }), pass(D + H, { hints: "0" })],
+      "two level 10 passes with the task level as text (\"10\")": [pass(D, { taskLevel: "10" }), pass(D + H, { taskLevel: "10" })],
+    };
+    for (const [what, list] of Object.entries(early)) {
+      const r = s(list, D + 2 * H);
+      const counted = /one with a hint/.test(what) ? 1 : 0; // only the pass with no hints counts
+      check(!r.secured && r.score === null && r.passes === counted, "Secured score too early: " + what + " must not secure the unit");
+    }
+    // The same records as the app makes them and as they come back from the server (backend mode).
+    const Rows = require(path.join(ROOT, "backend-rows.js"));
+    const made = (level, phase, hints, t) => Object.assign(App.attemptRecord({ task: { id: "t" + level, unit: "selection", level, type: "write" },
+      unit: "selection", phase, kind: "attempt", attemptNumber: 1, hints, result: "pass", levelBefore: level, levelAfter: level }), { at: new Date(t).toISOString() });
+    const viaServer = (list) => list.map((a) => Rows.rowToAttempt(Object.assign(Rows.attemptToRow(a), { timestamp: a.at }), "s1"));
+    const madeEarly = [[9, "practice", 0], [10, "placement", 0], [10, "assignment", 0]].map(([l, p, h]) => [made(l, p, h, D), made(l, p, h, D + H)]);
+    const madeTop = [made(10, "practice", 0, D), made(10, "practice", 0, D + H)];
+    check(madeEarly.every((list) => !s(list, D + 2 * H).secured && !s(viaServer(list), D + 2 * H).secured) &&
+      s(madeTop, D + 2 * H).score === 100 && s(viaServer(madeTop), D + 2 * H).score === 100,
+      "Secured score: the app's own attempt records (and the same records after the server round trip) secure only after two level 10 passes with no hints");
     const labels = [100, 95, 90, 80, 75, 50, 45, 0].map((x) => Secured.band(x).label + ":" + Secured.band(x).cls).join();
     check(labels === "Secured:gold,Fresh:fresh,Fading:fading,Fading:fading,Revisit soon:soon,Revisit soon:soon,Revisit now:now,Revisit now:now" &&
       ["gold", "fresh", "fading", "soon", "now"].every((c) => read("styles.css").includes(".rag-" + c + " ")) && /rag-gold \{[^}]*box-shadow/.test(read("styles.css")),
