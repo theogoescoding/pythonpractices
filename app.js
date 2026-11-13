@@ -1217,6 +1217,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   let tasks = [];
   let taskById = {};
   let templates = [];
+  let templateById = {}; // for a template variant's own worked example (workedExampleFor)
   let misconceptionById = {};
   let busy = false;
   let serving = false; // a new task is being made
@@ -1741,8 +1742,12 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
 
   // ---------- "Show me how" ----------
   // A bank task's worked example, or (for a template variant) the one of the task it was made from.
+  // A variant of a hand-written, combined or write-from-scratch template: that template's own example (chosen for its
+  // own topic by tools/add-worked-examples.js). A derived template has none, so its variants use the source task's.
   function workedExampleFor(t) {
     if (t.worked_example) return t.worked_example;
+    const tpl = t.templateId && templateById[t.templateId];
+    if (tpl && tpl.worked_example) return tpl.worked_example;
     const src = t.source && taskById[t.source];
     return src ? src.worked_example || null : null;
   }
@@ -2589,6 +2594,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     .then(async ([data, tpls, mis]) => {
       tasks = data;
       templates = tpls;
+      templateById = Object.fromEntries(templates.map((x) => [x.id, x]));
       misconceptionById = Object.fromEntries(mis.map((m) => [m.id, m]));
       taskById = Object.fromEntries(tasks.map((t) => [t.id, t]));
       // Saved progress from earlier versions: renamed skills, removed duplicate tasks, and the new fields.

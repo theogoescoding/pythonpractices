@@ -2603,6 +2603,59 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "Students page: the summary tiles, class code card and exports are unchanged; a column heading in any table sorts them all");
   }
 
+  // ===================== "Show me how" examples on templates =====================
+  // Every non-derived template (hand-written, combined, write-from-scratch) has its own worked example, chosen by the
+  // tasks' rule from its own unit (a combined one: its first skill's), type (write from scratch: write) and skills.
+  {
+    const W = require(path.join(ROOT, "tools", "add-worked-examples.js"));
+    const Tm = require(path.join(ROOT, "templates.js"));
+    const tplW = JSON.parse(fs.readFileSync(path.join(ROOT, "templates.json"), "utf8"));
+    const byIdW = Object.fromEntries(tasks.map((t) => [t.id, t]));
+    const nonDerived = tplW.filter((t) => !t.derived);
+    const derived = tplW.filter((t) => t.derived);
+    const srcKey = (t) => { const s = byIdW[t.source]; return s.unit + ":" + s.worked_example.skill; };
+    const keyOf = (t) => W.templateExampleKey(t);
+    const kept = nonDerived.filter((t) => keyOf(t) === srcKey(t));
+    const moved = nonDerived.filter((t) => keyOf(t) !== srcKey(t));
+    const selVal = nonDerived.filter((t) => t.units.some((u) => ["selection", "validation"].includes(u)));
+    check(nonDerived.length === 243 && nonDerived.every((t) => t.worked_example && t.worked_example.problem && t.worked_example.code && typeof t.worked_example.output === "string" && t.worked_example.key_idea) &&
+      selVal.length === 32 && selVal.every((t) => t.worked_example),
+      "Show me how: every non-derived template (243, including the 32 Selection and Validation ones) has its own worked example");
+    check(nonDerived.every((t) => t.worked_example.skill === keyOf(t).split(":")[1] && keyOf(t).startsWith(W.templateUnit(t) + ":")) &&
+      moved.length === 100 && moved.every((t) => JSON.stringify(t.worked_example) !== JSON.stringify(byIdW[t.source].worked_example)) &&
+      moved.some((t) => t.id === "sel-t8" && keyOf(t) === "selection:modulo-conditions") && moved.some((t) => t.id === "comb-val-auth-pin" && keyOf(t) === "validation:type-check"),
+      "Show me how: the 100 templates that showed another topic's example now use the key their own unit, type and skills give (e.g. sel-t8: selection:modulo-conditions)");
+    check(kept.length === 143 && kept.every((t) => JSON.stringify(t.worked_example) === JSON.stringify(byIdW[t.source].worked_example)),
+      "Show me how: the 143 templates whose example already fitted keep exactly the same example");
+    check(derived.length === 1191 && derived.every((t) => !("worked_example" in t) && byIdW[t.source].worked_example && W.exampleKey(byIdW[t.source]) === W.exampleKey({ unit: t.units[0], type: t.type, skills: t.skills })),
+      "Show me how: derived templates (1191) are unchanged: no example of their own, so their variants use their source task's, which has the same unit, type and skills");
+    const combined = nonDerived.filter((t) => t.units.length > 1);
+    check(combined.length === 115 && combined.every((t) => W.templateUnit(t) === App.unitOfSkill(t.skills[0], t.units) && keyOf(t).startsWith(W.templateUnit(t) + ":")) &&
+      combined.some((t) => W.templateUnit(t) !== t.units[0]),
+      "Show me how: a combined template's example comes from the unit of its first skill");
+    // Across several seeds: a different context, not the variant's solution, and the stored output is a fresh run's.
+    const literals = (code) => (code.match(/"([^"\\\n]{4,})"|'([^'\\\n]{4,})'/g) || []).map((s) => s.slice(1, -1));
+    let variantsW = 0, sharedW = 0, sameW = 0;
+    for (const tpl of nonDerived) for (const seed of [11, 2029, 40961, 777777]) {
+      const v = Tm.expand(tpl, seed);
+      variantsW++;
+      const text = v.description + "\n" + v.solution;
+      if (literals(tpl.worked_example.code).some((s) => text.includes(s))) sharedW++;
+      if (tpl.worked_example.code.trim() === String(v.solution).trim()) sameW++;
+    }
+    const distinct = [...new Map(nonDerived.map((t) => [t.worked_example.code + "|" + JSON.stringify(t.worked_example.inputs || []), t.worked_example])).values()];
+    const freshW = runPython(distinct.map((e) => ({ code: e.code, inputs: e.inputs || [] })));
+    check(variantsW === 972 && !sharedW && !sameW && freshW.every((r, i) => !r.error && Checker.normalise(r.output) === distinct[i].output),
+      "Show me how: on 4 seeds of every non-derived template (972 variants), the example shares no 4+ character text with the variant, isn't its solution, and its stored output matches a fresh run (" + distinct.length + " examples)");
+    // The tool: running it again changes nothing (tasks.json and templates.json).
+    const againT = W.withTemplateExamples(tplW);
+    const againK = W.withWorkedExamples(tasks);
+    const appW = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+    check(!againT.missing.length && JSON.stringify(againT.templates) === JSON.stringify(tplW) && !againK.missing.length && JSON.stringify(againK.tasks) === JSON.stringify(tasks) &&
+      /const tpl = t\.templateId && templateById\[t\.templateId\];\s*if \(tpl && tpl\.worked_example\) return tpl\.worked_example;/.test(appW),
+      "Show me how: tools/add-worked-examples.js changes nothing when run again (tasks.json and templates.json), and a variant shows its template's example before its source task's");
+  }
+
   // ===================== Validation sections =====================
   {
     const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");

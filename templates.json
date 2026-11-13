@@ -51,7 +51,14 @@
     "tags": [
       "trace",
       "order of statements"
-    ]
+    ],
+    "worked_example": {
+      "skill": "print",
+      "problem": "A cinema sign needs two lines: the film's name, then the screen number.",
+      "code": "print(\"Space Penguins\")\nprint(\"Screen 3\")",
+      "output": "Space Penguins\nScreen 3",
+      "key_idea": "Each print() shows exactly what is inside its quotes, then starts a new line."
+    }
   },
   {
     "id": "out-t2",
@@ -117,7 +124,14 @@
     ],
     "tags": [
       "end="
-    ]
+    ],
+    "worked_example": {
+      "skill": "sep/end",
+      "problem": "A garden centre prints a date with slashes, then two words on the same line.",
+      "code": "print(14, 3, 2026, sep=\"/\")\nprint(\"Seeds\", end=\" \")\nprint(\"on sale\")",
+      "output": "14/3/2026\nSeeds on sale",
+      "key_idea": "sep= sets what goes between the values in one print(); end= sets what comes after it instead of a new line."
+    }
   },
   {
     "id": "out-t3",
@@ -171,7 +185,14 @@
     ],
     "tags": [
       "sep="
-    ]
+    ],
+    "worked_example": {
+      "skill": "sep/end",
+      "problem": "A garden centre prints a date with slashes, then two words on the same line.",
+      "code": "print(14, 3, 2026, sep=\"/\")\nprint(\"Seeds\", end=\" \")\nprint(\"on sale\")",
+      "output": "14/3/2026\nSeeds on sale",
+      "key_idea": "sep= sets what goes between the values in one print(); end= sets what comes after it instead of a new line."
+    }
   },
   {
     "id": "out-t4",
@@ -228,7 +249,14 @@
     ],
     "tags": [
       "end="
-    ]
+    ],
+    "worked_example": {
+      "skill": "sep/end",
+      "problem": "A garden centre prints a date with slashes, then two words on the same line.",
+      "code": "print(14, 3, 2026, sep=\"/\")\nprint(\"Seeds\", end=\" \")\nprint(\"on sale\")",
+      "output": "14/3/2026\nSeeds on sale",
+      "key_idea": "sep= sets what goes between the values in one print(); end= sets what comes after it instead of a new line."
+    }
   },
   {
     "id": "out-t5",
@@ -279,7 +307,14 @@
     "tags": [
       "order of statements",
       "quotes"
-    ]
+    ],
+    "worked_example": {
+      "skill": "sequence",
+      "problem": "A recipe for toast must print its steps in the right order.",
+      "code": "print(\"1. Put bread in the toaster\")\nprint(\"2. Wait two minutes\")\nprint(\"3. Add butter\")",
+      "output": "1. Put bread in the toaster\n2. Wait two minutes\n3. Add butter",
+      "key_idea": "Python runs lines from top to bottom, so the order of the lines is the order of the output."
+    }
   },
   {
     "id": "out-t6",
@@ -343,7 +378,14 @@
       "sep=",
       "end=",
       "missing comma"
-    ]
+    ],
+    "worked_example": {
+      "skill": "sep/end",
+      "problem": "A garden centre prints a date with slashes, then two words on the same line.",
+      "code": "print(14, 3, 2026, sep=\"/\")\nprint(\"Seeds\", end=\" \")\nprint(\"on sale\")",
+      "output": "14/3/2026\nSeeds on sale",
+      "key_idea": "sep= sets what goes between the values in one print(); end= sets what comes after it instead of a new line."
+    }
   },
   {
     "id": "out-t7",
@@ -402,7 +444,14 @@
     "tags": [
       "order of statements",
       "whole line"
-    ]
+    ],
+    "worked_example": {
+      "skill": "sequence",
+      "problem": "A recipe for toast must print its steps in the right order.",
+      "code": "print(\"1. Put bread in the toaster\")\nprint(\"2. Wait two minutes\")\nprint(\"3. Add butter\")",
+      "output": "1. Put bread in the toaster\n2. Wait two minutes\n3. Add butter",
+      "key_idea": "Python runs lines from top to bottom, so the order of the lines is the order of the output."
+    }
   },
   {
     "id": "out-t8",
@@ -477,7 +526,14 @@
     ],
     "tags": [
       "print"
-    ]
+    ],
+    "worked_example": {
+      "skill": "print",
+      "problem": "A cinema sign needs two lines: the film's name, then the screen number.",
+      "code": "print(\"Space Penguins\")\nprint(\"Screen 3\")",
+      "output": "Space Penguins\nScreen 3",
+      "key_idea": "Each print() shows exactly what is inside its quotes, then starts a new line."
+    }
   },
   {
     "id": "out-t9",
@@ -531,7 +587,14 @@
     ],
     "tags": [
       "sep="
-    ]
+    ],
+    "worked_example": {
+      "skill": "sep/end",
+      "problem": "A garden centre prints a date with slashes, then two words on the same line.",
+      "code": "print(14, 3, 2026, sep=\"/\")\nprint(\"Seeds\", end=\" \")\nprint(\"on sale\")",
+      "output": "14/3/2026\nSeeds on sale",
+      "key_idea": "sep= sets what goes between the values in one print(); end= sets what comes after it instead of a new line."
+    }
   },
   {
     "id": "out-t10",
@@ -590,7 +653,14 @@
     ],
     "tags": [
       "quotes inside strings"
-    ]
+    ],
+    "worked_example": {
+      "skill": "strings",
+      "problem": "A bakery label must show a word in quotes and an apostrophe: Today's special: \"lemon cake\".",
+      "code": "print('Today\\'s special: \"lemon cake\"')\nprint(\"Price: 2 pounds\")",
+      "output": "Today's special: \"lemon cake\"\nPrice: 2 pounds",
+      "key_idea": "Text goes inside quotes. Use one kind of quote outside, and you can put the other kind inside the text."
+    }
   },
   {
     "id": "var-t1",
@@ -643,7 +713,14 @@
     ],
     "tags": [
       "overwriting"
-    ]
+    ],
+    "worked_example": {
+      "skill": "reassignment",
+      "problem": "A bus starts with 12 passengers, then 5 more get on.",
+      "code": "passengers = 12\npassengers = passengers + 5\nprint(passengers)",
+      "output": "17",
+      "key_idea": "Giving a variable a new value replaces the old one. The right-hand side is worked out first, using the old value."
+    }
   },
   {
     "id": "var-t2",
@@ -693,7 +770,17 @@
     "tags": [
       "int() on input",
       "text vs numbers"
-    ]
+    ],
+    "worked_example": {
+      "skill": "input",
+      "problem": "A cinema asks for the customer's name and greets them.",
+      "code": "name = input(\"Your name: \")\nprint(\"Enjoy the film,\", name)",
+      "inputs": [
+        "Kai"
+      ],
+      "output": "Enjoy the film, Kai",
+      "key_idea": "input() waits for the user to type, and gives back what they typed, which you store in a variable."
+    }
   },
   {
     "id": "var-t3",
@@ -741,7 +828,17 @@
     ],
     "tags": [
       "int() on input"
-    ]
+    ],
+    "worked_example": {
+      "skill": "int()",
+      "problem": "A bakery asks how many cakes, then works out how many after 3 more are baked.",
+      "code": "cakes = int(input(\"Cakes: \"))\nprint(cakes + 3)",
+      "inputs": [
+        "9"
+      ],
+      "output": "12",
+      "key_idea": "input() always gives text. int() casts that text to a whole number so you can do maths with it: this is called casting."
+    }
   },
   {
     "id": "var-t4",
@@ -789,7 +886,14 @@
     ],
     "tags": [
       "type conversion"
-    ]
+    ],
+    "worked_example": {
+      "skill": "str()",
+      "problem": "A garden centre joins a number of plants into a sentence.",
+      "code": "plants = 24\nsign = \"We have \" + str(plants) + \" plants\"\nprint(sign)",
+      "output": "We have 24 plants",
+      "key_idea": "str() casts a number to text, so it can be joined to other text with +. The sign is built and stored in a variable first, which is when + is used; to print values straight away, use commas instead."
+    }
   },
   {
     "id": "var-t5",
@@ -835,7 +939,14 @@
     ],
     "tags": [
       "running total"
-    ]
+    ],
+    "worked_example": {
+      "skill": "reassignment",
+      "problem": "A bus starts with 12 passengers, then 5 more get on.",
+      "code": "passengers = 12\npassengers = passengers + 5\nprint(passengers)",
+      "output": "17",
+      "key_idea": "Giving a variable a new value replaces the old one. The right-hand side is worked out first, using the old value."
+    }
   },
   {
     "id": "var-t6",
@@ -894,7 +1005,17 @@
     "tags": [
       "int() on input",
       "money"
-    ]
+    ],
+    "worked_example": {
+      "skill": "int()",
+      "problem": "A bakery asks how many cakes, then works out how many after 3 more are baked.",
+      "code": "cakes = int(input(\"Cakes: \"))\nprint(cakes + 3)",
+      "inputs": [
+        "9"
+      ],
+      "output": "12",
+      "key_idea": "input() always gives text. int() casts that text to a whole number so you can do maths with it: this is called casting."
+    }
   },
   {
     "id": "var-t7",
@@ -949,7 +1070,14 @@
     "tags": [
       "overwriting",
       "whole line"
-    ]
+    ],
+    "worked_example": {
+      "skill": "reassignment",
+      "problem": "A bus starts with 12 passengers, then 5 more get on.",
+      "code": "passengers = 12\npassengers = passengers + 5\nprint(passengers)",
+      "output": "17",
+      "key_idea": "Giving a variable a new value replaces the old one. The right-hand side is worked out first, using the old value."
+    }
   },
   {
     "id": "var-t8",
@@ -1001,7 +1129,17 @@
     ],
     "tags": [
       "int() on input"
-    ]
+    ],
+    "worked_example": {
+      "skill": "int()",
+      "problem": "A bakery asks how many cakes, then works out how many after 3 more are baked.",
+      "code": "cakes = int(input(\"Cakes: \"))\nprint(cakes + 3)",
+      "inputs": [
+        "9"
+      ],
+      "output": "12",
+      "key_idea": "input() always gives text. int() casts that text to a whole number so you can do maths with it: this is called casting."
+    }
   },
   {
     "id": "var-t9",
@@ -1057,7 +1195,17 @@
     ],
     "tags": [
       "money"
-    ]
+    ],
+    "worked_example": {
+      "skill": "input",
+      "problem": "A cinema asks for the customer's name and greets them.",
+      "code": "name = input(\"Your name: \")\nprint(\"Enjoy the film,\", name)",
+      "inputs": [
+        "Kai"
+      ],
+      "output": "Enjoy the film, Kai",
+      "key_idea": "input() waits for the user to type, and gives back what they typed, which you store in a variable."
+    }
   },
   {
     "id": "var-t10",
@@ -1129,7 +1277,17 @@
     "tags": [
       "money",
       "type conversion"
-    ]
+    ],
+    "worked_example": {
+      "skill": "input",
+      "problem": "A cinema asks for the customer's name and greets them.",
+      "code": "name = input(\"Your name: \")\nprint(\"Enjoy the film,\", name)",
+      "inputs": [
+        "Kai"
+      ],
+      "output": "Enjoy the film, Kai",
+      "key_idea": "input() waits for the user to type, and gives back what they typed, which you store in a variable."
+    }
   },
   {
     "id": "maths-t1",
@@ -1174,7 +1332,14 @@
     ],
     "tags": [
       "integer division vs float division"
-    ]
+    ],
+    "worked_example": {
+      "skill": "integer-division",
+      "problem": "A garden centre packs 23 bulbs into bags of 5. How many full bags?",
+      "code": "bulbs = 23\nprint(bulbs // 5)",
+      "output": "4",
+      "key_idea": "// divides and keeps only the whole-number part, throwing the rest away."
+    }
   },
   {
     "id": "maths-t2",
@@ -1225,7 +1390,14 @@
     "tags": [
       "operator precedence",
       "BIDMAS"
-    ]
+    ],
+    "worked_example": {
+      "skill": "precedence",
+      "problem": "A cinema ticket costs 6 pounds plus a 2 pound booking fee, for 3 people.",
+      "code": "print(6 + 2 * 3)\nprint((6 + 2) * 3)",
+      "output": "12\n24",
+      "key_idea": "Python follows BIDMAS: * and / happen before + and -. Brackets make a part happen first."
+    }
   },
   {
     "id": "maths-t3",
@@ -1271,7 +1443,14 @@
     ],
     "tags": [
       "modulo"
-    ]
+    ],
+    "worked_example": {
+      "skill": "modulo",
+      "problem": "A garden centre packs 23 bulbs into bags of 5. How many bulbs are left over?",
+      "code": "bulbs = 23\nprint(bulbs % 5)",
+      "output": "3",
+      "key_idea": "% gives the remainder after dividing: what is left when the full groups are taken out."
+    }
   },
   {
     "id": "maths-t4",
@@ -1313,7 +1492,14 @@
     ],
     "tags": [
       "time"
-    ]
+    ],
+    "worked_example": {
+      "skill": "integer-division",
+      "problem": "A garden centre packs 23 bulbs into bags of 5. How many full bags?",
+      "code": "bulbs = 23\nprint(bulbs // 5)",
+      "output": "4",
+      "key_idea": "// divides and keeps only the whole-number part, throwing the rest away."
+    }
   },
   {
     "id": "maths-t5",
@@ -1359,7 +1545,14 @@
     ],
     "tags": [
       "money"
-    ]
+    ],
+    "worked_example": {
+      "skill": "arithmetic",
+      "problem": "A cinema sells 15 tickets in the morning and 27 in the afternoon. How many altogether, and how many more in the afternoon?",
+      "code": "morning = 15\nafternoon = 27\nprint(morning + afternoon)\nprint(afternoon - morning)",
+      "output": "42\n12",
+      "key_idea": "+, -, * and / work like in maths. Python works out the answer before printing it."
+    }
   },
   {
     "id": "maths-t6",
@@ -1437,7 +1630,14 @@
     ],
     "tags": [
       "operator precedence"
-    ]
+    ],
+    "worked_example": {
+      "skill": "precedence",
+      "problem": "A cinema ticket costs 6 pounds plus a 2 pound booking fee, for 3 people.",
+      "code": "print(6 + 2 * 3)\nprint((6 + 2) * 3)",
+      "output": "12\n24",
+      "key_idea": "Python follows BIDMAS: * and / happen before + and -. Brackets make a part happen first."
+    }
   },
   {
     "id": "maths-t7",
@@ -1509,7 +1709,14 @@
     ],
     "tags": [
       "whole line"
-    ]
+    ],
+    "worked_example": {
+      "skill": "modulo",
+      "problem": "A garden centre packs 23 bulbs into bags of 5. How many bulbs are left over?",
+      "code": "bulbs = 23\nprint(bulbs % 5)",
+      "output": "3",
+      "key_idea": "% gives the remainder after dividing: what is left when the full groups are taken out."
+    }
   },
   {
     "id": "maths-t8",
@@ -1560,7 +1767,14 @@
     ],
     "tags": [
       "** vs *"
-    ]
+    ],
+    "worked_example": {
+      "skill": "power",
+      "problem": "A square zoo enclosure has sides of 9 metres. What is its area?",
+      "code": "side = 9\nprint(side ** 2)",
+      "output": "81",
+      "key_idea": "** means 'to the power of', so side ** 2 is side squared."
+    }
   },
   {
     "id": "maths-t9",
@@ -1621,7 +1835,14 @@
     ],
     "tags": [
       "integer division vs float division"
-    ]
+    ],
+    "worked_example": {
+      "skill": "integer-division",
+      "problem": "A garden centre packs 23 bulbs into bags of 5. How many full bags?",
+      "code": "bulbs = 23\nprint(bulbs // 5)",
+      "output": "4",
+      "key_idea": "// divides and keeps only the whole-number part, throwing the rest away."
+    }
   },
   {
     "id": "maths-t10",
@@ -1687,7 +1908,14 @@
     ],
     "tags": [
       "money"
-    ]
+    ],
+    "worked_example": {
+      "skill": "integer-division",
+      "problem": "A garden centre packs 23 bulbs into bags of 5. How many full bags?",
+      "code": "bulbs = 23\nprint(bulbs // 5)",
+      "output": "4",
+      "key_idea": "// divides and keeps only the whole-number part, throwing the rest away."
+    }
   },
   {
     "id": "sel-t1",
@@ -1732,7 +1960,17 @@
     ],
     "tags": [
       "trace"
-    ]
+    ],
+    "worked_example": {
+      "skill": "if/else",
+      "problem": "A cinema lets people in if they have a ticket, otherwise sends them to the desk.",
+      "code": "ticket = input(\"Ticket? \")\nif ticket == \"yes\":\n    print(\"Go to screen 2\")\nelse:\n    print(\"Please buy a ticket\")",
+      "inputs": [
+        "no"
+      ],
+      "output": "Please buy a ticket",
+      "key_idea": "else catches every case where the if condition is False, so exactly one of the two branches runs."
+    }
   },
   {
     "id": "sel-t2",
@@ -1785,7 +2023,14 @@
     ],
     "tags": [
       ">= vs >"
-    ]
+    ],
+    "worked_example": {
+      "skill": "comparison",
+      "problem": "A garden centre checks whether a plant has exactly 10 leaves, and whether it has fewer than 5.",
+      "code": "leaves = 10\nprint(leaves == 10)\nprint(leaves < 5)\nprint(leaves != 3)",
+      "output": "True\nFalse\nTrue",
+      "key_idea": "Comparisons (==, !=, <, >, <=, >=) give True or False. == compares; a single = stores."
+    }
   },
   {
     "id": "sel-t3",
@@ -1847,7 +2092,14 @@
     ],
     "tags": [
       "boundary"
-    ]
+    ],
+    "worked_example": {
+      "skill": "comparison",
+      "problem": "A garden centre checks whether a plant has exactly 10 leaves, and whether it has fewer than 5.",
+      "code": "leaves = 10\nprint(leaves == 10)\nprint(leaves < 5)\nprint(leaves != 3)",
+      "output": "True\nFalse\nTrue",
+      "key_idea": "Comparisons (==, !=, <, >, <=, >=) give True or False. == compares; a single = stores."
+    }
   },
   {
     "id": "sel-t4",
@@ -1906,7 +2158,17 @@
     ],
     "tags": [
       "else"
-    ]
+    ],
+    "worked_example": {
+      "skill": "if/else",
+      "problem": "A cinema lets people in if they have a ticket, otherwise sends them to the desk.",
+      "code": "ticket = input(\"Ticket? \")\nif ticket == \"yes\":\n    print(\"Go to screen 2\")\nelse:\n    print(\"Please buy a ticket\")",
+      "inputs": [
+        "no"
+      ],
+      "output": "Please buy a ticket",
+      "key_idea": "else catches every case where the if condition is False, so exactly one of the two branches runs."
+    }
   },
   {
     "id": "sel-t5",
@@ -1973,7 +2235,17 @@
     ],
     "tags": [
       "separate if vs elif"
-    ]
+    ],
+    "worked_example": {
+      "skill": "elif",
+      "problem": "A bakery sorts loaves by weight: 800g or more is large, 400g or more is medium, otherwise small.",
+      "code": "grams = int(input(\"Weight: \"))\nif grams >= 800:\n    print(\"Giant loaf\")\nelif grams >= 400:\n    print(\"Medium\")\nelse:\n    print(\"Mini loaf\")",
+      "inputs": [
+        "500"
+      ],
+      "output": "Medium",
+      "key_idea": "Python checks each condition in order and runs only the first branch whose condition is True."
+    }
   },
   {
     "id": "sel-t6",
@@ -2050,7 +2322,18 @@
     ],
     "tags": [
       "and vs or"
-    ]
+    ],
+    "worked_example": {
+      "skill": "and/or",
+      "problem": "A cinema shows a film to people who are 15 or over, or who come with an adult.",
+      "code": "age = int(input(\"How old? \"))\nadult = input(\"With an adult? \")\nif age >= 15 or adult == \"yes\":\n    print(\"Enjoy the film\")\nelse:\n    print(\"Not this film\")",
+      "inputs": [
+        "13",
+        "yes"
+      ],
+      "output": "Enjoy the film",
+      "key_idea": "and needs both conditions to be True; or needs at least one. Each side must be a full comparison."
+    }
   },
   {
     "id": "sel-t7",
@@ -2122,7 +2405,18 @@
     "tags": [
       "range check",
       "whole line"
-    ]
+    ],
+    "worked_example": {
+      "skill": "and/or",
+      "problem": "A cinema shows a film to people who are 15 or over, or who come with an adult.",
+      "code": "age = int(input(\"How old? \"))\nadult = input(\"With an adult? \")\nif age >= 15 or adult == \"yes\":\n    print(\"Enjoy the film\")\nelse:\n    print(\"Not this film\")",
+      "inputs": [
+        "13",
+        "yes"
+      ],
+      "output": "Enjoy the film",
+      "key_idea": "and needs both conditions to be True; or needs at least one. Each side must be a full comparison."
+    }
   },
   {
     "id": "sel-t8",
@@ -2178,7 +2472,17 @@
     ],
     "tags": [
       "modulo"
-    ]
+    ],
+    "worked_example": {
+      "skill": "modulo-conditions",
+      "problem": "A zoo feeds the lions on every 3rd day. Is today (day 12) a feeding day?",
+      "code": "day = int(input(\"Day: \"))\nif day % 3 == 0:\n    print(\"Feed the lions\")\nelse:\n    print(\"No feed today\")",
+      "inputs": [
+        "12"
+      ],
+      "output": "Feed the lions",
+      "key_idea": "x % n == 0 is True when x divides exactly by n (the remainder is 0)."
+    }
   },
   {
     "id": "sel-t9",
@@ -2248,7 +2552,17 @@
     ],
     "tags": [
       "boundary"
-    ]
+    ],
+    "worked_example": {
+      "skill": "if/else",
+      "problem": "A cinema lets people in if they have a ticket, otherwise sends them to the desk.",
+      "code": "ticket = input(\"Ticket? \")\nif ticket == \"yes\":\n    print(\"Go to screen 2\")\nelse:\n    print(\"Please buy a ticket\")",
+      "inputs": [
+        "no"
+      ],
+      "output": "Please buy a ticket",
+      "key_idea": "else catches every case where the if condition is False, so exactly one of the two branches runs."
+    }
   },
   {
     "id": "sel-t10",
@@ -2332,7 +2646,17 @@
     ],
     "tags": [
       "validation"
-    ]
+    ],
+    "worked_example": {
+      "skill": "elif",
+      "problem": "A bakery sorts loaves by weight: 800g or more is large, 400g or more is medium, otherwise small.",
+      "code": "grams = int(input(\"Weight: \"))\nif grams >= 800:\n    print(\"Giant loaf\")\nelif grams >= 400:\n    print(\"Medium\")\nelse:\n    print(\"Mini loaf\")",
+      "inputs": [
+        "500"
+      ],
+      "output": "Medium",
+      "key_idea": "Python checks each condition in order and runs only the first branch whose condition is True."
+    }
   },
   {
     "id": "comb-badge",
@@ -2412,7 +2736,14 @@
     ],
     "tags": [
       "sep="
-    ]
+    ],
+    "worked_example": {
+      "skill": "sep/end",
+      "problem": "A garden centre prints a date with slashes, then two words on the same line.",
+      "code": "print(14, 3, 2026, sep=\"/\")\nprint(\"Seeds\", end=\" \")\nprint(\"on sale\")",
+      "output": "14/3/2026\nSeeds on sale",
+      "key_idea": "sep= sets what goes between the values in one print(); end= sets what comes after it instead of a new line."
+    }
   },
   {
     "id": "comb-sharing",
@@ -2470,7 +2801,17 @@
     ],
     "tags": [
       "integer division vs float division"
-    ]
+    ],
+    "worked_example": {
+      "skill": "int()",
+      "problem": "A bakery asks how many cakes, then works out how many after 3 more are baked.",
+      "code": "cakes = int(input(\"Cakes: \"))\nprint(cakes + 3)",
+      "inputs": [
+        "9"
+      ],
+      "output": "12",
+      "key_idea": "input() always gives text. int() casts that text to a whole number so you can do maths with it: this is called casting."
+    }
   },
   {
     "id": "comb-multiple",
@@ -2525,7 +2866,14 @@
     ],
     "tags": [
       "modulo"
-    ]
+    ],
+    "worked_example": {
+      "skill": "modulo",
+      "problem": "A garden centre packs 23 bulbs into bags of 5. How many bulbs are left over?",
+      "code": "bulbs = 23\nprint(bulbs % 5)",
+      "output": "3",
+      "key_idea": "% gives the remainder after dividing: what is left when the full groups are taken out."
+    }
   },
   {
     "id": "comb-club",
@@ -2591,7 +2939,17 @@
     "tags": [
       "int() on input",
       "boundary"
-    ]
+    ],
+    "worked_example": {
+      "skill": "int()",
+      "problem": "A bakery asks how many cakes, then works out how many after 3 more are baked.",
+      "code": "cakes = int(input(\"Cakes: \"))\nprint(cakes + 3)",
+      "inputs": [
+        "9"
+      ],
+      "output": "12",
+      "key_idea": "input() always gives text. int() casts that text to a whole number so you can do maths with it: this is called casting."
+    }
   },
   {
     "id": "comb-welldone",
@@ -2666,7 +3024,14 @@
     "tags": [
       "whole line",
       "indentation"
-    ]
+    ],
+    "worked_example": {
+      "skill": "print",
+      "problem": "A cinema sign needs two lines: the film's name, then the screen number.",
+      "code": "print(\"Space Penguins\")\nprint(\"Screen 3\")",
+      "output": "Space Penguins\nScreen 3",
+      "key_idea": "Each print() shows exactly what is inside its quotes, then starts a new line."
+    }
   },
   {
     "id": "comb-receipt",
@@ -2723,7 +3088,14 @@
     "tags": [
       "sep=",
       "money"
-    ]
+    ],
+    "worked_example": {
+      "skill": "sep/end",
+      "problem": "A garden centre prints a date with slashes, then two words on the same line.",
+      "code": "print(14, 3, 2026, sep=\"/\")\nprint(\"Seeds\", end=\" \")\nprint(\"on sale\")",
+      "output": "14/3/2026\nSeeds on sale",
+      "key_idea": "sep= sets what goes between the values in one print(); end= sets what comes after it instead of a new line."
+    }
   },
   {
     "id": "comb-revision",
@@ -2790,7 +3162,14 @@
     "tags": [
       "running total",
       "time"
-    ]
+    ],
+    "worked_example": {
+      "skill": "reassignment",
+      "problem": "A bus starts with 12 passengers, then 5 more get on.",
+      "code": "passengers = 12\npassengers = passengers + 5\nprint(passengers)",
+      "output": "17",
+      "key_idea": "Giving a variable a new value replaces the old one. The right-hand side is worked out first, using the old value."
+    }
   },
   {
     "id": "comb-percent-grade",
@@ -2855,7 +3234,14 @@
     ],
     "tags": [
       "percentages"
-    ]
+    ],
+    "worked_example": {
+      "skill": "division",
+      "problem": "A bakery shares 7 litres of milk between 2 jugs.",
+      "code": "print(7 / 2)\nprint(8 / 2)",
+      "output": "3.5\n4.0",
+      "key_idea": "/ always gives a decimal answer, even when it divides exactly (8 / 2 is 4.0)."
+    }
   },
   {
     "id": "comb-username",
@@ -2928,7 +3314,14 @@
     "tags": [
       "sep=",
       "concatenation"
-    ]
+    ],
+    "worked_example": {
+      "skill": "sep/end",
+      "problem": "A garden centre prints a date with slashes, then two words on the same line.",
+      "code": "print(14, 3, 2026, sep=\"/\")\nprint(\"Seeds\", end=\" \")\nprint(\"on sale\")",
+      "output": "14/3/2026\nSeeds on sale",
+      "key_idea": "sep= sets what goes between the values in one print(); end= sets what comes after it instead of a new line."
+    }
   },
   {
     "id": "comb-pin",
@@ -2990,7 +3383,17 @@
     "tags": [
       "= vs ==",
       "int() on input"
-    ]
+    ],
+    "worked_example": {
+      "skill": "int()",
+      "problem": "A bakery asks how many cakes, then works out how many after 3 more are baked.",
+      "code": "cakes = int(input(\"Cakes: \"))\nprint(cakes + 3)",
+      "inputs": [
+        "9"
+      ],
+      "output": "12",
+      "key_idea": "input() always gives text. int() casts that text to a whole number so you can do maths with it: this is called casting."
+    }
   },
   {
     "id": "comb-teams",
@@ -3049,7 +3452,14 @@
     ],
     "tags": [
       "modulo"
-    ]
+    ],
+    "worked_example": {
+      "skill": "modulo",
+      "problem": "A garden centre packs 23 bulbs into bags of 5. How many bulbs are left over?",
+      "code": "bulbs = 23\nprint(bulbs % 5)",
+      "output": "3",
+      "key_idea": "% gives the remainder after dividing: what is left when the full groups are taken out."
+    }
   },
   {
     "id": "comb-fits",
@@ -3095,7 +3505,14 @@
     ],
     "tags": [
       "trace"
-    ]
+    ],
+    "worked_example": {
+      "skill": "modulo",
+      "problem": "A garden centre packs 23 bulbs into bags of 5. How many bulbs are left over?",
+      "code": "bulbs = 23\nprint(bulbs % 5)",
+      "output": "3",
+      "key_idea": "% gives the remainder after dividing: what is left when the full groups are taken out."
+    }
   },
   {
     "level": 10,
@@ -3165,7 +3582,14 @@
     "tags": [
       "sep=",
       "spacing"
-    ]
+    ],
+    "worked_example": {
+      "skill": "print",
+      "problem": "A cinema sign needs two lines: the film's name, then the screen number.",
+      "code": "print(\"Space Penguins\")\nprint(\"Screen 3\")",
+      "output": "Space Penguins\nScreen 3",
+      "key_idea": "Each print() shows exactly what is inside its quotes, then starts a new line."
+    }
   },
   {
     "level": 10,
@@ -3215,7 +3639,14 @@
     ],
     "tags": [
       "end="
-    ]
+    ],
+    "worked_example": {
+      "skill": "sep/end",
+      "problem": "A garden centre prints a date with slashes, then two words on the same line.",
+      "code": "print(14, 3, 2026, sep=\"/\")\nprint(\"Seeds\", end=\" \")\nprint(\"on sale\")",
+      "output": "14/3/2026\nSeeds on sale",
+      "key_idea": "sep= sets what goes between the values in one print(); end= sets what comes after it instead of a new line."
+    }
   },
   {
     "level": 10,
@@ -3263,7 +3694,14 @@
     ],
     "tags": [
       "quotes inside strings"
-    ]
+    ],
+    "worked_example": {
+      "skill": "strings",
+      "problem": "A bakery label must show a word in quotes and an apostrophe: Today's special: \"lemon cake\".",
+      "code": "print('Today\\'s special: \"lemon cake\"')\nprint(\"Price: 2 pounds\")",
+      "output": "Today's special: \"lemon cake\"\nPrice: 2 pounds",
+      "key_idea": "Text goes inside quotes. Use one kind of quote outside, and you can put the other kind inside the text."
+    }
   },
   {
     "level": 10,
@@ -3342,7 +3780,17 @@
     ],
     "tags": [
       "sep="
-    ]
+    ],
+    "worked_example": {
+      "skill": "input",
+      "problem": "A cinema asks for the customer's name and greets them.",
+      "code": "name = input(\"Your name: \")\nprint(\"Enjoy the film,\", name)",
+      "inputs": [
+        "Kai"
+      ],
+      "output": "Enjoy the film, Kai",
+      "key_idea": "input() waits for the user to type, and gives back what they typed, which you store in a variable."
+    }
   },
   {
     "level": 10,
@@ -3409,7 +3857,14 @@
     ],
     "tags": [
       "swap"
-    ]
+    ],
+    "worked_example": {
+      "skill": "reassignment",
+      "problem": "A bus starts with 12 passengers, then 5 more get on.",
+      "code": "passengers = 12\npassengers = passengers + 5\nprint(passengers)",
+      "output": "17",
+      "key_idea": "Giving a variable a new value replaces the old one. The right-hand side is worked out first, using the old value."
+    }
   },
   {
     "level": 10,
@@ -3483,7 +3938,17 @@
     "tags": [
       "money",
       "type conversion"
-    ]
+    ],
+    "worked_example": {
+      "skill": "int()",
+      "problem": "A bakery asks how many cakes, then works out how many after 3 more are baked.",
+      "code": "cakes = int(input(\"Cakes: \"))\nprint(cakes + 3)",
+      "inputs": [
+        "9"
+      ],
+      "output": "12",
+      "key_idea": "input() always gives text. int() casts that text to a whole number so you can do maths with it: this is called casting."
+    }
   },
   {
     "level": 10,
@@ -3542,7 +4007,14 @@
     ],
     "tags": [
       "time"
-    ]
+    ],
+    "worked_example": {
+      "skill": "integer-division",
+      "problem": "A garden centre packs 23 bulbs into bags of 5. How many full bags?",
+      "code": "bulbs = 23\nprint(bulbs // 5)",
+      "output": "4",
+      "key_idea": "// divides and keeps only the whole-number part, throwing the rest away."
+    }
   },
   {
     "level": 10,
@@ -3599,7 +4071,14 @@
     ],
     "tags": [
       "money"
-    ]
+    ],
+    "worked_example": {
+      "skill": "integer-division",
+      "problem": "A garden centre packs 23 bulbs into bags of 5. How many full bags?",
+      "code": "bulbs = 23\nprint(bulbs // 5)",
+      "output": "4",
+      "key_idea": "// divides and keeps only the whole-number part, throwing the rest away."
+    }
   },
   {
     "level": 10,
@@ -3664,7 +4143,14 @@
     "tags": [
       "operator precedence",
       "money"
-    ]
+    ],
+    "worked_example": {
+      "skill": "power",
+      "problem": "A square zoo enclosure has sides of 9 metres. What is its area?",
+      "code": "side = 9\nprint(side ** 2)",
+      "output": "81",
+      "key_idea": "** means 'to the power of', so side ** 2 is side squared."
+    }
   },
   {
     "level": 10,
@@ -3762,7 +4248,17 @@
     "tags": [
       "separate if vs elif",
       "money"
-    ]
+    ],
+    "worked_example": {
+      "skill": "if/else",
+      "problem": "A cinema lets people in if they have a ticket, otherwise sends them to the desk.",
+      "code": "ticket = input(\"Ticket? \")\nif ticket == \"yes\":\n    print(\"Go to screen 2\")\nelse:\n    print(\"Please buy a ticket\")",
+      "inputs": [
+        "no"
+      ],
+      "output": "Please buy a ticket",
+      "key_idea": "else catches every case where the if condition is False, so exactly one of the two branches runs."
+    }
   },
   {
     "level": 10,
@@ -3834,7 +4330,17 @@
     "tags": [
       "validation",
       "nested if"
-    ]
+    ],
+    "worked_example": {
+      "skill": "input-validation",
+      "problem": "A cinema seat number must be between 1 and 40.",
+      "code": "seat = int(input(\"Seat: \"))\nif seat >= 1 and seat <= 40:\n    print(\"Seat booked\")\nelse:\n    print(\"No such seat\")",
+      "inputs": [
+        "52"
+      ],
+      "output": "No such seat",
+      "key_idea": "Check that the value is in the allowed range before using it, and say clearly when it isn't."
+    }
   },
   {
     "level": 10,
@@ -3913,7 +4419,17 @@
       "percentages",
       "boundary",
       "money"
-    ]
+    ],
+    "worked_example": {
+      "skill": "if/else",
+      "problem": "A cinema lets people in if they have a ticket, otherwise sends them to the desk.",
+      "code": "ticket = input(\"Ticket? \")\nif ticket == \"yes\":\n    print(\"Go to screen 2\")\nelse:\n    print(\"Please buy a ticket\")",
+      "inputs": [
+        "no"
+      ],
+      "output": "Please buy a ticket",
+      "key_idea": "else catches every case where the if condition is False, so exactly one of the two branches runs."
+    }
   },
   {
     "id": "while-t1",
@@ -3973,7 +4489,14 @@
     ],
     "tags": [
       "trace"
-    ]
+    ],
+    "worked_example": {
+      "skill": "while",
+      "problem": "A zoo keeper counts down 3 days to a panda's birthday.",
+      "code": "days = 3\nwhile days > 0:\n    print(days, \"days to go\")\n    days = days - 1\nprint(\"Happy birthday!\")",
+      "output": "3 days to go\n2 days to go\n1 days to go\nHappy birthday!",
+      "key_idea": "A while loop repeats while its condition is True, so something inside it must change the condition."
+    }
   },
   {
     "id": "while-t2",
@@ -4029,7 +4552,14 @@
     "tags": [
       "trace",
       ">= vs >"
-    ]
+    ],
+    "worked_example": {
+      "skill": "while",
+      "problem": "A zoo keeper counts down 3 days to a panda's birthday.",
+      "code": "days = 3\nwhile days > 0:\n    print(days, \"days to go\")\n    days = days - 1\nprint(\"Happy birthday!\")",
+      "output": "3 days to go\n2 days to go\n1 days to go\nHappy birthday!",
+      "key_idea": "A while loop repeats while its condition is True, so something inside it must change the condition."
+    }
   },
   {
     "id": "while-t3",
@@ -4076,7 +4606,14 @@
     "tags": [
       "pocket money",
       "boundary"
-    ]
+    ],
+    "worked_example": {
+      "skill": "counter",
+      "problem": "A bakery counts how many trays it fills until it runs out of 20 buns, 6 per tray.",
+      "code": "buns = 20\ntrays = 0\nwhile buns > 0:\n    buns = buns - 6\n    trays = trays + 1\nprint(trays)",
+      "output": "4",
+      "key_idea": "A counter starts at 0 before the loop and goes up by 1 each time round."
+    }
   },
   {
     "id": "while-t4",
@@ -4152,7 +4689,19 @@
     ],
     "tags": [
       "sentinel"
-    ]
+    ],
+    "worked_example": {
+      "skill": "sentinel",
+      "problem": "A cinema reads ticket numbers until the user types 0.",
+      "code": "count = 0\nticket = int(input(\"Ticket: \"))\nwhile ticket != 0:\n    count = count + 1\n    ticket = int(input(\"Ticket: \"))\nprint(count, \"tickets\")",
+      "inputs": [
+        "14",
+        "22",
+        "0"
+      ],
+      "output": "2 tickets",
+      "key_idea": "Read the first value before the loop, and the next value at the end of the loop, so the stop value is never processed."
+    }
   },
   {
     "id": "while-t5",
@@ -4249,7 +4798,18 @@
     ],
     "tags": [
       "validation"
-    ]
+    ],
+    "worked_example": {
+      "skill": "input-validation",
+      "problem": "A zoo asks for a number of visitors until it gets one from 1 to 6.",
+      "code": "group = int(input(\"Visitors: \"))\nwhile group < 1 or group > 6:\n    print(\"Groups are 1 to 6\")\n    group = int(input(\"Visitors: \"))\nprint(\"Booked for\", group)",
+      "inputs": [
+        "9",
+        "4"
+      ],
+      "output": "Groups are 1 to 6\nBooked for 4",
+      "key_idea": "Keep asking while the value is not allowed, and ask again inside the loop."
+    }
   },
   {
     "id": "while-t6",
@@ -4338,7 +4898,19 @@
     ],
     "tags": [
       "shop totals"
-    ]
+    ],
+    "worked_example": {
+      "skill": "sentinel",
+      "problem": "A cinema reads ticket numbers until the user types 0.",
+      "code": "count = 0\nticket = int(input(\"Ticket: \"))\nwhile ticket != 0:\n    count = count + 1\n    ticket = int(input(\"Ticket: \"))\nprint(count, \"tickets\")",
+      "inputs": [
+        "14",
+        "22",
+        "0"
+      ],
+      "output": "2 tickets",
+      "key_idea": "Read the first value before the loop, and the next value at the end of the loop, so the stop value is never processed."
+    }
   },
   {
     "id": "while-t7",
@@ -4396,7 +4968,14 @@
     ],
     "tags": [
       "whole line"
-    ]
+    ],
+    "worked_example": {
+      "skill": "infinite-loop",
+      "problem": "A zoo program counts down feeding times. The fixed version changes the counter, so the loop ends.",
+      "code": "feeds = 3\nwhile feeds > 0:\n    print(\"Feed\", feeds)\n    feeds = feeds - 1\nprint(\"All fed\")",
+      "output": "Feed 3\nFeed 2\nFeed 1\nAll fed",
+      "key_idea": "If nothing inside the loop changes the value in the condition, the condition never becomes False."
+    }
   },
   {
     "id": "while-t8",
@@ -4471,7 +5050,18 @@
     ],
     "tags": [
       "password attempts"
-    ]
+    ],
+    "worked_example": {
+      "skill": "input-validation",
+      "problem": "A zoo asks for a number of visitors until it gets one from 1 to 6.",
+      "code": "group = int(input(\"Visitors: \"))\nwhile group < 1 or group > 6:\n    print(\"Groups are 1 to 6\")\n    group = int(input(\"Visitors: \"))\nprint(\"Booked for\", group)",
+      "inputs": [
+        "9",
+        "4"
+      ],
+      "output": "Groups are 1 to 6\nBooked for 4",
+      "key_idea": "Keep asking while the value is not allowed, and ask again inside the loop."
+    }
   },
   {
     "id": "while-t9",
@@ -4550,7 +5140,19 @@
     ],
     "tags": [
       "sentinel"
-    ]
+    ],
+    "worked_example": {
+      "skill": "sentinel",
+      "problem": "A cinema reads ticket numbers until the user types 0.",
+      "code": "count = 0\nticket = int(input(\"Ticket: \"))\nwhile ticket != 0:\n    count = count + 1\n    ticket = int(input(\"Ticket: \"))\nprint(count, \"tickets\")",
+      "inputs": [
+        "14",
+        "22",
+        "0"
+      ],
+      "output": "2 tickets",
+      "key_idea": "Read the first value before the loop, and the next value at the end of the loop, so the stop value is never processed."
+    }
   },
   {
     "id": "while-t10",
@@ -4652,7 +5254,18 @@
     ],
     "tags": [
       "validation"
-    ]
+    ],
+    "worked_example": {
+      "skill": "input-validation",
+      "problem": "A zoo asks for a number of visitors until it gets one from 1 to 6.",
+      "code": "group = int(input(\"Visitors: \"))\nwhile group < 1 or group > 6:\n    print(\"Groups are 1 to 6\")\n    group = int(input(\"Visitors: \"))\nprint(\"Booked for\", group)",
+      "inputs": [
+        "9",
+        "4"
+      ],
+      "output": "Groups are 1 to 6\nBooked for 4",
+      "key_idea": "Keep asking while the value is not allowed, and ask again inside the loop."
+    }
   },
   {
     "id": "for-t1",
@@ -4704,7 +5317,14 @@
     ],
     "tags": [
       "trace"
-    ]
+    ],
+    "worked_example": {
+      "skill": "range",
+      "problem": "A bakery numbers its 4 ovens from 1 to 4.",
+      "code": "for oven in range(1, 5):\n    print(\"Oven\", oven)",
+      "output": "Oven 1\nOven 2\nOven 3\nOven 4",
+      "key_idea": "range(start, stop) starts at start and stops just before stop, so the stop value is never included."
+    }
   },
   {
     "id": "for-t2",
@@ -4756,7 +5376,19 @@
     "tags": [
       "trace",
       "off-by-one"
-    ]
+    ],
+    "worked_example": {
+      "skill": "accumulator",
+      "problem": "A garden centre adds up the prices of 3 plants typed in.",
+      "code": "total = 0\nfor plant in range(3):\n    price = int(input(\"Cost: \"))\n    total = total + price\nprint(\"Spent:\", total)",
+      "inputs": [
+        "4",
+        "7",
+        "2"
+      ],
+      "output": "Spent: 13",
+      "key_idea": "Set the total to 0 before the loop; inside the loop, add each value to it."
+    }
   },
   {
     "id": "for-t3",
@@ -4814,7 +5446,14 @@
     ],
     "tags": [
       "step"
-    ]
+    ],
+    "worked_example": {
+      "skill": "step",
+      "problem": "A garden centre counts down plant trays in fives from 20.",
+      "code": "for trays in range(20, 0, -5):\n    print(trays)",
+      "output": "20\n15\n10\n5",
+      "key_idea": "The third number in range is the step. A negative step counts down, and the stop is still left out."
+    }
   },
   {
     "id": "for-t4",
@@ -4864,7 +5503,14 @@
     ],
     "tags": [
       "off-by-one"
-    ]
+    ],
+    "worked_example": {
+      "skill": "range",
+      "problem": "A bakery numbers its 4 ovens from 1 to 4.",
+      "code": "for oven in range(1, 5):\n    print(\"Oven\", oven)",
+      "output": "Oven 1\nOven 2\nOven 3\nOven 4",
+      "key_idea": "range(start, stop) starts at start and stops just before stop, so the stop value is never included."
+    }
   },
   {
     "id": "for-t5",
@@ -4929,7 +5575,14 @@
     ],
     "tags": [
       "input-driven"
-    ]
+    ],
+    "worked_example": {
+      "skill": "range",
+      "problem": "A bakery numbers its 4 ovens from 1 to 4.",
+      "code": "for oven in range(1, 5):\n    print(\"Oven\", oven)",
+      "output": "Oven 1\nOven 2\nOven 3\nOven 4",
+      "key_idea": "range(start, stop) starts at start and stops just before stop, so the stop value is never included."
+    }
   },
   {
     "id": "for-t6",
@@ -4986,7 +5639,14 @@
     ],
     "tags": [
       "patterns"
-    ]
+    ],
+    "worked_example": {
+      "skill": "nested-loop",
+      "problem": "A cinema prints 2 rows with 3 seats in each.",
+      "code": "for row in range(1, 3):\n    for seat in range(1, 4):\n        print(\"Row\", row, \"seat\", seat)",
+      "output": "Row 1 seat 1\nRow 1 seat 2\nRow 1 seat 3\nRow 2 seat 1\nRow 2 seat 2\nRow 2 seat 3",
+      "key_idea": "The whole inner loop runs once for every time round the outer loop."
+    }
   },
   {
     "id": "for-t7",
@@ -5047,7 +5707,14 @@
     "tags": [
       "strings",
       "whole line"
-    ]
+    ],
+    "worked_example": {
+      "skill": "for",
+      "problem": "A cinema prints 'Seat ready' for each of 3 seats.",
+      "code": "for seat in range(3):\n    print(\"Seat ready\")\nprint(\"Room ready\")",
+      "output": "Seat ready\nSeat ready\nSeat ready\nRoom ready",
+      "key_idea": "A for loop runs its indented lines once for each value in the range."
+    }
   },
   {
     "id": "for-t8",
@@ -5095,7 +5762,14 @@
     ],
     "tags": [
       "times tables"
-    ]
+    ],
+    "worked_example": {
+      "skill": "range",
+      "problem": "A bakery numbers its 4 ovens from 1 to 4.",
+      "code": "for oven in range(1, 5):\n    print(\"Oven\", oven)",
+      "output": "Oven 1\nOven 2\nOven 3\nOven 4",
+      "key_idea": "range(start, stop) starts at start and stops just before stop, so the stop value is never included."
+    }
   },
   {
     "id": "for-t9",
@@ -5192,7 +5866,21 @@
     ],
     "tags": [
       "grades"
-    ]
+    ],
+    "worked_example": {
+      "skill": "counting",
+      "problem": "A bakery counts how many of 5 cakes typed in weigh over 500g.",
+      "code": "heavy = 0\nfor cake in range(5):\n    grams = int(input(\"Weight: \"))\n    if grams > 500:\n        heavy = heavy + 1\nprint(heavy, \"heavy cakes\")",
+      "inputs": [
+        "450",
+        "520",
+        "610",
+        "300",
+        "505"
+      ],
+      "output": "3 heavy cakes",
+      "key_idea": "Start a counter at 0 before the loop, and add 1 inside an if when the value matches."
+    }
   },
   {
     "id": "for-t10",
@@ -5283,7 +5971,19 @@
     ],
     "tags": [
       "shop totals"
-    ]
+    ],
+    "worked_example": {
+      "skill": "accumulator",
+      "problem": "A garden centre adds up the prices of 3 plants typed in.",
+      "code": "total = 0\nfor plant in range(3):\n    price = int(input(\"Cost: \"))\n    total = total + price\nprint(\"Spent:\", total)",
+      "inputs": [
+        "4",
+        "7",
+        "2"
+      ],
+      "output": "Spent: 13",
+      "key_idea": "Set the total to 0 before the loop; inside the loop, add each value to it."
+    }
   },
   {
     "id": "scratch-while-guess",
@@ -5366,7 +6066,19 @@
     ],
     "tags": [
       "game"
-    ]
+    ],
+    "worked_example": {
+      "skill": "sentinel",
+      "problem": "A cinema reads ticket numbers until the user types 0.",
+      "code": "count = 0\nticket = int(input(\"Ticket: \"))\nwhile ticket != 0:\n    count = count + 1\n    ticket = int(input(\"Ticket: \"))\nprint(count, \"tickets\")",
+      "inputs": [
+        "14",
+        "22",
+        "0"
+      ],
+      "output": "2 tickets",
+      "key_idea": "Read the first value before the loop, and the next value at the end of the loop, so the stop value is never processed."
+    }
   },
   {
     "id": "scratch-while-fundraiser",
@@ -5460,7 +6172,18 @@
     ],
     "tags": [
       "money"
-    ]
+    ],
+    "worked_example": {
+      "skill": "input-validation",
+      "problem": "A zoo asks for a number of visitors until it gets one from 1 to 6.",
+      "code": "group = int(input(\"Visitors: \"))\nwhile group < 1 or group > 6:\n    print(\"Groups are 1 to 6\")\n    group = int(input(\"Visitors: \"))\nprint(\"Booked for\", group)",
+      "inputs": [
+        "9",
+        "4"
+      ],
+      "output": "Groups are 1 to 6\nBooked for 4",
+      "key_idea": "Keep asking while the value is not allowed, and ask again inside the loop."
+    }
   },
   {
     "id": "scratch-while-tuckshop",
@@ -5552,7 +6275,18 @@
     "tags": [
       "menu",
       "money"
-    ]
+    ],
+    "worked_example": {
+      "skill": "menu",
+      "problem": "A bakery menu repeats until the user chooses 3 to quit.",
+      "code": "choice = \"\"\nwhile choice != \"3\":\n    choice = input(\"1 Bread, 2 Cake, 3 Quit: \")\n    if choice == \"1\":\n        print(\"Bread is 1 pound\")\n    elif choice == \"2\":\n        print(\"Cake is 2 pounds\")\nprint(\"Bye\")",
+      "inputs": [
+        "2",
+        "3"
+      ],
+      "output": "Cake is 2 pounds\nBye",
+      "key_idea": "Put the menu inside a while loop that stops on the quit choice, with if/elif inside to act on each choice."
+    }
   },
   {
     "id": "scratch-for-table",
@@ -5606,7 +6340,14 @@
     ],
     "tags": [
       "times tables"
-    ]
+    ],
+    "worked_example": {
+      "skill": "range",
+      "problem": "A bakery numbers its 4 ovens from 1 to 4.",
+      "code": "for oven in range(1, 5):\n    print(\"Oven\", oven)",
+      "output": "Oven 1\nOven 2\nOven 3\nOven 4",
+      "key_idea": "range(start, stop) starts at start and stops just before stop, so the stop value is never included."
+    }
   },
   {
     "id": "scratch-for-triangle",
@@ -5664,7 +6405,14 @@
     ],
     "tags": [
       "patterns"
-    ]
+    ],
+    "worked_example": {
+      "skill": "nested-loop",
+      "problem": "A cinema prints 2 rows with 3 seats in each.",
+      "code": "for row in range(1, 3):\n    for seat in range(1, 4):\n        print(\"Row\", row, \"seat\", seat)",
+      "output": "Row 1 seat 1\nRow 1 seat 2\nRow 1 seat 3\nRow 2 seat 1\nRow 2 seat 2\nRow 2 seat 3",
+      "key_idea": "The whole inner loop runs once for every time round the outer loop."
+    }
   },
   {
     "id": "scratch-for-marks",
@@ -5746,7 +6494,19 @@
     ],
     "tags": [
       "grades"
-    ]
+    ],
+    "worked_example": {
+      "skill": "accumulator",
+      "problem": "A garden centre adds up the prices of 3 plants typed in.",
+      "code": "total = 0\nfor plant in range(3):\n    price = int(input(\"Cost: \"))\n    total = total + price\nprint(\"Spent:\", total)",
+      "inputs": [
+        "4",
+        "7",
+        "2"
+      ],
+      "output": "Spent: 13",
+      "key_idea": "Set the total to 0 before the loop; inside the loop, add each value to it."
+    }
   },
   {
     "id": "comb-tickets",
@@ -5831,7 +6591,17 @@
     ],
     "tags": [
       "boundary"
-    ]
+    ],
+    "worked_example": {
+      "skill": "if/else",
+      "problem": "A cinema lets people in if they have a ticket, otherwise sends them to the desk.",
+      "code": "ticket = input(\"Ticket? \")\nif ticket == \"yes\":\n    print(\"Go to screen 2\")\nelse:\n    print(\"Please buy a ticket\")",
+      "inputs": [
+        "no"
+      ],
+      "output": "Please buy a ticket",
+      "key_idea": "else catches every case where the if condition is False, so exactly one of the two branches runs."
+    }
   },
   {
     "id": "comb-share-out",
@@ -5906,7 +6676,14 @@
     ],
     "tags": [
       "integer division vs float division"
-    ]
+    ],
+    "worked_example": {
+      "skill": "integer-division",
+      "problem": "A garden centre packs 23 bulbs into bags of 5. How many full bags?",
+      "code": "bulbs = 23\nprint(bulbs // 5)",
+      "output": "4",
+      "key_idea": "// divides and keeps only the whole-number part, throwing the rest away."
+    }
   },
   {
     "id": "comb-badges",
@@ -5969,7 +6746,14 @@
     ],
     "tags": [
       "concatenation"
-    ]
+    ],
+    "worked_example": {
+      "skill": "str()",
+      "problem": "A garden centre joins a number of plants into a sentence.",
+      "code": "plants = 24\nsign = \"We have \" + str(plants) + \" plants\"\nprint(sign)",
+      "output": "We have 24 plants",
+      "key_idea": "str() casts a number to text, so it can be joined to other text with +. The sign is built and stored in a variable first, which is when + is used; to print values straight away, use commas instead."
+    }
   },
   {
     "id": "comb-laps",
@@ -6059,7 +6843,18 @@
     "tags": [
       "while vs for",
       "sports day"
-    ]
+    ],
+    "worked_example": {
+      "skill": "input-validation",
+      "problem": "A zoo asks for a number of visitors until it gets one from 1 to 6.",
+      "code": "group = int(input(\"Visitors: \"))\nwhile group < 1 or group > 6:\n    print(\"Groups are 1 to 6\")\n    group = int(input(\"Visitors: \"))\nprint(\"Booked for\", group)",
+      "inputs": [
+        "9",
+        "4"
+      ],
+      "output": "Groups are 1 to 6\nBooked for 4",
+      "key_idea": "Keep asking while the value is not allowed, and ask again inside the loop."
+    }
   },
   {
     "id": "comb-order-line",
@@ -6129,7 +6924,14 @@
     ],
     "tags": [
       "sep="
-    ]
+    ],
+    "worked_example": {
+      "skill": "sep/end",
+      "problem": "A garden centre prints a date with slashes, then two words on the same line.",
+      "code": "print(14, 3, 2026, sep=\"/\")\nprint(\"Seeds\", end=\" \")\nprint(\"on sale\")",
+      "output": "14/3/2026\nSeeds on sale",
+      "key_idea": "sep= sets what goes between the values in one print(); end= sets what comes after it instead of a new line."
+    }
   },
   {
     "id": "comb-split-bill",
@@ -6195,7 +6997,17 @@
     ],
     "tags": [
       "money"
-    ]
+    ],
+    "worked_example": {
+      "skill": "int()",
+      "problem": "A bakery asks how many cakes, then works out how many after 3 more are baked.",
+      "code": "cakes = int(input(\"Cakes: \"))\nprint(cakes + 3)",
+      "inputs": [
+        "9"
+      ],
+      "output": "12",
+      "key_idea": "input() always gives text. int() casts that text to a whole number so you can do maths with it: this is called casting."
+    }
   },
   {
     "id": "comb-weather-log",
@@ -6287,7 +7099,17 @@
     "tags": [
       "boundary",
       "weather"
-    ]
+    ],
+    "worked_example": {
+      "skill": "elif",
+      "problem": "A bakery sorts loaves by weight: 800g or more is large, 400g or more is medium, otherwise small.",
+      "code": "grams = int(input(\"Weight: \"))\nif grams >= 800:\n    print(\"Giant loaf\")\nelif grams >= 400:\n    print(\"Medium\")\nelse:\n    print(\"Mini loaf\")",
+      "inputs": [
+        "500"
+      ],
+      "output": "Medium",
+      "key_idea": "Python checks each condition in order and runs only the first branch whose condition is True."
+    }
   },
   {
     "id": "comb-pin-check",
@@ -6367,7 +7189,18 @@
     "tags": [
       "validation",
       "passwords"
-    ]
+    ],
+    "worked_example": {
+      "skill": "and/or",
+      "problem": "A cinema shows a film to people who are 15 or over, or who come with an adult.",
+      "code": "age = int(input(\"How old? \"))\nadult = input(\"With an adult? \")\nif age >= 15 or adult == \"yes\":\n    print(\"Enjoy the film\")\nelse:\n    print(\"Not this film\")",
+      "inputs": [
+        "13",
+        "yes"
+      ],
+      "output": "Enjoy the film",
+      "key_idea": "and needs both conditions to be True; or needs at least one. Each side must be a full comparison."
+    }
   },
   {
     "id": "comb-checked-total",
@@ -6477,7 +7310,18 @@
     ],
     "tags": [
       "validation"
-    ]
+    ],
+    "worked_example": {
+      "skill": "input-validation",
+      "problem": "A zoo asks for a number of visitors until it gets one from 1 to 6.",
+      "code": "group = int(input(\"Visitors: \"))\nwhile group < 1 or group > 6:\n    print(\"Groups are 1 to 6\")\n    group = int(input(\"Visitors: \"))\nprint(\"Booked for\", group)",
+      "inputs": [
+        "9",
+        "4"
+      ],
+      "output": "Groups are 1 to 6\nBooked for 4",
+      "key_idea": "Keep asking while the value is not allowed, and ask again inside the loop."
+    }
   },
   {
     "id": "comb-times-quiz",
@@ -6550,7 +7394,14 @@
     ],
     "tags": [
       "times tables"
-    ]
+    ],
+    "worked_example": {
+      "skill": "while",
+      "problem": "A zoo keeper counts down 3 days to a panda's birthday.",
+      "code": "days = 3\nwhile days > 0:\n    print(days, \"days to go\")\n    days = days - 1\nprint(\"Happy birthday!\")",
+      "output": "3 days to go\n2 days to go\n1 days to go\nHappy birthday!",
+      "key_idea": "A while loop repeats while its condition is True, so something inside it must change the condition."
+    }
   },
   {
     "id": "comb-types-club-card",
@@ -6621,7 +7472,18 @@
     ],
     "tags": [
       "heights"
-    ]
+    ],
+    "worked_example": {
+      "skill": "casting",
+      "problem": "A zoo reads how many visitors came and the ticket price, then works out the takings.",
+      "code": "visitors = int(input(\"Visitors: \"))\nticket = float(input(\"Ticket price: \"))\nprint(\"Takings:\", visitors * ticket)",
+      "inputs": [
+        "20",
+        "4.5"
+      ],
+      "output": "Takings: 90.0",
+      "key_idea": "Casting changes a value's type: int() for a whole number, float() for a real number, str() for text and bool() for True or False. input() always gives a string, so cast it before doing maths."
+    }
   },
   {
     "id": "comb-types-trip-share",
@@ -6684,7 +7546,14 @@
     "tags": [
       "money",
       "rounding"
-    ]
+    ],
+    "worked_example": {
+      "skill": "real",
+      "problem": "A bakery weighs flour in kilograms, which can have a decimal part.",
+      "code": "flour = 0.75\nprint(type(flour))\nprint(flour * 2)\nprint(8 / 2)",
+      "output": "<class 'float'>\n1.5\n4.0",
+      "key_idea": "A real number has a decimal point. Python calls this type float. Dividing with / always gives a float, even 8 / 2 (4.0)."
+    }
   },
   {
     "id": "comb-types-basket",
@@ -6758,7 +7627,14 @@
     ],
     "tags": [
       "shop prices"
-    ]
+    ],
+    "worked_example": {
+      "skill": "real",
+      "problem": "A bakery weighs flour in kilograms, which can have a decimal part.",
+      "code": "flour = 0.75\nprint(type(flour))\nprint(flour * 2)\nprint(8 / 2)",
+      "output": "<class 'float'>\n1.5\n4.0",
+      "key_idea": "A real number has a decimal point. Python calls this type float. Dividing with / always gives a float, even 8 / 2 (4.0)."
+    }
   },
   {
     "id": "comb-types-register",
@@ -6823,7 +7699,14 @@
     ],
     "tags": [
       "register counts"
-    ]
+    ],
+    "worked_example": {
+      "skill": "boolean",
+      "problem": "A cinema works out whether a screening is sold out.",
+      "code": "seats_left = 12\nsold_out = seats_left == 0\nprint(sold_out)\nprint(type(sold_out))\nprint(bool(\"No\"))",
+      "output": "False\n<class 'bool'>\nTrue",
+      "key_idea": "A Boolean is True or False, and a comparison gives one. Python calls this type bool. bool() of any text that isn't empty is True, even \"No\"."
+    }
   },
   {
     "id": "comb-types-tall",
@@ -6905,7 +7788,14 @@
     ],
     "tags": [
       "heights"
-    ]
+    ],
+    "worked_example": {
+      "skill": "real",
+      "problem": "A bakery weighs flour in kilograms, which can have a decimal part.",
+      "code": "flour = 0.75\nprint(type(flour))\nprint(flour * 2)\nprint(8 / 2)",
+      "output": "<class 'float'>\n1.5\n4.0",
+      "key_idea": "A real number has a decimal point. Python calls this type float. Dividing with / always gives a float, even 8 / 2 (4.0)."
+    }
   },
   {
     "id": "comb-types-var-months",
@@ -6969,7 +7859,18 @@
     ],
     "tags": [
       "pets"
-    ]
+    ],
+    "worked_example": {
+      "skill": "casting",
+      "problem": "A zoo reads how many visitors came and the ticket price, then works out the takings.",
+      "code": "visitors = int(input(\"Visitors: \"))\nticket = float(input(\"Ticket price: \"))\nprint(\"Takings:\", visitors * ticket)",
+      "inputs": [
+        "20",
+        "4.5"
+      ],
+      "output": "Takings: 90.0",
+      "key_idea": "Casting changes a value's type: int() for a whole number, float() for a real number, str() for text and bool() for True or False. input() always gives a string, so cast it before doing maths."
+    }
   },
   {
     "id": "comb-types-var-label",
@@ -7032,7 +7933,18 @@
     ],
     "tags": [
       "shop prices"
-    ]
+    ],
+    "worked_example": {
+      "skill": "casting",
+      "problem": "A zoo reads how many visitors came and the ticket price, then works out the takings.",
+      "code": "visitors = int(input(\"Visitors: \"))\nticket = float(input(\"Ticket price: \"))\nprint(\"Takings:\", visitors * ticket)",
+      "inputs": [
+        "20",
+        "4.5"
+      ],
+      "output": "Takings: 90.0",
+      "key_idea": "Casting changes a value's type: int() for a whole number, float() for a real number, str() for text and bool() for True or False. input() always gives a string, so cast it before doing maths."
+    }
   },
   {
     "id": "comb-types-maths-share",
@@ -7092,7 +8004,18 @@
     ],
     "tags": [
       "sharing"
-    ]
+    ],
+    "worked_example": {
+      "skill": "casting",
+      "problem": "A zoo reads how many visitors came and the ticket price, then works out the takings.",
+      "code": "visitors = int(input(\"Visitors: \"))\nticket = float(input(\"Ticket price: \"))\nprint(\"Takings:\", visitors * ticket)",
+      "inputs": [
+        "20",
+        "4.5"
+      ],
+      "output": "Takings: 90.0",
+      "key_idea": "Casting changes a value's type: int() for a whole number, float() for a real number, str() for text and bool() for True or False. input() always gives a string, so cast it before doing maths."
+    }
   },
   {
     "id": "comb-types-maths-area",
@@ -7153,7 +8076,14 @@
     ],
     "tags": [
       "measuring"
-    ]
+    ],
+    "worked_example": {
+      "skill": "real",
+      "problem": "A bakery weighs flour in kilograms, which can have a decimal part.",
+      "code": "flour = 0.75\nprint(type(flour))\nprint(flour * 2)\nprint(8 / 2)",
+      "output": "<class 'float'>\n1.5\n4.0",
+      "key_idea": "A real number has a decimal point. Python calls this type float. Dividing with / always gives a float, even 8 / 2 (4.0)."
+    }
   },
   {
     "id": "comb-types-str-code",
@@ -7218,7 +8148,18 @@
     ],
     "tags": [
       "clubs"
-    ]
+    ],
+    "worked_example": {
+      "skill": "casting",
+      "problem": "A zoo reads how many visitors came and the ticket price, then works out the takings.",
+      "code": "visitors = int(input(\"Visitors: \"))\nticket = float(input(\"Ticket price: \"))\nprint(\"Takings:\", visitors * ticket)",
+      "inputs": [
+        "20",
+        "4.5"
+      ],
+      "output": "Takings: 90.0",
+      "key_idea": "Casting changes a value's type: int() for a whole number, float() for a real number, str() for text and bool() for True or False. input() always gives a string, so cast it before doing maths."
+    }
   },
   {
     "id": "comb-types-str-ticket",
@@ -7280,7 +8221,18 @@
     ],
     "tags": [
       "tickets"
-    ]
+    ],
+    "worked_example": {
+      "skill": "casting",
+      "problem": "A zoo reads how many visitors came and the ticket price, then works out the takings.",
+      "code": "visitors = int(input(\"Visitors: \"))\nticket = float(input(\"Ticket price: \"))\nprint(\"Takings:\", visitors * ticket)",
+      "inputs": [
+        "20",
+        "4.5"
+      ],
+      "output": "Takings: 90.0",
+      "key_idea": "Casting changes a value's type: int() for a whole number, float() for a real number, str() for text and bool() for True or False. input() always gives a string, so cast it before doing maths."
+    }
   },
   {
     "id": "comb-types-str-length",
@@ -7352,7 +8304,14 @@
     ],
     "tags": [
       "word games"
-    ]
+    ],
+    "worked_example": {
+      "skill": "boolean",
+      "problem": "A cinema works out whether a screening is sold out.",
+      "code": "seats_left = 12\nsold_out = seats_left == 0\nprint(sold_out)\nprint(type(sold_out))\nprint(bool(\"No\"))",
+      "output": "False\n<class 'bool'>\nTrue",
+      "key_idea": "A Boolean is True or False, and a comparison gives one. Python calls this type bool. bool() of any text that isn't empty is True, even \"No\"."
+    }
   },
   {
     "id": "comb-str-for-count",
@@ -7414,7 +8373,14 @@
     ],
     "tags": [
       "letters"
-    ]
+    ],
+    "worked_example": {
+      "skill": "range",
+      "problem": "A bakery numbers its 4 ovens from 1 to 4.",
+      "code": "for oven in range(1, 5):\n    print(\"Oven\", oven)",
+      "output": "Oven 1\nOven 2\nOven 3\nOven 4",
+      "key_idea": "range(start, stop) starts at start and stops just before stop, so the stop value is never included."
+    }
   },
   {
     "id": "comb-str-for-spell",
@@ -7473,7 +8439,14 @@
     ],
     "tags": [
       "spelling"
-    ]
+    ],
+    "worked_example": {
+      "skill": "range",
+      "problem": "A bakery numbers its 4 ovens from 1 to 4.",
+      "code": "for oven in range(1, 5):\n    print(\"Oven\", oven)",
+      "output": "Oven 1\nOven 2\nOven 3\nOven 4",
+      "key_idea": "range(start, stop) starts at start and stops just before stop, so the stop value is never included."
+    }
   },
   {
     "id": "comb-str-for-backwards",
@@ -7531,7 +8504,14 @@
     ],
     "tags": [
       "palindromes"
-    ]
+    ],
+    "worked_example": {
+      "skill": "step",
+      "problem": "A garden centre counts down plant trays in fives from 20.",
+      "code": "for trays in range(20, 0, -5):\n    print(trays)",
+      "output": "20\n15\n10\n5",
+      "key_idea": "The third number in range is the step. A negative step counts down, and the stop is still left out."
+    }
   },
   {
     "id": "scratch-strings-initials",
@@ -7596,7 +8576,14 @@
     ],
     "tags": [
       "names"
-    ]
+    ],
+    "worked_example": {
+      "skill": "indexing",
+      "problem": "A planet's name is broken into its characters.",
+      "code": "planet = \"Jupiter\"\nprint(planet[0])\nprint(planet[3])\nprint(planet[len(planet) - 1])",
+      "output": "J\ni\nr",
+      "key_idea": "Indexing counts from 0, so planet[0] is the first character and the last one is planet[len(planet) - 1]."
+    }
   },
   {
     "id": "scratch-strings-swap",
@@ -7673,7 +8660,14 @@
     ],
     "tags": [
       "sentences"
-    ]
+    ],
+    "worked_example": {
+      "skill": "replace",
+      "problem": "A recipe swaps one ingredient for another.",
+      "code": "recipe = \"add salt, then more salt\"\nrecipe = recipe.replace(\"salt\", \"pepper\")\nprint(recipe)",
+      "output": "add pepper, then more pepper",
+      "key_idea": "replace(old, new) gives back a new string with every copy of old swapped for new. Store it to keep the change."
+    }
   },
   {
     "id": "scratch-strings-slice",
@@ -7727,7 +8721,14 @@
     ],
     "tags": [
       "words"
-    ]
+    ],
+    "worked_example": {
+      "skill": "slicing",
+      "problem": "A sign says Thames Barrier, and each word is sliced out.",
+      "code": "sign = \"Thames Barrier\"\nprint(sign[0:6])\nprint(sign[7:14])",
+      "output": "Thames\nBarrier",
+      "key_idea": "Slicing [a:b] starts at index a and stops just BEFORE index b, so sign[0:6] gives the 6 characters at indexes 0 to 5."
+    }
   },
   {
     "id": "comb-rand-str-letter",
@@ -7786,7 +8787,14 @@
     ],
     "tags": [
       "letters"
-    ]
+    ],
+    "worked_example": {
+      "skill": "randint",
+      "problem": "A spinner in a board game has the numbers 1 to 8.",
+      "code": "import random\nspin = random.randint(1, 8)\nprint(\"Spinner:\", spin)\nprint(spin >= 1 and spin <= 8)",
+      "output": "Spinner: 5\nTrue",
+      "key_idea": "random.randint(a, b) gives a random whole number from a to b, and both a and b can come up. That's different from range(), which stops before its end."
+    }
   },
   {
     "id": "comb-rand-str-choice",
@@ -7847,7 +8855,14 @@
     ],
     "tags": [
       "letters"
-    ]
+    ],
+    "worked_example": {
+      "skill": "choice",
+      "problem": "An ice lolly van picks a flavour, and a letter, at random.",
+      "code": "import random\nflavour = random.choice([\"mint\", \"lemon\", \"cherry\"])\nprint(\"Ice lolly:\", flavour)\nletter = random.choice(\"QRS\")\nprint(len(letter))",
+      "output": "Ice lolly: lemon\n1",
+      "key_idea": "random.choice() picks ONE item: one item of a list, or one character of a string."
+    }
   },
   {
     "id": "comb-rand-str-tag",
@@ -7913,7 +8928,14 @@
     ],
     "tags": [
       "games"
-    ]
+    ],
+    "worked_example": {
+      "skill": "randint",
+      "problem": "A spinner in a board game has the numbers 1 to 8.",
+      "code": "import random\nspin = random.randint(1, 8)\nprint(\"Spinner:\", spin)\nprint(spin >= 1 and spin <= 8)",
+      "output": "Spinner: 5\nTrue",
+      "key_idea": "random.randint(a, b) gives a random whole number from a to b, and both a and b can come up. That's different from range(), which stops before its end."
+    }
   },
   {
     "id": "scratch-random-dice",
@@ -7982,7 +9004,14 @@
     ],
     "tags": [
       "dice"
-    ]
+    ],
+    "worked_example": {
+      "skill": "randint",
+      "problem": "A spinner in a board game has the numbers 1 to 8.",
+      "code": "import random\nspin = random.randint(1, 8)\nprint(\"Spinner:\", spin)\nprint(spin >= 1 and spin <= 8)",
+      "output": "Spinner: 5\nTrue",
+      "key_idea": "random.randint(a, b) gives a random whole number from a to b, and both a and b can come up. That's different from range(), which stops before its end."
+    }
   },
   {
     "id": "scratch-random-coin",
@@ -8047,7 +9076,14 @@
     ],
     "tags": [
       "coins"
-    ]
+    ],
+    "worked_example": {
+      "skill": "simulation",
+      "problem": "A darts player throws 5 darts, and each one has a 1 in 4 chance of a bullseye.",
+      "code": "import random\nbullseyes = 0\nfor throw in range(5):\n    if random.randint(1, 4) == 4:\n        bullseyes = bullseyes + 1\nprint(\"Bullseyes:\", bullseyes)",
+      "output": "Bullseyes: 2",
+      "key_idea": "Call randint() inside the loop, so every go gets a new number. A random number stored in a variable stays the same until it is assigned again."
+    }
   },
   {
     "id": "scratch-random-guess",
@@ -8102,7 +9138,14 @@
     ],
     "tags": [
       "games"
-    ]
+    ],
+    "worked_example": {
+      "skill": "randint",
+      "problem": "A spinner in a board game has the numbers 1 to 8.",
+      "code": "import random\nspin = random.randint(1, 8)\nprint(\"Spinner:\", spin)\nprint(spin >= 1 and spin <= 8)",
+      "output": "Spinner: 5\nTrue",
+      "key_idea": "random.randint(a, b) gives a random whole number from a to b, and both a and b can come up. That's different from range(), which stops before its end."
+    }
   },
   {
     "id": "comb-list-rand-rolls",
@@ -8157,7 +9200,14 @@
     ],
     "tags": [
       "dice"
-    ]
+    ],
+    "worked_example": {
+      "skill": "append",
+      "problem": "A sticker book starts empty and gets two stickers.",
+      "code": "stickers = []\nstickers.append(\"comet\")\nstickers.append(\"moon\")\nprint(stickers)\nprint(len(stickers))",
+      "output": "['comet', 'moon']\n2",
+      "key_idea": "append() adds an item to the END of a list and changes the list itself. Don't write stickers = stickers.append(...): append() gives back None."
+    }
   },
   {
     "id": "comb-list-rand-winner",
@@ -8223,7 +9273,14 @@
     ],
     "tags": [
       "prizes"
-    ]
+    ],
+    "worked_example": {
+      "skill": "append",
+      "problem": "A sticker book starts empty and gets two stickers.",
+      "code": "stickers = []\nstickers.append(\"comet\")\nstickers.append(\"moon\")\nprint(stickers)\nprint(len(stickers))",
+      "output": "['comet', 'moon']\n2",
+      "key_idea": "append() adds an item to the END of a list and changes the list itself. Don't write stickers = stickers.append(...): append() gives back None."
+    }
   },
   {
     "id": "comb-list-rand-prize",
@@ -8305,7 +9362,14 @@
     ],
     "tags": [
       "prizes"
-    ]
+    ],
+    "worked_example": {
+      "skill": "randint",
+      "problem": "A spinner in a board game has the numbers 1 to 8.",
+      "code": "import random\nspin = random.randint(1, 8)\nprint(\"Spinner:\", spin)\nprint(spin >= 1 and spin <= 8)",
+      "output": "Spinner: 5\nTrue",
+      "key_idea": "random.randint(a, b) gives a random whole number from a to b, and both a and b can come up. That's different from range(), which stops before its end."
+    }
   },
   {
     "id": "scratch-lists-scores",
@@ -8378,7 +9442,14 @@
     ],
     "tags": [
       "scores"
-    ]
+    ],
+    "worked_example": {
+      "skill": "append",
+      "problem": "A sticker book starts empty and gets two stickers.",
+      "code": "stickers = []\nstickers.append(\"comet\")\nstickers.append(\"moon\")\nprint(stickers)\nprint(len(stickers))",
+      "output": "['comet', 'moon']\n2",
+      "key_idea": "append() adds an item to the END of a list and changes the list itself. Don't write stickers = stickers.append(...): append() gives back None."
+    }
   },
   {
     "id": "scratch-lists-register",
@@ -8446,7 +9517,14 @@
     ],
     "tags": [
       "registers"
-    ]
+    ],
+    "worked_example": {
+      "skill": "append",
+      "problem": "A sticker book starts empty and gets two stickers.",
+      "code": "stickers = []\nstickers.append(\"comet\")\nstickers.append(\"moon\")\nprint(stickers)\nprint(len(stickers))",
+      "output": "['comet', 'moon']\n2",
+      "key_idea": "append() adds an item to the END of a list and changes the list itself. Don't write stickers = stickers.append(...): append() gives back None."
+    }
   },
   {
     "id": "scratch-lists-lookup",
@@ -8520,7 +9598,14 @@
     ],
     "tags": [
       "lists"
-    ]
+    ],
+    "worked_example": {
+      "skill": "indexing",
+      "problem": "A train's stops are kept in a list, and one is changed.",
+      "code": "stops = [\"Selby\", \"Goole\", \"Hull\"]\nprint(stops[0])\nprint(stops[2])\nstops[1] = \"Howden\"\nprint(stops)",
+      "output": "Selby\nHull\n['Selby', 'Howden', 'Hull']",
+      "key_idea": "Indexing a list counts from 0, like a string. stops[1] = ... replaces the second item."
+    }
   },
   {
     "id": "scratch-types-trip-cost",
@@ -8585,7 +9670,14 @@
     ],
     "tags": [
       "school trip"
-    ]
+    ],
+    "worked_example": {
+      "skill": "type-choice",
+      "problem": "A cinema stores four facts about a film, each in the type that suits it.",
+      "code": "screen = 3              # a whole number: int\nprice = 7.5             # has a decimal part: float\nfilm = \"Robot Rescue\"   # text: str\nsubtitles = False       # yes or no: bool\nprint(type(screen), type(price))\nprint(type(film), type(subtitles))",
+      "output": "<class 'int'> <class 'float'>\n<class 'str'> <class 'bool'>",
+      "key_idea": "Choose the type from what the value is like: counts are int, measurements with decimals are float, words are str, and yes/no facts are bool."
+    }
   },
   {
     "id": "scratch-types-height-check",
@@ -8641,7 +9733,14 @@
     ],
     "tags": [
       "heights"
-    ]
+    ],
+    "worked_example": {
+      "skill": "real",
+      "problem": "A bakery weighs flour in kilograms, which can have a decimal part.",
+      "code": "flour = 0.75\nprint(type(flour))\nprint(flour * 2)\nprint(8 / 2)",
+      "output": "<class 'float'>\n1.5\n4.0",
+      "key_idea": "A real number has a decimal point. Python calls this type float. Dividing with / always gives a float, even 8 / 2 (4.0)."
+    }
   },
   {
     "id": "scratch-types-receipt-type",
@@ -8699,7 +9798,14 @@
     ],
     "tags": [
       "shop prices"
-    ]
+    ],
+    "worked_example": {
+      "skill": "integer",
+      "problem": "A zoo counts its penguins, a whole number, and checks what type Python gives it.",
+      "code": "penguins = 14\nprint(type(penguins))\nprint(penguins + 3)",
+      "output": "<class 'int'>\n17",
+      "key_idea": "An integer is a whole number with no decimal point. Python calls this type int, and you can do maths with it."
+    }
   },
   {
     "id": "comb-fb-list-show",
@@ -8761,7 +9867,14 @@
     ],
     "tags": [
       "lists"
-    ]
+    ],
+    "worked_example": {
+      "skill": "def",
+      "problem": "A zookeeper makes a function that prints the feeding time.",
+      "code": "def feeding_time():\n    print(\"Penguins fed at noon\")\n\nfeeding_time()",
+      "output": "Penguins fed at noon",
+      "key_idea": "def makes a function: the indented lines under it are what it does. Defining it doesn't run it; calling it does."
+    }
   },
   {
     "id": "comb-fb-list-count",
@@ -8824,7 +9937,14 @@
     ],
     "tags": [
       "scores"
-    ]
+    ],
+    "worked_example": {
+      "skill": "parameter",
+      "problem": "A garden centre labels plants with a function that has a parameter.",
+      "code": "def label(plant):\n    print(\"Plant:\", plant)\n\nlabel(\"Fern\")\nlabel(\"Tulip\")",
+      "output": "Plant: Fern\nPlant: Tulip",
+      "key_idea": "A parameter is the name in the brackets of def. Inside the function it holds whatever value the call gave it."
+    }
   },
   {
     "id": "comb-fb-list-table",
@@ -8904,7 +10024,14 @@
     ],
     "tags": [
       "scores"
-    ]
+    ],
+    "worked_example": {
+      "skill": "call",
+      "problem": "A rocket launch prints a beep, three times.",
+      "code": "def beep():\n    print(\"Beep\")\n\nbeep()\nbeep()\nbeep()",
+      "output": "Beep\nBeep\nBeep",
+      "key_idea": "A call is the function's name with brackets, such as beep(). Each call runs the function's lines again."
+    }
   },
   {
     "id": "comb-fr-fb-receipt",
@@ -8972,7 +10099,14 @@
     ],
     "tags": [
       "shop prices"
-    ]
+    ],
+    "worked_example": {
+      "skill": "return",
+      "problem": "A cinema works out the cost of tickets with a function that returns it.",
+      "code": "def ticket_cost(adults, children):\n    return adults * 9 + children * 5\n\nprint(ticket_cost(2, 3))",
+      "output": "33",
+      "key_idea": "return sends a value back to where the function was called, and ends the function. A function with no return gives back None."
+    }
   },
   {
     "id": "comb-fr-fb-grade",
@@ -9059,7 +10193,14 @@
     ],
     "tags": [
       "marks"
-    ]
+    ],
+    "worked_example": {
+      "skill": "return",
+      "problem": "A cinema works out the cost of tickets with a function that returns it.",
+      "code": "def ticket_cost(adults, children):\n    return adults * 9 + children * 5\n\nprint(ticket_cost(2, 3))",
+      "output": "33",
+      "key_idea": "return sends a value back to where the function was called, and ends the function. A function with no return gives back None."
+    }
   },
   {
     "id": "comb-fr-fb-box",
@@ -9117,7 +10258,14 @@
     ],
     "tags": [
       "patterns"
-    ]
+    ],
+    "worked_example": {
+      "skill": "return",
+      "problem": "A cinema works out the cost of tickets with a function that returns it.",
+      "code": "def ticket_cost(adults, children):\n    return adults * 9 + children * 5\n\nprint(ticket_cost(2, 3))",
+      "output": "33",
+      "key_idea": "return sends a value back to where the function was called, and ends the function. A function with no return gives back None."
+    }
   },
   {
     "id": "scratch-fb-card",
@@ -9181,7 +10329,14 @@
     ],
     "tags": [
       "clubs"
-    ]
+    ],
+    "worked_example": {
+      "skill": "def",
+      "problem": "A zookeeper makes a function that prints the feeding time.",
+      "code": "def feeding_time():\n    print(\"Penguins fed at noon\")\n\nfeeding_time()",
+      "output": "Penguins fed at noon",
+      "key_idea": "def makes a function: the indented lines under it are what it does. Defining it doesn't run it; calling it does."
+    }
   },
   {
     "id": "scratch-fb-triangle",
@@ -9232,7 +10387,14 @@
     ],
     "tags": [
       "patterns"
-    ]
+    ],
+    "worked_example": {
+      "skill": "def",
+      "problem": "A zookeeper makes a function that prints the feeding time.",
+      "code": "def feeding_time():\n    print(\"Penguins fed at noon\")\n\nfeeding_time()",
+      "output": "Penguins fed at noon",
+      "key_idea": "def makes a function: the indented lines under it are what it does. Defining it doesn't run it; calling it does."
+    }
   },
   {
     "id": "scratch-fb-welcome",
@@ -9302,7 +10464,14 @@
     ],
     "tags": [
       "greetings"
-    ]
+    ],
+    "worked_example": {
+      "skill": "def",
+      "problem": "A zookeeper makes a function that prints the feeding time.",
+      "code": "def feeding_time():\n    print(\"Penguins fed at noon\")\n\nfeeding_time()",
+      "output": "Penguins fed at noon",
+      "key_idea": "def makes a function: the indented lines under it are what it does. Defining it doesn't run it; calling it does."
+    }
   },
   {
     "id": "scratch-fr-area",
@@ -9359,7 +10528,14 @@
     ],
     "tags": [
       "measuring"
-    ]
+    ],
+    "worked_example": {
+      "skill": "return",
+      "problem": "A cinema works out the cost of tickets with a function that returns it.",
+      "code": "def ticket_cost(adults, children):\n    return adults * 9 + children * 5\n\nprint(ticket_cost(2, 3))",
+      "output": "33",
+      "key_idea": "return sends a value back to where the function was called, and ends the function. A function with no return gives back None."
+    }
   },
   {
     "id": "scratch-fr-initials",
@@ -9420,7 +10596,14 @@
     ],
     "tags": [
       "names"
-    ]
+    ],
+    "worked_example": {
+      "skill": "return",
+      "problem": "A cinema works out the cost of tickets with a function that returns it.",
+      "code": "def ticket_cost(adults, children):\n    return adults * 9 + children * 5\n\nprint(ticket_cost(2, 3))",
+      "output": "33",
+      "key_idea": "return sends a value back to where the function was called, and ends the function. A function with no return gives back None."
+    }
   },
   {
     "id": "scratch-fr-biggest",
@@ -9490,7 +10673,14 @@
     ],
     "tags": [
       "scores"
-    ]
+    ],
+    "worked_example": {
+      "skill": "return",
+      "problem": "A cinema works out the cost of tickets with a function that returns it.",
+      "code": "def ticket_cost(adults, children):\n    return adults * 9 + children * 5\n\nprint(ticket_cost(2, 3))",
+      "output": "33",
+      "key_idea": "return sends a value back to where the function was called, and ends the function. A function with no return gives back None."
+    }
   },
   {
     "id": "comb-file-fr-save",
@@ -9548,7 +10738,14 @@
     ],
     "tags": [
       "files"
-    ]
+    ],
+    "worked_example": {
+      "skill": "return",
+      "problem": "A cinema works out the cost of tickets with a function that returns it.",
+      "code": "def ticket_cost(adults, children):\n    return adults * 9 + children * 5\n\nprint(ticket_cost(2, 3))",
+      "output": "33",
+      "key_idea": "return sends a value back to where the function was called, and ends the function. A function with no return gives back None."
+    }
   },
   {
     "id": "comb-file-fr-count",
@@ -9609,7 +10806,14 @@
     ],
     "tags": [
       "files"
-    ]
+    ],
+    "worked_example": {
+      "skill": "return",
+      "problem": "A cinema works out the cost of tickets with a function that returns it.",
+      "code": "def ticket_cost(adults, children):\n    return adults * 9 + children * 5\n\nprint(ticket_cost(2, 3))",
+      "output": "33",
+      "key_idea": "return sends a value back to where the function was called, and ends the function. A function with no return gives back None."
+    }
   },
   {
     "id": "comb-file-fr-load",
@@ -9671,7 +10875,14 @@
     ],
     "tags": [
       "scores"
-    ]
+    ],
+    "worked_example": {
+      "skill": "return",
+      "problem": "A cinema works out the cost of tickets with a function that returns it.",
+      "code": "def ticket_cost(adults, children):\n    return adults * 9 + children * 5\n\nprint(ticket_cost(2, 3))",
+      "output": "33",
+      "key_idea": "return sends a value back to where the function was called, and ends the function. A function with no return gives back None."
+    }
   },
   {
     "id": "comb-grid-file-save",
@@ -9774,7 +10985,14 @@
     ],
     "tags": [
       "grids"
-    ]
+    ],
+    "worked_example": {
+      "skill": "nested-loop",
+      "problem": "A greenhouse prints every tray's plant count, row by row.",
+      "code": "trays = [[6, 4], [5, 8], [7, 3]]\nfor shelf in trays:\n    for count in shelf:\n        print(count, end=\" \")\n    print()",
+      "output": "6 4\n5 8\n7 3",
+      "key_idea": "A nested loop: the outer loop takes each row, and the inner loop each item in that row."
+    }
   },
   {
     "id": "comb-grid-file-total",
@@ -9833,7 +11051,14 @@
     ],
     "tags": [
       "grids"
-    ]
+    ],
+    "worked_example": {
+      "skill": "nested-loop",
+      "problem": "A greenhouse prints every tray's plant count, row by row.",
+      "code": "trays = [[6, 4], [5, 8], [7, 3]]\nfor shelf in trays:\n    for count in shelf:\n        print(count, end=\" \")\n    print()",
+      "output": "6 4\n5 8\n7 3",
+      "key_idea": "A nested loop: the outer loop takes each row, and the inner loop each item in that row."
+    }
   },
   {
     "id": "scratch-grid-totals",
@@ -9940,7 +11165,14 @@
     ],
     "tags": [
       "grids"
-    ]
+    ],
+    "worked_example": {
+      "skill": "nested-loop",
+      "problem": "A greenhouse prints every tray's plant count, row by row.",
+      "code": "trays = [[6, 4], [5, 8], [7, 3]]\nfor shelf in trays:\n    for count in shelf:\n        print(count, end=\" \")\n    print()",
+      "output": "6 4\n5 8\n7 3",
+      "key_idea": "A nested loop: the outer loop takes each row, and the inner loop each item in that row."
+    }
   },
   {
     "id": "scratch-grid-board",
@@ -10004,7 +11236,14 @@
     ],
     "tags": [
       "games"
-    ]
+    ],
+    "worked_example": {
+      "skill": "nested-loop",
+      "problem": "A greenhouse prints every tray's plant count, row by row.",
+      "code": "trays = [[6, 4], [5, 8], [7, 3]]\nfor shelf in trays:\n    for count in shelf:\n        print(count, end=\" \")\n    print()",
+      "output": "6 4\n5 8\n7 3",
+      "key_idea": "A nested loop: the outer loop takes each row, and the inner loop each item in that row."
+    }
   },
   {
     "id": "scratch-grid-find",
@@ -10093,7 +11332,14 @@
     ],
     "tags": [
       "seating"
-    ]
+    ],
+    "worked_example": {
+      "skill": "nested-loop",
+      "problem": "A greenhouse prints every tray's plant count, row by row.",
+      "code": "trays = [[6, 4], [5, 8], [7, 3]]\nfor shelf in trays:\n    for count in shelf:\n        print(count, end=\" \")\n    print()",
+      "output": "6 4\n5 8\n7 3",
+      "key_idea": "A nested loop: the outer loop takes each row, and the inner loop each item in that row."
+    }
   },
   {
     "id": "comb-grid-file-load",
@@ -10157,7 +11403,14 @@
     ],
     "tags": [
       "grids"
-    ]
+    ],
+    "worked_example": {
+      "skill": "list-of-lists",
+      "problem": "A cinema stores how many tickets each seat block sold, one row of blocks per list.",
+      "code": "sold = [[40, 35, 52], [18, 27, 30]]\nprint(sold[1])\nprint(len(sold))",
+      "output": "[18, 27, 30]\n2",
+      "key_idea": "A 2D array is a list of lists: each inner list is one row. sold[1] is the whole second row."
+    }
   },
   {
     "id": "scratch-val-range",
@@ -10236,7 +11489,17 @@
     ],
     "tags": [
       "range check"
-    ]
+    ],
+    "worked_example": {
+      "skill": "range",
+      "problem": "A swimming club takes ages 8 to 14, including 8 and 14. The user types 14.",
+      "code": "swimmer = int(input(\"Swimmer's age: \"))\nif swimmer >= 8 and swimmer <= 14:\n    print(\"Swim club place offered\")\nelse:\n    print(\"Swim club ages are 8 to 14\")",
+      "inputs": [
+        "14"
+      ],
+      "output": "Swim club place offered",
+      "key_idea": "A range check compares with the lowest and highest values. Use >= and <= when the end values are allowed."
+    }
   },
   {
     "id": "scratch-val-type",
@@ -10304,7 +11567,17 @@
     ],
     "tags": [
       "type check"
-    ]
+    ],
+    "worked_example": {
+      "skill": "type-check",
+      "problem": "A quiz asks how many questions to set. The user types ten.",
+      "code": "answer = input(\"Questions: \")\nif answer.isdigit():\n    print(\"Setting\", int(answer), \"questions\")\nelse:\n    print(\"Type a whole number, such as 10\")",
+      "inputs": [
+        "ten"
+      ],
+      "output": "Type a whole number, such as 10",
+      "key_idea": "A type check with .isdigit() makes sure int() will work. Cast with int() only after the check passes. .isdigit() is False for negative numbers and decimals."
+    }
   },
   {
     "id": "scratch-val-length",
@@ -10383,7 +11656,17 @@
     ],
     "tags": [
       "length check"
-    ]
+    ],
+    "worked_example": {
+      "skill": "length",
+      "problem": "A games site checks that a gamer tag has 4 to 12 characters. The user types Zo.",
+      "code": "tag = input(\"Gamer tag: \")\nif len(tag) >= 4 and len(tag) <= 12:\n    print(\"Tag accepted\")\nelse:\n    print(\"Tags have 4 to 12 characters\")",
+      "inputs": [
+        "Zo"
+      ],
+      "output": "Tags have 4 to 12 characters",
+      "key_idea": "A length check uses len() to count the characters. For a lowest and a highest length, both must be True, so join them with and."
+    }
   },
   {
     "id": "scratch-auth-which",
@@ -10456,7 +11739,18 @@
     ],
     "tags": [
       "login"
-    ]
+    ],
+    "worked_example": {
+      "skill": "which-wrong",
+      "problem": "A games console says which detail was wrong. The user types rio, then cloud6.",
+      "code": "stored_tag = \"rio\"\nstored_secret = \"Cloud6\"\ntag = input(\"Gamer tag: \")\nsecret = input(\"Secret word: \")\nif tag == stored_tag and secret == stored_secret:\n    print(\"Signed in\")\nelif tag == stored_tag:\n    print(\"The secret word is wrong\")\nelse:\n    print(\"The gamer tag is wrong\")",
+      "inputs": [
+        "rio",
+        "cloud6"
+      ],
+      "output": "The secret word is wrong",
+      "key_idea": "Check both details first. If that fails but the gamer tag matches, the secret word must be the wrong part; otherwise it's the tag."
+    }
   },
   {
     "id": "scratch-auth-tries",
@@ -10535,7 +11829,18 @@
     "tags": [
       "attempts",
       "while"
-    ]
+    ],
+    "worked_example": {
+      "skill": "login-loop",
+      "problem": "A lock screen allows three tries at the secret word. The user types cat, then Cloud6.",
+      "code": "secret = \"Cloud6\"\ntries = 0\nopen_now = False\nwhile tries < 3 and not open_now:\n    word = input(\"Lock screen word: \")\n    tries = tries + 1\n    if word == secret:\n        open_now = True\nif open_now:\n    print(\"Screen open\")\nelse:\n    print(\"Screen locked for a minute\")",
+      "inputs": [
+        "cat",
+        "Cloud6"
+      ],
+      "output": "Screen open",
+      "key_idea": "The loop stops after 3 tries or as soon as open_now is True. Count every try inside the loop, or it never ends."
+    }
   },
   {
     "id": "scratch-auth-function",
@@ -10603,7 +11908,18 @@
     "tags": [
       "login",
       "def"
-    ]
+    ],
+    "worked_example": {
+      "skill": "validation-function",
+      "problem": "A sign-in function checks a gamer tag and secret word against two stored lists. The user types zack, then Snow5.",
+      "code": "tags = [\"rio\", \"zack\"]\nsecrets = [\"Cloud6\", \"Snow5\"]\n\ndef check_sign_in(tag, secret):\n    for i in range(len(tags)):\n        if tags[i] == tag and secrets[i] == secret:\n            return True\n    return False\n\nif check_sign_in(input(\"Gamer tag: \"), input(\"Secret word: \")):\n    print(\"Signed in\")\nelse:\n    print(\"Sign-in refused\")",
+      "inputs": [
+        "zack",
+        "Snow5"
+      ],
+      "output": "Signed in",
+      "key_idea": "Each password is at the same index as its username. The function returns True as soon as a stored pair matches, and False after checking them all."
+    }
   },
   {
     "id": "comb-grid-val-row",
@@ -10743,7 +12059,17 @@
     "tags": [
       "range check",
       "seating"
-    ]
+    ],
+    "worked_example": {
+      "skill": "range",
+      "problem": "A swimming club takes ages 8 to 14, including 8 and 14. The user types 14.",
+      "code": "swimmer = int(input(\"Swimmer's age: \"))\nif swimmer >= 8 and swimmer <= 14:\n    print(\"Swim club place offered\")\nelse:\n    print(\"Swim club ages are 8 to 14\")",
+      "inputs": [
+        "14"
+      ],
+      "output": "Swim club place offered",
+      "key_idea": "A range check compares with the lowest and highest values. Use >= and <= when the end values are allowed."
+    }
   },
   {
     "id": "comb-grid-val-place",
@@ -10814,7 +12140,17 @@
     "tags": [
       "range check",
       "games"
-    ]
+    ],
+    "worked_example": {
+      "skill": "range",
+      "problem": "A swimming club takes ages 8 to 14, including 8 and 14. The user types 14.",
+      "code": "swimmer = int(input(\"Swimmer's age: \"))\nif swimmer >= 8 and swimmer <= 14:\n    print(\"Swim club place offered\")\nelse:\n    print(\"Swim club ages are 8 to 14\")",
+      "inputs": [
+        "14"
+      ],
+      "output": "Swim club place offered",
+      "key_idea": "A range check compares with the lowest and highest values. Use >= and <= when the end values are allowed."
+    }
   },
   {
     "id": "comb-val-auth-signup",
@@ -10911,7 +12247,17 @@
     "tags": [
       "length check",
       "usernames"
-    ]
+    ],
+    "worked_example": {
+      "skill": "length",
+      "problem": "A games site checks that a gamer tag has 4 to 12 characters. The user types Zo.",
+      "code": "tag = input(\"Gamer tag: \")\nif len(tag) >= 4 and len(tag) <= 12:\n    print(\"Tag accepted\")\nelse:\n    print(\"Tags have 4 to 12 characters\")",
+      "inputs": [
+        "Zo"
+      ],
+      "output": "Tags have 4 to 12 characters",
+      "key_idea": "A length check uses len() to count the characters. For a lowest and a highest length, both must be True, so join them with and."
+    }
   },
   {
     "id": "comb-val-auth-pin",
@@ -10973,7 +12319,17 @@
       "type check",
       "attempts",
       "PINs"
-    ]
+    ],
+    "worked_example": {
+      "skill": "type-check",
+      "problem": "A quiz asks how many questions to set. The user types ten.",
+      "code": "answer = input(\"Questions: \")\nif answer.isdigit():\n    print(\"Setting\", int(answer), \"questions\")\nelse:\n    print(\"Type a whole number, such as 10\")",
+      "inputs": [
+        "ten"
+      ],
+      "output": "Type a whole number, such as 10",
+      "key_idea": "A type check with .isdigit() makes sure int() will work. Cast with int() only after the check passes. .isdigit() is False for negative numbers and decimals."
+    }
   },
   {
     "id": "comb-grid-val-column",
@@ -11099,7 +12455,17 @@
     "tags": [
       "type check",
       "marks"
-    ]
+    ],
+    "worked_example": {
+      "skill": "type-check",
+      "problem": "A quiz asks how many questions to set. The user types ten.",
+      "code": "answer = input(\"Questions: \")\nif answer.isdigit():\n    print(\"Setting\", int(answer), \"questions\")\nelse:\n    print(\"Type a whole number, such as 10\")",
+      "inputs": [
+        "ten"
+      ],
+      "output": "Type a whole number, such as 10",
+      "key_idea": "A type check with .isdigit() makes sure int() will work. Cast with int() only after the check passes. .isdigit() is False for negative numbers and decimals."
+    }
   },
   {
     "id": "comb-val-auth-function",
@@ -11178,7 +12544,18 @@
     "tags": [
       "login",
       "def"
-    ]
+    ],
+    "worked_example": {
+      "skill": "validation-function",
+      "problem": "A function checks a house number: digits only, from 1 to 999. The user types 0, then 42.",
+      "code": "def valid_house(text):\n    if not text.isdigit():\n        return False\n    number = int(text)\n    if number < 1 or number > 999:\n        return False\n    return True\n\nhouse = input(\"House number: \")\nwhile not valid_house(house):\n    print(\"Type a number from 1 to 999\")\n    house = input(\"House number: \")\nprint(\"House number:\", house)",
+      "inputs": [
+        "0",
+        "42"
+      ],
+      "output": "Type a number from 1 to 999\nHouse number: 42",
+      "key_idea": "A validation function does the checks and returns True or False. The rest of the program only has to call it, for example while not valid_house(house):"
+    }
   },
   {
     "id": "d-out-L1a",
@@ -67781,7 +69158,17 @@
     ],
     "tags": [
       "linear search"
-    ]
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "A function searches the car park list for a registration. The user types XY12.",
+      "code": "regs = [\"AB34\", \"XY12\", \"QQ90\"]\n\ndef where(items, target):\n    for i in range(len(items)):\n        if items[i] == target:\n            return i\n    return -1\n\nreg = input(\"Registration: \")\nspot = where(regs, reg)\nif spot == -1:\n    print(\"Not parked here\")\nelse:\n    print(\"Parked in space\", spot)",
+      "inputs": [
+        "XY12"
+      ],
+      "output": "Parked in space 1",
+      "key_idea": "Check every index and return as soon as one matches. After the loop, return -1 for not found, and let the caller decide what to print."
+    }
   },
   {
     "id": "scratch-lin-first",
@@ -67880,7 +69267,17 @@
     ],
     "tags": [
       "while"
-    ]
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "A function searches the car park list for a registration. The user types XY12.",
+      "code": "regs = [\"AB34\", \"XY12\", \"QQ90\"]\n\ndef where(items, target):\n    for i in range(len(items)):\n        if items[i] == target:\n            return i\n    return -1\n\nreg = input(\"Registration: \")\nspot = where(regs, reg)\nif spot == -1:\n    print(\"Not parked here\")\nelse:\n    print(\"Parked in space\", spot)",
+      "inputs": [
+        "XY12"
+      ],
+      "output": "Parked in space 1",
+      "key_idea": "Check every index and return as soon as one matches. After the loop, return -1 for not found, and let the caller decide what to print."
+    }
   },
   {
     "id": "scratch-lin-names",
@@ -67969,7 +69366,17 @@
     ],
     "tags": [
       "def"
-    ]
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "A function searches the car park list for a registration. The user types XY12.",
+      "code": "regs = [\"AB34\", \"XY12\", \"QQ90\"]\n\ndef where(items, target):\n    for i in range(len(items)):\n        if items[i] == target:\n            return i\n    return -1\n\nreg = input(\"Registration: \")\nspot = where(regs, reg)\nif spot == -1:\n    print(\"Not parked here\")\nelse:\n    print(\"Parked in space\", spot)",
+      "inputs": [
+        "XY12"
+      ],
+      "output": "Parked in space 1",
+      "key_idea": "Check every index and return as soon as one matches. After the loop, return -1 for not found, and let the caller decide what to print."
+    }
   },
   {
     "id": "scratch-bin-index",
@@ -68074,7 +69481,14 @@
     ],
     "tags": [
       "binary search"
-    ]
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "A function returns the index of a page in a sorted list, or -1.",
+      "code": "def find_page(pages, p):\n    low = 0\n    high = len(pages) - 1\n    while low <= high:\n        mid = (low + high) // 2\n        if pages[mid] == p:\n            return mid\n        elif pages[mid] < p:\n            low = mid + 1\n        else:\n            high = mid - 1\n    return -1\n\nprint(find_page([3, 10, 18, 26, 40], 26))\nprint(find_page([3, 10, 18, 26, 40], 5))",
+      "output": "3\n-1",
+      "key_idea": "return mid as soon as it matches. If low passes high, every possible place has been thrown away, so return -1."
+    }
   },
   {
     "id": "scratch-bin-checks",
@@ -68179,7 +69593,14 @@
     ],
     "tags": [
       "counting"
-    ]
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "A function returns the index of a page in a sorted list, or -1.",
+      "code": "def find_page(pages, p):\n    low = 0\n    high = len(pages) - 1\n    while low <= high:\n        mid = (low + high) // 2\n        if pages[mid] == p:\n            return mid\n        elif pages[mid] < p:\n            low = mid + 1\n        else:\n            high = mid - 1\n    return -1\n\nprint(find_page([3, 10, 18, 26, 40], 26))\nprint(find_page([3, 10, 18, 26, 40], 5))",
+      "output": "3\n-1",
+      "key_idea": "return mid as soon as it matches. If low passes high, every possible place has been thrown away, so return -1."
+    }
   },
   {
     "id": "scratch-bin-guess",
@@ -68234,7 +69655,14 @@
     ],
     "tags": [
       "guessing game"
-    ]
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "A function returns the index of a page in a sorted list, or -1.",
+      "code": "def find_page(pages, p):\n    low = 0\n    high = len(pages) - 1\n    while low <= high:\n        mid = (low + high) // 2\n        if pages[mid] == p:\n            return mid\n        elif pages[mid] < p:\n            low = mid + 1\n        else:\n            high = mid - 1\n    return -1\n\nprint(find_page([3, 10, 18, 26, 40], 26))\nprint(find_page([3, 10, 18, 26, 40], 5))",
+      "output": "3\n-1",
+      "key_idea": "return mid as soon as it matches. If low passes high, every possible place has been thrown away, so return -1."
+    }
   },
   {
     "id": "scratch-bub-sort",
@@ -68317,7 +69745,14 @@
     ],
     "tags": [
       "sort"
-    ]
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "A function sorts shoe sizes with a bubble sort and returns them.",
+      "code": "def sort_sizes(sizes):\n    for i in range(len(sizes) - 1):\n        for j in range(len(sizes) - 1 - i):\n            if sizes[j] > sizes[j + 1]:\n                temp = sizes[j]\n                sizes[j] = sizes[j + 1]\n                sizes[j + 1] = temp\n    return sizes\n\nprint(sort_sizes([8, 3, 6, 2]))",
+      "output": "[2, 3, 6, 8]",
+      "key_idea": "The inner loop's range stops at len(sizes) - 1 - i, so sizes[j + 1] is always in the list."
+    }
   },
   {
     "id": "scratch-bub-desc",
@@ -68409,7 +69844,14 @@
     ],
     "tags": [
       "sort"
-    ]
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "A function sorts shoe sizes with a bubble sort and returns them.",
+      "code": "def sort_sizes(sizes):\n    for i in range(len(sizes) - 1):\n        for j in range(len(sizes) - 1 - i):\n            if sizes[j] > sizes[j + 1]:\n                temp = sizes[j]\n                sizes[j] = sizes[j + 1]\n                sizes[j + 1] = temp\n    return sizes\n\nprint(sort_sizes([8, 3, 6, 2]))",
+      "output": "[2, 3, 6, 8]",
+      "key_idea": "The inner loop's range stops at len(sizes) - 1 - i, so sizes[j + 1] is always in the list."
+    }
   },
   {
     "id": "scratch-bub-swaps",
@@ -68491,7 +69933,14 @@
     ],
     "tags": [
       "counting"
-    ]
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "A function sorts shoe sizes with a bubble sort and returns them.",
+      "code": "def sort_sizes(sizes):\n    for i in range(len(sizes) - 1):\n        for j in range(len(sizes) - 1 - i):\n            if sizes[j] > sizes[j + 1]:\n                temp = sizes[j]\n                sizes[j] = sizes[j + 1]\n                sizes[j + 1] = temp\n    return sizes\n\nprint(sort_sizes([8, 3, 6, 2]))",
+      "output": "[2, 3, 6, 8]",
+      "key_idea": "The inner loop's range stops at len(sizes) - 1 - i, so sizes[j + 1] is always in the list."
+    }
   },
   {
     "id": "scratch-ins-sort",
@@ -68574,7 +70023,14 @@
     ],
     "tags": [
       "sort"
-    ]
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "A function sorts ages with an insertion sort and returns them.",
+      "code": "def sort_ages(ages):\n    for i in range(1, len(ages)):\n        key = ages[i]\n        j = i - 1\n        while j >= 0 and ages[j] > key:\n            ages[j + 1] = ages[j]\n            j = j - 1\n        ages[j + 1] = key\n    return ages\n\nprint(sort_ages([14, 11, 13, 12]))",
+      "output": "[11, 12, 13, 14]",
+      "key_idea": "Compare with key, not ages[i]: the first shift writes over ages[i]."
+    }
   },
   {
     "id": "scratch-ins-insert",
@@ -68654,7 +70110,14 @@
     ],
     "tags": [
       "insert"
-    ]
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "A function sorts ages with an insertion sort and returns them.",
+      "code": "def sort_ages(ages):\n    for i in range(1, len(ages)):\n        key = ages[i]\n        j = i - 1\n        while j >= 0 and ages[j] > key:\n            ages[j + 1] = ages[j]\n            j = j - 1\n        ages[j + 1] = key\n    return ages\n\nprint(sort_ages([14, 11, 13, 12]))",
+      "output": "[11, 12, 13, 14]",
+      "key_idea": "Compare with key, not ages[i]: the first shift writes over ages[i]."
+    }
   },
   {
     "id": "scratch-ins-shifts",
@@ -68736,7 +70199,14 @@
     ],
     "tags": [
       "counting"
-    ]
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "A function sorts ages with an insertion sort and returns them.",
+      "code": "def sort_ages(ages):\n    for i in range(1, len(ages)):\n        key = ages[i]\n        j = i - 1\n        while j >= 0 and ages[j] > key:\n            ages[j + 1] = ages[j]\n            j = j - 1\n        ages[j + 1] = key\n    return ages\n\nprint(sort_ages([14, 11, 13, 12]))",
+      "output": "[11, 12, 13, 14]",
+      "key_idea": "Compare with key, not ages[i]: the first shift writes over ages[i]."
+    }
   },
   {
     "id": "comb-auth-trace-which",
@@ -68804,7 +70274,18 @@
     ],
     "tags": [
       "login"
-    ]
+    ],
+    "worked_example": {
+      "skill": "which-wrong",
+      "problem": "A games console says which detail was wrong. The user types rio, then cloud6.",
+      "code": "stored_tag = \"rio\"\nstored_secret = \"Cloud6\"\ntag = input(\"Gamer tag: \")\nsecret = input(\"Secret word: \")\nif tag == stored_tag and secret == stored_secret:\n    print(\"Signed in\")\nelif tag == stored_tag:\n    print(\"The secret word is wrong\")\nelse:\n    print(\"The gamer tag is wrong\")",
+      "inputs": [
+        "rio",
+        "cloud6"
+      ],
+      "output": "The secret word is wrong",
+      "key_idea": "Check both details first. If that fails but the gamer tag matches, the secret word must be the wrong part; otherwise it's the tag."
+    }
   },
   {
     "id": "comb-auth-trace-count",
@@ -68860,7 +70341,19 @@
     ],
     "tags": [
       "attempts"
-    ]
+    ],
+    "worked_example": {
+      "skill": "attempts",
+      "problem": "A safe counts the wrong codes before the right one. The user types 1111, 2222, then 5050.",
+      "code": "safe_code = \"5050\"\nwrong = 0\ncode = input(\"Safe code: \")\nwhile code != safe_code:\n    wrong = wrong + 1\n    code = input(\"Safe code: \")\nprint(\"Safe opened after\", wrong, \"wrong tries\")",
+      "inputs": [
+        "1111",
+        "2222",
+        "5050"
+      ],
+      "output": "Safe opened after 2 wrong tries",
+      "key_idea": "Start the counter at 0 before the loop, and add 1 for each wrong try with wrong = wrong + 1. wrong + 1 on its own doesn't store anything."
+    }
   },
   {
     "id": "comb-auth-trace-tries",
@@ -68919,7 +70412,18 @@
     ],
     "tags": [
       "attempts"
-    ]
+    ],
+    "worked_example": {
+      "skill": "login-loop",
+      "problem": "A lock screen allows three tries at the secret word. The user types cat, then Cloud6.",
+      "code": "secret = \"Cloud6\"\ntries = 0\nopen_now = False\nwhile tries < 3 and not open_now:\n    word = input(\"Lock screen word: \")\n    tries = tries + 1\n    if word == secret:\n        open_now = True\nif open_now:\n    print(\"Screen open\")\nelse:\n    print(\"Screen locked for a minute\")",
+      "inputs": [
+        "cat",
+        "Cloud6"
+      ],
+      "output": "Screen open",
+      "key_idea": "The loop stops after 3 tries or as soon as open_now is True. Count every try inside the loop, or it never ends."
+    }
   },
   {
     "id": "comb-trace-lin-flag",
@@ -68997,7 +70501,72 @@
     ],
     "tags": [
       "while"
-    ]
+    ],
+    "worked_example": {
+      "skill": "trace-loop",
+      "problem": "A sticker book gets 2 stickers a day for 3 days.",
+      "code": "stickers = 0\nfor day in range(3):\n    stickers = stickers + 2\nprint(stickers)",
+      "output": "6",
+      "key_idea": "Each time round the loop gets new rows: first the loop variable changes, then the lines inside the loop.",
+      "trace": {
+        "columns": [
+          "Line",
+          "stickers",
+          "day",
+          "Output"
+        ],
+        "rows": [
+          [
+            "1",
+            "0",
+            null,
+            null
+          ],
+          [
+            "2",
+            null,
+            "0",
+            null
+          ],
+          [
+            "3",
+            "2",
+            null,
+            null
+          ],
+          [
+            "2",
+            null,
+            "1",
+            null
+          ],
+          [
+            "3",
+            "4",
+            null,
+            null
+          ],
+          [
+            "2",
+            null,
+            "2",
+            null
+          ],
+          [
+            "3",
+            "6",
+            null,
+            null
+          ],
+          [
+            "4",
+            null,
+            null,
+            "6"
+          ]
+        ]
+      }
+    }
   },
   {
     "id": "comb-trace-lin-count",
@@ -69079,7 +70648,90 @@
     ],
     "tags": [
       "counting"
-    ]
+    ],
+    "worked_example": {
+      "skill": "trace-list",
+      "problem": "A climbing wall finds the highest climb in a list.",
+      "code": "climbs = [6, 11, 9]\nhighest = climbs[0]\nfor c in climbs:\n    if c > highest:\n        highest = c\nprint(highest)",
+      "output": "11",
+      "key_idea": "A list has a column for each position: climbs[0], climbs[1], … Fill them in on the line that makes the list.",
+      "trace": {
+        "columns": [
+          "Line",
+          "climbs[0]",
+          "climbs[1]",
+          "climbs[2]",
+          "highest",
+          "c",
+          "Output"
+        ],
+        "rows": [
+          [
+            "1",
+            "6",
+            "11",
+            "9",
+            null,
+            null,
+            null
+          ],
+          [
+            "2",
+            null,
+            null,
+            null,
+            "6",
+            null,
+            null
+          ],
+          [
+            "3",
+            null,
+            null,
+            null,
+            null,
+            "6",
+            null
+          ],
+          [
+            "3",
+            null,
+            null,
+            null,
+            null,
+            "11",
+            null
+          ],
+          [
+            "5",
+            null,
+            null,
+            null,
+            "11",
+            null,
+            null
+          ],
+          [
+            "3",
+            null,
+            null,
+            null,
+            null,
+            "9",
+            null
+          ],
+          [
+            "6",
+            null,
+            null,
+            null,
+            null,
+            null,
+            "11"
+          ]
+        ]
+      }
+    }
   },
   {
     "id": "comb-lin-bin-checks",
@@ -69178,7 +70830,14 @@
     ],
     "tags": [
       "compare"
-    ]
+    ],
+    "worked_example": {
+      "skill": "predict",
+      "problem": "A library shelf is searched for book number 31.",
+      "code": "shelf = [12, 45, 31, 8, 27]\nfor i in range(len(shelf)):\n    if shelf[i] == 31:\n        print(\"Book at index\", i)",
+      "output": "Book at index 2",
+      "key_idea": "A linear search checks each item in turn, from index 0. Indexing counts from 0, so the third item is at index 2."
+    }
   },
   {
     "id": "comb-lin-bin-fill",
@@ -69286,7 +70945,14 @@
     ],
     "tags": [
       "compare"
-    ]
+    ],
+    "worked_example": {
+      "skill": "fill",
+      "problem": "A function finds a lap time in a list, or gives -1.",
+      "code": "def find_lap(laps, t):\n    for i in range(len(laps)):\n        if laps[i] == t:\n            return i\n    return -1\n\nprint(find_lap([58, 61, 57, 60], 57))\nprint(find_lap([58, 61, 57, 60], 55))",
+      "output": "2\n-1",
+      "key_idea": "range(len(laps)) gives every index. return -1 goes after the loop, so it only runs when nothing matched."
+    }
   },
   {
     "id": "comb-lin-bin-choose",
@@ -69380,7 +71046,14 @@
     ],
     "tags": [
       "choose"
-    ]
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "A function returns the index of a page in a sorted list, or -1.",
+      "code": "def find_page(pages, p):\n    low = 0\n    high = len(pages) - 1\n    while low <= high:\n        mid = (low + high) // 2\n        if pages[mid] == p:\n            return mid\n        elif pages[mid] < p:\n            low = mid + 1\n        else:\n            high = mid - 1\n    return -1\n\nprint(find_page([3, 10, 18, 26, 40], 26))\nprint(find_page([3, 10, 18, 26, 40], 5))",
+      "output": "3\n-1",
+      "key_idea": "return mid as soon as it matches. If low passes high, every possible place has been thrown away, so return -1."
+    }
   },
   {
     "id": "comb-bin-bub-mid",
@@ -69466,7 +71139,14 @@
     ],
     "tags": [
       "sort"
-    ]
+    ],
+    "worked_example": {
+      "skill": "predict",
+      "problem": "One pass of a bubble sort on plant heights.",
+      "code": "plants = [14, 9, 20, 11]\nfor j in range(len(plants) - 1):\n    if plants[j] > plants[j + 1]:\n        plants[j], plants[j + 1] = plants[j + 1], plants[j]\nprint(plants)",
+      "output": "[9, 14, 11, 20]",
+      "key_idea": "A pass compares each pair next to each other and swaps it if it is the wrong way round. After one pass, the biggest item is at the end."
+    }
   },
   {
     "id": "comb-bin-bub-parsons",
@@ -69564,7 +71244,14 @@
     ],
     "tags": [
       "parsons"
-    ]
+    ],
+    "worked_example": {
+      "skill": "parsons",
+      "problem": "A bubble sort of race times that stops when a pass makes no swaps.",
+      "code": "times = [61, 58, 59, 64, 60]\nswapped = True\nwhile swapped:\n    swapped = False\n    for j in range(len(times) - 1):\n        if times[j] > times[j + 1]:\n            times[j], times[j + 1] = times[j + 1], times[j]\n            swapped = True\nprint(times)",
+      "output": "[58, 59, 60, 61, 64]",
+      "key_idea": "Set swapped to False at the start of each pass and to True after any swap. A pass with no swaps means the list is sorted."
+    }
   },
   {
     "id": "comb-bin-bub-write",
@@ -69660,7 +71347,14 @@
     "tags": [
       "sort",
       "search"
-    ]
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "A function sorts shoe sizes with a bubble sort and returns them.",
+      "code": "def sort_sizes(sizes):\n    for i in range(len(sizes) - 1):\n        for j in range(len(sizes) - 1 - i):\n            if sizes[j] > sizes[j + 1]:\n                temp = sizes[j]\n                sizes[j] = sizes[j + 1]\n                sizes[j + 1] = temp\n    return sizes\n\nprint(sort_sizes([8, 3, 6, 2]))",
+      "output": "[2, 3, 6, 8]",
+      "key_idea": "The inner loop's range stops at len(sizes) - 1 - i, so sizes[j + 1] is always in the list."
+    }
   },
   {
     "id": "comb-bub-ins-count",
@@ -69747,7 +71441,14 @@
     ],
     "tags": [
       "counting"
-    ]
+    ],
+    "worked_example": {
+      "skill": "predict",
+      "problem": "One pass of a bubble sort on plant heights.",
+      "code": "plants = [14, 9, 20, 11]\nfor j in range(len(plants) - 1):\n    if plants[j] > plants[j + 1]:\n        plants[j], plants[j + 1] = plants[j + 1], plants[j]\nprint(plants)",
+      "output": "[9, 14, 11, 20]",
+      "key_idea": "A pass compares each pair next to each other and swaps it if it is the wrong way round. After one pass, the biggest item is at the end."
+    }
   },
   {
     "id": "comb-bub-ins-fill",
@@ -69881,7 +71582,14 @@
     ],
     "tags": [
       "sort"
-    ]
+    ],
+    "worked_example": {
+      "skill": "fill",
+      "problem": "A full bubble sort of shoe sizes.",
+      "code": "sizes = [7, 4, 9, 5, 6]\nfor i in range(len(sizes) - 1):\n    for j in range(len(sizes) - 1 - i):\n        if sizes[j] > sizes[j + 1]:\n            sizes[j], sizes[j + 1] = sizes[j + 1], sizes[j]\nprint(sizes)",
+      "output": "[4, 5, 6, 7, 9]",
+      "key_idea": "n items need n - 1 passes. Each pass compares one pair fewer, because the biggest items are already at the end."
+    }
   },
   {
     "id": "comb-bub-ins-parsons",
@@ -69967,7 +71675,14 @@
     ],
     "tags": [
       "parsons"
-    ]
+    ],
+    "worked_example": {
+      "skill": "parsons",
+      "problem": "An insertion sort of book heights, tallest first.",
+      "code": "books = [21, 30, 18, 25]\nfor i in range(1, len(books)):\n    key = books[i]\n    j = i - 1\n    while j >= 0 and books[j] < key:\n        books[j + 1] = books[j]\n        j = j - 1\n    books[j + 1] = key\nprint(books)",
+      "output": "[30, 25, 21, 18]",
+      "key_idea": "For tallest first, the smaller books shift right. The order of the lines is the same as for smallest first."
+    }
   },
   {
     "id": "comb-ins-mer-predict",
@@ -70055,7 +71770,14 @@
     ],
     "tags": [
       "merge"
-    ]
+    ],
+    "worked_example": {
+      "skill": "predict",
+      "problem": "Inserting one card into the sorted cards before it.",
+      "code": "cards = [2, 6, 9, 4, 7]\ni = 3\nkey = cards[i]\nj = i - 1\nwhile j >= 0 and cards[j] > key:\n    cards[j + 1] = cards[j]\n    j = j - 1\ncards[j + 1] = key\nprint(cards)",
+      "output": "[2, 4, 6, 9, 7]",
+      "key_idea": "Keep the card in key first. Shift each bigger card one place right, then put key in the gap at j + 1."
+    }
   },
   {
     "id": "comb-ins-mer-fill",
@@ -70190,7 +71912,14 @@
     ],
     "tags": [
       "merge"
-    ]
+    ],
+    "worked_example": {
+      "skill": "fill",
+      "problem": "A full insertion sort of ages.",
+      "code": "ages = [12, 9, 15, 10, 11]\nfor i in range(1, len(ages)):\n    key = ages[i]\n    j = i - 1\n    while j >= 0 and ages[j] > key:\n        ages[j + 1] = ages[j]\n        j = j - 1\n    ages[j + 1] = key\nprint(ages)",
+      "output": "[9, 10, 11, 12, 15]",
+      "key_idea": "i starts at 1: the first item is a sorted part on its own. Each time round, one more item joins the sorted part."
+    }
   },
   {
     "id": "comb-ins-mer-parsons",
@@ -70277,7 +72006,14 @@
     ],
     "tags": [
       "parsons"
-    ]
+    ],
+    "worked_example": {
+      "skill": "parsons",
+      "problem": "Merging two sorted queues, with a loop for each queue's leftovers.",
+      "code": "queue_a = [2, 8]\nqueue_b = [3, 5, 9]\nboth = []\na = 0\nb = 0\nwhile a < len(queue_a) and b < len(queue_b):\n    if queue_a[a] <= queue_b[b]:\n        both.append(queue_a[a])\n        a = a + 1\n    else:\n        both.append(queue_b[b])\n        b = b + 1\nwhile a < len(queue_a):\n    both.append(queue_a[a])\n    a = a + 1\nwhile b < len(queue_b):\n    both.append(queue_b[b])\n    b = b + 1\nprint(both)",
+      "output": "[2, 3, 5, 8, 9]",
+      "key_idea": "The first loop compares; the two leftover loops come after it. Only one of them adds anything."
+    }
   },
   {
     "id": "d-trace-L1a",
@@ -90828,7 +92564,72 @@
     ],
     "tags": [
       "trap"
-    ]
+    ],
+    "worked_example": {
+      "skill": "trace-loop",
+      "problem": "A sticker book gets 2 stickers a day for 3 days.",
+      "code": "stickers = 0\nfor day in range(3):\n    stickers = stickers + 2\nprint(stickers)",
+      "output": "6",
+      "key_idea": "Each time round the loop gets new rows: first the loop variable changes, then the lines inside the loop.",
+      "trace": {
+        "columns": [
+          "Line",
+          "stickers",
+          "day",
+          "Output"
+        ],
+        "rows": [
+          [
+            "1",
+            "0",
+            null,
+            null
+          ],
+          [
+            "2",
+            null,
+            "0",
+            null
+          ],
+          [
+            "3",
+            "2",
+            null,
+            null
+          ],
+          [
+            "2",
+            null,
+            "1",
+            null
+          ],
+          [
+            "3",
+            "4",
+            null,
+            null
+          ],
+          [
+            "2",
+            null,
+            "2",
+            null
+          ],
+          [
+            "3",
+            "6",
+            null,
+            null
+          ],
+          [
+            "4",
+            null,
+            null,
+            "6"
+          ]
+        ]
+      }
+    }
   },
   {
     "id": "comb-mer-rec-sort",
@@ -90923,7 +92724,14 @@
     "tags": [
       "recursion"
     ],
-    "explainer": "merge_sort keeps calling itself on smaller halves until the base case of one item, and each call merges its two sorted halves on the way back."
+    "explainer": "merge_sort keeps calling itself on smaller halves until the base case of one item, and each call merges its two sorted halves on the way back.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "Two sorted queues of ticket numbers are merged into one.",
+      "code": "queue_a = [4, 9, 15]\nqueue_b = [6, 7, 20]\nboth = []\na = 0\nb = 0\nwhile a < len(queue_a) and b < len(queue_b):\n    if queue_a[a] <= queue_b[b]:\n        both.append(queue_a[a])\n        a = a + 1\n    else:\n        both.append(queue_b[b])\n        b = b + 1\nboth = both + queue_a[a:] + queue_b[b:]\nprint(both)",
+      "output": "[4, 6, 7, 9, 15, 20]",
+      "key_idea": "Compare the two front items and take the smaller one. When one queue runs out, add everything left in the other."
+    }
   },
   {
     "id": "comb-mer-rec-calls",
@@ -90968,7 +92776,14 @@
     "tags": [
       "recursion"
     ],
-    "explainer": "Each call that doesn't reach the base case splits its list and makes two more calls, so the parts end up one item each and the calls add up."
+    "explainer": "Each call that doesn't reach the base case splits its list and makes two more calls, so the parts end up one item each and the calls add up.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "Two sorted queues of ticket numbers are merged into one.",
+      "code": "queue_a = [4, 9, 15]\nqueue_b = [6, 7, 20]\nboth = []\na = 0\nb = 0\nwhile a < len(queue_a) and b < len(queue_b):\n    if queue_a[a] <= queue_b[b]:\n        both.append(queue_a[a])\n        a = a + 1\n    else:\n        both.append(queue_b[b])\n        b = b + 1\nboth = both + queue_a[a:] + queue_b[b:]\nprint(both)",
+      "output": "[4, 6, 7, 9, 15, 20]",
+      "key_idea": "Compare the two front items and take the smaller one. When one queue runs out, add everything left in the other."
+    }
   },
   {
     "id": "comb-mer-rec-merge",
@@ -91068,7 +92883,14 @@
     "tags": [
       "recursion"
     ],
-    "explainer": "Each call takes the smaller front item and merges what is left of both lists, so the lists get shorter until one is empty, which is the base case."
+    "explainer": "Each call takes the smaller front item and merges what is left of both lists, so the lists get shorter until one is empty, which is the base case.",
+    "worked_example": {
+      "skill": "fill",
+      "problem": "A function merges two sorted piles of marks.",
+      "code": "def merge_piles(p, q):\n    out = []\n    a = 0\n    b = 0\n    while a < len(p) and b < len(q):\n        if p[a] <= q[b]:\n            out.append(p[a])\n            a = a + 1\n        else:\n            out.append(q[b])\n            b = b + 1\n    return out + p[a:] + q[b:]\n\nprint(merge_piles([35, 58, 77], [41, 63]))",
+      "output": "[35, 41, 58, 63, 77]",
+      "key_idea": "p[a:] and q[b:] are the leftovers. One of them is always empty, so adding both is safe."
+    }
   },
   {
     "id": "comb-rec-scope-global",
@@ -91110,7 +92932,14 @@
     "tags": [
       "recursion"
     ],
-    "explainer": "Every call, including the last one with n == 0, adds 1 to the one global calls, because each call says global calls."
+    "explainer": "Every call, including the last one with n == 0, adds 1 to the one global calls, because each call says global calls.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "A climber goes up a staircase one step at a time, using recursion.",
+      "code": "def climb(steps):\n    if steps == 0:\n        print(\"At the top\")\n    else:\n        print(\"Step\", steps)\n        climb(steps - 1)\n\nclimb(2)",
+      "output": "Step 2\nStep 1\nAt the top",
+      "key_idea": "A recursive function calls itself on a smaller problem. Follow one call at a time: each prints its line, then makes the next call, until the base case stops them."
+    }
   },
   {
     "id": "comb-rec-scope-local",
@@ -91155,7 +92984,14 @@
     "tags": [
       "scope"
     ],
-    "explainer": "Each call has its own local total, so the global total is never changed, and the answer only comes out through the returned value."
+    "explainer": "Each call has its own local total, so the global total is never changed, and the answer only comes out through the returned value.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "A climber goes up a staircase one step at a time, using recursion.",
+      "code": "def climb(steps):\n    if steps == 0:\n        print(\"At the top\")\n    else:\n        print(\"Step\", steps)\n        climb(steps - 1)\n\nclimb(2)",
+      "output": "Step 2\nStep 1\nAt the top",
+      "key_idea": "A recursive function calls itself on a smaller problem. Follow one call at a time: each prints its line, then makes the next call, until the base case stops them."
+    }
   },
   {
     "id": "comb-rec-scope-list",
@@ -91206,7 +93042,14 @@
     "tags": [
       "recursion"
     ],
-    "explainer": "Every call is passed the same list, so each append is seen by the next call and by the main program, in the order the calls happen."
+    "explainer": "Every call is passed the same list, so each append is seen by the next call and by the main program, in the order the calls happen.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "A climber goes up a staircase one step at a time, using recursion.",
+      "code": "def climb(steps):\n    if steps == 0:\n        print(\"At the top\")\n    else:\n        print(\"Step\", steps)\n        climb(steps - 1)\n\nclimb(2)",
+      "output": "Step 2\nStep 1\nAt the top",
+      "key_idea": "A recursive function calls itself on a smaller problem. Follow one call at a time: each prints its line, then makes the next call, until the base case stops them."
+    }
   },
   {
     "id": "comb-scope-cls-alias",
@@ -91254,7 +93097,14 @@
     "tags": [
       "objects"
     ],
-    "explainer": "An object passed to a function isn't copied, so changing p.coins inside spend changes the same object that mine names."
+    "explainer": "An object passed to a function isn't copied, so changing p.coins inside spend changes the same object that mine names.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "A space game has a planet variable outside a function and another inside it.",
+      "code": "planet = \"Mars\"\n\ndef visit():\n    planet = \"Venus\"\n    print(\"Visiting\", planet)\n\nvisit()\nprint(\"Home is\", planet)",
+      "output": "Visiting Venus\nHome is Mars",
+      "key_idea": "A variable given a value inside a function is local: it is a different variable from one outside with the same name, and it disappears when the function ends."
+    }
   },
   {
     "id": "comb-scope-cls-rebind",
@@ -91302,7 +93152,14 @@
     "tags": [
       "scope"
     ],
-    "explainer": "b = Box(...) only makes the function's local name b refer to a new object, so the object that box names is never changed."
+    "explainer": "b = Box(...) only makes the function's local name b refer to a new object, so the object that box names is never changed.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "A space game has a planet variable outside a function and another inside it.",
+      "code": "planet = \"Mars\"\n\ndef visit():\n    planet = \"Venus\"\n    print(\"Visiting\", planet)\n\nvisit()\nprint(\"Home is\", planet)",
+      "output": "Visiting Venus\nHome is Mars",
+      "key_idea": "A variable given a value inside a function is local: it is a different variable from one outside with the same name, and it disappears when the function ends."
+    }
   },
   {
     "id": "comb-scope-cls-list",
@@ -91356,7 +93213,14 @@
     "tags": [
       "objects"
     ],
-    "explainer": "The list passed in holds the same Pupil objects as team, so changing each p.score inside bonus is seen outside the function."
+    "explainer": "The list passed in holds the same Pupil objects as team, so changing each p.score inside bonus is seen outside the function.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "A space game has a planet variable outside a function and another inside it.",
+      "code": "planet = \"Mars\"\n\ndef visit():\n    planet = \"Venus\"\n    print(\"Visiting\", planet)\n\nvisit()\nprint(\"Home is\", planet)",
+      "output": "Visiting Venus\nHome is Mars",
+      "key_idea": "A variable given a value inside a function is local: it is a different variable from one outside with the same name, and it disappears when the function ends."
+    }
   },
   {
     "id": "comb-cls-meth-jars",
@@ -91416,7 +93280,14 @@
     "tags": [
       "objects"
     ],
-    "explainer": "a and b are separate objects, and each eat call changes only the sweets of the object it is called on."
+    "explainer": "a and b are separate objects, and each eat call changes only the sweets of the object it is called on.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "A museum stores each exhibit as an object.",
+      "code": "class Exhibit:\n    def __init__(self, title, year):\n        self.title = title\n        self.year = year\n\ne = Exhibit(\"Sundial\", 1650)\nprint(e.title, e.year)",
+      "output": "Sundial 1650",
+      "key_idea": "Calling the class makes a new object and runs __init__, which stores each value on the object with self. Then object.attribute reads it."
+    }
   },
   {
     "id": "comb-cls-meth-garden",
@@ -91476,7 +93347,14 @@
     "tags": [
       "objects"
     ],
-    "explainer": "The loop calls grow once on every Plant object, and the next line calls it again on one object, so only that plant grows twice."
+    "explainer": "The loop calls grow once on every Plant object, and the next line calls it again on one object, so only that plant grows twice.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "A museum stores each exhibit as an object.",
+      "code": "class Exhibit:\n    def __init__(self, title, year):\n        self.title = title\n        self.year = year\n\ne = Exhibit(\"Sundial\", 1650)\nprint(e.title, e.year)",
+      "output": "Sundial 1650",
+      "key_idea": "Calling the class makes a new object and runs __init__, which stores each value on the object with self. Then object.attribute reads it."
+    }
   },
   {
     "id": "comb-cls-meth-pen",
@@ -91538,7 +93416,14 @@
     "tags": [
       "method"
     ],
-    "explainer": "left returns self.ink, the pen object's own ink, which write has already changed."
+    "explainer": "left returns self.ink, the pen object's own ink, which write has already changed.",
+    "worked_example": {
+      "skill": "fill",
+      "problem": "A space program stores a comet's name and speed.",
+      "code": "class Comet:\n    def __init__(self, name, speed):\n        self.name = name\n        self.speed = speed\n\nc = Comet(\"Halley\", 70)\nprint(c.name, \"travels at\", c.speed)",
+      "output": "Halley travels at 70",
+      "key_idea": "Inside __init__, self is the new object. self.name = name stores the parameter on the object; a plain name = name would be thrown away."
+    }
   },
   {
     "id": "comb-meth-enc-dial",
@@ -91608,7 +93493,14 @@
     "tags": [
       "setter"
     ],
-    "explainer": "Each call runs the setter's check, so only the value inside the range is stored and the refused ones change nothing."
+    "explainer": "Each call runs the setter's check, so only the value inside the range is stored and the refused ones change nothing.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "A vault keeps its gold in a private attribute.",
+      "code": "class Vault:\n    def __init__(self):\n        self._gold = 0\n\n    def add_gold(self, n):\n        if n > 0:\n            self._gold = self._gold + n\n\n    def get_gold(self):\n        return self._gold\n\nv = Vault()\nv.add_gold(30)\nv.add_gold(-10)\nprint(v.get_gold())",
+      "output": "30",
+      "key_idea": "A private attribute (its name starts with _) is changed only through the class's methods, so their checks always run: a value that fails is refused."
+    }
   },
   {
     "id": "comb-meth-enc-bypass",
@@ -91656,7 +93548,14 @@
     "tags": [
       "encapsulation"
     ],
-    "explainer": "add refuses the negative amount, but the next line changes _cash directly, so its check never runs and the cash goes down anyway."
+    "explainer": "add refuses the negative amount, but the next line changes _cash directly, so its check never runs and the cash goes down anyway.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "A vault keeps its gold in a private attribute.",
+      "code": "class Vault:\n    def __init__(self):\n        self._gold = 0\n\n    def add_gold(self, n):\n        if n > 0:\n            self._gold = self._gold + n\n\n    def get_gold(self):\n        return self._gold\n\nv = Vault()\nv.add_gold(30)\nv.add_gold(-10)\nprint(v.get_gold())",
+      "output": "30",
+      "key_idea": "A private attribute (its name starts with _) is changed only through the class's methods, so their checks always run: a value that fails is refused."
+    }
   },
   {
     "id": "comb-meth-enc-brackets",
@@ -91698,7 +93597,14 @@
     "tags": [
       "method"
     ],
-    "explainer": "Only calls with brackets run up, so the line without them changes nothing, and get_n() returns the count the loop made."
+    "explainer": "Only calls with brackets run up, so the line without them changes nothing, and get_n() returns the count the loop made.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "A rocket object burns fuel with a method.",
+      "code": "class Rocket:\n    def __init__(self):\n        self.fuel = 10\n\n    def burn(self):\n        self.fuel = self.fuel - 3\n\nr = Rocket()\nr.burn()\nr.burn()\nprint(r.fuel)",
+      "output": "4",
+      "key_idea": "A method changes the object it is called on, through self. Each call with brackets runs it once; r.burn without brackets would do nothing."
+    }
   },
   {
     "id": "comb-enc-inh-deposit",
@@ -91746,7 +93652,14 @@
     "tags": [
       "inheritance"
     ],
-    "explainer": "Savings inherits __init__, deposit and get_balance from Account, so its deposits go through the same check, which refuses the negative amount."
+    "explainer": "Savings inherits __init__, deposit and get_balance from Account, so its deposits go through the same check, which refuses the negative amount.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "Musical instruments: one subclass overrides sound, one doesn't.",
+      "code": "class Instrument:\n    def sound(self):\n        return \"plink\"\n\nclass Trumpet(Instrument):\n    def sound(self):\n        return \"toot\"\n\nclass Harp(Instrument):\n    pass\n\nfor i in [Trumpet(), Harp()]:\n    print(i.sound())",
+      "output": "toot\nplink",
+      "key_idea": "Python looks for a method in the object's own class first, then in its parent. A subclass that overrides a method uses its own version; one that doesn't inherits the parent's."
+    }
   },
   {
     "id": "comb-enc-inh-stricter",
@@ -91797,7 +93710,14 @@
     "tags": [
       "inheritance"
     ],
-    "explainer": "Each object uses the set_mark of its own class, so the Quiz object's stricter check refuses the mark that the Mark object accepts."
+    "explainer": "Each object uses the set_mark of its own class, so the Quiz object's stricter check refuses the mark that the Mark object accepts.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "Musical instruments: one subclass overrides sound, one doesn't.",
+      "code": "class Instrument:\n    def sound(self):\n        return \"plink\"\n\nclass Trumpet(Instrument):\n    def sound(self):\n        return \"toot\"\n\nclass Harp(Instrument):\n    pass\n\nfor i in [Trumpet(), Harp()]:\n    print(i.sound())",
+      "output": "toot\nplink",
+      "key_idea": "Python looks for a method in the object's own class first, then in its parent. A subclass that overrides a method uses its own version; one that doesn't inherits the parent's."
+    }
   },
   {
     "id": "comb-enc-inh-prefect",
@@ -91847,7 +93767,14 @@
     "tags": [
       "inheritance"
     ],
-    "explainer": "super().__init__ stores the name through Badge's __init__, then Prefect's own line changes the private _name, and the inherited getter returns it."
+    "explainer": "super().__init__ stores the name through Badge's __init__, then Prefect's own line changes the private _name, and the inherited getter returns it.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "Musical instruments: one subclass overrides sound, one doesn't.",
+      "code": "class Instrument:\n    def sound(self):\n        return \"plink\"\n\nclass Trumpet(Instrument):\n    def sound(self):\n        return \"toot\"\n\nclass Harp(Instrument):\n    pass\n\nfor i in [Trumpet(), Harp()]:\n    print(i.sound())",
+      "output": "toot\nplink",
+      "key_idea": "Python looks for a method in the object's own class first, then in its parent. A subclass that overrides a method uses its own version; one that doesn't inherits the parent's."
+    }
   },
   {
     "id": "comb-inh-dbg-name",
@@ -91892,7 +93819,14 @@
     "tags": [
       "bug"
     ],
-    "explainer": "Child's method has a different name, so it doesn't override cost, and t.cost() runs the parent's version: the bug is the method's name."
+    "explainer": "Child's method has a different name, so it doesn't override cost, and t.cost() runs the parent's version: the bug is the method's name.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "Musical instruments: one subclass overrides sound, one doesn't.",
+      "code": "class Instrument:\n    def sound(self):\n        return \"plink\"\n\nclass Trumpet(Instrument):\n    def sound(self):\n        return \"toot\"\n\nclass Harp(Instrument):\n    pass\n\nfor i in [Trumpet(), Harp()]:\n    print(i.sound())",
+      "output": "toot\nplink",
+      "key_idea": "Python looks for a method in the object's own class first, then in its parent. A subclass that overrides a method uses its own version; one that doesn't inherits the parent's."
+    }
   },
   {
     "id": "comb-inh-dbg-super",
@@ -91948,7 +93882,14 @@
     "tags": [
       "error message"
     ],
-    "explainer": "The message points to line 10, where d.name is used, but the cause is Dog's __init__, which never calls super().__init__(name) to store the name."
+    "explainer": "The message points to line 10, where d.name is used, but the cause is Dog's __init__, which never calls super().__init__(name) to store the name.",
+    "worked_example": {
+      "skill": "fill",
+      "problem": "A tower is a building with a height as well as floors.",
+      "code": "class Building:\n    def __init__(self, floors):\n        self.floors = floors\n\nclass Tower(Building):\n    def __init__(self, floors, height):\n        super().__init__(floors)\n        self.height = height\n\nt = Tower(30, 120)\nprint(t.floors, t.height)",
+      "output": "30 120",
+      "key_idea": "A subclass is written class Child(Parent):. If it has its own __init__, it calls super().__init__(...) first so the parent's attributes are stored, then adds its own."
+    }
   },
   {
     "id": "comb-inh-dbg-area",
@@ -91996,7 +93937,14 @@
     "tags": [
       "bug"
     ],
-    "explainer": "Shape.area(s) always runs the parent's version, so the overrides are never used: the bug is in the loop, which should call s.area()."
+    "explainer": "Shape.area(s) always runs the parent's version, so the overrides are never used: the bug is in the loop, which should call s.area().",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "Musical instruments: one subclass overrides sound, one doesn't.",
+      "code": "class Instrument:\n    def sound(self):\n        return \"plink\"\n\nclass Trumpet(Instrument):\n    def sound(self):\n        return \"toot\"\n\nclass Harp(Instrument):\n    pass\n\nfor i in [Trumpet(), Harp()]:\n    print(i.sound())",
+      "output": "toot\nplink",
+      "key_idea": "Python looks for a method in the object's own class first, then in its parent. A subclass that overrides a method uses its own version; one that doesn't inherits the parent's."
+    }
   },
   {
     "id": "scratch-rec-power",
@@ -92054,7 +94002,14 @@
     "tags": [
       "recursion"
     ],
-    "explainer": "power multiplies base by the answer for one power fewer, and exp == 0 is the base case that stops the calls."
+    "explainer": "power multiplies base by the answer for one power fewer, and exp == 0 is the base case that stops the calls.",
+    "worked_example": {
+      "skill": "write",
+      "problem": "A countdown list made two ways: with recursion and with a loop.",
+      "code": "def countdown_list(n):\n    if n == 0:\n        return []\n    return [n] + countdown_list(n - 1)\n\ndef countdown_loop(n):\n    out = []\n    while n > 0:\n        out.append(n)\n        n = n - 1\n    return out\n\nprint(countdown_list(3), countdown_loop(3))",
+      "output": "[3, 2, 1] [3, 2, 1]",
+      "key_idea": "To turn a loop into recursion, the base case is when the loop would stop, and the recursive call does what the next time round the loop would. Both versions give the same answer."
+    }
   },
   {
     "id": "scratch-scope-add-all",
@@ -92130,7 +94085,14 @@
     "tags": [
       "list"
     ],
-    "explainer": "add_all changes each item of the list it is given, and nums is that same list, so the change is seen without any return."
+    "explainer": "add_all changes each item of the list it is given, and nums is that same list, so the change is seen without any return.",
+    "worked_example": {
+      "skill": "write",
+      "problem": "A function gives back the length of every tree name in a list.",
+      "code": "def lengths(words):\n    out = []\n    for w in words:\n        out.append(len(w))\n    return out\n\ntrees = [\"oak\", \"willow\", \"ash\"]\nprint(trees, lengths(trees))",
+      "output": "['oak', 'willow', 'ash'] [3, 6, 3]",
+      "key_idea": "Give a function everything it needs as parameters and return its answer, so it works for any values and never depends on global variables."
+    }
   },
   {
     "id": "scratch-cls-books",
@@ -92202,7 +94164,14 @@
     "tags": [
       "class"
     ],
-    "explainer": "Each Book object keeps its own title and pages, so one loop over the list can check every book."
+    "explainer": "Each Book object keeps its own title and pages, so one loop over the list can check every book.",
+    "worked_example": {
+      "skill": "write",
+      "problem": "A space program keeps its moons as objects in a list.",
+      "code": "class Moon:\n    def __init__(self, name, km):\n        self.name = name\n        self.km = km\n\nmoons = [Moon(\"Io\", 3643), Moon(\"Europa\", 3122)]\nfor m in moons:\n    print(m.name, m.km)",
+      "output": "Io 3643\nEuropa 3122",
+      "key_idea": "Write the class with an __init__ that stores every value with self, make an object for each item, keep them in a list, and loop over the list to use them."
+    }
   },
   {
     "id": "scratch-meth-tally",
@@ -92268,7 +94237,14 @@
     "tags": [
       "method"
     ],
-    "explainer": "add changes the tally's own count each time, and get returns it, so the object keeps the running total."
+    "explainer": "add changes the tally's own count each time, and get returns it, so the object keeps the running total.",
+    "worked_example": {
+      "skill": "write",
+      "problem": "A piggy bank object with a method that adds coins and one that gives the total.",
+      "code": "class Piggy:\n    def __init__(self):\n        self.coins = 0\n\n    def add(self, n):\n        self.coins = self.coins + n\n\n    def total(self):\n        return self.coins\n\nbank = Piggy()\nbank.add(5)\nbank.add(7)\nprint(bank.total())",
+      "output": "12",
+      "key_idea": "Give the class one method for each job: some change attributes, some return values. Then make the objects and call the methods with brackets."
+    }
   },
   {
     "id": "scratch-enc-score",
@@ -92331,7 +94307,14 @@
     "tags": [
       "encapsulation"
     ],
-    "explainer": "The setter checks every score before storing it, so a score outside the range is refused and the last good score is kept."
+    "explainer": "The setter checks every score before storing it, so a score outside the range is refused and the last good score is kept.",
+    "worked_example": {
+      "skill": "write",
+      "problem": "A gym membership level can only be one of three allowed levels.",
+      "code": "class Membership:\n    def __init__(self):\n        self._level = \"bronze\"\n\n    def set_level(self, lv):\n        if lv in [\"bronze\", \"silver\", \"gold\"]:\n            self._level = lv\n\n    def get_level(self):\n        return self._level\n\nm = Membership()\nm.set_level(\"platinum\")\nm.set_level(\"silver\")\nprint(m.get_level())",
+      "output": "silver",
+      "key_idea": "Make the attribute private, give it a getter, and a setter that checks each value (range, length, presence or an allowed list) before storing it."
+    }
   },
   {
     "id": "scratch-inh-rect",
@@ -92389,7 +94372,14 @@
     "tags": [
       "inheritance"
     ],
-    "explainer": "{{kind}} overrides area with its own version, so its objects give width times height while a plain Shape still gives 0."
+    "explainer": "{{kind}} overrides area with its own version, so its objects give width times height while a plain Shape still gives 0.",
+    "worked_example": {
+      "skill": "write",
+      "problem": "A toll road charges lorries more than other vehicles.",
+      "code": "class Vehicle:\n    def __init__(self, name):\n        self.name = name\n\n    def toll(self):\n        return 5\n\nclass Lorry(Vehicle):\n    def toll(self):\n        return 12\n\ntotal = 0\nfor v in [Vehicle(\"van\"), Lorry(\"truck\"), Vehicle(\"car\")]:\n    total = total + v.toll()\nprint(\"Tolls:\", total)",
+      "output": "Tolls: 22",
+      "key_idea": "Put what every kind shares in the parent class, override only what is different, and call the same method on every object in a list: each uses its own version."
+    }
   },
   {
     "id": "d-rec-L1a",
@@ -115494,7 +117484,14 @@
     "tags": [
       "bug"
     ],
-    "explainer": "The age is the second field, pupil[1], so the bug is the index: pupil[2] reads the third field instead."
+    "explainer": "The age is the second field, pupil[1], so the bug is the index: pupil[2] reads the third field instead.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "A walking log should print the total miles and the mean of 3 walks.",
+      "code": "miles = [3, 5, 2]\ntotal = 0\nfor m in miles:\n    total = total + m\nprint(\"Miles:\", total)\nprint(\"Mean:\", total // 2)",
+      "output": "Miles: 10\nMean: 5",
+      "key_idea": "Read the program line by line and work out each value. A bug can sit quietly on one line and only show up later, in the output of another line: here the mean divides by 2, not by 3."
+    }
   },
   {
     "id": "comb-dbg-tup-error",
@@ -115551,7 +117548,14 @@
     "tags": [
       "error message"
     ],
-    "explainer": "The message points to line 3, where one field of a tuple is changed, and a tuple can't be changed: make a new tuple instead."
+    "explainer": "The message points to line 3, where one field of a tuple is changed, and a tuple can't be changed: make a new tuple instead.",
+    "worked_example": {
+      "skill": "fill",
+      "problem": "Reading an error message: a list of cities was used past its end.",
+      "code": "# This program stopped with an error message:\n#   1  cities = [\"Leeds\", \"York\"]\n#   2  print(cities[2])\n#   IndexError: list index out of range (line 2)\nprint(\"Line 2, IndexError\")",
+      "output": "Line 2, IndexError",
+      "key_idea": "An error message names the line where Python stopped, and its last line gives the type, such as NameError, TypeError or IndexError. Start there."
+    }
   },
   {
     "id": "comb-dbg-tup-unpack",
@@ -115602,7 +117606,14 @@
     "tags": [
       "bug"
     ],
-    "explainer": "The tuple's fields are in the wrong order for the names they are unpacked into, so the bug is the order inside the brackets."
+    "explainer": "The tuple's fields are in the wrong order for the names they are unpacked into, so the bug is the order inside the brackets.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "A walking log should print the total miles and the mean of 3 walks.",
+      "code": "miles = [3, 5, 2]\ntotal = 0\nfor m in miles:\n    total = total + m\nprint(\"Miles:\", total)\nprint(\"Mean:\", total // 2)",
+      "output": "Miles: 10\nMean: 5",
+      "key_idea": "Read the program line by line and work out each value. A bug can sit quietly on one line and only show up later, in the output of another line: here the mean divides by 2, not by 3."
+    }
   },
   {
     "id": "comb-tup-sq-stack",
@@ -115660,7 +117671,14 @@
     "tags": [
       "stack"
     ],
-    "explainer": "pop() takes the record pushed last off the top, and unpacking it puts its two fields into name and mark."
+    "explainer": "pop() takes the record pushed last off the top, and unpacking it puts its two fields into name and mark.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "Plates go onto a stack, then two come off.",
+      "code": "plates = []\nplates.append(\"red\")\nplates.append(\"blue\")\nplates.append(\"white\")\nprint(plates.pop(), plates.pop())",
+      "output": "white blue",
+      "key_idea": "A stack is last in, first out. append pushes onto the top (the end of the list) and pop() takes the top item off, so items come off in the opposite order."
+    }
   },
   {
     "id": "comb-tup-sq-queue",
@@ -115718,7 +117736,14 @@
     "tags": [
       "queue"
     ],
-    "explainer": "pop(0) takes the first record off the front of the queue, and unpacking it gives the name and the ticket number."
+    "explainer": "pop(0) takes the first record off the front of the queue, and unpacking it gives the name and the ticket number.",
+    "worked_example": {
+      "skill": "fill",
+      "problem": "Print jobs wait in a queue.",
+      "code": "jobs = [101, 102]\njobs.append(103)\ndone = jobs.pop(0)\nprint(\"Printed\", done, \"waiting\", jobs)",
+      "output": "Printed 101 waiting [102, 103]",
+      "key_idea": "A queue is first in, first out. append joins the back and pop(0) takes the item at the front."
+    }
   },
   {
     "id": "comb-tup-sq-history",
@@ -115783,7 +117808,14 @@
     "tags": [
       "stack"
     ],
-    "explainer": "history[-1] looks at the top record without taking it off, and [0] is its first field, the page."
+    "explainer": "history[-1] looks at the top record without taking it off, and [0] is its first field, the page.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "Plates go onto a stack, then two come off.",
+      "code": "plates = []\nplates.append(\"red\")\nplates.append(\"blue\")\nplates.append(\"white\")\nprint(plates.pop(), plates.pop())",
+      "output": "white blue",
+      "key_idea": "A stack is last in, first out. append pushes onto the top (the end of the list) and pop() takes the top item off, so items come off in the opposite order."
+    }
   },
   {
     "id": "comb-sq-ll-stack",
@@ -115837,7 +117869,14 @@
     "tags": [
       "stack"
     ],
-    "explainer": "Each push puts a new node in front of top, so the node pushed last is at the top and is the first one popped."
+    "explainer": "Each push puts a new node in front of top, so the node pushed last is at the top and is the first one popped.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "Plates go onto a stack, then two come off.",
+      "code": "plates = []\nplates.append(\"red\")\nplates.append(\"blue\")\nplates.append(\"white\")\nprint(plates.pop(), plates.pop())",
+      "output": "white blue",
+      "key_idea": "A stack is last in, first out. append pushes onto the top (the end of the list) and pop() takes the top item off, so items come off in the opposite order."
+    }
   },
   {
     "id": "comb-sq-ll-queue",
@@ -115891,7 +117930,14 @@
     "tags": [
       "queue"
     ],
-    "explainer": "The front of this queue is head, so serving takes head's data and then moves head on to the next node."
+    "explainer": "The front of this queue is head, so serving takes head's data and then moves head on to the next node.",
+    "worked_example": {
+      "skill": "fill",
+      "problem": "Print jobs wait in a queue.",
+      "code": "jobs = [101, 102]\njobs.append(103)\ndone = jobs.pop(0)\nprint(\"Printed\", done, \"waiting\", jobs)",
+      "output": "Printed 101 waiting [102, 103]",
+      "key_idea": "A queue is first in, first out. append joins the back and pop(0) takes the item at the front."
+    }
   },
   {
     "id": "comb-sq-ll-empty",
@@ -115939,7 +117985,14 @@
     "tags": [
       "stack"
     ],
-    "explainer": "Taking nodes off the top until top is None empties the stack, so the loop adds every node's data before it stops."
+    "explainer": "Taking nodes off the top until top is None empties the stack, so the loop adds every node's data before it stops.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "Plates go onto a stack, then two come off.",
+      "code": "plates = []\nplates.append(\"red\")\nplates.append(\"blue\")\nplates.append(\"white\")\nprint(plates.pop(), plates.pop())",
+      "output": "white blue",
+      "key_idea": "A stack is last in, first out. append pushes onto the top (the end of the list) and pop() takes the top item off, so items come off in the opposite order."
+    }
   },
   {
     "id": "comb-ll-hash-chain",
@@ -115997,7 +118050,14 @@
     "tags": [
       "chaining"
     ],
-    "explainer": "Both keys hash to the same slot, so with chaining the second key's node goes in front of the first in that slot's linked list, and neither is lost."
+    "explainer": "Both keys hash to the same slot, so with chaining the second key's node goes in front of the first in that slot's linked list, and neither is lost.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "Print every node of a two-node list.",
+      "code": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nhead = Node(10)\nhead.next = Node(20)\ncur = head\nwhile cur != None:\n    print(cur.data)\n    cur = cur.next",
+      "output": "10\n20",
+      "key_idea": "Start cur at head, use cur.data, then move on with cur = cur.next. The loop stops when cur becomes None, after the last node."
+    }
   },
   {
     "id": "comb-ll-hash-search",
@@ -116062,7 +118122,14 @@
     "tags": [
       "chaining"
     ],
-    "explainer": "The search only walks the linked list in the key's own slot, moving on with cur.next until it finds the key or reaches None."
+    "explainer": "The search only walks the linked list in the key's own slot, moving on with cur.next until it finds the key or reaches None.",
+    "worked_example": {
+      "skill": "fill",
+      "problem": "Add a node at the front of a list.",
+      "code": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nhead = Node(30)\nnode = Node(15)\nnode.next = head\nhead = node\nprint(head.data, head.next.data)",
+      "output": "15 30",
+      "key_idea": "To add at the front, point the new node at the old head first, then move head to the new node."
+    }
   },
   {
     "id": "comb-ll-hash-count",
@@ -116133,7 +118200,14 @@
     "tags": [
       "chaining"
     ],
-    "explainer": "Every key that hashes to the same slot is kept in that slot's linked list, so walking the list counts the keys that collided there."
+    "explainer": "Every key that hashes to the same slot is kept in that slot's linked list, so walking the list counts the keys that collided there.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "Print every node of a two-node list.",
+      "code": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nhead = Node(10)\nhead.next = Node(20)\ncur = head\nwhile cur != None:\n    print(cur.data)\n    cur = cur.next",
+      "output": "10\n20",
+      "key_idea": "Start cur at head, use cur.data, then move on with cur = cur.next. The loop stops when cur becomes None, after the last node."
+    }
   },
   {
     "id": "comb-hash-a3d-layer",
@@ -116175,7 +118249,14 @@
     "tags": [
       "hash"
     ],
-    "explainer": "The hash key % 3 picks one of the three layers, then the next two indexes pick the row and the item inside that layer."
+    "explainer": "The hash key % 3 picks one of the three layers, then the next two indexes pick the row and the item inside that layer.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "Hash three keys into a table of 10 slots.",
+      "code": "for key in [42, 17, 30]:\n    print(key, \"goes in slot\", key % 10)",
+      "output": "42 goes in slot 2\n17 goes in slot 7\n30 goes in slot 0",
+      "key_idea": "The hash key % size is the remainder after dividing by the table size, so it is always an index inside the table."
+    }
   },
   {
     "id": "comb-hash-a3d-store",
@@ -116220,7 +118301,14 @@
     "tags": [
       "hash"
     ],
-    "explainer": "key % 2 is always 0 or 1, so it picks one of the two layers, and the key is stored in that layer's first row."
+    "explainer": "key % 2 is always 0 or 1, so it picks one of the two layers, and the key is stored in that layer's first row.",
+    "worked_example": {
+      "skill": "fill",
+      "problem": "Store a key with linear probing in a table of 4 slots.",
+      "code": "slots = [None, 9, None, None]\nkey = 13\ni = key % 4\nwhile slots[i] != None:\n    i = (i + 1) % 4\nslots[i] = key\nprint(slots)",
+      "output": "[None, 9, 13, None]",
+      "key_idea": "If a key's slot is taken, move on one slot at a time with (i + 1) % size, wrapping round, until an empty one is found."
+    }
   },
   {
     "id": "comb-hash-a3d-count",
@@ -116307,7 +118395,14 @@
     "tags": [
       "hash"
     ],
-    "explainer": "Three loops reach every key in the cube, and each key adds one to the count in the slot its hash, key % 3, gives."
+    "explainer": "Three loops reach every key in the cube, and each key adds one to the count in the slot its hash, key % 3, gives.",
+    "worked_example": {
+      "skill": "predict",
+      "problem": "desks[floor][room][desk] is 1 if a desk is in use.",
+      "code": "desks = [[[1, 0], [1, 1]], [[0, 0], [1, 0]]]\nprint(desks[1][1][0], len(desks[0]))",
+      "output": "1 2",
+      "key_idea": "Read the indexes from the outside in: the first picks a layer, the second a row in it, the third an item in that row."
+    }
   },
   {
     "id": "scratch-tup-cheapest",
@@ -116376,7 +118471,14 @@
     "tags": [
       "records"
     ],
-    "explainer": "Each record keeps a name and a price together, so the cheapest record still knows its own name."
+    "explainer": "Each record keeps a name and a price together, so the cheapest record still knows its own name.",
+    "worked_example": {
+      "skill": "write",
+      "problem": "Rivers are stored as records of a name and a length in miles; print the shortest.",
+      "code": "rivers = [(\"Severn\", 220), (\"Thames\", 215), (\"Trent\", 185)]\nshort = rivers[0]\nfor r in rivers:\n    if r[1] < short[1]:\n        short = r\nprint(\"Shortest:\", short[0])",
+      "output": "Shortest: Trent",
+      "key_idea": "Store each record as a tuple in a list. Keep the whole record you want, so its fields stay together, then print the field you need."
+    }
   },
   {
     "id": "scratch-sq-reverse",
@@ -116448,7 +118550,14 @@
     "tags": [
       "stack"
     ],
-    "explainer": "A stack is last in, first out, so popping until it is empty gives the numbers back in the opposite order."
+    "explainer": "A stack is last in, first out, so popping until it is empty gives the numbers back in the opposite order.",
+    "worked_example": {
+      "skill": "write",
+      "problem": "A queue at a ticket desk, written as a class whose leave method checks for empty.",
+      "code": "class Line:\n    def __init__(self):\n        self.people = []\n\n    def join(self, p):\n        self.people.append(p)\n\n    def leave(self):\n        if len(self.people) == 0:\n            return None\n        return self.people.pop(0)\n\nq = Line()\nq.join(\"Ann\")\nq.join(\"Raj\")\nprint(q.leave(), q.leave(), q.leave())",
+      "output": "Ann Raj None",
+      "key_idea": "Put the list inside a class and give it methods. Check for empty inside the method, so the rest of the program never pops an empty list."
+    }
   },
   {
     "id": "scratch-ll-total",
@@ -116513,7 +118622,14 @@
     "tags": [
       "linked list"
     ],
-    "explainer": "Each new node goes in front of the old head, so going along from head reads the numbers back newest first."
+    "explainer": "Each new node goes in front of the old head, so going along from head reads the numbers back newest first.",
+    "worked_example": {
+      "skill": "write",
+      "problem": "Search a linked list for the number 8.",
+      "code": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nstart = Node(3)\nstart.next = Node(8)\nstart.next.next = Node(6)\nat = start\nseen = False\nwhile at != None:\n    if at.data == 8:\n        seen = True\n    at = at.next\nprint(\"Seen 8:\", seen)",
+      "output": "Seen 8: True",
+      "key_idea": "Go along the list one node at a time, checking each node's data, and keep going while the node isn't None so the last node is checked too."
+    }
   },
   {
     "id": "scratch-hash-store",
@@ -116591,7 +118707,14 @@
     "tags": [
       "hash"
     ],
-    "explainer": "Each key starts at its home slot and probes along to the next empty one, wrapping round, so no key is ever written over."
+    "explainer": "Each key starts at its home slot and probes along to the next empty one, wrapping round, so no key is ever written over.",
+    "worked_example": {
+      "skill": "write",
+      "problem": "Store three keys that all collide, counting the moves.",
+      "code": "slots = [None] * 5\nclashes = 0\nfor key in [3, 8, 13]:\n    i = key % 5\n    while slots[i] != None:\n        i = (i + 1) % 5\n        clashes = clashes + 1\n    slots[i] = key\nprint(slots, clashes)",
+      "output": "[13, None, None, 3, 8] 3",
+      "key_idea": "Use the same hash and probing every time you store or search. A loop that moves on while the slot is taken never writes over a key."
+    }
   },
   {
     "id": "scratch-a3d-layer",
@@ -116796,7 +118919,14 @@
     "tags": [
       "3D array"
     ],
-    "explainer": "cube[layer] is one layer's 2D list, so two loops add it up, while three loops are needed to look at every number in the cube."
+    "explainer": "cube[layer] is one layer's 2D list, so two loops add it up, while three loops are needed to look at every number in the cube.",
+    "worked_example": {
+      "skill": "write",
+      "problem": "rain[week][day][hour] holds millimetres of rain; print each week's total.",
+      "code": "rain = [[[2, 0], [1, 3]], [[4, 4], [0, 2]]]\nfor w in range(len(rain)):\n    mm_total = 0\n    for day in rain[w]:\n        for mm in day:\n            mm_total = mm_total + mm\n    print(\"Rain in week\", w, mm_total)",
+      "output": "Rain in week 0 6\nRain in week 1 10",
+      "key_idea": "Index or loop down to the level you need: rain[w] is one week's 2D list, so two more loops reach every hour in it."
+    }
   },
   {
     "id": "d-tup-L1a",
