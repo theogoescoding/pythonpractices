@@ -1631,7 +1631,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const tt = TD.scoreTable(tileData, ["selection"], D + H + 8 * W + 2 * H);
     const tileOf = (n) => tt.rows.find((r) => r.name === n).summaryTile;
     check(TD.SUMMARY_TILES.length === 9 && TD.SUMMARY_TILES.map((t) => t.key + "/" + t.cls + "/" + t.label).join("|") ===
-      "gold/gold/Secured (100%)|fresh/fresh/Fresh (90%)|fading/fading/Fading (80%)|soon/soon/Revisit soon (50% to 70%)|" +
+      "gold/gold/Secured (100%)|fresh/fresh/Fresh (90%)|fading/fading/Fading (80%)|soon/soon/Revisit soon (under 80%)|" +
       "lv-red/lv-red/Levels 1 to 3: still learning|lv-amber/lv-amber/Levels 4 to 6: still learning|lv-green/lv-green/Levels 7 to 9: still learning|" +
       "lv-top/lv-top/Level 10: not secured yet|none/none/Not placed yet" && TD.SUMMARY_TILES.every((t) => t.note && t.note.length > 10) &&
       ["Ava:gold", "Ben:soon", "Cal:lv-red", "Eve:lv-amber", "Fay:lv-green", "Gil:lv-top", "Nia:none", "Max:none"].every((x) => tileOf(x.split(":")[0]) === x.split(":")[1]),
@@ -1655,6 +1655,15 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(["p100", "p95", "p90", "p85", "p75"].map((sid) => avgOf(sid) + ":" + tileOfS(sid)).join() === "100:gold,95:fresh,90:fresh,85:fading,75:soon" &&
       [100, 95, 90, 85, 75].map((a) => TD.summaryTileOf({ average: a })).join() === "gold,fresh,fresh,fading,soon",
       "Summary tiles: a student averaging 100% is Secured, 95% and 90% Fresh, 85% Fading and 75% Revisit soon (an average between two bands takes the one below)");
+    // Revisit soon counts any secured average under 80%, and its label and tooltip say so (75% is in it, so "50% to 70%"
+    // would be wrong); the unit colour keys keep 50–70%, the only unit scores in that band.
+    const soonTile = TD.SUMMARY_TILES.find((t) => t.key === "soon");
+    const under80 = (t) => (/under 80%/.test(t.label) ? 80 : null);
+    check(tileOfS("p75") === "soon" && avgOf("p75") === 75 && st.summary.tiles.soon === 1 && soonTile.label === "Revisit soon (under 80%)" && soonTile.note === "secured average under 80%" &&
+      avgOf("p75") < under80(soonTile) && [79, 71, 60, 50].every((a) => TD.summaryTileOf({ average: a }) === "soon") && TD.summaryTileOf({ average: 80 }) === "fading" &&
+      !/50% to 70%/.test(read("teacher-data.js") + read("teacher.js")) &&
+      /rag-soon">50–70% Revisit soon</.test(read("app.html")) && /rag-soon">50–70% Revisit soon</.test(teacher),
+      "Summary tiles: Revisit soon is labelled \"Revisit soon (under 80%)\" and counts a student averaging 75% (any average from 50% to 79%); the unit colour keys still show 50–70%, a unit's only scores there");
     check(TD.SUMMARY_TILES.map((t) => t.key + "=" + st.summary.tiles[t.key]).join() === "gold=1,fresh=2,fading=1,soon=1,lv-red=1,lv-amber=1,lv-green=1,lv-top=1,none=2" &&
       Object.values(st.summary.tiles).reduce((x, y) => x + y, 0) === Object.keys(sample.students).length,
       "Summary tiles: on a sample of 11 students each tile counts the right students (1 Secured, 2 Fresh, 1 Fading, 1 Revisit soon, 1 in each level band, 2 Not placed yet), and they add up to 11");

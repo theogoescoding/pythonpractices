@@ -327,7 +327,7 @@
     { key: "gold", cls: "gold", label: "Secured (100%)", note: "secured average 100%" },
     { key: "fresh", cls: "fresh", label: "Fresh (90%)", note: "secured average 90% to 99%" },
     { key: "fading", cls: "fading", label: "Fading (80%)", note: "secured average 80% to 89%" },
-    { key: "soon", cls: "soon", label: "Revisit soon (50% to 70%)", note: "secured average 50% to 79%" },
+    { key: "soon", cls: "soon", label: "Revisit soon (under 80%)", note: "secured average under 80%" },
     { key: "lv-red", cls: "lv-red", label: "Levels 1 to 3: still learning", note: "nothing secured yet, average level 1 to 3" },
     { key: "lv-amber", cls: "lv-amber", label: "Levels 4 to 6: still learning", note: "nothing secured yet, average level 4 to 6" },
     { key: "lv-green", cls: "lv-green", label: "Levels 7 to 9: still learning", note: "nothing secured yet, average level 7 to 9" },

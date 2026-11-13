@@ -775,7 +775,7 @@ A walkthrough over the real screen, one step at a time, on the student pages onl
 **Students (`#students`, the default)**
 
 - The class code card (with Copy code), then a **summary strip** of nine tiles that count students, each student in exactly one; then the **class average secured score per unit** (of the students who have secured it). The tiles are a three-by-three grid (one row of nine on a wide screen). Each tile's label is a chip in a colour the unit cells use, and says what it counts (also shown when you point at the tile):
-  - a student with a secured unit, by the band of the average of their secured units (an average between two bands takes the one below, so 95% is Fresh and 85% Fading): gold **Secured (100%)**, light blue **Fresh (90%)** (90% to 99%), blue **Fading (80%)** (80% to 89%), indigo **Revisit soon (50% to 70%)** (50% to 79%; a secured average is never under 50%);
+  - a student with a secured unit, by the band of the average of their secured units (an average between two bands takes the one below, so 95% is Fresh and 85% Fading): gold **Secured (100%)**, light blue **Fresh (90%)** (90% to 99%), blue **Fading (80%)** (80% to 89%), indigo **Revisit soon (under 80%)** (any secured average under 80%, such as 75%; a secured average is never under 50%);
   - a student with placed units but nothing secured yet, by their average level: red **Levels 1 to 3: still learning**, amber **Levels 4 to 6: still learning**, green **Levels 7 to 9: still learning**, light green **Level 10: not secured yet**;
   - grey **Not placed yet**: no placed unit.
 

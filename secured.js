@@ -29,7 +29,7 @@
     { min: 100, cls: "gold", label: "Secured" },     // 100%: gold, glowing
     { min: 90, cls: "fresh", label: "Fresh" },       // 90%: light blue
     { min: 80, cls: "fading", label: "Fading" },     // 80%: blue
-    { min: -Infinity, cls: "soon", label: "Revisit soon" }, // 50% to 70%: indigo
+    { min: -Infinity, cls: "soon", label: "Revisit soon" }, // a unit's 50% to 70% (an average: anything under 80%): indigo
   ];
   const band = (score) => BANDS.find((b) => score >= b.min);
 
