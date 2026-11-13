@@ -2803,9 +2803,9 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const row = box.children[2];
     check(box.attrs.role === "dialog" && box.attrs["aria-modal"] === "true" && box.attrs["aria-labelledby"] === dlg.heading.id && dlg.heading.tagName === "h2" &&
       box.attrs["aria-describedby"] === box.children[1].id && dlg.heading.textContent === "Unit secured at 100%" &&
-      box.children[1].textContent === "You've passed this unit's level 10 challenge with no hints. You can move on, or keep practising in endless mode." &&
-      row.children.map((b) => b.textContent).join("|") === "Back to units|Stay in endless mode" && d.body.children.includes(dlg.element),
-      "Secured pop-up: a dialog (role dialog, aria-modal, labelled by its heading \"Unit secured at 100%\") with the line of text and two buttons: Back to units, then Stay in endless mode");
+      box.children[1].textContent === "You've passed this unit's level 10 challenge with no hints. You can move on, or keep practising this unit." &&
+      row.children.map((b) => b.textContent).join("|") === "Back to units|Keep practising" && d.body.children.includes(dlg.element),
+      "Secured pop-up on the ladder: a dialog (role dialog, aria-modal, labelled by its heading \"Unit secured at 100%\") saying \"…keep practising this unit.\", with two buttons: Back to units, then Keep practising");
     check(d.activeElement === dlg.heading && dlg.heading.attrs.tabindex === "-1" && row.children.every((b) => b.className === "secondary" && b.attrs.type === "button" && !("autofocus" in b.attrs)) &&
       d.main.attrs.inert === "",
       "Secured pop-up: neither button is the default or focused; the heading is focused when it opens, and the page behind is inert");
@@ -2820,7 +2820,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(wrapped && back && fromHeading && pulledBack, "Secured pop-up: focus stays inside while it's open (Tab and Shift+Tab wrap round; focus that escapes comes back to the heading)");
     const escClosed = d.key("Escape") && !dlg.isOpen() && !d.body.children.includes(dlg.element);
     check(escClosed && home === 0 && returned === 1 && d.activeElement === d.next && !("inert" in d.main.attrs) && !(d.listeners.keydown || []).length && !(d.listeners.focusin || []).length,
-      "Secured pop-up: Esc closes it, the same as Stay in endless mode: focus goes back to the task, the page works again");
+      "Secured pop-up: Esc closes it, the same as the second button (Keep practising): focus goes back to the task, the page works again");
     const d2 = page();
     let home2 = 0, returned2 = 0;
     const dlg2 = App.openSecuredDialog(d2, { inert: [d2.main], onHome: () => { home2++; }, returnFocus: () => { returned2++; } });
@@ -2831,7 +2831,25 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     dlg3.home.click();
     check(!dlg2.isOpen() && home2 === 0 && returned2 === 1 && !d2.body.children.includes(dlg2.element) && !dlg3.isOpen() && home3 === 1 &&
       /onHome: \(\) => \{ location\.href = "app\.html"; \}/.test(appU) && /returnFocus: \(\) => back\.focus\(\)/.test(appU),
-      "Secured pop-up: Stay in endless mode closes it and leaves the student where they are; Back to units goes to the home page (app.html)");
+      "Secured pop-up: Keep practising closes it and leaves the student where they are; Back to units goes to the home page (app.html)");
+    // In endless mode: the second button is "Stay in endless mode", and the text says so; the rest is the same.
+    const dE = page();
+    let homeE = 0, returnedE = 0;
+    dE.next.focus();
+    const dlgE = App.openSecuredDialog(dE, { endless: true, inert: [dE.main], onHome: () => { homeE++; }, returnFocus: () => { returnedE++; dE.next.focus(); } });
+    const boxE = dlgE.element.children[0];
+    const rowE = boxE.children[2];
+    const shownE = { text: boxE.children[1].textContent, labels: rowE.children.map((b) => b.textContent).join("|"), focused: dE.activeElement === dlgE.heading,
+      plain: rowE.children.every((b) => b.className === "secondary" && !("autofocus" in b.attrs)) };
+    const escE = dE.key("Escape") && !dlgE.isOpen() && homeE === 0 && returnedE === 1 && dE.activeElement === dE.next;
+    const dE2 = page();
+    let homeE2 = 0;
+    const dlgE2 = App.openSecuredDialog(dE2, { endless: true, inert: [dE2.main], onHome: () => { homeE2++; }, returnFocus: () => {} });
+    dlgE2.stay.click();
+    check(shownE.text === "You've passed this unit's level 10 challenge with no hints. You can move on, or keep practising in endless mode." &&
+      shownE.labels === "Back to units|Stay in endless mode" && shownE.focused && shownE.plain && escE && !dlgE2.isOpen() && homeE2 === 0 &&
+      /openSecuredDialog\(document, Object\.assign\(common, \{ endless \}\)\)/.test(appU) && /const endless = !inAssignment && params\.get\("mode"\) === "endless";/.test(appU),
+      "Secured pop-up in endless mode: \"…keep practising in endless mode.\" with Back to units, then Stay in endless mode (neither the default; Esc and the second button close it); the page passes its own endless flag");
     // 390px: at most the screen less 32px, the buttons wrap, theme colours only.
     const rule = (sel) => { const i = cssU.indexOf(sel + " {"); return i < 0 ? "" : cssU.slice(i, cssU.indexOf("}", i)); };
     const modalCss = [".modal-backdrop", ".modal-backdrop::before", ".modal", ".modal-title", ".modal-actions", ".modal-actions button"].map(rule).join("\n");

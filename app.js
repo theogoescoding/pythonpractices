@@ -489,11 +489,12 @@ function reachedFullSecure(before, record) {
 }
 
 // The pop-up after such a pass. Two buttons, neither the default and neither focused: the heading is focused.
+// The second button and the last sentence depend on where the student is: the unit's ladder, or endless mode.
 const SECURED_DIALOG = {
   title: "Unit secured at 100%",
-  text: "You've passed this unit's level 10 challenge with no hints. You can move on, or keep practising in endless mode.",
   home: "Back to units",
-  stay: "Stay in endless mode",
+  ladder: { text: "You've passed this unit's level 10 challenge with no hints. You can move on, or keep practising this unit.", stay: "Keep practising" },
+  endless: { text: "You've passed this unit's level 10 challenge with no hints. You can move on, or keep practising in endless mode.", stay: "Stay in endless mode" },
 };
 // A dialog over the page, in `doc` (the page, or a stand-in in the tests). The "Unit secured at 100%" pop-up and the
 // "Assignment complete" screen both use it, with the same keyboard rules: the heading takes focus (no button is the
@@ -551,16 +552,18 @@ function openDialog(doc, o) {
   return api;
 }
 
-// The "Unit secured at 100%" pop-up. o = { inert, onHome: "Back to units", returnFocus }. "Stay in endless mode" and
-// Esc close it. Returns { close, element, heading, home, stay, isOpen }.
+// The "Unit secured at 100%" pop-up. o = { endless (the student is in endless mode), inert, onHome: "Back to units",
+// returnFocus }. The second button ("Keep practising" on the ladder, "Stay in endless mode" in endless mode) and Esc
+// close it, leaving the student where they are. Returns { close, element, heading, home, stay, isOpen }.
 function openSecuredDialog(doc, o) {
   o = o || {};
+  const where = o.endless ? SECURED_DIALOG.endless : SECURED_DIALOG.ladder;
   const api = openDialog(doc, {
     id: "secured", title: SECURED_DIALOG.title, inert: o.inert, returnFocus: o.returnFocus,
-    body: (make) => make("p", null, SECURED_DIALOG.text),
+    body: (make) => make("p", null, where.text),
     buttons: [
       { label: SECURED_DIALOG.home, action: (d) => { d.close(); if (o.onHome) o.onHome(); } },
-      { label: SECURED_DIALOG.stay, action: (d) => d.close() },
+      { label: where.stay, action: (d) => d.close() },
     ],
   });
   return Object.assign(api, { home: api.buttons[0], stay: api.buttons[1] });
@@ -1352,7 +1355,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       }));
     } else {
       securedDue = false;
-      openSecuredDialog(document, common);
+      openSecuredDialog(document, Object.assign(common, { endless })); // "Keep practising", or "Stay in endless mode"
     }
   }
 
