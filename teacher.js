@@ -505,7 +505,11 @@
         '<p class="small">' + a.task_ids.length + " task" + (a.task_ids.length === 1 ? "" : "s") + " · created " + esc(when(a.created_at)) + " · " + s.students + " student" + (s.students === 1 ? "" : "s") + " have tried it</p>" +
         '<ol class="assignment-tasks">' + a.task_ids.map((id) => "<li>" + taskLink(id) + "</li>").join("") + "</ol>" +
         '<p class="teacher-controls"><button type="button" class="secondary" data-as-edit="' + esc(a.id) + '">Change</button>' +
-          '<button type="button" class="secondary" data-as-status="' + esc(a.id) + '" data-to="' + (a.status === "open" ? "closed" : "open") + '">' + (a.status === "open" ? "Close it" : "Open it again") + "</button></p>" +
+          '<button type="button" class="secondary" data-as-status="' + esc(a.id) + '" data-to="' + (a.status === "open" ? "closed" : "open") + '">' + (a.status === "open" ? "Close it" : "Open it again") + "</button>" +
+          '<button type="button" class="secondary" data-as-delete="' + esc(a.id) + '">Delete</button>' +
+          '<span data-as-confirm="' + esc(a.id) + '" hidden>Delete this assignment? Students will no longer see it; their work on it stays in the attempt log. ' +
+          '<button type="button" class="danger" data-as-delete-yes="' + esc(a.id) + '">Yes, delete</button> ' +
+          '<button type="button" class="secondary" data-as-delete-no="' + esc(a.id) + '">Cancel</button></span></p>' +
         "<h4>Struggled with most</h4>" + (hard ? "<ol>" + hard + "</ol>" : '<p class="small">No one has struggled with a task yet.</p>') +
         '<div class="table-wrap"><table><thead><tr><th scope="col">Task</th><th scope="col">Students who tried</th><th scope="col">Students who passed</th>' +
           '<th scope="col">Checks</th><th scope="col">Failed checks</th><th scope="col">"Show me how"</th><th scope="col">Most common failure</th><th scope="col">Top misconception</th></tr></thead>' +
@@ -538,6 +542,23 @@
     if (status) {
       const r = await tb.setAssignmentStatus(status.dataset.asStatus, status.dataset.to);
       if (r.error) $("as-list").insertAdjacentHTML("afterbegin", '<p class="problem" role="alert">' + esc(r.error) + "</p>");
+    }
+    // Delete asks first, on the page (no browser dialog): Delete shows "Yes, delete / Cancel"; Cancel changes nothing.
+    const sel = (attr, id) => $("as-list").querySelector("[" + attr + '="' + CSS.escape(id) + '"]');
+    const del = e.target.closest("button[data-as-delete]");
+    const no = e.target.closest("button[data-as-delete-no]");
+    const yes = e.target.closest("button[data-as-delete-yes]");
+    if (del) { sel("data-as-confirm", del.dataset.asDelete).hidden = false; sel("data-as-delete-no", del.dataset.asDelete).focus(); }
+    if (no) { sel("data-as-confirm", no.dataset.asDeleteNo).hidden = true; sel("data-as-delete", no.dataset.asDeleteNo).focus(); }
+    if (yes) {
+      const id = yes.dataset.asDeleteYes;
+      yes.disabled = true;
+      const r = await tb.deleteAssignment(id);
+      if (r.error) { yes.disabled = false; $("as-list").insertAdjacentHTML("afterbegin", '<p class="problem" role="alert">' + esc(r.error) + "</p>"); return; }
+      if (editing && editing.id === id) closeAssignmentForm(); // the form was changing the deleted assignment
+      $("as-list").insertAdjacentHTML("afterbegin", '<p class="notice notice-up" role="status" tabindex="-1">The assignment has been deleted.</p>');
+      const done = $("as-list").firstElementChild;
+      if (done && done.focus) done.focus(); // the deleted card (and its buttons) are gone
     }
   });
 

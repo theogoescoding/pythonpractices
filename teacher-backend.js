@@ -567,6 +567,15 @@
       await loadClassData();
       return {};
     },
+    // Deletes the assignment row only (row-level security: only this teacher's classes, migration 0005). Students stop
+    // seeing it; their attempts on it are kept (attempts.assignment_id is set to null), and no task or progress changes.
+    async deleteAssignment(id) {
+      const r = await sb.from("assignments").delete().eq("id", id).select("id");
+      if (r.error) return { error: "Couldn't delete the assignment (" + (r.error.message || r.error.code) + "). Please try again." };
+      if (!r.data || !r.data.length) return { error: "Couldn't delete the assignment: it may already have been deleted. Please reload." };
+      await loadClassData();
+      return {};
+    },
     currentClass: () => current,
     copy, resetPin, removeStudent, renameStudent, changePassword, compareClasses,
   };

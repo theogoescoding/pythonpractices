@@ -140,6 +140,8 @@ A teacher can set a group of tasks for a whole class: a title, a short descripti
   - the tasks students struggled with most (most students who tried without passing it yet, then most fails per student)
   
   The teacher can **change** an assignment (title, description, tasks) or **close** it. Students see only open ones. A closed one can be opened again, and its attempts are kept.
+
+  **Delete** removes an assignment for good. It asks on the page first ("Delete this assignment? Yes, delete / Cancel", never a browser dialog), and Cancel changes nothing. Only the assignment row is deleted: tasks, student progress and the attempt log stay. Attempts made on it keep `phase` = `assignment` but lose their `assignment_id` (the database sets it to empty), so they no longer count in an assignment's summary. Students stop seeing it the next time their app loads its assignments. Work done offline on a deleted assignment and sent afterwards is refused by `student-api` (it names an assignment the class no longer has).
 - **Storage:** the `assignments` table (migration 0005). Under row-level security only the class's teacher can read, add, change or delete its assignments. Students never read the table: `student-api` sends them the open assignments of their own class. An attempt may name only an assignment of the student's own class, which both `student-api` and a database trigger check. Assignments are deleted with their class.
 - In local mode there are no assignments (the Assignments page says so), because students must see them on their own computers.
 

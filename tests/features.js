@@ -959,6 +959,67 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(!/Haven't started a unit/.test(teacherSrc + teacher), "Teacher overview: the \"Haven't started a unit\" box is gone (the student table still shows Not started cells)");
   }
 
+  // ===================== Deleting an assignment =====================
+  // Each assignment has Delete next to Close it. It asks on the page first (never a browser dialog); Cancel changes
+  // nothing; Yes deletes the assignment row only (row-level security: the owning teacher, migration 0005).
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const tSrc = read("teacher.js");
+    const bSrc = read("teacher-backend.js");
+    const m5 = read("supabase/migrations/0005_assignments.sql");
+    check(/data-as-status="' \+ esc\(a\.id\)[^\n]*\n\s*'<button type="button" class="secondary" data-as-delete="' \+ esc\(a\.id\) \+ '">Delete<\/button>'/.test(tSrc) &&
+      /'<span data-as-confirm="' \+ esc\(a\.id\) \+ '" hidden>Delete this assignment\?/.test(tSrc) && /data-as-delete-yes="' \+ esc\(a\.id\) \+ '">Yes, delete<\/button>/.test(tSrc) &&
+      /data-as-delete-no="' \+ esc\(a\.id\) \+ '">Cancel<\/button>/.test(tSrc),
+      "Assignments: each one has Delete next to Close it, with a hidden on-page question \"Delete this assignment?\" (Yes, delete / Cancel)");
+    // Run the Assignments list's real click handler on a tiny fake page, in a child process (it is async; these
+    // checks are not): Delete asks first, Cancel changes nothing, Yes deletes that one assignment.
+    const deleteFlow = (root) => {
+      const src = require("fs").readFileSync(require("path").join(root, "teacher.js"), "utf8");
+      const start = src.indexOf('$("as-list").addEventListener("click", async (e) => {');
+      const body = src.slice(src.indexOf("{", src.indexOf("=> {", start)) + 1, src.indexOf("\n  });", start));
+      const keyOf = { "data-as-edit": "asEdit", "data-as-status": "asStatus", "data-as-delete": "asDelete", "data-as-delete-no": "asDeleteNo", "data-as-delete-yes": "asDeleteYes", "data-as-confirm": "asConfirm" };
+      let focused = null;
+      const el = (name, dataset) => ({ name, dataset, hidden: false, disabled: false, focus() { focused = name; },
+        closest(sel) { const a = (sel.match(/\[([\w-]+)\]/) || [])[1]; return a && keyOf[a] in this.dataset ? this : null; } });
+      const confirmBox = Object.assign(el("question", { asConfirm: "a1" }), { hidden: true });
+      const items = { del: el("Delete", { asDelete: "a1" }), no: el("Cancel", { asDeleteNo: "a1" }), yes: el("Yes, delete", { asDeleteYes: "a1" }), confirmBox };
+      const notes = [];
+      const list = { querySelector(sel) { const [, a, v] = sel.match(/\[([\w-]+)="([^"]+)"\]/) || []; return Object.values(items).find((x) => x.dataset[keyOf[a]] === v) || null; },
+        insertAdjacentHTML(_, html) { notes.push(html); }, get firstElementChild() { return { focus() { focused = "notice"; } }; } };
+      const calls = [];
+      const dialogs = [];
+      const tb = { deleteAssignment: async (id) => { calls.push("delete " + id); return {}; }, setAssignmentStatus: async () => { calls.push("status"); return {}; } };
+      const handler = new Function("$", "collect", "openAssignmentForm", "tb", "esc", "CSS", "closeAssignmentForm", "editing", "confirm", "alert", "prompt",
+        "return async (e) => {" + body + "};")((id) => (id === "as-list" ? list : null), () => ({ assignments: [] }), () => calls.push("edit"), tb, (s) => s,
+        { escape: (s) => s }, () => calls.push("close-form"), null, () => dialogs.push("confirm"), () => dialogs.push("alert"), () => dialogs.push("prompt"));
+      (async () => {
+        const out = {};
+        await handler({ target: items.del });
+        out.asked = { shown: !confirmBox.hidden, focus: focused, calls: calls.slice() };
+        await handler({ target: items.no });
+        out.cancelled = { shown: !confirmBox.hidden, focus: focused, calls: calls.slice() };
+        await handler({ target: items.del });
+        await handler({ target: items.yes });
+        out.deleted = { calls: calls.slice(), focus: focused, notes: notes.join("") };
+        out.dialogs = dialogs;
+        console.log(JSON.stringify(out));
+      })();
+    };
+    const flowOut = require("child_process").execFileSync(process.execPath, ["-e", "(" + deleteFlow.toString() + ")(" + JSON.stringify(ROOT) + ")"], { encoding: "utf8" });
+    const flow = JSON.parse(flowOut.trim().split("\n").pop());
+    check(flow.asked.shown && flow.asked.focus === "Cancel" && flow.asked.calls.length === 0,
+      "Assignments: pressing Delete first shows \"Delete this assignment? Yes, delete / Cancel\" on the page (focus on Cancel) and deletes nothing");
+    check(!flow.cancelled.shown && flow.cancelled.focus === "Delete" && flow.cancelled.calls.length === 0 &&
+      flow.deleted.calls.join() === "delete a1" && flow.deleted.focus === "notice" && /has been deleted/.test(flow.deleted.notes) && flow.dialogs.length === 0,
+      "Assignments: Cancel hides the question and changes nothing; Yes, delete deletes that one assignment, says so and moves focus to the message; no browser dialog is opened");
+    check(!/\b(confirm|alert|prompt)\(/.test(tSrc + bSrc), "Assignments: Delete never uses a browser dialog (no confirm, alert or prompt)");
+    check(/async deleteAssignment\(id\) \{\s*const r = await sb\.from\("assignments"\)\.delete\(\)\.eq\("id", id\)\.select\("id"\);/.test(bSrc) &&
+      !/from\("(attempts|progress|passed_tasks|events|students)"\)\.delete/.test(bSrc.slice(bSrc.indexOf("async deleteAssignment"), bSrc.indexOf("currentClass:"))) &&
+      /grant select, delete, insert/.test(m5) && /create policy "teacher deletes own assignments" on public\.assignments for delete to authenticated\s*using \(class_id in \(select private\.my_class_ids\(\)\)\)/.test(m5) &&
+      /assignment_id uuid references public\.assignments \(id\) on delete set null/.test(m5) && /\.eq\("status", "open"\)/.test(read("supabase/functions/student-api/index.ts")),
+      "Assignments: Delete removes only the assignment row (the owning teacher, by row-level security); attempts on it are kept (assignment_id set to null), and students only ever get existing open assignments");
+  }
+
   // ===================== No test mode for students =====================
   // ?test=1 used to show a starting-level control on the student's home page (set a level, mark a unit completed).
   // Now no student page, and no script a student page loads, reads a test flag from the address, so ?test=1 changes
