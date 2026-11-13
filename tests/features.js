@@ -1586,7 +1586,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(teacherSrc.includes("This student pressed 'This is too easy' in this unit. It moved them up one level. Check that their level is right.") &&
       teacherSrc.includes("This student pressed 'This is way too hard' in this unit. It moved them down one level. Check that their level is right.") &&
       /pressed ' \+ esc\(when\(c\.tooEasyAt\)\)/.test(teacherSrc) && /buttonFlagsHtml\(c\)/.test(teacherSrc.slice(teacherSrc.indexOf("function renderStudent("))) &&
-      !/Too easy used<\/span>|Too hard used<\/span>/.test(teacherSrc + teacher) && /badge-complete/.test(teacherSrc) && /Placement: started at/.test(teacherSrc) &&
+      !/Too easy used<\/span>|Too hard used<\/span>/.test(teacherSrc + teacher) && /badge-complete/.test(read("teacher-data.js")) && /Placement: started at/.test(read("teacher-data.js")) &&
+      /flagsHtml: buttonFlagsHtml/.test(teacherSrc) &&
       App.BUTTON_JUMP_LEVELS === 1,
       "Students page: each flag has its tooltip and the time of the newest press, on the cell and on the student page (they replace the Too easy used and Too hard used badges); ★ Complete and the placement result are kept");
     check(!/2\+ fails in a row/.test(teacher + teacherSrc) && !/log-rows|f-student|Detail log<\/h2>/.test(teacher) && !/Needs help|backup reminder|Teach First/i.test(teacher + teacherSrc),
@@ -2303,6 +2304,204 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "Reset this task keeps the level, streaks, ceiling, hint count and passed tasks");
     check(App.showHowAvailable(s, t) && s.failedAttempts[App.fingerprintOf(t)] === 2, "Reset this task keeps the failed-attempt count, so \"Show me how\" is still offered");
     check(JSON.stringify(TD.fullExportRows(data())) === exportBefore, "Reset this task adds no record and doesn't change the export");
+  }
+
+  // ===================== The code editor: Enter, Tab and Shift-Tab =====================
+  {
+    // A one-cursor stand-in for CodeMirror 5: the calls editorEnter and editorTab make.
+    const fakeCm = (text, sel) => {
+      const lines = text.split("\n");
+      let cur = { line: lines.length - 1, ch: lines[lines.length - 1].length };
+      return {
+        value: () => lines.join("\n"), cursor: () => cur, how: null,
+        getCursor: () => cur, getLine: (n) => lines[n], somethingSelected: () => !!sel,
+        replaceSelection(s) {
+          const L = lines[cur.line];
+          const parts = (L.slice(0, cur.ch) + s).split("\n");
+          const last = parts.pop();
+          lines.splice(cur.line, 1, ...parts, last + L.slice(cur.ch));
+          cur = { line: cur.line + parts.length, ch: last.length };
+        },
+        indentSelection(how) {
+          this.how = how;
+          const L = lines[cur.line];
+          const n = how === "add" ? -4 : /^ {0,4}/.exec(L)[0].length;
+          lines[cur.line] = n < 0 ? "    " + L : L.slice(n);
+          cur = { line: cur.line, ch: Math.max(0, cur.ch - n) };
+        },
+      };
+    };
+    const enter = (text) => { const cm = fakeCm(text); App.editorEnter(cm); return { value: cm.value(), cursor: cm.cursor() }; };
+    const afterColon = enter("for i in range(3):");
+    check(afterColon.value === "for i in range(3):\n    " && afterColon.cursor.line === 1 && afterColon.cursor.ch === 4 &&
+      enter("    if i > 1:").value === "    if i > 1:\n        " && enter("while True:  # forever").value === "while True:  # forever\n    ",
+      "Enter after a line ending in a colon indents the new line one level (4 spaces) more than that line");
+    check(enter("    print(i)").value === "    print(i)\n    " && enter("        total += i").value === "        total += i\n        ",
+      "Enter after an indented line gives the new line the same indent");
+    check(enter("print(1)").value === "print(1)\n" && enter("x = int(input(\"Number: \"))").value === "x = int(input(\"Number: \"))\n" &&
+      enter("").value === "\n" && enter("print(\"a:\")").value === "print(\"a:\")\n" && enter("else").value === "else\n",
+      "Enter after a plain line (not indented, no colon at the end) adds a new line with no indent");
+    check(App.enterIndent("for x in y:") === "    " && App.enterIndent("    x = 1") === "    " && App.enterIndent("x = 1") === "" && App.EDITOR_INDENT === "    ",
+      "enterIndent (both editors) gives 4 spaces after a colon, the line's own indent after an indented line, and nothing otherwise");
+    const tab = fakeCm("x = 1");
+    App.editorTab(tab, 1);
+    const shift = fakeCm("        print(i)");
+    App.editorTab(shift, -1);
+    const shiftShort = fakeCm("  y");
+    App.editorTab(shiftShort, -1);
+    const tabSel = fakeCm("print(i)", true);
+    App.editorTab(tabSel, 1);
+    check(tab.value() === "x = 1    " && tab.how === null && shift.value() === "    print(i)" && shift.how === "subtract" &&
+      shiftShort.value() === "y" && tabSel.value() === "    print(i)" && tabSel.how === "add",
+      "Tab adds 4 spaces (or indents the selected lines); Shift-Tab takes up to 4 spaces off the line");
+    const appEd = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+    const cmSetup = appEd.slice(appEd.indexOf("CodeMirror.fromTextArea("), appEd.indexOf("cm.on(\"keydown\""));
+    check(/smartIndent: false/.test(cmSetup) && /electricChars: false/.test(cmSetup) && /Enter: editorEnter/.test(cmSetup) &&
+      /Tab: indentOrLeave\(1\)/.test(cmSetup) && /"Shift-Tab": indentOrLeave\(-1\)/.test(cmSetup) && /Esc: /.test(cmSetup) && !/smartIndent: true/.test(appEd) &&
+      /editorTab\(cm, dir\)/.test(appEd) && /insert\("\\n" \+ enterIndent\(/.test(appEd),
+      "CodeMirror's smart indent and electric chars are off, Enter uses editorEnter, Tab and Shift-Tab (and Esc then Tab) are still bound; the plain text box uses enterIndent too");
+  }
+
+  // ===================== The starter comment on write-from-scratch tasks =====================
+  {
+    const commented = tasks.filter((x) => App.hasCommentStarter(x));
+    const scratchT = byId["out-L9a"]; // starter "# Write your program here"
+    const withCode = tasks.find((x) => x.type === "write" && /^class Node:/.test(x.starter || ""));
+    const whole = tasks.find((x) => x.type === "write" && x.starter === "# Write the whole program here\n");
+    check(commented.length >= 200 && App.hasCommentStarter(scratchT) && whole && App.hasCommentStarter(whole) && withCode && !App.hasCommentStarter(withCode) &&
+      !tasks.some((x) => x.type !== "write" && x.type !== "scratch" && App.hasCommentStarter(x)),
+      "Write tasks whose starter is only a comment (" + commented.length + " tasks) are found; a starter with code isn't one");
+    const fresh = App.initialDraft(scratchT);
+    const removed = App.clearStarterComment(scratchT, fresh);
+    const freshAll = commented.every((x) => { const d = App.initialDraft(x); return App.clearStarterComment(x, d) && d.code === ""; });
+    check(fresh.code === "" && removed && freshAll, "On the first click into the editor the starter comment is removed while nothing has been typed");
+    const typed = { code: scratchT.starter + "\nprint(\"hi\")" };
+    const overwritten = { code: "print(\"hi\")" };
+    const keptCode = { code: withCode.starter };
+    check(!App.clearStarterComment(scratchT, typed) && typed.code === scratchT.starter + "\nprint(\"hi\")" &&
+      !App.clearStarterComment(scratchT, overwritten) && overwritten.code === "print(\"hi\")" &&
+      !App.clearStarterComment(withCode, keptCode) && keptCode.code === withCode.starter,
+      "Once the student has typed, the code is left alone (and a starter with real code is never changed)");
+    // The removed comment stays removed: the empty draft is what's saved, and a later visit (or reload) opens it.
+    const current = { taskId: scratchT.id, started: true, hints: 0, attempts: 0, showHow: 0, finished: false, passed: false, draft: App.initialDraft(scratchT) };
+    App.clearStarterComment(scratchT, current.draft);
+    const reopened = JSON.parse(JSON.stringify(current));
+    const again = App.clearStarterComment(scratchT, reopened.draft);
+    const appC = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+    check(reopened.draft.code === "" && !again &&
+      /esc\(c\.draft\.code\)/.test(appC.slice(appC.indexOf("function writeBody("), appC.indexOf("function wireWrite("))) &&
+      /cm\.on\("focus", \(\) => \{ if \(clearStarterComment\(task\(\), c\.draft\)\) \{ cm\.setValue\(""\); cm\.clearHistory\(\); \} \}\)/.test(appC) &&
+      /cm\.on\("change", \(\) => \{ c\.draft\.code = cm\.getValue\(\); save\(\); \}\)/.test(appC) &&
+      /ta\.addEventListener\("focus", \(\) => \{ if \(clearStarterComment\(task\(\), c\.draft\)\) \{ ta\.value = ""; save\(\); \} \}\)/.test(appC),
+      "The starter comment doesn't come back: the empty draft is saved and the editor opens the saved draft on the next visit");
+    check(App.codeToRun(scratchT, scratchT.starter) === "" && App.codeToRun(whole, whole.starter).trim() === "" &&
+      App.codeToRun(scratchT, scratchT.starter + "\nprint(1)") === "\nprint(1)" && App.codeToRun(scratchT, "print(1)") === "print(1)" &&
+      App.codeToRun(scratchT, "# my own note\nprint(1)") === "# my own note\nprint(1)" && App.codeToRun(withCode, withCode.starter) === withCode.starter &&
+      /const code = codeToRun\(t, d\.code\)/.test(appC) && /return \{ code \};/.test(appC),
+      "The starter comment isn't in the code that is run or checked (its line is left blank, so error line numbers still match)");
+  }
+
+  // ===================== Layout: Parsons lines wrap; the Students page has two rows per student =====================
+  {
+    const cssL = fs.readFileSync(path.join(ROOT, "styles.css"), "utf8");
+    const appL = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+    const rule = (sel) => { const i = cssL.indexOf(sel + " {"); return i < 0 ? "" : cssL.slice(i, cssL.indexOf("}", i)); };
+    // Parsons: a long line wraps inside its column; the columns can't grow past the task card (so nothing runs under
+    // the side panel); continuation lines hang 4ch further in than the line's start.
+    const pCode = rule(".p-line code");
+    check(/grid-template-columns: minmax\(0, 1fr\) minmax\(0, 1fr\)/.test(rule(".parsons")) && /\.parsons \{ grid-template-columns: minmax\(0, 1fr\); \}/.test(cssL) &&
+      /min-width: 0/.test(rule(".parsons-col")) && /\.layout \{ display: grid; grid-template-columns: minmax\(0, 1fr\) 18rem;/.test(cssL) &&
+      /white-space: pre-wrap/.test(pCode) && /overflow-wrap: anywhere/.test(pCode) && /min-width: 0/.test(pCode) && !/white-space: pre;/.test(pCode) && !/overflow-x/.test(pCode) &&
+      /flex-wrap: wrap/.test(rule(".p-line")) && /margin-left: auto/.test(rule(".p-btns")),
+      "Parsons: lines wrap (pre-wrap) instead of running off to the side, and the columns can't grow under the box on the right");
+    const hang = /padding-left: calc\(var\(--p-indent, 0ch\) \+ (\d+)ch\); text-indent: -(\d+)ch;/.exec(pCode);
+    check(hang && hang[1] === hang[2] && +hang[1] >= 2 && /'<code style="--p-indent:' \+ indent \* 2\.5 \+ 'ch">'/.test(appL) && !/<code style="padding-left:/.test(appL),
+      "Parsons: a wrapped line keeps its indent, and its continuation lines are indented past the start of the code (a hanging indent)");
+
+    // The Students page: two rows per student in every table, Freshness then Level.
+    const D = Date.parse("2026-11-13T12:00:00Z");
+    const st = (level, extra) => Object.assign({ level, placement: { status: "done", startLevel: 3 }, buttonsUsed: {}, failsInARow: 0 }, extra || {});
+    const passes = (sid, unit, daysAgo) => daysAgo.map((d) => ({ studentId: sid, unit, kind: "attempt", result: "pass", hints: 0, phase: "endless", at: new Date(D - d * 86400000).toISOString() }));
+    const ovData = {
+      students: { a: { name: "Ann" }, b: { name: "Bo" }, c: { name: "Cy" }, d: { name: "Di" } },
+      progress: {
+        a: { units: { output: st(10, { passedTop: true }), variables: st(10), "data-types": st(10), maths: st(10), selection: st(4, { buttonsUsed: { "too-easy": true } }) } },
+        b: { units: { output: st(6, { buttonsUsed: { "too-hard": true } }), variables: st(9), strings: st(2, { placement: { status: "pending" } }) } },
+        c: { units: { output: st(2, { placement: { status: "in-progress" } }) } },
+        d: { units: {} },
+      },
+      attempts: [].concat(passes("a", "output", [3, 2]), passes("a", "variables", [12, 11]), passes("a", "data-types", [17, 16]), passes("a", "maths", [40, 39])),
+      buttonLog: [], levelLog: [], placementLog: [], units: Curriculum.UNITS,
+    };
+    const gcse = Curriculum.stageUnits("gcse");
+    const ovTable = TD.scoreTable(ovData, gcse, D);
+    const flagsFn = (c) => (c.tooEasy ? '<span class="flag flag-easy">Too easy</span>' : "") + (c.tooHard ? '<span class="flag flag-hard">Way too hard</span>' : "");
+    const html = TD.overviewTablesHtml({ rows: ovTable.rows, unitIds: gcse, unitGroups: Curriculum.UNIT_GROUPS, unitTitle: Curriculum.unitTitle, sortKey: "name", sortDir: 1, when: () => "today", flagsHtml: flagsFn });
+    const tablesL = html.split('<div class="table-wrap overview-wrap">').slice(1);
+    const groupsL = TD.overviewGroups(gcse, Curriculum.UNIT_GROUPS);
+    const everyTwo = tablesL.every((t) => {
+      const bodies = t.split('<tbody class="ov-student">').slice(1);
+      return bodies.length === 4 && bodies.every((b) => (b.match(/<tr /g) || []).length === 2 && /^<tr class="ov-fresh"><th scope="rowgroup" rowspan="2" class="ov-name">/.test(b) &&
+        /<th scope="row" class="ov-shows">Freshness<\/th>[\s\S]*<tr class="ov-level"><th scope="row" class="ov-shows">Level<\/th>/.test(b));
+    });
+    check(tablesL.length === groupsL.length && everyTwo && groupsL.reduce((n, g) => n + g.units.length, 0) === gcse.length &&
+      groupsL.every((g) => g.units.length <= TD.OVERVIEW_MAX_UNITS) && TD.OVERVIEW_MAX_UNITS === 5 &&
+      JSON.stringify(groupsL.map((g) => g.units.length)) === "[4,3,4,3,3,5]" && groupsL[1].title === "Programming fundamentals (continued)",
+      "Students page: every student has two rows in every table (Freshness, then Level, the name merged across both), and every unit is in one table of at most 5 units");
+    // The same text and colours as the single cell before, split between the rows: a frozen copy of the old cell code.
+    const escO = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    const bandO = (c) => (c.band ? '<span class="rag rag-' + c.band.cls + '">' + c.score + "% · " + escO(c.band.label) + "</span>"
+      : c.levelBand ? '<span class="rag rag-' + c.levelBand.cls + '">' + escO(c.levelBand.label) + "</span>" : "");
+    const NP = '<span class="rag rag-none">Not placed yet</span>';
+    const oldCell = (c) => {
+      if (!c.started) return '<span class="small">Not started</span>';
+      const placement = c.placementStatus === "done" ? "Placement: started at " + c.placementStart : "Placement: " + TD.PLACEMENT_STATUS[c.placementStatus];
+      return (c.placed ? bandO(c) + (c.secured ? "" : '<br><span class="small">Not secured yet</span>') : NP) +
+        (c.secured || !c.placed ? '<br><span class="lvl">Level ' + c.level + "</span>" : "") +
+        (c.complete ? ' <span class="badge-complete" title="Passed a level 10 task">★ Complete</span>' : "") +
+        '<br><span class="small">' + escO(placement) + "</span>" + (c.tooEasy || c.tooHard ? "<br>" + flagsFn(c) : "");
+    };
+    const oldAvg = (r) => (r.band ? '<span class="rag rag-' + r.band.cls + '">' + r.average + "% · " + escO(r.band.label) + "</span>"
+      : r.levelBand ? '<span class="rag rag-' + r.levelBand.cls + '">Average ' + escO(r.levelBand.label.toLowerCase()) + '</span><br><span class="small">No unit secured yet</span>' : NP);
+    // Pieces: each element's class list and text (order kept within a row), so the split must lose and add nothing.
+    const pieces = (h) => (h.match(/<span class="[^"]+"[^>]*>[^<]*/g) || []).map((s) => s.replace(/ title="[^"]*"/, "")).concat((h.replace(/<[^>]+>/g, " ").match(/\S+/g) || []).join(" ")).sort();
+    const words = (h) => (h.replace(/<[^>]+>/g, " ").match(/\S+/g) || []).sort().join(" ");
+    const all = ovTable.rows.flatMap((r) => gcse.map((u) => r.cells[u]));
+    const kinds = { notStarted: 0, notPlaced: 0, learning: 0, secured: 0, flags: 0, complete: 0 };
+    const sameCells = all.every((c) => {
+      const now = TD.overviewCell(c, flagsFn);
+      const old = oldCell(c);
+      if (!c.started) kinds.notStarted++; else if (!c.placed) kinds.notPlaced++; else if (c.secured) kinds.secured++; else kinds.learning++;
+      if (c.tooEasy || c.tooHard) kinds.flags++;
+      if (c.complete) kinds.complete++;
+      const both = c.started ? now.fresh + now.level : now.fresh; // "Not started" is in both rows
+      const freshRight = !c.started || (c.secured ? now.fresh.includes('class="rag rag-' + c.band.cls + '"') && !/rag-lv-/.test(now.fresh) : !c.placed ? now.fresh === NP : /Not secured yet/.test(now.fresh));
+      const levelRight = !c.started || (c.placed && !c.secured ? now.level.startsWith('<span class="rag rag-' + c.levelBand.cls + '">' + c.levelBand.label) : now.level.startsWith('<span class="lvl">Level ' + c.level));
+      return words(both) === words(old) &&
+        JSON.stringify(pieces(both).filter((p) => p.startsWith("<"))) === JSON.stringify(pieces(old).filter((p) => p.startsWith("<"))) && freshRight && levelRight;
+    });
+    const sameAvg = ovTable.rows.every((r) => { const a = TD.overviewAverage(r); return words(a.fresh + a.level) === words(oldAvg(r)) &&
+      JSON.stringify(pieces(a.fresh + a.level).filter((p) => p.startsWith("<"))) === JSON.stringify(pieces(oldAvg(r)).filter((p) => p.startsWith("<"))); });
+    check(sameCells && sameAvg && Object.values(kinds).every((n) => n > 0) && ovTable.rows.some((r) => r.band) && ovTable.rows.some((r) => !r.band && r.levelBand) && ovTable.rows.some((r) => !r.band && !r.levelBand),
+      "Students page: the Freshness row and the Level row together show exactly the old cell's text and colours (band chip in Freshness, level chip, placement, ★ Complete and flags in Level), for every kind of cell and average");
+    // No sideways scrolling: each table is table-layout: fixed at the full width, Name, Shows and Average have fixed
+    // widths and the (at most 5) unit columns share the rest. Below 850px of table width the rows become tiles.
+    const remOf = (sel) => +((/width: ([\d.]+)rem/.exec(rule(".overview-table " + sel)) || [])[1]);
+    const fixedPx = 16 * (remOf(".ov-col-name") + remOf(".ov-col-shows") + remOf(".ov-col-avg"));
+    const wrapPx = (vw) => Math.min(vw, 1200) - 32; // .wrap: max-width 1200px, 1rem padding each side
+    const tableAt = (vw) => wrapPx(vw) - 16 * 12 - 20 - 4; // beside the 12rem side menu (1.25rem gap), inside the 2px border
+    const unitPx = (tableAt(1280) - fixedPx) / TD.OVERVIEW_MAX_UNITS;
+    const tile = /grid-template-columns: repeat\(auto-fill, minmax\(([\d.]+)rem, 1fr\)\)/.exec(cssL.slice(cssL.indexOf("@container (max-width: 849px)")));
+    check(/table-layout: fixed; width: 100%;/.test(rule(".overview-table")) && fixedPx > 0 && unitPx >= 112 && tableAt(1280) >= 850 &&
+      /container-type: inline-size/.test(rule(".overview-tables")) && tile && 16 * +tile[1] <= wrapPx(390) - 4 && /td\[data-label\]::before \{ content: attr\(data-label\)/.test(cssL) &&
+      /overflow-wrap: anywhere/.test(rule(".overview-table th, .overview-table td")) && !/\.unit-cell \{ white-space: nowrap; \}/.test(cssL) &&
+      !/id="overview-table"|id="overview-head"|id="overview-rows"/.test(fs.readFileSync(path.join(ROOT, "teacher.html"), "utf8")),
+      "Students page: no table needs sideways scrolling: at 1280px every unit column is " + Math.floor(unitPx) + "px (fixed layout, long names wrap); at 390px each student's rows are tiles of " + tile[1] + "rem");
+    const tJs = fs.readFileSync(path.join(ROOT, "teacher.js"), "utf8");
+    check(/\$\("overview-tables"\)\.innerHTML = TD\.overviewTablesHtml\(/.test(tJs) && /\$\("overview-tables"\)\.addEventListener\("click"/.test(tJs) &&
+      /\$\("st-summary"\)\.innerHTML = TD\.SUMMARY_TILES\.map/.test(tJs) && /renderCodeCards\(\);/.test(tJs) && /python-practice-overview-/.test(tJs) &&
+      /id="overview-tables"/.test(fs.readFileSync(path.join(ROOT, "teacher.html"), "utf8")) && /id="st-summary"/.test(fs.readFileSync(path.join(ROOT, "teacher.html"), "utf8")),
+      "Students page: the summary tiles, class code card and exports are unchanged; a column heading in any table sorts them all");
   }
 
   // ===================== Simulated class: matching, export, recheck.py =====================

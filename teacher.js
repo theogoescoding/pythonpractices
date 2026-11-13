@@ -80,9 +80,7 @@
   // A secured unit: its score and freshness band. A placed unit that isn't secured yet: its level in the level's colour.
   const bandHtml = (c) => (c.band ? '<span class="rag rag-' + c.band.cls + '">' + c.score + "% · " + esc(c.band.label) + "</span>"
     : c.levelBand ? '<span class="rag rag-' + c.levelBand.cls + '">' + esc(c.levelBand.label) + "</span>" : "");
-  // A student's average: of their secured units, or (none secured yet) their average level in its colour.
-  const averageHtml = (r) => (r.band ? '<span class="rag rag-' + r.band.cls + '">' + r.average + "% · " + esc(r.band.label) + "</span>"
-    : r.levelBand ? '<span class="rag rag-' + r.levelBand.cls + '">Average ' + esc(r.levelBand.label.toLowerCase()) + '</span><br><span class="small">No unit secured yet</span>' : NOT_PLACED);
+  // The Students page table's cells (two rows per student) are built in teacher-data.js (overviewTablesHtml).
 
   // ---------- Page switching ----------
   function render() {
@@ -114,17 +112,6 @@
   }
 
   // ---------- Students ----------
-  function scoreCellHtml(c) {
-    if (!c.started) return '<span class="small">Not started</span>';
-    const placement = c.placementStatus === "done" ? "Placement: started at " + c.placementStart : "Placement: " + TD.PLACEMENT_STATUS[c.placementStatus];
-    return (c.placed ? bandHtml(c) + (c.secured ? "" : '<br><span class="small">Not secured yet</span>') : NOT_PLACED) +
-      (c.secured || !c.placed ? '<br><span class="lvl">Level ' + c.level + "</span>" : "") + // an unsecured unit already shows its level
-
-      (c.complete ? ' <span class="badge-complete" title="Passed a level 10 task">★ Complete</span>' : "") +
-      '<br><span class="small">' + esc(placement) + "</span>" +
-      (c.tooEasy || c.tooHard ? "<br>" + buttonFlagsHtml(c) : "");
-  }
-
   const scoreRows = (data) => TD.sortScoreTable(TD.filterByName(TD.scoreTable(data, stageUnitIds()).rows, $("name-filter").value), sortKey, sortDir);
 
   function renderCodeCards() {
@@ -151,26 +138,23 @@
       ? started.map((u) => '<span class="rag rag-' + u.band.cls + '">' + esc(unitTitle(u.unit)) + ": " + u.average + "% · " + esc(u.band.label) + "</span>").join(" ")
       : '<span class="small">No student has secured a unit yet.</span>');
 
-    const cols = [{ key: "name", label: "Name" }, { key: "average", label: "Average" }].concat(unitIds.map((u) => ({ key: u, label: unitTitle(u) })));
-    $("overview-head").innerHTML = cols.map((col) =>
-      '<th scope="col"' + (col.key === sortKey ? ' aria-sort="' + (sortDir === 1 ? "ascending" : "descending") + '"' : "") +
-      '><button type="button" data-sort="' + col.key + '">' + esc(col.label) + "</button></th>").join("");
-    const rows = scoreRows(data);
-    $("overview-rows").innerHTML = rows.length ? rows.map((r) =>
-      '<tr><th scope="row"><a href="#student=' + encodeURIComponent(r.studentId) + '">' + esc(r.name) + "</a>" +
-        '<br><span class="small">Last active ' + esc(when(r.lastActive)) + "</span></th>" +
-      '<td class="unit-cell">' + averageHtml(r) + "</td>" +
-      unitIds.map((u) => '<td class="unit-cell">' + scoreCellHtml(r.cells[u]) + "</td>").join("") + "</tr>").join("")
-      : '<tr><td colspan="' + cols.length + '">No students to show yet.</td></tr>';
+    // Two rows per student (Freshness and Level), in one table per group of units (TD.overviewTablesHtml), so the unit
+    // columns share the page width with no sideways scrolling.
+    $("overview-tables").innerHTML = TD.overviewTablesHtml({ rows: scoreRows(data), unitIds, unitGroups: self.Curriculum.UNIT_GROUPS, unitTitle,
+      sortKey, sortDir, when, flagsHtml: buttonFlagsHtml });
   }
 
-  $("overview-head").addEventListener("click", (e) => {
+  // Any table's column heading sorts every table; focus goes back to the same heading in the same table.
+  $("overview-tables").addEventListener("click", (e) => {
     const b = e.target.closest("button[data-sort]");
     if (!b) return;
+    const tables = [...$("overview-tables").querySelectorAll("table")];
+    const which = tables.indexOf(b.closest("table"));
     if (sortKey === b.dataset.sort) sortDir = -sortDir;
     else { sortKey = b.dataset.sort; sortDir = 1; }
     render();
-    const again = $("overview-head").querySelector('button[data-sort="' + sortKey + '"]');
+    const table = $("overview-tables").querySelectorAll("table")[which];
+    const again = table && table.querySelector('button[data-sort="' + CSS.escape(sortKey) + '"]');
     if (again) again.focus();
   });
   $("name-filter").addEventListener("input", render);

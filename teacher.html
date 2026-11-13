@@ -162,7 +162,7 @@
 
       <section class="teacher-section" data-collapse="students">
       <h3>Secured score per unit</h3>
-      <p class="small">One row per student, one column per unit for this class's stage. Each cell shows the secured score and its label (or, if the unit isn't secured yet, the level in its colour), the level,
+      <p class="small">Two rows per student, one column per unit for this class's stage. The Freshness row shows the secured score and its label (or Not secured yet). The Level row shows the level (in its colour while the unit isn't secured yet),
         the placement result, <span class="badge-complete">★ Complete</span> once a level 10 task is passed, and these flags, with the time of the newest press:</p>
       <ul class="small flag-key">
         <li><span class="flag flag-easy">Too easy</span> the student pressed "This is too easy" in this unit, which moved them up one level: check that their level is right</li>
@@ -171,13 +171,9 @@
       <div class="teacher-controls">
         <label>Filter by name <input type="search" id="name-filter" class="text-input" style="width:auto" autocomplete="off"></label>
       </div>
-      <div class="table-wrap">
-        <table id="overview-table">
-          <caption class="small" style="text-align:left; padding:.5rem .7rem">Select a column heading to sort. Select it again to reverse the order. Unit columns sort by secured score. Select a name to open that student.</caption>
-          <thead><tr id="overview-head"></tr></thead>
-          <tbody id="overview-rows"></tbody>
-        </table>
-      </div>
+      <p class="small">Each student has two rows: <strong>Freshness</strong> (the secured score and its band) and <strong>Level</strong> (the current level, the placement result and the flags).
+        The units are in one table per group. Select a column heading to sort. Select it again to reverse the order. Unit columns sort by secured score, and every table follows the same order. Select a name to open that student.</p>
+      <div id="overview-tables" class="overview-tables"></div>
       <p class="small rag-key">Colour key: <span class="rag rag-none">grey: Not placed yet</span>.
         Placed but not secured yet, the level: <span class="rag rag-lv-red">Level 1–3</span> <span class="rag rag-lv-amber">Level 4–6</span>
         <span class="rag rag-lv-green">Level 7–9</span> <span class="rag rag-lv-top">Level 10</span>.

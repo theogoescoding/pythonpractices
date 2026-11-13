@@ -331,8 +331,10 @@ pre.code.numbered .ln { color: var(--muted); margin-right: 1rem; user-select: no
 .unit-note { margin-top: .25rem; }
 
 /* ---------- Parsons ---------- */
-.parsons { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-@media (max-width: 700px) { .parsons { grid-template-columns: 1fr; } }
+/* minmax(0, 1fr): a long line can't widen its column past the task card (it ran under the side panel); it wraps. */
+.parsons { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; }
+@media (max-width: 700px) { .parsons { grid-template-columns: minmax(0, 1fr); } }
+.parsons-col { min-width: 0; }
 .parsons-col h3 { margin: .25rem 0 .5rem; font-size: 1.05rem; }
 .p-list {
   list-style: none; margin: 0; padding: .5rem;
@@ -341,8 +343,9 @@ pre.code.numbered .ln { color: var(--muted); margin-right: 1rem; user-select: no
   background: var(--code-bg);
 }
 .p-list.program { border-color: var(--parsons); border-style: solid; }
+/* flex-wrap: a line too long to share its row with the arrow buttons takes the whole row; the buttons go under it. */
 .p-line {
-  display: flex; align-items: center; justify-content: space-between; gap: .5rem;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem;
   background: var(--card);
   border: 2px solid var(--border);
   border-radius: 6px;
@@ -350,9 +353,15 @@ pre.code.numbered .ln { color: var(--muted); margin-right: 1rem; user-select: no
   margin-bottom: .4rem;
   cursor: grab;
 }
-.p-line code { white-space: pre; font-size: .95rem; overflow-x: auto; }
+/* A long line wraps instead of running off to the side. Its first line starts at the line's indent (--p-indent, set
+   in app.js); the rest hang 4ch further in, past the start of the code, so a wrapped line still reads as one line. */
+.p-line code {
+  flex: 1 1 auto; min-width: 0;
+  white-space: pre-wrap; overflow-wrap: anywhere; font-size: .95rem;
+  padding-left: calc(var(--p-indent, 0ch) + 4ch); text-indent: -4ch;
+}
 #p-avail .p-line:hover { border-color: var(--parsons); }
-.p-btns { display: flex; gap: .2rem; flex: none; }
+.p-btns { display: flex; gap: .2rem; flex: none; margin-left: auto; }
 .p-btns button { padding: .1rem .45rem; min-height: 2rem; font-size: .8rem; }
 .p-empty { color: var(--muted); font-style: italic; padding: .5rem; }
 
@@ -623,8 +632,38 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .quick-look section { background: var(--card); border: 2px solid var(--border); border-radius: 8px; padding: .5rem .9rem; }
 .quick-look h3 { margin: .25rem 0 .5rem; font-size: 1.05rem; }
 .quick-look ul, .quick-look ol { margin: 0; padding-left: 1.2rem; font-size: .92rem; }
-.unit-cell { white-space: nowrap; }
 .unit-cell .lvl { font-weight: 800; }
+
+/* ---------- Students page: two rows per student (Freshness, Level), one table per group of units ----------
+   table-layout: fixed with width 100%: Name, Shows and Average have fixed widths and the unit columns (at most 7 a
+   table, teacher-data.js OVERVIEW_MAX_UNITS) share the rest, so nothing scrolls sideways. Text wraps in its cell. */
+.overview-tables { display: grid; gap: 1rem; container-type: inline-size; }
+.overview-table { table-layout: fixed; width: 100%; font-size: .85rem; }
+.overview-table caption { text-align: left; font-weight: 800; font-size: 1rem; padding: .5rem .6rem; }
+.overview-table .ov-col-name { width: 8rem; }
+.overview-table .ov-col-shows { width: 5.5rem; }
+.overview-table .ov-col-avg { width: 6.5rem; }
+.overview-table th, .overview-table td { padding: .35rem .4rem; vertical-align: top; overflow-wrap: anywhere; hyphens: auto; }
+.overview-table thead th { vertical-align: bottom; }
+.overview-table tbody th { position: static; }
+.overview-table .rag, .overview-table .badge-complete, .overview-table .flag { white-space: normal; }
+.overview-table .flag, .overview-table .badge-complete { border-radius: 8px; }
+.overview-table .ov-shows { color: var(--muted); font-weight: 700; }
+.overview-table tr.ov-fresh > td, .overview-table tr.ov-fresh > .ov-shows { border-bottom: 1px dashed var(--border); }
+.overview-table tbody.ov-student { border-top: 2px solid var(--border); }
+/* Narrower than 850px (a phone, a tablet, or a small window; a container query on the tables' own width), where 5
+   unit columns would be under about 105px: each student becomes a block, and each row a grid of unit tiles named by
+   their column (data-label). */
+@container (max-width: 849px) {
+  .overview-table, .overview-table caption, .overview-table thead, .overview-table tbody { display: block; }
+  .overview-table colgroup, .overview-table thead .ov-shows { display: none; }
+  .overview-table thead tr { display: flex; flex-wrap: wrap; gap: .3rem; padding: 0 .6rem .5rem; }
+  .overview-table thead th { position: static; border: 1px solid var(--border); border-radius: 6px; padding: .15rem .4rem; }
+  .overview-table tbody tr { display: grid; grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr)); gap: .3rem .5rem; padding: .3rem .6rem; }
+  .overview-table tbody th, .overview-table tbody td { display: block; min-width: 0; border: 0; padding: .1rem 0; }
+  .overview-table tbody .ov-name, .overview-table tbody .ov-shows { grid-column: 1 / -1; background: none; }
+  .overview-table td[data-label]::before { content: attr(data-label); display: block; font-size: .72rem; font-weight: 700; color: var(--muted); }
+}
 .flag { display: inline-block; font-size: .78rem; font-weight: 700; border: 1px solid var(--border); border-radius: 999px; padding: 0 .4rem; margin-left: .2rem; }
 .flag-alert { color: var(--fail); border-color: var(--fail); }
 .badge-complete { color: var(--text); border: 2px solid var(--glow); border-radius: 999px; padding: 0 .4rem; font-size: .78rem; font-weight: 700; margin-left: .2rem; }

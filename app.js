@@ -261,6 +261,49 @@ function resetTaskAnswer(current, t) {
   return current;
 }
 
+// ---------- The code editor (write and scratch tasks) ----------
+// Enter indents in two cases only: after a line ending in a colon, one level (4 spaces) more than that line; after an
+// indented line, the same indent. Otherwise the new line has no indent. lineBefore = the line up to the cursor.
+const EDITOR_INDENT = "    ";
+function enterIndent(lineBefore) {
+  const own = /^[ \t]*/.exec(lineBefore)[0];
+  return /:\s*(#.*)?$/.test(lineBefore) ? own + EDITOR_INDENT : own;
+}
+// The CodeMirror keys (wireCodeMirror). Enter: a new line indented by enterIndent (CodeMirror's smart indent is off).
+function editorEnter(cm) {
+  const from = cm.getCursor("from");
+  cm.replaceSelection("\n" + enterIndent(cm.getLine(from.line).slice(0, from.ch)), "end");
+}
+// Tab adds 4 spaces at the cursor, or indents the selected lines; Shift-Tab takes up to 4 spaces off the line(s).
+function editorTab(cm, dir) {
+  if (dir < 0 || cm.somethingSelected()) cm.indentSelection(dir < 0 ? "subtract" : "add");
+  else cm.replaceSelection(EDITOR_INDENT, "end");
+}
+
+// ---------- The starter comment on write-from-scratch tasks ----------
+// A write task whose starter is only comments ("# Write your program here") shows that comment in the editor. It goes
+// on the first click or focus in the editor, if the code is still exactly the starter (nothing typed): the draft is
+// then "" and saved, so it doesn't come back on the next visit. Code the student has typed is never changed.
+function hasCommentStarter(t) {
+  const s = (t && t.starter) || "";
+  return !!t && (t.type === "write" || t.type === "scratch") && s.trim() !== "" && s.split(/\r?\n/).every((l) => /^\s*(#.*)?$/.test(l));
+}
+// Returns true if it removed the comment.
+function clearStarterComment(t, draft) {
+  if (!hasCommentStarter(t) || !draft || draft.code !== t.starter) return false;
+  draft.code = "";
+  return true;
+}
+// The code that is run and checked: the starter comment's lines, if the code still begins with them (an answer saved
+// before the comment went on focus), are left blank, so line numbers in error messages still match the editor.
+function codeToRun(t, code) {
+  if (!hasCommentStarter(t)) return code;
+  const own = code.split("\n");
+  const starter = t.starter.replace(/\s+$/, "").split(/\r?\n/);
+  if (starter.some((l, i) => own[i] == null || own[i].replace(/\s+$/, "") !== l.replace(/\s+$/, ""))) return code;
+  return own.map((l, i) => (i < starter.length ? "" : l)).join("\n");
+}
+
 // ---------- Placement test ----------
 // status: "pending" (to be taken: new unit, or reset by the teacher), "in-progress", "done",
 // "skipped" (level set in test mode) or "not-taken" (started before placement existed).
@@ -642,6 +685,7 @@ if (typeof module === "object" && module.exports) {
     PLACEMENT_LEVELS, PLACEMENT_ATTEMPTS, PLACEMENT_MAX_LEVEL, PLACEMENT_TAG, BUTTON_JUMP_LEVELS,
     SHOW_HOW_AFTER_FAILS, EXPLAINER_AFTER_WRONG_CHECKS, explainerShown, MAX_NEW_VARIANT_TRIES, SKILL_RENAMES, PROGRESS_VERSION,
     migrateProgress, fingerprintOf, hasPassed, recordTaskResult, noteFailedAttempt, showHowAvailable, initialDraft, resetTaskAnswer, isStrongPass,
+    EDITOR_INDENT, enterIndent, editorEnter, editorTab, hasCommentStarter, clearStarterComment, codeToRun,
     chooseNextTask, chooseScratchTask, newVariant,
     newPlacement, isPlacementTask, needsPlacement, choosePlacementTasks, startPlacement, placementStartLevel,
     recordPlacementStep, resetPlacement, attemptRecord, levelButtonAvailable, applyLevelButton, levelButtonMessage, pressLevelButton,
@@ -1491,8 +1535,9 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       return { code: withChosenLine(t, d.choice) };
     }
     if (t.type === "write" || t.type === "scratch") {
-      if (!d.code.trim()) return forCheck ? { empty: true, code: "" } : { problem: "Write some code in the editor first." };
-      return { code: d.code };
+      const code = codeToRun(t, d.code); // without the starter comment ("# Write your program here")
+      if (!code.trim()) return forCheck ? { empty: true, code: "" } : { problem: "Write some code in the editor first." };
+      return { code };
     }
     return { code: t.solution };
   }
@@ -1696,6 +1741,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       if (!ok) ta.setRangeText(text, ta.selectionStart, ta.selectionEnd, "end");
     };
     ta.addEventListener("input", () => { c.draft.code = ta.value; save(); });
+    // The starter comment goes on the first click or focus, if nothing has been typed yet.
+    ta.addEventListener("focus", () => { if (clearStarterComment(task(), c.draft)) { ta.value = ""; save(); } });
     ta.addEventListener("keydown", (e) => {
       if (e.key === "Escape") { escPressed = true; return; }
       if (e.key === "Tab" && !escPressed) {
@@ -1714,10 +1761,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       } else if (e.key === "Enter" && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
         e.preventDefault();
         const lineStart = ta.value.lastIndexOf("\n", ta.selectionStart - 1) + 1;
-        const line = ta.value.slice(lineStart, ta.selectionStart);
-        let indent = /^ */.exec(line)[0];
-        if (/:\s*(#.*)?$/.test(line)) indent += "    ";
-        insert("\n" + indent);
+        insert("\n" + enterIndent(ta.value.slice(lineStart, ta.selectionStart)));
         ta.dispatchEvent(new Event("input"));
       }
       if (e.key !== "Shift") escPressed = false;
@@ -1725,7 +1769,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   }
 
   // CodeMirror 5: Python highlighting, line numbers, matching brackets.
-  // Tab inserts 4 spaces; Enter keeps the indent and adds a level after a colon (Python mode).
+  // Tab inserts 4 spaces (editorTab). Enter (editorEnter) indents only after a colon or an indented line: CodeMirror's
+  // own Python indenting (smartIndent, and electricChars, which moved "else:" as it was typed) is off.
   // Esc then Tab leaves the editor, as in the plain text box.
   function wireCodeMirror(ta, c) {
     let escPressed = false;
@@ -1743,8 +1788,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     };
     const indentOrLeave = (dir) => (cm) => {
       if (escPressed) { escPressed = false; leaveEditor(cm, dir); return undefined; }
-      if (dir < 0 || cm.somethingSelected()) cm.indentSelection(dir < 0 ? "subtract" : "add");
-      else cm.replaceSelection("    ", "end");
+      editorTab(cm, dir);
       return undefined;
     };
     const cm = CodeMirror.fromTextArea(ta, {
@@ -1753,10 +1797,12 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       indentUnit: 4,
       tabSize: 4,
       indentWithTabs: false,
-      smartIndent: true,
+      smartIndent: false,
+      electricChars: false,
       matchBrackets: true,
       viewportMargin: Infinity,
       extraKeys: {
+        Enter: editorEnter,
         Tab: indentOrLeave(1),
         "Shift-Tab": indentOrLeave(-1),
         Esc: () => { escPressed = true; },
@@ -1764,6 +1810,9 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     });
     cm.on("keydown", (_, e) => { if (!["Escape", "Tab", "Shift"].includes(e.key)) escPressed = false; });
     cm.on("change", () => { c.draft.code = cm.getValue(); save(); });
+    // The starter comment goes on the first click or focus, if nothing has been typed yet (clearHistory: Undo can't
+    // bring it back). The change handler then saves the empty draft.
+    cm.on("focus", () => { if (clearStarterComment(task(), c.draft)) { cm.setValue(""); cm.clearHistory(); } });
     const input = cm.getInputField();
     input.setAttribute("aria-label", "Your code");
     input.setAttribute("aria-describedby", "editor-help");
@@ -1987,7 +2036,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       const indent = inProgram ? l.indent || 0 : 0;
       const label = esc(l.text) + (inProgram ? ", indent " + indent : "");
       let html = '<li class="p-line" tabindex="0" draggable="true" data-id="' + l.id + '" aria-label="' + label + '" aria-describedby="parsons-help">' +
-        '<code style="padding-left:' + indent * 2.5 + 'ch">' + highlight(l.text) + "</code>";
+        // --p-indent: where the line starts; a long line wraps, its next lines hanging further in (styles.css .p-line code).
+        '<code style="--p-indent:' + indent * 2.5 + 'ch">' + highlight(l.text) + "</code>";
       if (inProgram) {
         html += '<span class="p-btns">' +
           '<button type="button" tabindex="-1" data-act="out" aria-label="Indent less">◀</button>' +

@@ -412,6 +412,85 @@
     return Object.assign(row, { recent, failsInARow: Object.fromEntries(unitIds.map((u) => [u, row.cells[u].failsInARow || 0])) });
   }
 
+  // ---------- The Students page table (HTML text; teacher.js puts it on the page) ----------
+  // Two rows per student: Freshness (a secured unit's score and band, Secured.BANDS) and Level (the current level, in
+  // its colour while the unit isn't secured yet, Secured.levelBand). The text and colours are the ones the single cell
+  // showed before, split between the two rows; the rules are unchanged. The unit columns come in groups (the
+  // curriculum's unit groups, with A-level split into its two subsections), one table each and at most
+  // OVERVIEW_MAX_UNITS units, so the columns share the page width and stay readable, with no sideways scrolling.
+  const OVERVIEW_MAX_UNITS = 5;
+  const htmlEsc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const NOT_PLACED_HTML = '<span class="rag rag-none">Not placed yet</span>';
+  const NOT_STARTED_HTML = '<span class="small">Not started</span>';
+
+  // [{ id, title, units }]: unitIds (the stage's units) in the curriculum's groups, in order; units in no group last.
+  // A group with more than OVERVIEW_MAX_UNITS units is split evenly (7 units: 4, then 3 "(continued)").
+  function overviewGroups(unitIds, unitGroups) {
+    const out = [];
+    const add = (id, title, units) => {
+      const parts = Math.ceil(units.length / OVERVIEW_MAX_UNITS);
+      for (let p = 0, from = 0; p < parts; p++) {
+        const size = Math.ceil((units.length - from) / (parts - p));
+        out.push({ id, title: title + (p ? " (continued)" : ""), units: units.slice(from, from + size) });
+        from += size;
+      }
+    };
+    for (const g of unitGroups || []) for (const part of g.subsections || [g]) add(part.id, part.title, part.units.filter((u) => unitIds.includes(u)));
+    const listed = out.reduce((all, g) => all.concat(g.units), []);
+    add("other", "Other units", unitIds.filter((u) => !listed.includes(u)));
+    return out;
+  }
+
+  // One unit's two cells, { fresh, level }, from scoreTable's cell. flagsHtml(c): the Too easy / Way too hard flags.
+  function overviewCell(c, flagsHtml) {
+    if (!c || !c.started) return { fresh: NOT_STARTED_HTML, level: NOT_STARTED_HTML };
+    const placement = c.placementStatus === "done" ? "Placement: started at " + c.placementStart : "Placement: " + PLACEMENT_STATUS[c.placementStatus];
+    const fresh = !c.placed ? NOT_PLACED_HTML
+      : c.secured ? '<span class="rag rag-' + c.band.cls + '">' + c.score + "% · " + htmlEsc(c.band.label) + "</span>"
+      : '<span class="small">Not secured yet</span>';
+    const flags = flagsHtml && (c.tooEasy || c.tooHard) ? flagsHtml(c) : "";
+    const level = (c.placed && !c.secured ? '<span class="rag rag-' + c.levelBand.cls + '">' + htmlEsc(c.levelBand.label) + "</span>" : '<span class="lvl">Level ' + c.level + "</span>") +
+      (c.complete ? ' <span class="badge-complete" title="Passed a level 10 task">★ Complete</span>' : "") +
+      '<br><span class="small">' + htmlEsc(placement) + "</span>" + (flags ? "<br>" + flags : "");
+    return { fresh, level };
+  }
+
+  // The student's Average column, { fresh, level }: the average of their secured units, or (none secured yet) their
+  // average level in its colour.
+  function overviewAverage(r) {
+    if (r.band) return { fresh: '<span class="rag rag-' + r.band.cls + '">' + r.average + "% · " + htmlEsc(r.band.label) + "</span>", level: "" };
+    if (r.levelBand) return { fresh: '<span class="small">No unit secured yet</span>', level: '<span class="rag rag-' + r.levelBand.cls + '">Average ' + htmlEsc(r.levelBand.label.toLowerCase()) + "</span>" };
+    return { fresh: NOT_PLACED_HTML, level: "" };
+  }
+
+  // o = { rows (scoreTable rows, sorted and filtered), unitIds, unitGroups (Curriculum.UNIT_GROUPS), unitTitle, sortKey,
+  // sortDir, when (a time as the page shows it), flagsHtml }. Every table has the same first three columns (Name,
+  // Shows, Average) with fixed widths, and its unit columns share the rest of the width.
+  function overviewTablesHtml(o) {
+    if (!o.rows.length) return '<p class="small">No students to show yet.</p>';
+    const sorted = (key) => (key === o.sortKey ? ' aria-sort="' + (o.sortDir === 1 ? "ascending" : "descending") + '"' : "");
+    const head = (key, label) => '<th scope="col"' + sorted(key) + '><button type="button" data-sort="' + htmlEsc(key) + '">' + htmlEsc(label) + "</button></th>";
+    const td = (html, label) => '<td class="unit-cell" data-label="' + htmlEsc(label) + '">' + html + "</td>";
+    return overviewGroups(o.unitIds, o.unitGroups).map((g) => {
+      const titles = g.units.map((u) => o.unitTitle(u));
+      const body = o.rows.map((r) => {
+        const avg = overviewAverage(r);
+        const cells = g.units.map((u) => overviewCell(r.cells[u], o.flagsHtml));
+        return '<tbody class="ov-student">' +
+          '<tr class="ov-fresh"><th scope="rowgroup" rowspan="2" class="ov-name"><a href="#student=' + encodeURIComponent(r.studentId) + '">' + htmlEsc(r.name) + "</a>" +
+            '<br><span class="small">Last active ' + htmlEsc(o.when(r.lastActive)) + "</span></th>" +
+            '<th scope="row" class="ov-shows">Freshness</th>' + td(avg.fresh, "Average") + cells.map((c, i) => td(c.fresh, titles[i])).join("") + "</tr>" +
+          '<tr class="ov-level"><th scope="row" class="ov-shows">Level</th>' + td(avg.level, "Average") + cells.map((c, i) => td(c.level, titles[i])).join("") + "</tr>" +
+          "</tbody>";
+      }).join("");
+      return '<div class="table-wrap overview-wrap"><table class="overview-table" data-group="' + htmlEsc(g.id) + '">' +
+        '<caption>' + htmlEsc(g.title) + "</caption>" +
+        '<colgroup><col class="ov-col-name"><col class="ov-col-shows"><col class="ov-col-avg">' + g.units.map(() => '<col class="ov-col-unit">').join("") + "</colgroup>" +
+        "<thead><tr>" + head("name", "Name") + '<th scope="col" class="ov-shows">Shows</th>' + head("average", "Average") + g.units.map((u, i) => head(u, titles[i])).join("") + "</tr></thead>" +
+        body + "</table></div>";
+    }).join("");
+  }
+
   // The class scores export: per student, the average and each unit's secured score, its label and the level.
   function classScoresCsv(table, unitIds, unitTitle) {
     const cols = [{ key: "name", label: "Name" }, { key: "average", label: "Average secured score" }, { key: "rag", label: "RAG" }];
@@ -573,5 +652,6 @@
     collect, overviewRows, sortOverview, filterByName, taskStats, misconceptionStats, quickLook,
     detailRows, filterDetail, mostFailedTasks, workshop, BUILDER_MAX_TASKS, spreadLevels, buildSpread, swapOptions, addOptions, toCsv, fullExportRows, fullExportCsv, dataDictionaryCsv, assignmentStats,
     lastButtonPresses, ragOf, levelBand, SUMMARY_TILES, summaryTileOf, scoreTable, sortScoreTable, studentDetail, classScoresCsv,
+    OVERVIEW_MAX_UNITS, overviewGroups, overviewCell, overviewAverage, overviewTablesHtml,
   };
 });
