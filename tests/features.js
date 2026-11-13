@@ -1126,10 +1126,10 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const src = scripts.map((s) => [s, read(s)]);
     const paramsRead = [...new Set(src.flatMap(([, t]) => [...t.matchAll(/(?:params|URLSearchParams\([^)]*\))\.(?:get|has)\("([\w-]+)"\)/g)].map((m) => m[1])))].sort();
     check(scripts.includes("home.js") && scripts.includes("app.js") && scripts.includes("tour.js") &&
-      src.every(([, t]) => !/(?:get|has)\("test"\)|[?&]test=1|testMode/.test(t)) && paramsRead.join() === "assignment,mode,preview,unit,units" &&
+      src.every(([, t]) => !/(?:get|has)\("test"\)|[?&]test=1|testMode/.test(t)) && paramsRead.join() === "assignment,mode,preview,section,unit,units" &&
       studentPages.every((p) => !/test-panel|test-set|test-complete|test-level|test-unit|Test mode/.test(read(p))) &&
       !/reason: "test-mode/.test(read("home.js")) && !/completedTop: true/.test(read("home.js")) && !/saveProgress/.test(read("home.js")) && !/\.test-panel/.test(read("styles.css")),
-      "Student pages: ?test=1 does nothing (no script reads a test flag, so no level is set, no unit is marked completed and no test controls are shown); the address is only read for preview, assignment, mode, unit and units");
+      "Student pages: ?test=1 does nothing (no script reads a test flag, so no level is set, no unit is marked completed and no test controls are shown); the address is only read for preview, assignment, mode, unit, units and section");
   }
 
   // ===================== Unique ids on every page =====================
@@ -2603,6 +2603,119 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "Students page: the summary tiles, class code card and exports are unchanged; a column heading in any table sorts them all");
   }
 
+  // ===================== Validation sections =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const SecuredV = require(path.join(ROOT, "secured.js"));
+    const tplV = JSON.parse(read("templates.json"));
+    const byIdV = Object.fromEntries(tasks.map((t) => [t.id, t]));
+    const secs = Curriculum.unitSections("validation");
+    const LETTERS = { presence: "i", type: "t", range: "r", format: "f", length: "l" };
+    const valTasks = tasks.filter((t) => t.unit === "validation");
+    const valTpls = tplV.filter((t) => t.units.includes("validation"));
+    const secOf = (t) => Curriculum.taskSection(t, "validation", byIdV);
+    // 1. Every task and template maps to exactly one section; the ids match curriculum.js.
+    const practiceV = valTasks.filter((t) => !App.isPlacementTask(t));
+    check(secs.map((s) => s.id + ":" + s.name + ":" + s.title).join() === "i:presence:Presence,t:type:Type,r:range:Range,f:format:Format,l:length:Length" &&
+      secs.every((s) => s.description && LETTERS[s.name] === s.id) && !("sections" in Curriculum.unitById("selection")) &&
+      practiceV.length === 50 && practiceV.every((t) => secOf(t) === t.id.slice(-1) && secs.filter((s) => s.id === secOf(t)).length === 1) &&
+      valTasks.filter(App.isPlacementTask).every((t) => secOf(t) === null) &&
+      valTpls.length === 59 && valTpls.every((t) => secs.some((s) => s.id === secOf(t))) &&
+      secOf(valTpls.find((t) => t.id === "comb-val-auth-pin")) === "t" && secOf(valTpls.find((t) => t.id === "comb-val-auth-function")) === "i" &&
+      valTpls.filter((t) => byIdV[t.source] && byIdV[t.source].unit === "validation").every((t) => secOf(t) === t.source.slice(-1)) &&
+      JSON.stringify(secs.map((s) => valTpls.filter((t) => secOf(t) === s.id).length)) === "[11,13,13,10,12]",
+      "Validation sections: every practice task (by its id's letter) and all 59 templates (by their source task, or a combined one's check skill) map to exactly one of curriculum.js's five sections; placement tasks to none");
+    // 2. Section practice picks only its own section's tasks, at the student's level (bank tasks first).
+    let wrongBank = 0, emptyLevels = 0, wrongTpl = 0;
+    for (const s of secs) {
+      const pool = App.sectionPool(tasks, tplV, "validation", s.id);
+      for (let lv = 1; lv <= 10; lv++) {
+        const t = App.chooseTask(pool.tasks, "validation", lv, {}, null, rng, {});
+        if (!t || t.level !== lv || secOf(t) !== s.id || App.isPlacementTask(t)) wrongBank++;
+        if (!App.sectionHasLevel(pool, "validation", lv)) emptyLevels++;
+        if (App.singleTemplates(pool.templates, "validation", lv).some((tpl) => secOf(tpl) !== s.id || tpl.level !== lv)) wrongTpl++;
+      }
+    }
+    const appV = read("app.js");
+    check(!wrongBank && !emptyLevels && !wrongTpl &&
+      /if \(inSection\(\)\) \{\s*\/\/[^\n]*\n\s*return chooseNextTask\(Object\.assign\(choice, sectionPool\(tasks, templates, unitId, section\.id\), \{ unitId, state: s, last: sectionHolder\(\)\.last \|\| \{\} \}\)\);/.test(appV),
+      "Validation sections: for each of the five sections at each level 1-10, practice picks only that section's bank task at the student's level, and only its templates (chooseNextTask, as normal practice)");
+    // The same, through chooseNextTask itself once the bank task is passed (a variant), in a child process (it's async).
+    const variantRun = require("child_process").execFileSync(process.execPath, ["-e", `
+      const path = require("path"); const ROOT = ${JSON.stringify(ROOT)};
+      const App = require(path.join(ROOT, "app.js")); const C = require(path.join(ROOT, "curriculum.js"));
+      const tasks = require(path.join(ROOT, "tasks.json")); const tpls = require(path.join(ROOT, "templates.json"));
+      const byId = Object.fromEntries(tasks.map((t) => [t.id, t]));
+      let seed = 1; const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+      const Templates = { randomSeed: (r) => Math.floor(r() * 1e9), signature: () => null };
+      const realise = async (tpl, s) => ({ id: tpl.id + "#" + s, templateId: tpl.id, generated: true, fingerprint: tpl.id + "|" + s, unit: tpl.units[0], units: tpl.units, source: tpl.source, skills: tpl.skills, level: tpl.level, type: tpl.type });
+      (async () => {
+        const out = [];
+        for (const s of C.unitSections("validation")) for (let lv = 1; lv <= 10; lv++) {
+          const pool = App.sectionPool(tasks, tpls, "validation", s.id);
+          const state = Object.assign(App.freshUnitState(lv), { placement: { status: "done", startLevel: lv } });
+          const first = await App.chooseNextTask(Object.assign({ tasks, templates: tpls, Templates, realise, rand }, pool, { unitId: "validation", state, last: {} }));
+          App.recordTaskResult(state, first, true, "2026-11-13T10:00:00Z");
+          const next = await App.chooseNextTask(Object.assign({ tasks, templates: tpls, Templates, realise, rand }, pool, { unitId: "validation", state, last: { key: first.id } }));
+          out.push([s.id, lv, first.id, !!first.generated, C.taskSection(first, "validation", byId), first.level, next && next.templateId, next && C.taskSection(next, "validation", byId), next && next.level].join("|"));
+        }
+        console.log(JSON.stringify(out));
+      })();`], { encoding: "utf8" });
+    const runs = JSON.parse(variantRun.trim()).map((r) => r.split("|"));
+    check(runs.length === 50 && runs.every(([s, lv, , gen, s1, l1, tid, s2, l2]) => gen === "false" && s1 === s && l1 === lv && tid && s2 === s && l2 === lv),
+      "Validation sections: chooseNextTask, given a section's pool, sets the section's bank task first and then a variant of that section's own template, at the same level (all five sections, all ten levels)");
+    // 3. A section with nothing at the level says so, and sets no other task.
+    const thin = App.sectionPool(tasks.filter((t) => !(t.unit === "validation" && t.level === 3)), tplV.filter((t) => t.level !== 3), "validation", "r");
+    const serveSrc = appV.slice(appV.indexOf("  async function serveNewTask() {"), appV.indexOf("    holder().current = { taskId: t.id, task: t.generated ? t : null"));
+    check(!App.sectionHasLevel(thin, "validation", 3) && App.chooseTask(thin.tasks, "validation", 3, {}, null, rng, {}) === null && App.singleTemplates(thin.templates, "validation", 3).length === 0 &&
+      App.sectionNoTaskText("Range", 3, "Validation") === "There's no Range task at Level 3 right now. You can practise the whole Validation unit instead." &&
+      /if \(inSection\(\) && !sectionHasLevel\(sectionPool\(tasks, templates, unitId, section\.id\), unitId, us\(\)\.level\)\) \{[\s\S]*sectionNoTaskText\(section\.title, us\(\)\.level, unit\.title\)[\s\S]*Practise the whole ' \+ esc\(unit\.title\) \+ " unit<\/a><\/p>";\s*return false;/.test(serveSrc),
+      "Validation sections: a section with no task at the student's level says \"There's no Range task at Level 3 right now…\", offers the unit's normal practice, and sets no task from another section");
+    // 4. A section pass: recorded as practice, but no change to the level, streaks, history or the secured score.
+    const t10 = byIdV["val-L10r"];
+    const st = Object.assign(App.freshUnitState(10), { placement: { status: "done", startLevel: 10 }, passStreak: 1, strongRun: 1 });
+    const beforeLadder = JSON.stringify([st.level, st.passStreak, st.strongRun, st.failStreak, st.history, st.passedTop, st.completedTop, st.stats, st.ceiling]);
+    App.finishSectionTask(st, t10, { passed: true, hints: 0, showHow: false, now: "2026-11-13T10:00:00Z", key: t10.id });
+    const afterLadder = JSON.stringify([st.level, st.passStreak, st.strongRun, st.failStreak, st.history, st.passedTop, st.completedTop, st.stats, st.ceiling]);
+    const rec = (days, o) => Object.assign(App.attemptRecord(Object.assign({ task: t10, unit: "validation", phase: "practice", kind: "attempt", attemptNumber: 1, hints: 0, result: "pass", levelBefore: 10, levelAfter: 10, section: "range" }, o || {})),
+      { at: new Date(Date.UTC(2026, 10, 1 + days)).toISOString() });
+    const secPasses = [rec(0), rec(1)];
+    const finSrc = appV.slice(appV.indexOf("    if (inSection()) {\n      // Section practice: recorded"), appV.indexOf("    const outcome = { passed, hints: c.hints, skills: t.skills"));
+    check(beforeLadder === afterLadder && st.passedFingerprints["val-L10r"] && st.log["val-L10r"].passes === 1 && st.skills.range && st.skills.range.passes === 1 &&
+      secPasses.every((a) => a.phase === "practice" && a.hintType === "section-range" && !SecuredV.isTopPass(a, "validation")) && !SecuredV.score(secPasses, "validation").secured &&
+      rec(2, { showHow: true }).hintType === "show-me-how" && rec(2, { section: null }).hintType === undefined &&
+      /finishSectionTask\(us\(\), t, \{ passed, hints: c\.hints/.test(finSrc) && /save\(\);\s*renderSide\(\);\s*return \{\};/.test(finSrc) && !/applyOutcome|logLevelChange|passedTop/.test(finSrc) &&
+      /const showLevelButtons = !endless && !inAssignment && !c\.placement && !inSection\(\);/.test(appV) && /section: !c\.placement && inSection\(\) \? section\.name : null,/.test(appV),
+      "Validation sections: a section pass is a practice attempt and counts on My progress (passed task, log, skill), but never changes the level, streaks, history, ★ Level 10 or the secured score (hintType section-range); no level buttons there");
+    // 5. The links: on the home card and on My progress, once placed; not on placement or assignments.
+    const homeV = read("home.js");
+    const linksFn = new Function("esc", homeV.slice(homeV.indexOf("  function sectionLinksHtml("), homeV.indexOf("  function showUnits()")) + "\nreturn sectionLinksHtml;")((s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"));
+    const valUnit = Curriculum.unitById("validation");
+    const links = linksFn(valUnit, true);
+    const hrefs = [...links.matchAll(/href="([^"]+)"/g)].map((m) => m[1].replace(/&amp;/g, "&"));
+    const progV = read("progress.js");
+    check(hrefs.join() === ["presence", "type", "range", "format", "length"].map((n) => "practice.html?unit=validation&section=" + n).join() &&
+      [...links.matchAll(/>([A-Za-z]+)<\/a>/g)].map((m) => m[1]).join() === "Presence,Type,Range,Format,Length" &&
+      linksFn(valUnit, false) === "" && linksFn(Curriculum.unitById("selection"), true) === "" &&
+      /"<\/a>" \+ sectionLinksHtml\(u, s && !placing\) \+ "<\/li>"/.test(homeV) && !/assignment-card[^\n]*sectionLinksHtml/.test(homeV) &&
+      /const sections = x\.s && !needsPlacement\(x\.s\) \? u\.sections \|\| \[\] : \[\];/.test(progV) && /"&amp;section=" \+ encodeURIComponent\(sec\.name\)/.test(progV) &&
+      /id="section-links" class="section-links"/.test(read("progress.html")) && !/section-links/.test(appV),
+      "Validation sections: the five links (Presence, Type, Range, Format, Length → practice.html?unit=validation&section=…) are under the home card and on My progress once the placement is done; never during placement, on assignments or on the practice page");
+    // 6. The section line and the way back; 7. 390px; 8. other units ignore the parameter.
+    const cssV = read("styles.css");
+    const rule = (sel) => { const i = cssV.indexOf(sel + " {"); return i < 0 ? "" : cssV.slice(i, cssV.indexOf("}", i)); };
+    check(/'<p class="section-line">Practising the <strong>' \+ esc\(section\.title\) \+ "<\/strong> section of " \+ esc\(unit\.title\) \+\s*' · <a href="practice\.html\?unit=' \+ encodeURIComponent\(unitId\) \+ '">Back to the whole unit<\/a><\/p>'/.test(appV) &&
+      /const noticeHtml = sectionLineHtml\(\) \+/.test(appV) && /: inSection\(\) \? unit\.title \+ ": " \+ section\.title : unit\.title;/.test(appV),
+      "Validation sections: section practice shows \"Practising the Range section of Validation · Back to the whole unit\" at the top of the task, and in the page title");
+    check(/flex-wrap: wrap/.test(rule(".section-links")) && /display: inline-block; font-weight: 700; font-size: \.9rem; color: var\(--link\); background: var\(--card\)/.test(rule(".section-link")) &&
+      !/#[0-9a-f]{3,6}\b|rgb/i.test(rule(".section-links") + rule(".section-link") + rule(".section-line")),
+      "Validation sections: the links wrap onto more lines at 390px (pills of .9rem text) and use theme colours only");
+    check(Curriculum.sectionByName("selection", "range") === null && Curriculum.sectionByName("validation", "nope") === null && Curriculum.sectionByName("validation", "range").id === "r" &&
+      /const section = unitId \? sectionByName\(unitId, params\.get\("section"\)\) : null;/.test(appV) && /const inSection = \(\) => !!section && !needsPlacement\(us\(\)\);/.test(appV) &&
+      /const unitId = endless \|\| inAssignment \? null : params\.get\("unit"\);/.test(appV),
+      "Validation sections: the section parameter is ignored for other units, unknown sections, endless mode, assignments, and until the placement is done");
+  }
+
   // ===================== Selection, trimmed =====================
   // 74 practice tasks (7 or 8 a level, none with a function) and 8 placement tasks; every removed id is in one kept
   // task's former_ids, marked as a replacement (a different task, so a student's progress isn't moved onto it).
@@ -2648,8 +2761,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "Secured pop-up: not for a pass that doesn't take the unit to 100% (with a hint, after Show me how, a fail, or below level 10)");
     check(!reached([p1], pass(1, { phase: "placement" })) && !reached([p1], pass(1, { phase: "assignment" })) && reached([pass(0, { phase: "endless" })], pass(1, { phase: "endless" })) &&
       /phase: "assignment", assignmentId[\s\S]{0,400}\}\)\);\s*\}\s*const lv = /.test(appU) &&
-      /if \(saved && o\.result === "pass" && !c\.placement && !preview\) \{/.test(appU) && /const preview = !!previewId && previewAllowed\(self\);/.test(appU),
-      "Secured pop-up: shows in practice and endless mode, never in placement, assignments (they return before the check) or teacher practice");
+      /if \(saved && o\.result === "pass" && !c\.placement && !preview && !inSection\(\)\) \{/.test(appU) && /const preview = !!previewId && previewAllowed\(self\);/.test(appU),
+      "Secured pop-up: shows in practice and endless mode, never in placement, assignments (they return before the check), section practice or teacher practice");
     // Saved first, shown after: the pass is logged before the check, and the pop-up opens after the page is drawn.
     const recSrc = appU.slice(appU.indexOf("  function recordAttempt("), appU.indexOf("  function showDialogIfDue("));
     check(recSrc.indexOf("const saved = Store.logAttempt(") < recSrc.indexOf("reachedFullSecure(") && /let securedDue = false;/.test(appU) &&
@@ -2728,7 +2841,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
 
     // ===================== "Assignment complete" =====================
     // The real code that marks an assignment task done (finishTask's assignment branch), on a stand-in for the page.
-    const finSrc = appU.slice(appU.indexOf("      const ids = assignmentTasks.map((x) => x.id);"), appU.indexOf("      renderSide();\n      return {};\n    }\n    const outcome"));
+    const finSrc = appU.slice(appU.indexOf("      const ids = assignmentTasks.map((x) => x.id);"), appU.indexOf("      renderSide();\n      return {};\n    }\n    if (inSection()) {"));
     const finish = new Function("assignmentTasks", "work", "save", "preview", "assignmentComplete", "passed", "t",
       "let assignmentDoneDue = false;\n" + finSrc + "\nreturn assignmentDoneDue;");
     const aTasks = [{ id: "A" }, { id: "B" }, { id: "C" }];

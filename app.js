@@ -82,7 +82,7 @@ const MAX_NEW_VARIANT_TRIES = 40;          // draws to find a template variant t
 const MAX_HINTS_PER_TASK = 3;
 const RUN_TIMEOUT_MS = 5000;               // stop a run after this long (e.g. an infinite loop)
 
-const { UNITS, TYPE_INFO, unitById, unitTitle, levelName, hasScratch, hasPlacement, isALevel } =
+const { UNITS, TYPE_INFO, unitById, unitTitle, levelName, hasScratch, hasPlacement, isALevel, sectionByName, taskSection } =
   typeof module === "object" && module.exports ? require("./curriculum.js") : self.Curriculum;
 
 // ===================== Adaptive logic (pure functions) =====================
@@ -618,6 +618,43 @@ function openAssignmentDialog(doc, o) {
   });
 }
 
+// ---------- Section practice ----------
+// A unit's sections (curriculum.js: Validation's presence, type, range, format and length), each practised on its
+// own at the student's level: practice.html?unit=validation&section=range.
+// What a section's practice picks from: that section's bank tasks and templates in the unit (Curriculum.taskSection).
+// chooseNextTask is given only these, so it picks exactly as normal practice does (bank tasks at the level first,
+// then a failed variant again, then a new variant), and never a task from another section.
+function sectionPool(tasks, templates, unitId, sectionId) {
+  const taskById = Object.fromEntries(tasks.map((t) => [t.id, t]));
+  return {
+    tasks: tasks.filter((t) => t.unit === unitId && taskSection(t, unitId, taskById) === sectionId),
+    templates: templates.filter((t) => (t.units || []).includes(unitId) && taskSection(t, unitId, taskById) === sectionId),
+  };
+}
+// Whether a section has anything to set at a level: a bank task or a template (variants are made from templates).
+const sectionHasLevel = (pool, unitId, level) =>
+  pool.tasks.some((t) => t.level === level && !isPlacementTask(t)) || singleTemplates(pool.templates, unitId, level).length > 0;
+// What the student is told when it hasn't.
+const sectionNoTaskText = (sectionTitle, level, unitTitleText) =>
+  "There's no " + sectionTitle + " task at Level " + level + " right now. You can practise the whole " + unitTitleText + " unit instead.";
+
+// A finished task in section practice (state: the unit's saved state). It counts as practice in the records My
+// progress shows: the task's log entry, the passed tasks (so it isn't set again in this unit) and the skill states.
+// It doesn't change the unit's level, streaks, ceiling, stats, history or "★ Level 10 passed": only the unit's own
+// practice (the ladder) does. o = { passed, hints, showHow, now, key (the task's log key) }.
+function finishSectionTask(state, t, o) {
+  state.log = state.log || {};
+  const e = state.log[o.key] || (state.log[o.key] = { timesSet: 0, attempts: 0, hintsUsed: 0, passes: 0, fails: 0, lastResult: "in progress", levelAtLastAttempt: state.level, lastAttempt: null });
+  if (o.passed) e.passes += 1; else e.fails += 1;
+  e.lastResult = o.passed ? "pass" : "fail";
+  e.levelAtLastAttempt = state.level;
+  state.lastAttempt = o.now;
+  recordTaskResult(state, t, o.passed, o.now);
+  const outcome = { passed: o.passed, hints: o.hints, skills: t.skills, showHow: !!o.showHow };
+  state.skills = updateSkillStates(state.skills || {}, t.skills.filter((sk) => unitOfSkill(sk, [t.unit]) === t.unit), outcome);
+  return state;
+}
+
 // ---------- Attempt records ----------
 const checkerLib = () => (typeof module === "object" && module.exports ? require("./checker.js") : self.Checker);
 
@@ -627,6 +664,9 @@ const checkerLib = () => (typeof module === "object" && module.exports ? require
 //       (Checker.classifyAttempt), code, levelBefore, levelAfter }
 // An attempt made after "Show me how" carries hintType "show-me-how", as the "Show me how" row itself does (the
 // existing hint_type column, so the server stores it unchanged). It then can't count towards a secured score.
+// o.section (a section's name, e.g. "range"): an attempt in section practice carries hintType "section-range" (or
+// "show-me-how" if that came first), so the secured score, which ignores any attempt with a hintType, never counts it,
+// here or in the teacher view. It is otherwise a normal practice attempt (phase "practice").
 function attemptRecord(o) {
   const t = o.task;
   const rec = {
@@ -637,6 +677,7 @@ function attemptRecord(o) {
   if (t.generated && t.fingerprint) rec.fingerprint = t.fingerprint;
   if (o.kind === "hint") rec.hintType = o.hintType;
   else if (rec.kind === "attempt" && o.showHow) rec.hintType = "show-me-how";
+  else if (rec.kind === "attempt" && o.section) rec.hintType = "section-" + o.section;
   if (o.assignmentId) rec.assignmentId = o.assignmentId; // an attempt on a class assignment (phase "assignment")
   const f = o.failure;
   if (f) {
@@ -939,7 +980,7 @@ if (typeof module === "object" && module.exports) {
     EDITOR_INDENT, enterIndent, editorEnter, editorTab, hasCommentStarter, clearStarterComment, codeToRun,
     chooseNextTask, chooseScratchTask, newVariant,
     newPlacement, isPlacementTask, needsPlacement, choosePlacementTasks, startPlacement, placementStartLevel,
-    reachedFullSecure, SECURED_DIALOG, openSecuredDialog, openDialog,
+    reachedFullSecure, SECURED_DIALOG, openSecuredDialog, openDialog, sectionPool, sectionHasLevel, sectionNoTaskText, finishSectionTask,
     ASSIGNMENT_HINT_PENALTY, ASSIGNMENT_WELL_DONE_FROM, ASSIGNMENT_GETTING_THERE_FROM, assignmentComplete, assignmentBand, assignmentSummary,
     assignmentUnit, ASSIGNMENT_DIALOG, assignmentLines, openAssignmentDialog,
     placementKind, pickPlacementTask, nextPlacementStep, nextPlacementTask, finishPlacement, placementStepMessage, placementResultText,
@@ -1010,13 +1051,25 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   const work = inAssignment ? Object.assign({ index: 0, current: null, tried: {} }, Store.loadAssignmentWork(student.id, assignmentId)) : null;
 
   const us = (u) => progress.units[u || unitId];
-  const holder = () => (inAssignment ? work : endless ? progress.endless : us()); // where the current task is kept
+  // SECTION PRACTICE (practice.html?unit=validation&section=range): one section of a unit with sections, at the
+  // student's level. The parameter is ignored for any other unit, an unknown section, and until the placement is done
+  // (inSection). Its task in progress is kept apart from the unit's own (unit state "sections"), so the unit's
+  // practice carries on where it was. See finishSectionTask for what a section pass records.
+  const section = unitId ? sectionByName(unitId, params.get("section")) : null;
+  const inSection = () => !!section && !needsPlacement(us());
+  const sectionHolder = () => {
+    const s = us();
+    s.sections = s.sections || {};
+    return s.sections[section.id] || (s.sections[section.id] = { current: null, last: {} });
+  };
+  const holder = () => (inAssignment ? work : endless ? progress.endless : inSection() ? sectionHolder() : us()); // where the current task is kept
   const save = () => (inAssignment ? Store.saveAssignmentWork(student.id, assignmentId, work) : Store.saveProgress(student.id, progress));
   // The student's level in a unit, or null if they haven't started it (assignments can use any unit).
   const levelIn = (u) => (progress.units[u] ? progress.units[u].level : null);
 
   Store.setupDisplaySettings();
-  const pageTitle = preview ? "Teacher practice" : inAssignment ? "Assignment: " + (assignment ? assignment.title : "not found") : endless ? "Endless mode" : unit.title;
+  const pageTitle = preview ? "Teacher practice" : inAssignment ? "Assignment: " + (assignment ? assignment.title : "not found") : endless ? "Endless mode"
+    : inSection() ? unit.title + ": " + section.title : unit.title;
   document.title = pageTitle + " – Python Practice";
   document.getElementById("unit-title").textContent = pageTitle;
   document.getElementById("student-name").textContent = student.name;
@@ -1205,6 +1258,10 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       return chooseEndlessTask(Object.assign(choice, { units: progress.units, unitIds: e.units, last: e.last || {} }));
     }
     const s = us();
+    if (inSection()) {
+      // Only this section's tasks and templates, picked as normal practice picks them, at the unit's level.
+      return chooseNextTask(Object.assign(choice, sectionPool(tasks, templates, unitId, section.id), { unitId, state: s, last: sectionHolder().last || {} }));
+    }
     const last = { key: s.lastFingerprint || s.lastTaskId, templateId: s.lastTemplateId, signature: s.lastSignature };
     Object.assign(choice, { unitId, state: s, last });
     if (scratchDue(s)) {
@@ -1223,6 +1280,12 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     let t = null;
     try { t = await nextTaskFor(); } finally { serving = false; }
     if (!t) {
+      // A section with nothing at this level says so, and offers the unit's normal practice (never another section's task).
+      if (inSection() && !sectionHasLevel(sectionPool(tasks, templates, unitId, section.id), unitId, us().level)) {
+        $("task").innerHTML = sectionLineHtml() + '<p class="problem" role="status">' + esc(sectionNoTaskText(section.title, us().level, unit.title)) + "</p>" +
+          '<p><a class="menu-link" href="practice.html?unit=' + encodeURIComponent(unitId) + '">Practise the whole ' + esc(unit.title) + " unit</a></p>";
+        return false;
+      }
       $("task").innerHTML = '<p class="problem">Your next task couldn\'t be made. Check your internet connection (Python needs to load), then reload the page.</p>';
       return false;
     }
@@ -1255,10 +1318,11 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     const saved = Store.logAttempt(student.id, attemptRecord({
       task: t, unit: u, phase: c.placement ? "placement" : endless ? "endless" : "practice", kind: o.kind,
       attemptNumber: c.attempts, hints: c.hints, showHow: (c.showHow || 0) > 0, result: o.result, failure: o.failure, code: o.code, levelBefore: lv.from, levelAfter: lv.to,
+      section: !c.placement && inSection() ? section.name : null,
     }));
     // The pass is saved (above); if it took the unit to 100% secured, the pop-up opens once the page is drawn
     // (showDialogIfDue). Not in placement (and assignments and teacher practice returned above).
-    if (saved && o.result === "pass" && !c.placement && !preview) {
+    if (saved && o.result === "pass" && !c.placement && !preview && !inSection()) {
       const before = Store.attempts(student.id).filter((a) => a.id !== saved.id);
       if (reachedFullSecure(before, saved)) securedDue = true;
     }
@@ -1397,6 +1461,15 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       renderSide();
       return {};
     }
+    if (inSection()) {
+      // Section practice: recorded as practice (log, passed tasks, skills), but the level and ladder don't change.
+      finishSectionTask(us(), t, { passed, hints: c.hints, showHow: (c.showHow || 0) > 0, now: new Date().toISOString(), key: logKey(t) });
+      sectionHolder().last = { key: fingerprintOf(t), templateId: t.generated ? t.templateId : null, signature: t.generated ? Templates.signature(t) : null };
+      notice = null;
+      save();
+      renderSide();
+      return {};
+    }
     const outcome = { passed, hints: c.hints, skills: t.skills, showHow: (c.showHow || 0) > 0 };
     const now = new Date().toISOString();
     const messages = [];
@@ -1454,7 +1527,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
 
   // ---------- Side panel ----------
   function renderSide() {
-    $("reset-area").hidden = endless || inAssignment || inPlacement();
+    $("reset-area").hidden = endless || inAssignment || inPlacement() || inSection();
     if (inAssignment) {
       const c = cur();
       $("unit-levels").innerHTML = '<li class="assignment-intro"><strong>' + esc(assignment.title) + "</strong>" +
@@ -1494,8 +1567,15 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     } else {
       info = "Tasks come from the units you ticked, at your level in each." + (progress.endless.units.length > 1 ? " Some tasks combine skills from two units." : "");
     }
+    if (inSection()) info = "Section practice: " + section.title + " checks at your level. It doesn't change your level; the unit's own practice does that.";
     $("streak-info").textContent = info;
   }
+
+  // The line at the top of section practice: which section, and the way back to the whole unit.
+  const sectionLineHtml = () => (inSection()
+    ? '<p class="section-line">Practising the <strong>' + esc(section.title) + "</strong> section of " + esc(unit.title) +
+      ' · <a href="practice.html?unit=' + encodeURIComponent(unitId) + '">Back to the whole unit</a></p>'
+    : "");
 
   // ---------- Task card ----------
   function banner(t, big) {
@@ -1523,7 +1603,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     const card = $("task");
     card.className = "task-card type-" + t.type;
     activeEditor = null;
-    const noticeHtml = notice ? '<p class="notice notice-' + notice.kind + '" role="status">' + esc(notice.text) + "</p>" : "";
+    const noticeHtml = sectionLineHtml() + (notice ? '<p class="notice notice-' + notice.kind + '" role="status">' + esc(notice.text) + "</p>" : "");
 
     const placementIntro = c.placement
       ? '<div class="placement-intro"><p><strong>Quick check to find your starting point. Don\'t worry if it\'s tricky.</strong></p>' +
@@ -1552,7 +1632,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     else body = writeBody(t, c);
 
     const checkLabel = t.type === "predict" ? "Run to check my answer" : "Check my answer";
-    const showLevelButtons = !endless && !inAssignment && !c.placement;
+    const showLevelButtons = !endless && !inAssignment && !c.placement && !inSection(); // the buttons change the unit's level
     // No Run button on predict and trace tasks: running the program would show the answer.
     const hasRun = t.type !== "predict" && t.type !== "trace";
     card.innerHTML = noticeHtml + (c.placement ? placementIntro : "") + banner(t, false) + header(t) +
@@ -2537,7 +2617,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       } else {
         // A finished placement task stays on screen until Next is pressed.
         const fits = t && (endless ? unitsOf(t).every((u) => progress.endless.units.includes(u)) : unitsOf(t).includes(unitId)) &&
-          (!c.placement || c.finished);
+          (!c.placement || c.finished) && (!inSection() || taskSection(t, unitId, taskById) === section.id);
         if (!fits && !(await serveNewTask())) return;
       }
       renderSide();

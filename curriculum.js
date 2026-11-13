@@ -122,6 +122,17 @@
       // Levels 7 and 8 are both short write tasks (no "complete a whole line" level).
       levelTypes: { 7: "write" },
       levelNames: { 7: "Write a short check", 8: "Write a longer check" },
+      // Sections a student can practise on their own, at their level (practice.html?unit=validation&section=<name>).
+      // A bank task's section is the letter at the end of its id (val-L4r: range); a template's is its source task's,
+      // or, when the source is another unit's task, the section of its first check skill (taskSection). Placement
+      // tasks (val-P…) are in no section. Section practice doesn't change the level or the secured score.
+      sections: [
+        { id: "i", name: "presence", title: "Presence", skill: "presence", description: "Check that something was typed." },
+        { id: "t", name: "type", title: "Type", skill: "type-check", description: "Check that the input can be read as a whole number." },
+        { id: "r", name: "range", title: "Range", skill: "range", description: "Check that a number is within its limits." },
+        { id: "f", name: "format", title: "Format", skill: "format", description: "Check the shape of text: its characters or pattern." },
+        { id: "l", name: "length", title: "Length", skill: "length", description: "Check how many characters were typed." },
+      ],
     },
     {
       id: "authentication",
@@ -337,6 +348,30 @@
   const A_LEVEL_UNIT_IDS = (UNIT_GROUPS.find((g) => g.id === "a-level") || { units: [] }).units;
   const isALevel = (unitId) => A_LEVEL_UNIT_IDS.includes(unitId);
 
+  // ---------- Sections (Validation) ----------
+  // A unit's sections (most units have none), and one by its name in the address (section=range); null for an
+  // unknown name or a unit without sections, so the parameter is ignored there.
+  const unitSections = (unitId) => (unitById(unitId) || {}).sections || [];
+  const sectionByName = (unitId, name) => unitSections(unitId).find((s) => s.name === name) || null;
+  // The section id (its letter) of a bank task, a template or a template variant in this unit, or null.
+  //   A bank task: the letter at the end of its id (val-L4r → r). A placement task (val-P2i) is in none.
+  //   A template or variant: its source task's letter when that source is this unit's task; otherwise (a combined
+  //   template whose source is another unit's task) the section of its first skill that is a section's check skill.
+  // taskById: the task bank by id (to find a source task's unit).
+  function taskSection(t, unitId, taskById) {
+    const sections = unitSections(unitId);
+    if (!t || !sections.length) return null;
+    const letter = (id) => { const m = /-L\d+([a-z])$/.exec(id || ""); return m && sections.some((s) => s.id === m[1]) ? m[1] : null; };
+    const isTemplate = t.generated || t.templateId || Array.isArray(t.units);
+    if (!isTemplate) return t.unit === unitId ? letter(t.id) : null;
+    const units = t.units || [t.unit];
+    if (!units.includes(unitId)) return null;
+    const src = taskById && taskById[t.source];
+    if (src && src.unit === unitId) return letter(src.id);
+    const bySkill = (t.skills || []).map((sk) => sections.find((s) => s.skill === sk)).find(Boolean);
+    return bySkill ? bySkill.id : null;
+  }
+
   // A class's stage (classes.stage, migration 0013): which unit groups its students' menu opens by default, and which
   // units the teacher's Students page shows. Classes made before 0013, and local mode, are GCSE.
   const STAGES = {
@@ -350,5 +385,5 @@
   const stageUnits = (id) => UNITS.map((u) => u.id).filter((u) => UNIT_GROUPS.some((g) => stageGroups(id).includes(g.id) && g.units.includes(u)));
 
   return { UNITS, UNIT_GROUPS, LEVELS, TYPE_INFO, SCRATCH_LEVEL, unitById, unitTitle, levelName, levelType, levelTypes, hasScratch, hasPlacement,
-    A_LEVEL_UNIT_IDS, isALevel, STAGES, DEFAULT_STAGE, stageOf, stageGroups, stageUnits };
+    A_LEVEL_UNIT_IDS, isALevel, STAGES, DEFAULT_STAGE, stageOf, stageGroups, stageUnits, unitSections, sectionByName, taskSection };
 });

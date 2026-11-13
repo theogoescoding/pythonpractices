@@ -244,7 +244,16 @@ Store.whenReady(function () {
       '<p class="unit-meta"><span>' + count + " tasks</span><span><strong>" + esc(levelText) + "</strong></span></p>" +
       (b ? '<p class="secured-note"><span class="rag rag-' + colour.cls + '">' + esc(colour.label) + "</span>" +
         (sec.score < 100 ? ' <span class="small">One level 10 pass with no hints brings it back to 100%.</span>' : "") + "</p>"
-        : chip + (passedTen ? '<p class="complete-note">★ Level 10 passed</p>' : "")) + "</a></li>";
+        : chip + (passedTen ? '<p class="complete-note">★ Level 10 passed</p>' : "")) + "</a>" + sectionLinksHtml(u, s && !placing) + "</li>";
+  }
+
+  // A unit with sections (Validation): a small link for each, under its card, once its placement is done (before
+  // that, the unit's quick check comes first). Each opens that section's practice at the student's level.
+  function sectionLinksHtml(u, placed) {
+    if (!placed || !(u.sections || []).length) return "";
+    return '<ul class="section-links" aria-label="' + esc(u.title) + ' sections">' + u.sections.map((x) =>
+      '<li><a class="section-link" href="practice.html?unit=' + encodeURIComponent(u.id) + "&amp;section=" + encodeURIComponent(x.name) + '" title="' + esc(x.description) + '">' +
+      esc(x.title) + "</a></li>").join("") + "</ul>";
   }
 
   function showUnits() {

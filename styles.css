@@ -473,6 +473,15 @@ pre.code.numbered .ln { color: var(--muted); margin-right: 1rem; user-select: no
   display: inline-block; font-weight: 700; color: var(--text);
   border: 2px solid var(--border); border-radius: 999px; padding: 0 .55rem; margin-right: .35rem;
 }
+/* Section links (Validation's five sections), under its home card and on My progress: small pill links, like .cat-tag,
+   that wrap onto more lines on a narrow screen. The line at the top of section practice. */
+.section-links { list-style: none; padding: 0; margin: .4rem 0 0; display: flex; flex-wrap: wrap; gap: .35rem; }
+.section-link {
+  display: inline-block; font-weight: 700; font-size: .9rem; color: var(--link); background: var(--card);
+  border: 2px solid var(--border); border-radius: 999px; padding: .15rem .65rem; text-decoration: none;
+}
+.section-link:hover { border-color: var(--link); text-decoration: underline; }
+.section-line { margin: 0 0 .75rem; padding: .4rem .65rem; border-left: 4px solid var(--primary); background: var(--code-bg); border-radius: 6px; }
 .streak-info { font-size: .9rem; }
 .py-status { font-size: .9rem; }
 .keys-help { font-size: .9rem; margin: .75rem 0; }
@@ -504,6 +513,9 @@ pre.code.numbered .ln { color: var(--muted); margin-right: 1rem; user-select: no
 .retention-note { margin-top: 1.5rem; }
 .backend-status { margin: 0; padding: .5rem 1rem; background: var(--down-bg); border-bottom: 2px solid var(--predict); color: var(--text); text-align: center; }
 .unit-list { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 1rem; }
+/* Each card fills its grid cell; a card with section links under it (Validation) shares the cell with them. */
+.unit-list > li { display: flex; flex-direction: column; }
+.unit-list > li > .unit-card { flex: 1 1 auto; height: auto; }
 .unit-card {
   display: block; height: 100%; box-sizing: border-box;
   background: var(--card); color: var(--text); text-decoration: none;
