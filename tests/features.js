@@ -2603,6 +2603,102 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "Students page: the summary tiles, class code card and exports are unchanged; a column heading in any table sorts them all");
   }
 
+  // ===================== "Unit secured at 100%" pop-up =====================
+  {
+    const appU = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+    const cssU = fs.readFileSync(path.join(ROOT, "styles.css"), "utf8");
+    const t10 = tasks.find((x) => x.unit === "selection" && x.level === 10 && !App.isPlacementTask(x));
+    const DAY = 86400000, T0 = Date.UTC(2026, 9, 1, 10);
+    const pass = (days, o) => Object.assign(App.attemptRecord(Object.assign({ task: t10, unit: "selection", phase: "practice", kind: "attempt", attemptNumber: 1, hints: 0,
+      result: "pass", levelBefore: 10, levelAfter: 10 }, o || {})), { id: "a" + days + JSON.stringify(o || {}), at: new Date(T0 + days * DAY).toISOString() });
+    const reached = (before, rec) => App.reachedFullSecure(before, rec);
+    const p1 = pass(0), p2 = pass(1), p3 = pass(3), p4 = pass(12), p5 = pass(13);
+    check(!reached([], p1) && reached([p1], p2) && !reached([p1, p2], p3) && reached([p1, p2, p3], p4) && !reached([p1, p2, p3, p4], p5),
+      "Secured pop-up: it shows after the pass that takes the unit to 100% (the 2nd level 10 pass), and again after a pass that brings it back to 100% from 90%; not for a pass while it is already 100%");
+    check(!reached([p1], pass(1, { hints: 1 })) && !reached([p1], pass(1, { showHow: true })) && !reached([p1], pass(1, { result: "fail" })) &&
+      !reached([p1], pass(1, { task: tasks.find((x) => x.unit === "selection" && x.level === 9 && !App.isPlacementTask(x)) })),
+      "Secured pop-up: not for a pass that doesn't take the unit to 100% (with a hint, after Show me how, a fail, or below level 10)");
+    check(!reached([p1], pass(1, { phase: "placement" })) && !reached([p1], pass(1, { phase: "assignment" })) && reached([pass(0, { phase: "endless" })], pass(1, { phase: "endless" })) &&
+      /phase: "assignment", assignmentId[\s\S]{0,400}\}\)\);\s*\}\s*const lv = /.test(appU) &&
+      /if \(saved && o\.result === "pass" && !c\.placement && !preview\) \{/.test(appU) && /const preview = !!previewId && previewAllowed\(self\);/.test(appU),
+      "Secured pop-up: shows in practice and endless mode, never in placement, assignments (they return before the check) or teacher practice");
+    // Saved first, shown after: the pass is logged before the check, and the pop-up opens after the page is drawn.
+    const recSrc = appU.slice(appU.indexOf("  function recordAttempt("), appU.indexOf("  function showSecuredDialogIfDue("));
+    check(recSrc.indexOf("const saved = Store.logAttempt(") < recSrc.indexOf("reachedFullSecure(") && /let securedDue = false;/.test(appU) &&
+      (appU.match(/\$\("next-btn"\)\.focus\(\);\s*showSecuredDialogIfDue\(\);/g) || []).length === 3 && !/save[\w]*\([^)]*securedDue|securedDue[^;\n]*Store\./.test(appU) &&
+      /<script src="secured\.js"><\/script>\s*<script src="app\.js">/.test(fs.readFileSync(path.join(ROOT, "practice.html"), "utf8")),
+      "Secured pop-up: the pass is saved first and the pop-up opens after it (Check, predict and trace); it is never saved, so reloading the page doesn't show it again");
+
+    // The dialog on a tiny fake page.
+    const page = () => {
+      const listeners = {};
+      const doc = { activeElement: null,
+        addEventListener(t, f) { (listeners[t] = listeners[t] || []).push(f); },
+        removeEventListener(t, f) { listeners[t] = (listeners[t] || []).filter((x) => x !== f); },
+        key(k, shift) { let stopped = false; (listeners.keydown || []).slice().forEach((f) => f({ key: k, shiftKey: !!shift, preventDefault() { stopped = true; } })); return stopped; },
+        focusIn(target) { (listeners.focusin || []).slice().forEach((f) => f({ target })); },
+        listeners, createElement: (tag) => el(tag) };
+      function el(tag) {
+        const e = { tagName: tag, children: [], parent: null, attrs: {}, handlers: {}, className: "", id: "", textContent: "",
+          setAttribute(n, v) { this.attrs[n] = v; }, removeAttribute(n) { delete this.attrs[n]; }, getAttribute(n) { return n in this.attrs ? this.attrs[n] : null; },
+          appendChild(c) { c.parent = this; this.children.push(c); return c; },
+          remove() { if (this.parent) { this.parent.children = this.parent.children.filter((x) => x !== this); this.parent = null; } },
+          contains(x) { for (let n = x; n; n = n.parent) if (n === this) return true; return false; },
+          addEventListener(t, f) { (this.handlers[t] = this.handlers[t] || []).push(f); },
+          click() { (this.handlers.click || []).forEach((f) => f({ target: this })); },
+          focus() { doc.activeElement = this; } };
+        return e;
+      }
+      doc.body = el("body");
+      doc.main = doc.body.appendChild(el("main"));
+      doc.next = doc.main.appendChild(el("button"));
+      return doc;
+    };
+    const d = page();
+    let home = 0, returned = 0;
+    d.next.focus();
+    const dlg = App.openSecuredDialog(d, { inert: [d.main], onHome: () => { home++; }, returnFocus: () => { returned++; d.next.focus(); } });
+    const box = dlg.element.children[0];
+    const row = box.children[2];
+    check(box.attrs.role === "dialog" && box.attrs["aria-modal"] === "true" && box.attrs["aria-labelledby"] === dlg.heading.id && dlg.heading.tagName === "h2" &&
+      box.attrs["aria-describedby"] === box.children[1].id && dlg.heading.textContent === "Unit secured at 100%" &&
+      box.children[1].textContent === "You've passed this unit's level 10 challenge with no hints. You can move on, or keep practising in endless mode." &&
+      row.children.map((b) => b.textContent).join("|") === "Back to units|Stay in endless mode" && d.body.children.includes(dlg.element),
+      "Secured pop-up: a dialog (role dialog, aria-modal, labelled by its heading \"Unit secured at 100%\") with the line of text and two buttons: Back to units, then Stay in endless mode");
+    check(d.activeElement === dlg.heading && dlg.heading.attrs.tabindex === "-1" && row.children.every((b) => b.className === "secondary" && b.attrs.type === "button" && !("autofocus" in b.attrs)) &&
+      d.main.attrs.inert === "",
+      "Secured pop-up: neither button is the default or focused; the heading is focused when it opens, and the page behind is inert");
+    // Focus stays inside: Tab from the last button goes to the first, Shift+Tab from the first or the heading to the last.
+    dlg.stay.focus();
+    const wrapped = d.key("Tab") && d.activeElement === dlg.home;
+    const back = d.key("Tab", true) && d.activeElement === dlg.stay;
+    dlg.heading.focus();
+    const fromHeading = d.key("Tab", true) && d.activeElement === dlg.stay;
+    d.focusIn(d.next);
+    const pulledBack = d.activeElement === dlg.heading;
+    check(wrapped && back && fromHeading && pulledBack, "Secured pop-up: focus stays inside while it's open (Tab and Shift+Tab wrap round; focus that escapes comes back to the heading)");
+    const escClosed = d.key("Escape") && !dlg.isOpen() && !d.body.children.includes(dlg.element);
+    check(escClosed && home === 0 && returned === 1 && d.activeElement === d.next && !("inert" in d.main.attrs) && !(d.listeners.keydown || []).length && !(d.listeners.focusin || []).length,
+      "Secured pop-up: Esc closes it, the same as Stay in endless mode: focus goes back to the task, the page works again");
+    const d2 = page();
+    let home2 = 0, returned2 = 0;
+    const dlg2 = App.openSecuredDialog(d2, { inert: [d2.main], onHome: () => { home2++; }, returnFocus: () => { returned2++; } });
+    dlg2.stay.click();
+    const d3 = page();
+    let home3 = 0;
+    const dlg3 = App.openSecuredDialog(d3, { inert: [d3.main], onHome: () => { home3++; }, returnFocus: () => {} });
+    dlg3.home.click();
+    check(!dlg2.isOpen() && home2 === 0 && returned2 === 1 && !d2.body.children.includes(dlg2.element) && !dlg3.isOpen() && home3 === 1 &&
+      /onHome: \(\) => \{ location\.href = "app\.html"; \}/.test(appU) && /returnFocus: \(\) => back\.focus\(\)/.test(appU),
+      "Secured pop-up: Stay in endless mode closes it and leaves the student where they are; Back to units goes to the home page (app.html)");
+    // 390px: at most the screen less 32px, the buttons wrap, theme colours only.
+    const rule = (sel) => { const i = cssU.indexOf(sel + " {"); return i < 0 ? "" : cssU.slice(i, cssU.indexOf("}", i)); };
+    const modalCss = [".modal-backdrop", ".modal-backdrop::before", ".modal", ".modal-title", ".modal-actions", ".modal-actions button"].map(rule).join("\n");
+    check(/padding: 16px; box-sizing: border-box/.test(rule(".modal-backdrop")) && /width: 100%; max-width: 28rem; max-height: calc\(100vh - 32px\); overflow-y: auto/.test(rule(".modal")) &&
+      /flex-wrap: wrap/.test(rule(".modal-actions")) && /flex: 1 1 10rem/.test(rule(".modal-actions button")) && !/#[0-9a-f]{3,6}\b|rgb/i.test(modalCss) && /var\(--card\)/.test(rule(".modal")),
+      "Secured pop-up: it fits at 390px (at most the screen less 32px; the buttons wrap) and uses theme colours only");
+  }
+
   // ===================== "Show me how": greyed until two wrong attempts, with a tooltip =====================
   {
     const appS = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");

@@ -465,6 +465,84 @@ function resetPlacement(state) {
   return true;
 }
 
+// ---------- "Unit secured at 100%" ----------
+const securedLib = () => (typeof module === "object" && module.exports ? require("./secured.js") : self.Secured);
+
+// Whether a saved pass (an attempt record, with its `at`) took its unit to 100% secured, worked out by secured.js:
+// the score without it, at the moment of the pass, was below 100% (or the unit wasn't secured), and with it is 100%.
+// Only a pass the score counts can do that (Secured.isTopPass: practice at level 10 or endless, no hints, not after
+// "Show me how"), so a placement or assignment pass never does. before: the student's other attempts.
+function reachedFullSecure(before, record) {
+  const S = securedLib();
+  if (!record || !S.isTopPass(record, record.unit)) return false;
+  const at = Date.parse(record.at);
+  const was = S.score(before, record.unit, at);
+  const now = S.score(before.concat(record), record.unit, at);
+  return now.secured && now.score >= 100 && !(was.secured && was.score >= 100);
+}
+
+// The pop-up after such a pass. Two buttons, neither the default and neither focused: the heading is focused.
+const SECURED_DIALOG = {
+  title: "Unit secured at 100%",
+  text: "You've passed this unit's level 10 challenge with no hints. You can move on, or keep practising in endless mode.",
+  home: "Back to units",
+  stay: "Stay in endless mode",
+};
+// Opens the dialog in `doc` (the page, or a stand-in in the tests). o = { inert: elements to make inert while it is
+// open (the rest of the page), onHome: "Back to units", returnFocus: called when it closes }. "Stay in endless mode"
+// and Esc close it. Tab and Shift+Tab stay inside it. Returns { close, element, heading, home, stay }.
+function openSecuredDialog(doc, o) {
+  o = o || {};
+  const make = (tag, cls, text) => { const e = doc.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  const backdrop = make("div", "modal-backdrop");
+  const box = make("div", "modal");
+  box.setAttribute("role", "dialog");
+  box.setAttribute("aria-modal", "true");
+  box.setAttribute("aria-labelledby", "secured-h");
+  box.setAttribute("aria-describedby", "secured-text");
+  const heading = make("h2", "modal-title", SECURED_DIALOG.title);
+  heading.id = "secured-h";
+  heading.setAttribute("tabindex", "-1");
+  const text = make("p", null, SECURED_DIALOG.text);
+  text.id = "secured-text";
+  const row = make("div", "modal-actions");
+  const home = make("button", "secondary", SECURED_DIALOG.home);
+  const stay = make("button", "secondary", SECURED_DIALOG.stay);
+  for (const b of [home, stay]) { b.setAttribute("type", "button"); row.appendChild(b); }
+  box.appendChild(heading);
+  box.appendChild(text);
+  box.appendChild(row);
+  backdrop.appendChild(box);
+  const inert = (o.inert || []).filter(Boolean);
+  inert.forEach((el) => el.setAttribute("inert", ""));
+  doc.body.appendChild(backdrop);
+  let open = true;
+  const onKey = (e) => {
+    if (e.key === "Escape") { e.preventDefault(); close(); return; }
+    if (e.key !== "Tab") return;
+    // Focus stays inside: Tab from the last button goes to the first; Shift+Tab from the first (or the heading) to the last.
+    const i = [home, stay].indexOf(doc.activeElement);
+    if (e.shiftKey && i <= 0) { e.preventDefault(); stay.focus(); }
+    else if (!e.shiftKey && i === 1) { e.preventDefault(); home.focus(); }
+  };
+  const onFocusIn = (e) => { if (open && !backdrop.contains(e.target)) heading.focus(); };
+  function close() {
+    if (!open) return;
+    open = false;
+    doc.removeEventListener("keydown", onKey);
+    doc.removeEventListener("focusin", onFocusIn);
+    inert.forEach((el) => el.removeAttribute("inert"));
+    backdrop.remove();
+    if (o.returnFocus) o.returnFocus();
+  }
+  home.addEventListener("click", () => { close(); if (o.onHome) o.onHome(); });
+  stay.addEventListener("click", close);
+  doc.addEventListener("keydown", onKey);
+  doc.addEventListener("focusin", onFocusIn);
+  heading.focus();
+  return { close, element: backdrop, heading, home, stay, isOpen: () => open };
+}
+
 // ---------- Attempt records ----------
 const checkerLib = () => (typeof module === "object" && module.exports ? require("./checker.js") : self.Checker);
 
@@ -786,6 +864,7 @@ if (typeof module === "object" && module.exports) {
     EDITOR_INDENT, enterIndent, editorEnter, editorTab, hasCommentStarter, clearStarterComment, codeToRun,
     chooseNextTask, chooseScratchTask, newVariant,
     newPlacement, isPlacementTask, needsPlacement, choosePlacementTasks, startPlacement, placementStartLevel,
+    reachedFullSecure, SECURED_DIALOG, openSecuredDialog,
     placementKind, pickPlacementTask, nextPlacementStep, nextPlacementTask, finishPlacement, placementStepMessage, placementResultText,
     recordPlacementStep, resetPlacement, attemptRecord, levelButtonAvailable, applyLevelButton, levelButtonMessage, pressLevelButton,
     freshUnitState, applyOutcome, levelMessage, tasksAt, chooseTask,
@@ -1096,10 +1175,32 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     const lv = (o.levels || {})[u] || { from: us(u).level, to: us(u).level };
     // Failed checks are counted per task in each unit (kept across visits) for "Show me how".
     if ((o.kind || "attempt") === "attempt" && o.result === "fail" && !practiceTaskInPlacement(c, t)) { unitsOf(t).forEach((x) => noteFailedAttempt(us(x), t)); save(); }
-    return Store.logAttempt(student.id, attemptRecord({
+    const saved = Store.logAttempt(student.id, attemptRecord({
       task: t, unit: u, phase: c.placement ? "placement" : endless ? "endless" : "practice", kind: o.kind,
       attemptNumber: c.attempts, hints: c.hints, showHow: (c.showHow || 0) > 0, result: o.result, failure: o.failure, code: o.code, levelBefore: lv.from, levelAfter: lv.to,
     }));
+    // The pass is saved (above); if it took the unit to 100% secured, the pop-up opens once the page is drawn
+    // (showSecuredDialogIfDue). Not in placement (and assignments and teacher practice returned above).
+    if (saved && o.result === "pass" && !c.placement && !preview) {
+      const before = Store.attempts(student.id).filter((a) => a.id !== saved.id);
+      if (reachedFullSecure(before, saved)) securedDue = true;
+    }
+    return saved;
+  }
+
+  // "Unit secured at 100%": shown after the pass that got there, every time (it's never saved, so a reload doesn't
+  // show it again). Focus goes back to where it was in the task (the Next button), or the task card.
+  let securedDue = false;
+  function showSecuredDialogIfDue() {
+    if (!securedDue) return;
+    securedDue = false;
+    const active = document.activeElement;
+    const back = active && $("task").contains(active) ? active : $("task");
+    openSecuredDialog(document, {
+      inert: [document.querySelector(".site-header"), document.querySelector("main"), document.querySelector(".skip-link")],
+      onHome: () => { location.href = "app.html"; },
+      returnFocus: () => back.focus(),
+    });
   }
 
   // ---------- Assignments ----------
@@ -1792,6 +1893,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       renderButtons();
       if (notice && !c.placement) $("results").insertAdjacentHTML("afterbegin", '<p class="notice notice-' + notice.kind + '">' + esc(notice.text) + "</p>");
       $("next-btn").focus();
+      showSecuredDialogIfDue();
     } else if (c.finished) {
       renderButtons();
       if (counted) renderFinishedMessage(); // the last placement try was used
@@ -2003,6 +2105,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     // A finished placement predict task: the same line as other task types (after a fail, a similar task is next).
     if (c.placement && c.finished && !c.passed) $("results").insertAdjacentHTML("afterbegin", '<p class="notice notice-' + (c.passed ? "up" : "down") + '">' + esc(placementStepMessage(us().placement, c.passed)) + "</p>");
     $("next-btn").focus();
+    showSecuredDialogIfDue();
   }
 
   function showPredictResult(actual) {
@@ -2097,6 +2200,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       redraw();
       renderButtons();
       $("next-btn").focus();
+      showSecuredDialogIfDue();
       return;
     }
     redraw();
