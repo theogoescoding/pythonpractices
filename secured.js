@@ -2,7 +2,9 @@
 // teacher view (teacher.js, teacher-data.js) and the student view (home.js), so both always show the same number.
 //   - A level 10 pass is an endless-mode pass, or a practice pass of a level 10 task, with no hints.
 //   - Two level 10 passes give 100% ("secured"). Before that the unit isn't secured.
-//   - From 100% the score drops 5 points for each full week since the last level 10 pass, down to a floor.
+//   - The score is counted from the last level 10 pass, in full days: 100% for the first 7 days, then one step of
+//     10 points for each full week (7 to 14 days 90%, 14 to 21 days 80%, 21 to 28 days 70%, 28 to 35 days 60%, then
+//     50%), never below the floor.
 //   - One level 10 pass brings it back to 100%. Each time the unit reaches 100% the floor goes up 10 points: it is
 //     50% the first time, 60% after coming back once, and so on, to at most 95%.
 // No DOM here: tests/features.js checks it in Node.
@@ -11,8 +13,9 @@
   if (typeof module === "object" && module.exports) module.exports = factory();
   else root.Secured = factory();
 })(typeof self !== "undefined" ? self : this, function () {
-  const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-  const DROP_PER_WEEK = 5;
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const WEEK_MS = 7 * DAY_MS;
+  const DROP_PER_WEEK = 10; // one step down for each full week since the last level 10 pass
   const PASSES_TO_SECURE = 2;
   const FLOOR_START = 50;
   const FLOOR_STEP = 10;
@@ -46,7 +49,9 @@
   }
 
   const floorFor = (times) => Math.min(FLOOR_CAP, FLOOR_START + FLOOR_STEP * (times - 1));
-  const valueAt = (last, times, at) => Math.max(floorFor(times), 100 - DROP_PER_WEEK * Math.floor(Math.max(0, at - last) / WEEK_MS));
+  // Full weeks since the pass, from full days: 0 to 6 days is 0 weeks, 7 to 13 days 1 week, and so on.
+  const fullWeeks = (last, at) => Math.floor(Math.floor(Math.max(0, at - last) / DAY_MS) / 7);
+  const valueAt = (last, times, at) => Math.max(floorFor(times), 100 - DROP_PER_WEEK * fullWeeks(last, at));
 
   // { secured, score (null until secured), passes (level 10 passes counted), timesAt100, floor, lastPass }
   function score(attempts, unit, now) {
@@ -76,5 +81,5 @@
     return { cls: lb.cls, label: lb.label, ramp: "level" };
   }
 
-  return { WEEK_MS, DROP_PER_WEEK, PASSES_TO_SECURE, FLOOR_START, FLOOR_STEP, FLOOR_CAP, BANDS, band, levelBand, unitColour, isTopPass, score };
+  return { DAY_MS, WEEK_MS, DROP_PER_WEEK, PASSES_TO_SECURE, FLOOR_START, FLOOR_STEP, FLOOR_CAP, BANDS, band, levelBand, unitColour, isTopPass, score };
 });

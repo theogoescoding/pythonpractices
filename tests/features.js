@@ -1056,10 +1056,11 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       /up to three/.test(text("hints")) && maxHints === 3 && /not towards your freshness/.test(text("hints")) &&
       /After two failed tries/.test(text("show-how")) && App.SHOW_HOW_AFTER_FAILS === 2 && /doesn't count towards your freshness/.test(text("show-how")) &&
       /up one level/.test(text("level-buttons")) && /down one level/.test(text("level-buttons")) && App.BUTTON_JUMP_LEVELS === 1 &&
-      /two programs with no hints/.test(text("freshness")) && /5% a week/.test(text("freshness")) && SecuredT.DROP_PER_WEEK === 5 && SecuredT.PASSES_TO_SECURE === 2 &&
+      /two programs with no hints/.test(text("freshness")) && /After a week it drops to 90%, then 10 points more each week, down to 50%/.test(text("freshness")) &&
+      SecuredT.DROP_PER_WEEK === 10 && SecuredT.FLOOR_START === 50 && SecuredT.PASSES_TO_SECURE === 2 &&
       ["#student-area", "#unit-list", "#unit-colour-key", 'href="progress.html"', 'id="tour-help"'].every((x) => read("app.html").includes(x.replace(/^#/, 'id="').replace(/^id="(.*)$/, (m, v) => v.includes('"') ? m : 'id="' + v + '"'))) &&
       ["#check-btn", "#hint-btn", "#show-how-btn", "level-buttons", "task-body", '"actions"'].every((x) => read("app.js").includes(x.replace(/^#/, 'id="').replace(/^(id="[\w-]+)$/, '$1"'))),
-      "Tutorial: what each step says matches the app (4 placement questions, up to 3 hints, Show me how after 2 fails, one level per button, two level 10 passes, 5% a week), and every control it points at exists");
+      "Tutorial: what each step says matches the app (4 placement questions, up to 3 hints, Show me how after 2 fails, one level per button, two level 10 passes, 10 points a week down to 50%), and every control it points at exists");
 
     // 2. The walkthrough runs in order, points at the controls on this screen, and says where the others are.
     const doc1 = fakeDoc();
@@ -1251,8 +1252,19 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     for (let k = 1; k <= 6; k++) many = many.concat([pass(D + H + k * 4 * W)]);
     check(s(two, D + 2 * H).score === 100 && s(two, D + 2 * H).secured && s([pass(D)], D + H).score === null && !s([pass(D)], D + H).secured,
       "Secured score: two level 10 passes with no hints give 100% (one isn't enough)");
-    check(s(two, D + H + 2 * W).score === 90 && s(two, D + H + W).score === 95 && s(two, D + H + W - 1).score === 100,
-      "Secured score: it drops 5 points for each full week, so it is 90% after two weeks");
+    check(s(two, D + H + 2 * W).score === 80 && s(two, D + H + W).score === 90 && s(two, D + H + W - 1).score === 100 && Secured.DROP_PER_WEEK === 10,
+      "Secured score: it drops in weekly steps of 10 points, so it is 90% after one week and 80% after two");
+    // Worked examples: days after the last qualifying pass (counted in full days), with the first floor of 50%.
+    const DAY = Secured.DAY_MS;
+    const afterDays = [0, 6, 8, 15, 22, 29, 36, 60].map((d) => d + ":" + s(two, D + H + d * DAY).score).join(",");
+    const edges = [[7 * DAY - 1, 100], [7 * DAY, 90], [14 * DAY - 1, 90], [14 * DAY, 80], [21 * DAY, 70], [28 * DAY, 60], [35 * DAY - 1, 60], [35 * DAY, 50]];
+    check(afterDays === "0:100,6:100,8:90,15:80,22:70,29:60,36:50,60:50" && edges.every(([dt, want]) => s(two, D + H + dt).score === want),
+      "Secured score: 100% for 0 to 7 days, 90% for 7 to 14, 80% for 14 to 21, 70% for 21 to 28, 60% for 28 to 35, then 50% (the floor), counted in full days from the last pass");
+    // With a higher floor the steps stop at it: after one return the floor is 60%, so 36 and 60 days give 60%.
+    const backAt = D + H + 2 * W + 60000;
+    check([0, 8, 15, 22, 29, 36, 60].map((d) => s(back, backAt + d * DAY).score).join() === "100,90,80,70,60,60,60" &&
+      s(two.concat([pass(D + H + 3 * DAY)]), D + H + 3 * DAY + 8 * DAY).score === 90 && s(two.concat([pass(D + H + 3 * DAY)]), D + H + 3 * DAY + 8 * DAY).timesAt100 === 1,
+      "Secured score: the steps are counted from the most recent qualifying pass, and stop at a higher floor after a return (60%: 36 and 60 days give 60%)");
     check(s(back, D + H + 2 * W + 120000).score === 100 && s(back, D + H + 2 * W + 120000).floor === 60,
       "Secured score: one level 10 pass with no hints brings it back to 100%, and raises the floor");
     check(s(two, D + 30 * W).score === 50 && s(two, D + 30 * W).floor === 50 && s(back, D + 40 * W).score === 60 &&

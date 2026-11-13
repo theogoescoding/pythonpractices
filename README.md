@@ -817,7 +817,18 @@ A walkthrough over the real screen, one step at a time, on the student pages onl
 
 - A **level 10 pass** is a pass in endless mode, or a pass of a level 10 task on the ladder, with **no hints** (the attempt's hints count is there and is 0) and **not after "Show me how"** on that task (the attempt then has `hint_type` `show-me-how`; attempts recorded before this have none and count as before). Placement and assignment passes don't count.
 - **Two** level 10 passes give **100%** (Secured). Before that the unit isn't secured: once its placement is done, the teacher's table shows its level in the level's colour, "Not secured yet"; before its placement it is grey, "Not placed yet".
-- From 100% the score drops **5 points for each full week** since the last level 10 pass, but never below the **floor**. One more level 10 pass brings it back to 100%.
+- The score is counted in **full days since the last level 10 pass**, and drops in **weekly steps of 10 points**, never below the **floor**. One more level 10 pass brings it back to 100%.
+
+  | Days since the last level 10 pass | Score (first time, floor 50%) |
+  |---|---|
+  | 0 to 6 | 100% |
+  | 7 to 13 | 90% |
+  | 14 to 20 | 80% |
+  | 21 to 27 | 70% |
+  | 28 to 34 | 60% |
+  | 35 or more | 50% (the floor) |
+
+  With a higher floor (after coming back to 100%) the score stops at that floor instead.
 - The floor is 50% the first time the unit reaches 100%, and 10 points higher each time it comes back to 100% (60%, 70%, …), up to **95%**. A pass while the score is still 100% keeps it fresh but doesn't raise the floor.
 - Two colour ramps (`secured.js`, used by both views), each colour always shown with its label:
   - **Freshness ramp**, a secured unit: gold, glowing, **100% Secured**; light blue **95% Fresh**; blue **80–90% Fading**; indigo **50–75% Revisit soon**. A secured unit never falls below 50%, so this ramp has no red.

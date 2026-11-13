@@ -51,7 +51,7 @@
       text: "If the tasks feel far too easy, press This is too easy to move up one level. If they feel far too hard, press This is way too hard to move down one level. You can use each one once in each unit." },
     { id: "freshness", page: "home", title: "Freshness",
       targets: ["#unit-list .secured-note .rag-gold", "#unit-list .secured-note .rag-fresh", "#unit-list .secured-note .rag-fading", "#unit-list .secured-note .rag-soon", "#unit-colour-key"],
-      text: "At level 10, pass two programs with no hints to secure the unit: it glows gold at 100%. The score then fades by 5% a week, so come back to it now and then. One more level 10 pass with no hints brings it back to 100%." },
+      text: "At level 10, pass two programs with no hints to secure the unit: it glows gold at 100%. After a week it drops to 90%, then 10 points more each week, down to 50%. One more level 10 pass with no hints brings it back to 100%." },
     { id: "progress", page: "home", title: "My progress",
       targets: ['a[href="progress.html"]'],
       text: "Open My progress to see every unit and your level in each. Select a unit there to see the skills you've secured." },
