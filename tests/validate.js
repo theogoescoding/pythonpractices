@@ -25,7 +25,7 @@ const MIN_TASKS_PER_UNIT = 30;
 const MIN_PER_UNIT_LEVEL = 1;
 const A_LEVEL_UNITS = Curriculum.A_LEVEL_UNIT_IDS; // the a-level group in curriculum.js
 const { explainerProblems } = require(path.join(ROOT, "tools", "unit-tasks.js"));
-const MIN_SELECTION_TASKS = 100;
+const MIN_SELECTION_TASKS = 70;
 
 const FULL = process.argv.includes("--full"); // more seeds per template and longer runs of the repeat rule
 const ENDLESS_ROUNDS = FULL ? 300 : 120;
@@ -159,10 +159,9 @@ const varL10j = taskById["var-L10j"];
 check(varL10j && !/1 people/.test(varL10j.description + JSON.stringify(varL10j.tests)) && varL10j.tests.some((x) => x.inputs[0] === "1" && x.expected.startsWith("For 1 person:")),
   "var-L10j says \"For 1 person\" (description and test)");
 check(/never changes minutes/.test(taskById["while-L6c"].description), "while-L6c says accurately why a distractor would make the loop run for ever");
-// Reports (not failures): Maths tasks that contain selection, and functions tasks below level 5.
+// Report (not a failure): Maths tasks that contain selection.
 const hasSelection = (t) => /\b(if|elif|else)\b/.test([t.solution, t.starter, ...(t.distractors || []), ...(t.options || []), ...(t.answers || [])].join("\n"));
 const mathsWithSelection = tasks.filter((t) => t.unit === "maths" && hasSelection(t)).map((t) => t.id);
-const earlyFunctions = tasks.filter((t) => t.skills.includes("selection-in-functions") && t.level <= 4).map((t) => t.id + " (L" + t.level + ")");
 
 // ---------- Worked examples ("Show me how") ----------
 const practiceTasks = tasks.filter((t) => !(t.tags || []).includes("placement"));
@@ -649,16 +648,6 @@ check(!Checker.outputsMatch("pass", "Pass"), "Comparison should be case-sensitiv
     const again = chooseTask(tasks, unit, 3, failedOnce, pool[0].id);
     check(again && again.id !== pool[0].id, `chooseTask may give a failed task again, but never the last one (${unit})`);
   }
-  const minLevels = Curriculum.unitById("selection").skillMinLevel;
-  let early = 0;
-  for (let k = 0; k < 500; k++) {
-    const t = chooseTask(tasks, "selection", 1 + (k % 4), {}, null);
-    if (t.skills.some((sk) => minLevels[sk] > t.level)) early++;
-  }
-  check(early === 0, "Selection tasks for functions are never set below level 5");
-let earlyTpl = 0;
-for (let lv = 1; lv <= 4; lv++) earlyTpl += App.singleTemplates(templates, "selection", lv).filter((t) => t.skills.some((sk) => minLevels[sk] > lv)).length;
-check(earlyTpl === 0, "Templates for functions are never set below level 5 either");
   const last = tasks.find((t) => t.unit === "maths" && t.level === 3 && t.skills.includes("modulo"));
   let sameSkill = 0;
   for (let k = 0; k < 200; k++) if (chooseTask(tasks, "maths", 3, {}, last.id).skills.includes("modulo")) sameSkill++;
@@ -732,7 +721,6 @@ const minVariants = Math.min(...Object.values(variantCounts));
 console.log(`Templates: ${templates.length} (single-unit ${templates.length - combinedTpls - scratchTpls}, combined ${combinedTpls}, write-from-scratch ${scratchTpls}); ${variants.length} different variants checked, fewest from one template: ${minVariants}`);
 console.log(`Lowest text contrast: ${Object.entries(contrastReport).map(([k, v]) => `${k} ${v}:1`).join(", ")}`);
 console.log(`Maths tasks containing if, elif or else: ${mathsWithSelection.length ? mathsWithSelection.join(", ") : "none"}`);
-console.log(`Functions tasks at levels 1-4 using selection-in-functions: ${earlyFunctions.length ? earlyFunctions.join(", ") : "none"}`);
 for (const unit of UNIT_IDS) {
   const mine = templates.filter((t) => t.derived && t.units[0] === unit);
   const made = variants.filter((v) => mine.some((t) => t.id === v.templateId)).length;

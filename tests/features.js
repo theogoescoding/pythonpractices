@@ -2603,6 +2603,34 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "Students page: the summary tiles, class code card and exports are unchanged; a column heading in any table sorts them all");
   }
 
+  // ===================== Selection, trimmed =====================
+  // 74 practice tasks (7 or 8 a level, none with a function) and 8 placement tasks; every removed id is in one kept
+  // task's former_ids, marked as a replacement (a different task, so a student's progress isn't moved onto it).
+  {
+    const TaskView = require(path.join(ROOT, "task-view.js"));
+    const templatesAll = JSON.parse(fs.readFileSync(path.join(ROOT, "templates.json"), "utf8"));
+    const selT = tasks.filter((t) => t.unit === "selection");
+    const practiceS = selT.filter((t) => !(t.tags || []).includes("placement"));
+    const perLevelS = Array.from({ length: 10 }, (_, i) => practiceS.filter((t) => t.level === i + 1).length);
+    const fnS = selT.filter((t) => /^\s*(def|return)\b/m.test([t.solution, t.starter || ""].join("\n")));
+    check(practiceS.length === 74 && selT.length - practiceS.length === 8 && perLevelS.join() === "7,8,7,7,8,7,7,7,8,8" && !fnS.length &&
+      !Curriculum.unitById("selection").skills.includes("selection-in-functions") && !Curriculum.unitById("selection").skillMinLevel &&
+      !selT.some((t) => (t.skills || []).includes("selection-in-functions")),
+      "Selection: 74 practice tasks (7 or 8 at each level) and 8 placement tasks, none using a function; the selection-in-functions skill is gone");
+    const removedSel = ["functions-L1a", "functions-L10b", "if-L1b", "ifelse-L10b", "elif-L2a", "compare-L6a", "input-L7a", "arith-L8a", "validation-L5a", "sel-L10a", "logic-L10a"];
+    const owner = (old) => tasks.filter((t) => (t.former_ids || []).includes(old));
+    const allFormer = selT.flatMap((t) => (t.former_ids || []).filter((id) => id !== "sel-L10d"));
+    check(removedSel.every((old) => !byId[old] && owner(old).length === 1 && owner(old)[0].unit === "selection" && owner(old)[0].former_ids_are_replacements === true) &&
+      allFormer.length === 115 && selT.filter((t) => t.former_ids_are_replacements).every((t) => !(t.former_ids || []).includes("sel-L10d")) &&
+      byId["logic-L10b"].former_ids.join() === "sel-L10d" && !byId["logic-L10b"].former_ids_are_replacements &&
+      TaskView.searchTasks(tasks, "input-L7a")[0].unit === "selection",
+      "Selection: each of the 115 removed ids is in one kept Selection task's former_ids, marked as a replacement (logic-L10b keeps only its duplicate sel-L10d); the Task browser finds them");
+    const selTpl = templatesAll.filter((t) => (t.units || []).includes("selection"));
+    check(selTpl.length === 97 && selTpl.filter((t) => t.derived).length === 74 && !templatesAll.some((t) => t.source && !byId[t.source]) &&
+      !templatesAll.some((t) => /^d-functions-/.test(t.id)) && practiceS.every((t) => templatesAll.some((tpl) => tpl.derived && tpl.source === t.id)),
+      "Selection: 97 templates remain (74 derived, one per kept task, plus the hand-written, combined and write-from-scratch ones); no template points at a removed task");
+  }
+
   // ===================== "Unit secured at 100%" pop-up =====================
   {
     const appU = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");

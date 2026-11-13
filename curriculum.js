@@ -53,8 +53,7 @@
       title: "Selection",
       description: "if, if/else, elif, comparison operators, and/or",
       skills: ["if", "if/else", "elif", "comparison", "boundary", "and/or", "not", "input-conversion",
-        "modulo-conditions", "input-validation", "selection-in-functions"],
-      skillMinLevel: { "selection-in-functions": 5 },
+        "modulo-conditions", "input-validation"],
     },
     {
       id: "loops-condition",

@@ -41,7 +41,7 @@ A browser-based Python practice app for students aged 11–18: KS3, OCR GCSE Com
 
 The five searching and sorting units have no placement test: every student starts them at level 1. The twelve A-level units have a placement test, as the earlier units do.
 
-On top of the task bank, `templates.json` holds 1549 task templates with randomised values: one made from every practice task (1306), plus 60 single-unit, 115 combined and 68 "Write from scratch" templates. A student never gets a task they have already passed: once the bank tasks at their level run out, they get new variants made from the templates.
+On top of the task bank, `templates.json` holds 1434 task templates with randomised values: one made from every practice task (1191), plus 60 single-unit, 115 combined and 68 "Write from scratch" templates. A student never gets a task they have already passed: once the bank tasks at their level run out, they get new variants made from the templates.
 
 - **Each unit has its own level (1–10) for each student.** Levels are about support, not topic: every unit runs from predicting the output (level 1) up to writing an extended program (level 10).
 - **A placement test** finds each student's starting level the first time they open a unit.
@@ -393,7 +393,7 @@ Every task has 1–3 **skills** (the `skills` field), chosen from a fixed list f
 | Variables and input | assignment, reassignment, input, int(), str(), concatenation |
 | Data types and casting | integer, real, boolean, string, casting, type-choice |
 | Maths in Python | arithmetic, division, integer-division, modulo, power, precedence, rounding |
-| Selection | if, if/else, elif, comparison, boundary, and/or, not, input-conversion, modulo-conditions, input-validation, selection-in-functions |
+| Selection | if, if/else, elif, comparison, boundary, and/or, not, input-conversion, modulo-conditions, input-validation |
 | Condition-controlled loops | while, counter, accumulator, sentinel, input-validation, menu, and/or, infinite-loop |
 | Count-controlled loops | for, range, loop-variable, step, nested-loop, counting, accumulator |
 | Strings | length, indexing, slicing, upper/lower, find, replace, in |
@@ -424,7 +424,7 @@ Every task has 1–3 **skills** (the `skills` field), chosen from a fixed list f
 | Hash tables | hash-function, store-key, collision, linear-probe, hash-search, string-hash |
 | 3D arrays | index-3d, len-3d, loop-3d, build-3d, total-3d |
 
-In Selection, `selection-in-functions` tasks are only set from level 5 upwards (`skillMinLevel` in `curriculum.js`).
+A unit can keep a skill's tasks out of its lower levels with `skillMinLevel` in `curriculum.js`; no unit uses it at the moment (Selection's `selection-in-functions` tasks, the only ones that did, were removed).
 
 Each skill has one name everywhere. `indexing` and `length` are in both the Strings and the Lists lists, `accumulator` is in both loops units' lists, and `and/or` and `input-validation` are in both Selection's and Condition-controlled loops' lists. A skill that is in more than one list counts for the task's own unit, so a running total in a `while` task counts in Condition-controlled loops and one in a `for` task counts in Count-controlled loops. (Condition-controlled loops used to call these two skills `and-or` and `validation`; saved progress under the old names is moved to the new ones when it loads.)
 
@@ -434,7 +434,9 @@ Each skill has one name everywhere. `indexing` and `length` are in both the Stri
 - **Count-controlled loops** covers `range(n)`, `range(start, stop)` (the stop isn't included), steps including negative ones, using the loop variable in a calculation, counting with an `if` inside the loop, nested loops, looping over the letters of a string, and asking how many times to repeat. It also includes tasks on choosing between `while` and `for`.
 - **Contexts** are UK school ones: bus fares, library fines, game lives, shop totals, password attempts, quiz scores and register counts.
 
-**Moved from Selection.** The 20 Selection tasks whose main idea was a `while` loop (`loops-L1a` … `loops-L10b`) and the placement task `sel-P9b` are now in Condition-controlled loops, renamed `while-L1a` … `while-L10b` and `while-P9a`. Each one keeps its old id in a `former_ids` field. A new Selection placement task, `sel-P9c`, replaces `sel-P9b`. `functions-L10a` stays in Selection, because its main idea is writing a function. Selection still has at least 18 tasks at every level.
+**Moved from Selection.** The 20 Selection tasks whose main idea was a `while` loop (`loops-L1a` … `loops-L10b`) and the placement task `sel-P9b` are now in Condition-controlled loops, renamed `while-L1a` … `while-L10b` and `while-P9a`. Each one keeps its old id in a `former_ids` field. A new Selection placement task, `sel-P9c`, replaces `sel-P9b`.
+
+**Selection trimmed.** Selection keeps 74 practice tasks (7 or 8 at each level, none using a function) and its 8 placement tasks. The other 115 practice tasks were removed, including all 20 `functions-L1a` … `functions-L10b` (so the `selection-in-functions` skill is gone too), with the 115 templates derived from them. Each removed id is in `former_ids` on a kept task (the same family and level where there is one, otherwise the nearest), marked `former_ids_are_replacements` because each was a different task: old assignment links, Task browser searches and old attempts in the teacher view still find a task, but a student's saved progress on a removed task isn't moved onto it. `ifelse-L10a` gained a `MISSING_ELSE` buggy variant, so that misconception still has three bank tasks.
 
 **Data types and casting** (unit id `data-types`, task ids `types-L…`, placement `types-P…`) comes between Variables and input and Maths in Python, so it uses only casting, types, `+ - * /` and comparisons that give True or False: no `round()`, `if`/`else` or loops.
 
@@ -703,7 +705,7 @@ Every failed attempt gets one category, worked out by `Checker.classifyAttempt` 
     - 7 Output and sequence tasks and 1 Variables task, whose ideas (`sep=`, `end=`, the order of statements, reassignment) have no id in the list yet
     - `for-P7a` (looping over a string), which has no matching id
     - 4 Data types tasks (`types-P2a`, `types-P2b`, `types-P7b`, `types-P7c`), whose mistakes (`/` giving a float, `*` on a string, a forgotten line) have no id
-  - **603 of the 1306 bank tasks**, in every unit except Output and sequence (none): for example 21 in Selection, 29 in Count-controlled loops, 38 in Validation, and 11 to 23 in each searching and sorting and A-level unit.
+  - **596 of the 1191 bank tasks**, in every unit except Output and sequence (none): for example 14 in Selection, 29 in Count-controlled loops, 38 in Validation, and 11 to 23 in each searching and sorting and A-level unit.
   - **Rules:** every id has variants on at least 3 bank tasks. Every id used in the loops units has variants on at least 3 bank tasks within those two units.
   - **Template variants:** a variant made from a bank task keeps its buggy variants, and their outputs are worked out when the variant is made (by running them), so mistakes on variants are matched too. The hand-written templates (Endless mode's single-unit and combined templates, write-from-scratch) have none.
 
@@ -954,7 +956,7 @@ node tests/validate.js
 
 This needs Node 18+ and Python 3 on the PATH (set `PYTHON=...` to use a different interpreter). It makes about 7,100 template variants and runs about 41,000 Python programs, which takes 10 to 15 minutes. `node tests/validate.js --full` tries more seeds per template and runs the repeat rule for longer. As in the app, each program is stopped after 5 seconds (`tools/run-python.js`), so a buggy variant that loops forever without printing anything can't hang the tests. It checks:
 
-- **Units:** every unit has at least 30 tasks, at least 1 per level (counting only tasks that can be set at that level: units have different numbers at each level) and every task type its ladder uses at least once. Selection keeps at least 100 tasks.
+- **Units:** every unit has at least 30 tasks, at least 1 per level (counting only tasks that can be set at that level: units have different numbers at each level) and every task type its ladder uses at least once. Selection keeps at least 70 tasks.
 - **Explainer:** every task in the A-level units, and every variant of their templates, has a one-sentence explainer with its placeholders filled in, and a predict task's never contains the answer; a derived template has one exactly when its source task does.
 - **Task fields:** every task has the required fields, a valid unit, a valid level and type, and 1–3 skills from its unit's list. A task with no skill tag fails.
 - **Templates:**
@@ -978,7 +980,7 @@ This needs Node 18+ and Python 3 on the PATH (set `PYTHON=...` to use a differen
   - completing Level 10, and the from-scratch schedule
   - Endless-mode choice: it never uses a unit that isn't completed, sets combined tasks only with 2+ units, makes variants once bank tasks run out, never gives the same task twice in a row, and never gives a passed fingerprint
 - **Never repeating a passed task:** in practice (three units and levels) a passed task is never served again and the pool never runs out over many passes in a row; a failed bank task and a failed template variant can come back (but not straight after themselves).
-- **Section 5 fixes:** `sel-L10d` is gone and `logic-L10b` keeps its id; no task uses an old skill name; `var-L10j` says "For 1 person"; `while-L6c`'s description is accurate. It also prints two reports: the Maths tasks containing `if`, `elif` or `else`, and the functions tasks at levels 1–4 using `selection-in-functions`.
+- **Section 5 fixes:** `sel-L10d` is gone and `logic-L10b` keeps its id; no task uses an old skill name; `var-L10j` says "For 1 person"; `while-L6c`'s description is accurate. It also prints a report of the Maths tasks containing `if`, `elif` or `else`.
 - **Worked examples:** every practice task has one, it isn't the task's own solution, it shares no text with the task, and it's up to date.
 - **Placement tasks and misconceptions:**
   - at least 2 placement tasks per placement level per unit
@@ -1143,7 +1145,6 @@ The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, n
 - **The editor needs the CDN.** Without cdn.jsdelivr.net the app falls back to the plain text editor, with no highlighting or line numbers.
 - **The contrast check covers text, not the overlay.** A strong overlay over any theme lowers contrast, by the student's choice.
 - **Template variants aren't hand-checked one by one.** The test script proves every variant's solution, expected output and starter are consistent, but a teacher should still read the templates for wording. In particular, "Write from scratch" and combined templates are hand-written; the 419 made from the bank are generated (see above).
-- **Functions tasks below level 5.** `functions-L1a`–`functions-L4b` (8 tasks) use `selection-in-functions` at levels 1–4, although `skillMinLevel` keeps that skill to level 5 and above, so they are never set. They are left as they are until a decision is made.
 - **Combined tasks move two levels.** A combined task's result counts in each unit it uses, so one fail in Endless mode can count towards a move down in two units.
 - **Python versions differ slightly.** The test script uses your local Python, while the browser uses Pyodide 0.26.4 (Python 3.12).
 - **Accessibility testing has limits.** Keyboard use has been tested automatically, but the app hasn't been tried with a real screen reader.
