@@ -180,8 +180,29 @@ button {
   cursor: pointer;
   min-height: 2.5rem;
 }
-button:hover:not(:disabled) { border-color: var(--text); }
+button:hover:not(:disabled):not([aria-disabled="true"]) { border-color: var(--text); }
 button:disabled { opacity: .55; cursor: not-allowed; }
+/* aria-disabled: greyed out but still focusable (the greyed "Show me how" and its tooltip). Greyed with theme colours,
+   not opacity, so its focus ring stays at full strength. */
+button[aria-disabled="true"] { color: var(--muted); background: var(--code-bg); border-color: var(--border); border-style: dashed; cursor: not-allowed; }
+
+/* ---------- Tooltip (the greyed "Show me how": "Available after two wrong attempts") ----------
+   Shown on mouse hover, on keyboard focus and, for a tap on a phone, for 4 seconds (.tip-open, app.js); Esc hides it
+   (.tip-hide). Below the button, at most the screen's width less 2rem, and app.js placeTip moves it left if it would
+   run off the right edge. Theme colours only: the page's text colour as its background. */
+.tip-wrap { position: relative; display: inline-flex; }
+.tip-wrap[hidden] { display: none; }
+.tooltip {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 5;
+  width: max-content; max-width: min(18rem, calc(100vw - 2rem)); box-sizing: border-box;
+  padding: .4rem .65rem; border-radius: 6px; border: 2px solid var(--focus-ring);
+  background: var(--text); color: var(--bg);
+  font-size: .9rem; line-height: 1.35; font-weight: 600; white-space: normal;
+  visibility: hidden; opacity: 0; transition: opacity .12s; pointer-events: none;
+}
+.tip-wrap:hover .tooltip, .tip-wrap:focus-within .tooltip, .tip-wrap.tip-open .tooltip { visibility: visible; opacity: 1; }
+.tip-wrap.tip-hide .tooltip { visibility: hidden; opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .tooltip { transition: none; } }
 button.primary { background: var(--primary); border-color: var(--primary); color: var(--primary-text); font-weight: 600; }
 button.danger { background: var(--fail); border-color: var(--fail); color: var(--on-danger); }
 

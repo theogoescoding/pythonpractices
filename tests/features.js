@@ -2505,6 +2505,71 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "Students page: the summary tiles, class code card and exports are unchanged; a column heading in any table sorts them all");
   }
 
+  // ===================== "Show me how": greyed until two wrong attempts, with a tooltip =====================
+  {
+    const appS = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+    const cssS = fs.readFileSync(path.join(ROOT, "styles.css"), "utf8");
+    const t = tasks.find((x) => x.id === "maths-L9b");
+    const s = App.freshUnitState(5);
+    const state = (o) => App.showHowState(Object.assign({ placement: false, hasExample: true, passed: false, assignment: false, available: App.showHowAvailable(s, t) }, o));
+    const before = state({});
+    App.noteFailedAttempt(s, t);
+    const afterOne = state({});
+    App.noteFailedAttempt(s, t);
+    const afterTwo = state({});
+    check(before === "greyed" && afterOne === "greyed" && state({ assignment: true, available: false }) === "active" && state({ placement: true }) === "hidden" &&
+      state({ hasExample: false }) === "hidden" && /'<span class="tip-wrap" hidden><button type="button" id="show-how-btn" class="secondary">Show me how<\/button>'/.test(appS) &&
+      /howBtn\.parentElement\.hidden = howState === "hidden";/.test(appS),
+      "Show me how: the button is visible (greyed) from the start of a practice or endless task, before any failure; active from the start in an assignment; still no button in a placement");
+    check(afterTwo === "active" && App.SHOW_HOW_AFTER_FAILS === 2 && s.failedAttempts[App.fingerprintOf(t)] === 2,
+      "Show me how: it becomes active after two failed checks on the task (the same count as before)");
+    check(state({ passed: true, available: false }) === "greyed" && state({ passed: true, available: true }) === "hidden",
+      "Show me how: a pass leaves a greyed button greyed (an active one is hidden after a pass, as before)");
+    check(App.SHOW_HOW_TIP === "Available after two wrong attempts" &&
+      /'<span id="show-how-tip" class="tooltip" role="tooltip" hidden>' \+ esc\(SHOW_HOW_TIP\) \+ "<\/span><\/span>"/.test(appS) &&
+      /if \(greyed\) howBtn\.setAttribute\("aria-describedby", "show-how-tip"\);/.test(appS) && /\$\("show-how-tip"\)\.hidden = !greyed;/.test(appS),
+      "Show me how: the tooltip says exactly \"Available after two wrong attempts\", and is the greyed button's accessible description (its name stays Show me how)");
+
+    // The real click code (wireShowHow and showHow) on a tiny fake page.
+    const wireSrc = appS.slice(appS.indexOf("  let tipTimer = null;"), appS.indexOf("  function showHow() {"));
+    const howSrc = appS.slice(appS.indexOf("  function showHow() {"), appS.indexOf("  function renderShowHow() {"));
+    const classes = new Set();
+    const listeners = {};
+    const wrap = { classList: { add: (...c) => c.forEach((x) => classes.add(x)), remove: (...c) => c.forEach((x) => classes.delete(x)) }, addEventListener: (k, f) => { listeners["wrap:" + k] = f; } };
+    const attrs = { "aria-disabled": "true" };
+    const btn = { parentElement: wrap, getAttribute: (k) => attrs[k], addEventListener: (k, f) => { listeners[k] = f; }, getBoundingClientRect: () => ({ left: 300 }) };
+    const tip = { hidden: false, style: {}, offsetWidth: 250 };
+    const logged = [];
+    const c = { showHow: 0, attempts: 2, hints: 0 };
+    const make = new Function("$", "tipLeft", "document", "setTimeout", "clearTimeout", "cur", "task", "workedExampleFor", "eachLog", "unitsOf", "Store", "attemptRecord",
+      "inAssignment", "assignmentId", "endless", "levelIn", "student", "save", "renderShowHow", "renderButtons",
+      wireSrc + howSrc + "\nreturn { wireShowHow, placeTip };");
+    const fns = make((id) => ({ "show-how-btn": btn, "show-how-tip": tip, "show-how": { focus() {} } })[id], App.tipLeft, { documentElement: { clientWidth: 390 } },
+      () => 0, () => {}, () => c, () => t, () => ({ problem: "p" }), () => {}, () => ["maths"], { logAttempt: (id, r) => logged.push(r) }, (r) => r,
+      false, null, false, () => 5, { id: "s1" }, () => {}, () => {}, () => {});
+    fns.wireShowHow();
+    listeners.click();
+    const greyedClick = { logged: logged.length, showHow: c.showHow, tipOpen: classes.has("tip-open"), tipLeft: tip.style.left };
+    listeners.keydown({ key: "Escape" });
+    const escHides = classes.has("tip-hide");
+    attrs["aria-disabled"] = "false";
+    listeners.click();
+    check(greyedClick.logged === 0 && greyedClick.showHow === 0 && greyedClick.tipOpen && escHides && logged.length === 1 && c.showHow === 1 && logged[0].hintType === "show-me-how",
+      "Show me how: a click on the greyed button does nothing but show the tooltip (a tap on a phone; Esc hides it); once active, a click shows the worked example as before");
+    // Keyboard: a real <button>, never disabled while greyed (only aria-disabled), and the tooltip shows on focus.
+    check(/howBtn\.disabled = busy && !greyed;/.test(appS) && !/id="show-how-btn"[^>]*tabindex/.test(appS) && /\.tip-wrap:focus-within \.tooltip/.test(cssS) &&
+      /\.tip-wrap:hover \.tooltip/.test(cssS) && /\.tip-wrap\.tip-open \.tooltip/.test(cssS) && /button\[aria-disabled="true"\] \{ color: var\(--muted\); background: var\(--code-bg\); border-color: var\(--border\); border-style: dashed; cursor: not-allowed; \}/.test(cssS) &&
+      !/button\[aria-disabled="true"\][^{]*\{[^}]*opacity/.test(cssS) &&
+      /btn\.addEventListener\("focus", placeTip\)/.test(appS),
+      "Show me how: the greyed button can be reached with Tab (aria-disabled, not disabled) and its tooltip shows on keyboard focus, on hover and on a tap");
+    // At 390px: the tooltip is at most the screen's width less 2rem, and placeTip keeps it inside the screen.
+    const fits = (left, w, vw) => { const x = left + App.tipLeft(left, w, vw); return x >= 8 && x + w <= vw - 8; };
+    const tipRule = cssS.slice(cssS.indexOf(".tooltip {"), cssS.indexOf("}", cssS.indexOf(".tooltip {")));
+    check(/max-width: min\(18rem, calc\(100vw - 2rem\)\)/.test(tipRule) && /white-space: normal/.test(tipRule) && /background: var\(--text\); color: var\(--bg\)/.test(tipRule) &&
+      [16, 120, 200, 300, 360].every((left) => fits(left, 250, 390)) && greyedClick.tipLeft === "-168px" && App.tipLeft(16, 250, 390) === 0,
+      "Show me how: at 390px the tooltip fits on screen wherever the button is (it wraps, and moves left near the right edge), in theme colours");
+  }
+
   // ===================== Failed tests: input, expected output and the student's output =====================
   // What app.js check() does: one run of every test (runPython here, the worker there), passes worked out from it,
   // then TaskView.testResultsHtml from those same results.

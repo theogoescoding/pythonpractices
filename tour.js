@@ -45,7 +45,7 @@
       text: "If you're stuck, press Show a hint: each task has up to three, and the button says how many are left. A pass that used a hint still counts for your level, but not towards your freshness score." },
     { id: "show-how", page: "task", title: "Show me how",
       targets: ["#show-how-btn"],
-      text: "After two failed tries, Show me how appears. It shows a worked example of a similar problem, then the key step for this task. A pass after Show me how doesn't count towards your freshness score." },
+      text: "Show me how is greyed out at first. After two failed tries on the task, it shows a worked example of a similar problem, then the key step for this task. A pass after Show me how doesn't count towards your freshness score." },
     { id: "level-buttons", page: "task", title: "Too easy or too hard",
       targets: ["#level-buttons"],
       text: "If the tasks feel far too easy, press This is too easy to move up one level. If they feel far too hard, press This is way too hard to move down one level. You can use each one once in each unit." },

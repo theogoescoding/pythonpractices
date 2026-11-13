@@ -228,6 +228,23 @@ function noteFailedAttempt(state, t) {
 
 const showHowAvailable = (state, t) => ((state && state.failedAttempts) || {})[fingerprintOf(t)] >= SHOW_HOW_AFTER_FAILS;
 
+// The "Show me how" button on the task page: "hidden", "greyed" or "active". Greyed: visible from the start of the
+// task, aria-disabled (still focusable, so its tooltip SHOW_HOW_TIP can be read), and a click does nothing but show
+// the tooltip. Active: as before, once showHowAvailable (or in an assignment, from the start). Hidden: in a
+// placement, when the task has no worked example, and once an active button's task is passed (as before).
+// o = { placement, hasExample, passed (the task is finished and passed), assignment, available (showHowAvailable) }.
+const SHOW_HOW_TIP = "Available after two wrong attempts";
+function showHowState(o) {
+  if (o.placement || !o.hasExample) return "hidden";
+  if (o.assignment || o.available) return o.passed ? "hidden" : "active";
+  return "greyed"; // a pass doesn't change it
+}
+// The tooltip's left edge relative to the button's, so all of it stays on screen (8px from each edge).
+function tipLeft(buttonLeft, tipWidth, viewportWidth) {
+  const margin = 8;
+  return Math.max(margin, Math.min(buttonLeft, viewportWidth - margin - tipWidth)) - buttonLeft;
+}
+
 // ---------- The answer box ----------
 function shuffle(arr) {
   const a = arr.slice();
@@ -684,7 +701,7 @@ if (typeof module === "object" && module.exports) {
     SECURED_PASSES_IN_A_ROW, SECURED_MAX_HINTS, SCRATCH_EVERY_N_TASKS, ENDLESS_COMBINED_CHANCE,
     PLACEMENT_LEVELS, PLACEMENT_ATTEMPTS, PLACEMENT_MAX_LEVEL, PLACEMENT_TAG, BUTTON_JUMP_LEVELS,
     SHOW_HOW_AFTER_FAILS, EXPLAINER_AFTER_WRONG_CHECKS, explainerShown, MAX_NEW_VARIANT_TRIES, SKILL_RENAMES, PROGRESS_VERSION,
-    migrateProgress, fingerprintOf, hasPassed, recordTaskResult, noteFailedAttempt, showHowAvailable, initialDraft, resetTaskAnswer, isStrongPass,
+    migrateProgress, fingerprintOf, hasPassed, recordTaskResult, noteFailedAttempt, showHowAvailable, SHOW_HOW_TIP, showHowState, tipLeft, initialDraft, resetTaskAnswer, isStrongPass,
     EDITOR_INDENT, enterIndent, editorEnter, editorTab, hasCommentStarter, clearStarterComment, codeToRun,
     chooseNextTask, chooseScratchTask, newVariant,
     newPlacement, isPlacementTask, needsPlacement, choosePlacementTasks, startPlacement, placementStartLevel,
@@ -1247,7 +1264,9 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
         (hasRun ? '<button type="button" id="run-btn" class="secondary">Run</button>' : "") +
         '<button type="button" id="check-btn" class="primary">' + checkLabel + "</button>" +
         '<button type="button" id="hint-btn" class="secondary"></button>' +
-        '<button type="button" id="show-how-btn" class="secondary" hidden>Show me how</button>' +
+        // Greyed until two wrong attempts: aria-disabled (not disabled, so it can be focused and its tooltip read).
+        '<span class="tip-wrap" hidden><button type="button" id="show-how-btn" class="secondary">Show me how</button>' +
+          '<span id="show-how-tip" class="tooltip" role="tooltip" hidden>' + esc(SHOW_HOW_TIP) + "</span></span>" +
         '<button type="button" id="reset-btn" class="secondary"></button>' +
         '<button type="button" id="next-btn" class="secondary"></button>' +
       "</div>" +
@@ -1266,7 +1285,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     if ($("run-btn")) $("run-btn").addEventListener("click", runOnce);
     $("check-btn").addEventListener("click", check);
     $("hint-btn").addEventListener("click", showHint);
-    $("show-how-btn").addEventListener("click", showHow);
+    wireShowHow();
     $("reset-btn").addEventListener("click", resetTask);
     $("next-btn").addEventListener("click", nextTask);
     renderHints();
@@ -1290,12 +1309,18 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     next.className = c.finished ? "primary" : skipArmed ? "danger" : "secondary";
     $("check-btn").disabled = busy || (t.type === "predict" && c.finished);
     if ($("run-btn")) $("run-btn").disabled = busy;
-    // "Show me how": after SHOW_HOW_AFTER_FAILS failed attempts on this task, and after every later failure.
-    // In an assignment it is there from the start, after any number of fails.
+    // "Show me how": greyed until SHOW_HOW_AFTER_FAILS failed attempts on this task, then active after every later
+    // failure. In an assignment it is active from the start. Hidden in a placement (showHowState).
     const howBtn = $("show-how-btn");
-    howBtn.hidden = !!c.placement || (c.finished && c.passed) || !workedExampleFor(t) ||
-      (!inAssignment && !unitsOf(t).some((u) => showHowAvailable(us(u), t)));
-    howBtn.disabled = busy;
+    const howState = showHowState({ placement: !!c.placement, hasExample: !!workedExampleFor(t), passed: !!(c.finished && c.passed),
+      assignment: inAssignment, available: unitsOf(t).some((u) => showHowAvailable(us(u), t)) });
+    const greyed = howState === "greyed";
+    howBtn.parentElement.hidden = howState === "hidden";
+    howBtn.setAttribute("aria-disabled", greyed ? "true" : "false");
+    if (greyed) howBtn.setAttribute("aria-describedby", "show-how-tip"); // a screen reader hears the tooltip too
+    else howBtn.removeAttribute("aria-describedby");
+    $("show-how-tip").hidden = !greyed;
+    howBtn.disabled = busy && !greyed;
     // "Reset this task": not in placement, and not once there is no answer left to change.
     const resetBtn = $("reset-btn");
     resetBtn.hidden = !!c.placement || (c.finished && (c.passed || t.type === "predict"));
@@ -1340,10 +1365,39 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     return src ? src.worked_example || null : null;
   }
 
+  // The greyed button: CSS shows its tooltip on hover and keyboard focus (styles.css .tip-wrap); a click or a tap on
+  // a phone shows it for 4 seconds and does nothing else; Esc hides it. placeTip keeps it on screen.
+  let tipTimer = null;
+  const howGreyed = () => $("show-how-btn").getAttribute("aria-disabled") === "true";
+  function placeTip() {
+    const btn = $("show-how-btn"), tip = $("show-how-tip");
+    if (!btn || !tip || tip.hidden) return;
+    tip.style.left = "0px";
+    tip.style.left = tipLeft(btn.getBoundingClientRect().left, tip.offsetWidth, document.documentElement.clientWidth) + "px";
+  }
+  function wireShowHow() {
+    const btn = $("show-how-btn");
+    const wrap = btn.parentElement;
+    btn.addEventListener("click", () => {
+      if (!howGreyed()) return showHow();
+      placeTip();
+      wrap.classList.remove("tip-hide");
+      wrap.classList.add("tip-open");
+      clearTimeout(tipTimer);
+      tipTimer = setTimeout(() => wrap.classList.remove("tip-open"), 4000);
+    });
+    btn.addEventListener("mouseenter", placeTip);
+    btn.addEventListener("focus", placeTip);
+    btn.addEventListener("keydown", (e) => { if (e.key === "Escape") wrap.classList.add("tip-hide"); });
+    const reset = () => wrap.classList.remove("tip-hide", "tip-open");
+    btn.addEventListener("blur", reset);
+    wrap.addEventListener("mouseleave", () => wrap.classList.remove("tip-hide"));
+  }
+
   function showHow() {
     const c = cur();
     const t = task();
-    if (!workedExampleFor(t)) return;
+    if (!workedExampleFor(t) || howGreyed()) return; // greyed: does nothing
     c.showHow = (c.showHow || 0) + 1; // the task can't be a strong pass now; it isn't counted as a hint for moving down
     eachLog((entry) => { entry.showHowUsed = (entry.showHowUsed || 0) + 1; });
     const u = unitsOf(t)[0];

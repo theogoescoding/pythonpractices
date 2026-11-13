@@ -46,7 +46,7 @@ On top of the task bank, `templates.json` holds 1549 task templates with randomi
 - **Each unit has its own level (1–10) for each student.** Levels are about support, not topic: every unit runs from predicting the output (level 1) up to writing an extended program (level 10).
 - **A placement test** finds each student's starting level the first time they open a unit.
 - **Every failed attempt is classified automatically** (syntax error, wrong output, …) and matched against known **misconceptions**, so the teacher view can show who needs which workshop. The student sees the misconception's explanation and one thing to try next.
-- **"Show me how"** offers a worked example after 2 failed attempts on the same task.
+- **"Show me how"** offers a worked example after 2 failed attempts on the same task (before that the button is greyed out, with a tooltip).
 - **An explainer** (the A-level units) names the idea behind a task in one sentence, once it is passed or straight after the second wrong check. See [The explainer](#the-explainer).
 - **Every task shows its expected output** in a box, from one example test. The other tests are hidden.
 - **Class assignments** (backend mode): a teacher sets tasks for a class, as practice only. See [Class assignments](#class-assignments-backend-mode).
@@ -220,7 +220,8 @@ Both buttons are shown below the hints on every practice task in a unit. They're
 
 ## "Show me how"
 
-- **When:** after the 2nd failed attempt on the same task (`SHOW_HOW_AFTER_FAILS`), a **Show me how** button appears. It stays available after every later failure. Failed attempts are counted per task, per student, per unit, and the count is kept across visits (for a template variant, per fingerprint). It is not offered in placement.
+- **When:** the **Show me how** button is there from the start of the task, greyed out. After the 2nd failed attempt on the same task (`SHOW_HOW_AFTER_FAILS`) it works, and it stays available after every later failure. Failed attempts are counted per task, per student, per unit, and the count is kept across visits (for a template variant, per fingerprint). It is not offered in placement (no button), and in an assignment it works from the start.
+- **Greyed out:** it uses `aria-disabled`, not `disabled`, so it can still be reached with Tab. A click does nothing but show the tooltip **"Available after two wrong attempts"**, which also shows on mouse hover, on keyboard focus and, on a phone, for 4 seconds after a tap (Esc hides it). A screen reader hears it as the button's description. The tooltip stays on screen on a phone (`tipLeft` in `app.js`). Passing the task leaves a greyed button greyed; a working button is hidden once the task is passed, as before.
 - **What it shows:** a worked example on a similar problem in a different context (a zoo, a bakery, a cinema…), what it prints, the key idea, and then the key step for this task (the task's last hint).
 - **Where the examples come from:** every practice task has a `worked_example` field (`problem`, `code`, `inputs`, `output`, `key_idea`), copied from `tools/worked-examples.js` for the task's unit and first skill by `node tools/add-worked-examples.js`, which also works out the output by running the code. Template variants use the worked example of their `source` task.
 - **Effect on the level:** using it means the task can't be a strong pass, so it can't count towards moving up. It does **not** count towards the 3-hints move down, it doesn't move the student up or down, and it doesn't change the pass or fail streaks.
