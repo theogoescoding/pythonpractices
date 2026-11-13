@@ -2010,31 +2010,41 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
 
   // ===================== Placement =====================
   {
-    const { PLACEMENT_LEVELS, PLACEMENT_MAX_LEVEL } = App;
-    check(PLACEMENT_LEVELS.join() === "2,5,7,9" && PLACEMENT_MAX_LEVEL === 8 && App.PLACEMENT_ATTEMPTS === 2,
-      "Placement uses levels 2, 5, 7 and 9, up to 2 attempts each, and PLACEMENT_MAX_LEVEL = 8");
+    const { PLACEMENT_LEVELS } = App;
+    check(PLACEMENT_LEVELS.join() === "2,5,7,9" && App.PLACEMENT_TASKS === 4 && App.PLACEMENT_ATTEMPTS === 2 && !("PLACEMENT_MAX_LEVEL" in App),
+      "Placement: 4 tasks starting at level 2 (levels 2, 5, 7 and 9 in that order), up to 2 checks each (2 wrong = failed), and no level cap");
     const res = (passed) => PLACEMENT_LEVELS.map((level, i) => ({ level, passed: passed[i] }));
     check(App.placementStartLevel(res([true, true, false, false])) === 5, "Placement: passes 2 and 5 but fails 7 → starts at 5");
-    check(App.placementStartLevel(res([true, true, true, true])) === 8, "Placement: passes 9 → starts at 8 (the cap)");
-    check(App.placementStartLevel(res([false, false, false, false])) === 1, "Placement: fails 2 (and everything after it) → starts at 1");
+    check(App.placementStartLevel(res([true, true, true, true])) === 9, "Placement: passes the level 9 task → starts at 9 (no cap)");
+    check(App.placementStartLevel(res([false, false, false, false])) === 1, "Placement: passes nothing → starts at level 1");
     check(App.placementStartLevel(res([false, true, false, false])) === 5, "Placement: the start is the highest level passed, even after failing an earlier one");
 
-    // The full flow on a unit's state, as the practice page runs it.
+    // The whole flow on a unit's state, as the practice page runs it: the next task is chosen when the last one ends.
+    // outcomes: pass or fail for each task in turn. Returns the tasks given and the finished state.
+    const runPlacement = (unit, outcomes, st0) => {
+      const st = st0 || Object.assign(App.freshUnitState(), { placement: App.newPlacement() });
+      App.startPlacement(st, tasks, unit, rng);
+      const given = [];
+      for (let i = 0; i < 10 && App.needsPlacement(st); i++) {
+        const t = byId[st.placement.taskIds[st.placement.step]];
+        given.push(t);
+        App.recordPlacementStep(st, { taskId: t.id, level: t.level, passed: !!outcomes[i], attempts: 2, hints: 0 });
+        if (App.needsPlacement(st)) App.nextPlacementTask(st, tasks, unit, rng);
+      }
+      return { st, given, kinds: given.map((t) => t.type).join(","), levels: given.map((t) => t.level).join(",") };
+    };
     const st = Object.assign(App.freshUnitState(), { placement: App.newPlacement() });
     check(App.needsPlacement(st), "A new unit needs placement first");
-    App.startPlacement(st, tasks, "selection", rng);
-    const chosen = st.placement.taskIds.map((id) => byId[id]);
-    check(chosen.length === 4 && chosen.every((t, i) => t.level === PLACEMENT_LEVELS[i] && App.isPlacementTask(t) && t.unit === "selection"),
-      "Placement gives one placement-tagged task at each of levels 2, 5, 7 and 9, in that order");
-    [true, true, false, false].forEach((passed, i) => App.recordPlacementStep(st, { taskId: chosen[i].id, level: chosen[i].level, passed, attempts: 1, hints: 0 }));
-    check(st.placement.status === "done" && st.level === 5 && st.placement.startLevel === 5, "After the last placement task the unit starts at the placement level");
+    const allPass = runPlacement("selection", [true, true, true, true], st);
+    check(allPass.levels === "2,5,7,9" && allPass.kinds === "predict,parsons,fill,write" && allPass.given.every((t) => App.isPlacementTask(t) && t.unit === "selection") &&
+      st.placement.status === "done" && st.level === 9 && st.placement.startLevel === 9,
+      "Placement: passing every task gives one placement task at each of levels 2, 5, 7 and 9, in that order, and starts at 9");
     check(!App.needsPlacement(st), "Placement can't be repeated: once done, the unit goes straight to practice");
     const firstIds = st.placement.taskIds.slice();
     check(App.resetPlacement(st) && App.needsPlacement(st), "A teacher reset allows placement once more");
-    App.startPlacement(st, tasks, "selection", rng);
-    check(st.placement.taskIds.every((id) => !firstIds.includes(id)), "After a teacher reset, different placement tasks are given");
-    st.placement.taskIds.forEach((id, i) => App.recordPlacementStep(st, { taskId: id, level: PLACEMENT_LEVELS[i], passed: true, attempts: 1, hints: 0 }));
-    check(st.level === 8 && !App.needsPlacement(st), "…and after taking it again, it can't be repeated without another reset");
+    const again = runPlacement("selection", [true, true, true, true], st);
+    check(again.given.every((t) => !firstIds.includes(t.id)), "After a teacher reset, different placement tasks are given");
+    check(st.level === 9 && !App.needsPlacement(st), "…and after taking it again, it can't be repeated without another reset");
 
     // Placement tasks are never used in practice, and practice can still reach level 10.
     let leaked = 0;
@@ -2043,7 +2053,95 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const after = (s, ...outcomes) => outcomes.reduce((acc, o) => Object.assign({}, acc, App.applyOutcome(acc, o)), s);
     const top = after(Object.assign(App.freshUnitState(8)), { passed: true, hints: 0, skills: ["if"] }, { passed: true, hints: 0, skills: ["elif"] },
       { passed: true, hints: 0, skills: ["if"] }, { passed: true, hints: 0, skills: ["elif"] });
-    check(top.level === 10, "The placement cap doesn't apply to practice: a student starting at 8 can reach level 10");
+    check(top.level === 10, "Practice can still reach level 10: a student starting at 8 can reach level 10");
+
+    // ----- Retries: a failed task is followed by a similar one (the same kind) at the same level -----
+    // The example: predict (pass), Parsons (fail), Parsons (pass), fill in the blanks (fail) → starts at 5.
+    const ex = runPlacement("selection", [true, false, true, false]);
+    check(ex.kinds === "predict,parsons,parsons,fill" && ex.levels === "2,5,5,7" && ex.st.placement.startLevel === 5 && ex.given[1].id !== ex.given[2].id,
+      "Placement: predict pass, then a failed Parsons gives another Parsons (a different task), then fill in the blanks; the start is the highest passed task (5)");
+    // A failed predict is followed by another predict, never a writing task, in every unit and every way it can go.
+    const combos = [];
+    for (let m = 0; m < 16; m++) combos.push([0, 1, 2, 3].map((b) => !!(m & (1 << b))));
+    const placed = Curriculum.UNITS.filter((u) => Curriculum.hasPlacement(u.id)).map((u) => u.id);
+    let predictThenWrite = 0, predictRetry = 0, notFour = 0, repeated = 0, wrongStart = 0, notSameKind = 0, aLevelMixed = 0;
+    for (const unit of placed) for (const outcome of combos) for (let k = 0; k < 3; k++) {
+      const r = runPlacement(unit, outcome);
+      if (r.given.length !== 4 || r.st.placement.results.length !== 4) notFour++;
+      if (new Set(r.given.map((t) => t.id)).size !== r.given.length) repeated++;
+      const passedLevels = r.st.placement.results.filter((x) => x.passed).map((x) => x.level);
+      if (r.st.placement.startLevel !== (passedLevels.length ? Math.max(...passedLevels) : 1)) wrongStart++;
+      r.given.forEach((t, i) => {
+        if (i === 0 || outcome[i - 1]) return;
+        const prev = r.given[i - 1];
+        if (App.placementKind(t) !== App.placementKind(prev) || t.level !== prev.level) notSameKind++;
+        if (prev.type !== t.type) aLevelMixed++;
+        if (prev.type === "predict" && t.type === "predict") predictRetry++;
+      });
+      if (r.given[0].type === "predict" && !outcome[0] && r.given.some((t) => t.type === "write")) predictThenWrite++;
+    }
+    check(predictThenWrite === 0 && predictRetry > 0 && notSameKind === 0,
+      "Placement: a failed predict is followed by another predict, and a student who fails a predict never gets a writing task (every unit, every pass/fail order)");
+    // Where level 7 is a writing task (Validation, Authentication; A-level units' level 7 may be), a student who failed
+    // the predict gets another predict there instead, or (A-level) the level's other, non-writing task.
+    const val = runPlacement("validation", [false, true, true, true]);
+    const recs = [0, 1, 2, 3, 4, 5].map(() => runPlacement("recursion", [false, true, true, true]));
+    check(val.kinds === "predict,predict,parsons,predict" && val.levels === "2,2,5,2" && val.st.placement.startLevel === 5 &&
+      recs.every((r) => !r.given.some((t) => t.type === "write") && r.given[3].level === 7 && r.given[3].type === "trace") &&
+      runPlacement("validation", [true, true, true, true]).kinds === "predict,parsons,write,write",
+      "Placement: where level 7 is a writing task, a student who failed the predict gets another predict instead (Validation), or the non-writing task at that level (A-level trace)");
+    const aLevelUnits = placed.filter(Curriculum.isALevel);
+    const aRetry = aLevelUnits.flatMap((unit) => [0, 1, 2, 3, 4, 5].map(() => runPlacement(unit, [true, false, false, true])));
+    check(aRetry.every((r) => r.given.slice(1, 4).every((t) => t.level === 5 && App.placementKind(t) === "parsons")) &&
+      aRetry.some((r) => new Set(r.given.slice(1, 4).map((t) => t.type)).size === 2) && App.placementKind({ type: "partial-parsons", unit: "recursion" }) === "parsons" &&
+      App.placementKind({ type: "partial-parsons", unit: "selection" }) === "partial-parsons",
+      "Placement: a failed Parsons is followed by another Parsons; in an A-level unit Parsons and partial-Parsons count as one kind (a level 5 retry can be either)");
+    check(notFour === 0 && repeated === 0, "Placement: always exactly 4 tasks, and no task is given twice in one placement (" + placed.length + " units × 16 pass/fail orders × 3 runs)");
+    check(wrongStart === 0, "Placement: the start level is always the level of the highest passed task, or 1 if none was passed");
+    // When the placement tasks of a kind run out at a level, the retry comes from that unit's practice tasks of that kind and level.
+    const fails = runPlacement("selection", [false, false, false, false]);
+    check(fails.kinds === "predict,predict,predict,predict" && fails.given.filter(App.isPlacementTask).length === 2 &&
+      fails.given.slice(2).every((t) => !App.isPlacementTask(t) && t.unit === "selection" && t.level === 2 && t.type === "predict") && fails.st.placement.startLevel === 1,
+      "Placement: when the placement tasks of a kind run out (2 at each level), the retry is a practice task of the same kind and level in that unit; failing all 4 starts at level 1");
+    // After a teacher reset, a retry avoids last placement's tasks where there's a choice.
+    const resetSt = fails.st;
+    const lastIds = resetSt.placement.taskIds.slice();
+    App.resetPlacement(resetSt);
+    const second = runPlacement("selection", [false, false, false, false], resetSt);
+    check(App.isPlacementTask(second.given[0]) && second.given.slice(1).every((t) => !lastIds.includes(t.id)) &&
+      new Set(resetSt.placement.used).size === resetSt.placement.used.length && lastIds.concat(second.given.map((t) => t.id)).every((id) => resetSt.placement.used.includes(id)),
+      "Placement: after a teacher reset, the retries avoid the tasks used in the last placement where there's a choice (the first task is a placement task, as before)");
+    // The result is stored in the same shape as before (the teacher view and the exports read it).
+    const p = ex.st.placement;
+    check(JSON.stringify(Object.keys(p).sort()) === JSON.stringify(["finishedAt", "results", "startLevel", "status", "step", "taskIds", "used"]) &&
+      p.taskIds.length === 4 && p.step === 4 && p.status === "done" && p.results.every((x, i) => JSON.stringify(Object.keys(x)) === '["taskId","level","passed","attempts","hints"]' && x.taskId === p.taskIds[i]) &&
+      (() => { const cell = TD.scoreTable({ students: { a: { name: "A" } }, progress: { a: { units: { selection: ex.st } } }, attempts: [], buttonLog: [] }, ["selection"]).rows[0].cells.selection;
+        return cell.placementStatus === "done" && cell.placementStart === 5 && cell.placed && cell.level === 5; })(),
+      "Placement: the result is stored as before: status, taskIds (the 4 tasks given), step, results ({ taskId, level, passed, attempts, hints }), startLevel, used, finishedAt");
+    // Messages: after a failed task, a similar one is next; at the end, which questions were passed and the start level.
+    const midway = { status: "in-progress", step: 2, results: [] };
+    check(App.placementStepMessage(midway, false) === "That one was tricky – that's fine. You'll get a similar task next." &&
+      App.placementStepMessage(ex.st.placement, false) === "This one was tricky – that's fine. Press Next to move on." &&
+      App.placementStepMessage(midway, true) === "Well done! Press Next when you're ready." &&
+      App.placementResultText(ex.st.placement, "selection") === "Quick check done – thank you! You passed questions 1 and 3 of 4. You'll start at Level 5 (" + Curriculum.levelName(5, "selection") + ")." &&
+      App.placementResultText(fails.st.placement, "selection").startsWith("Quick check done – thank you! You didn't pass any of the 4 questions, and that's fine. You'll start at Level 1"),
+      "Placement: after a failed task the student is told a similar task is next; at the end they see which questions they passed and their start level");
+    // A practice task given as a retry: the placement changes nothing in practice. The level is set once, at the end
+    // (the start level); the task isn't marked passed, its practice log and failed-check count aren't touched; its
+    // attempts are phase "placement", which the secured score never counts.
+    const Secured = require(path.join(ROOT, "secured.js"));
+    const mixed = runPlacement("selection", [false, false, true, true]);
+    const practiceGiven = mixed.given.filter((t) => !App.isPlacementTask(t));
+    const recsP = practiceGiven.map((t, i) => Object.assign(App.attemptRecord({ task: t, unit: "selection", phase: "placement", kind: "attempt", attemptNumber: 1, hints: 0, result: "pass", levelBefore: 5, levelAfter: 5 }),
+      { at: new Date(Date.UTC(2026, 10, 1 + i)).toISOString(), taskLevel: 10 })); // even at level 10 they wouldn't count
+    const appP = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+    check(practiceGiven.length === 1 && practiceGiven[0].level === 2 && mixed.st.level === 5 && mixed.st.placement.startLevel === 5 &&
+      Object.keys(mixed.st.passedFingerprints || {}).length === 0 && Object.keys(mixed.st.log || {}).length === 0 && Object.keys(mixed.st.failedAttempts || {}).length === 0 &&
+      recsP.every((r) => r.phase === "placement" && !Secured.isTopPass(r, "selection")) && !Secured.score(recsP.concat(recsP), "selection").secured &&
+      /const eachLog = \(fn\) => \{ if \(inAssignment\) return; const t = task\(\); if \(practiceTaskInPlacement\(cur\(\), t\)\) return;/.test(appP) &&
+      /o\.result === "fail" && !practiceTaskInPlacement\(c, t\)\) \{ unitsOf\(t\)\.forEach\(\(x\) => noteFailedAttempt/.test(appP) &&
+      !/recordTaskResult|applyOutcome/.test(appP.slice(appP.indexOf("  function finishPlacementStep("), appP.indexOf("  // The current placement question follows"))),
+      "Placement: a practice task given as a retry doesn't change practice: the level is only set at the end, the task isn't marked passed or logged, and placement attempts never count for the secured score");
   }
 
   // ===================== "This is too easy" / "This is way too hard" =====================

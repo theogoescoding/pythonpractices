@@ -197,15 +197,17 @@ There used to be a `?test=1` starting-level control on the student's home page (
 
 The first time a student opens a unit, they take a short placement test before practising. It starts with: "Quick check to find your starting point. Don't worry if it's tricky."
 
-- **4 tasks**, one at each of levels 2, 5, 7 and 9 (`PLACEMENT_LEVELS`), in that order. All 4 are always given.
-- **Up to 2 attempts on each** (`PLACEMENT_ATTEMPTS`). On a predict task, a wrong first choice gets "Not quite – you have one more try" without showing the answer. Hints are allowed and counted. A student can also skip a question, which counts as not passed.
-- **Starting level** = the highest placement level passed, at least 1, at most `PLACEMENT_MAX_LEVEL` (8). Passing 2 and 5 but failing 7 starts at 5. Passing 9 starts at 8. Failing everything starts at 1. Because the highest pass counts, failing 2 but passing 5 also starts at 5.
-- The cap applies only to placement. Practice can still take a student to level 10 by the normal rule.
-- Placement attempts don't count towards the adaptive rule (streaks), but they are recorded, classified and matched like any other attempt.
-- The result is shown once ("Quick check done – thank you! You'll start at Level 5 …") on the first practice task. Then it's straight into practice.
+- **Always 4 tasks** (`PLACEMENT_TASKS`), starting at level 2. The levels are 2, 5, 7 and 9 (`PLACEMENT_LEVELS`), in that order: in most units predict, Parsons, fill in the blanks (or write) and write.
+- **A pass moves on a level; a fail gets a similar task.** A task is failed after 2 wrong checks (`PLACEMENT_ATTEMPTS`), or skipped. The next task is then another of the same kind at the same level (a failed predict gets another predict, a failed Parsons another Parsons), instead of the next level. In A-level units Parsons and partial-Parsons count as one kind. The student is told: "That one was tricky – that's fine. You'll get a similar task next.", and the next question says "This is a similar question to the last one."
+- **No writing task after a failed predict.** With 4 tasks, the writing level is reached only by passing all four; where level 7 is already a writing task (Validation, Authentication, some A-level units), a student who failed the predict gets that level's other, non-writing task (A-level: the trace task) or, if there is none, another predict.
+- **Where the retries come from.** Each level has 2 placement tasks. A retry of a kind whose placement tasks at that level have been given takes a practice task of that kind and level in the unit. No task is given twice in one placement, and the tasks of the student's last placement (before a teacher reset) are avoided where there's a choice. A practice task used like this changes nothing in practice: it isn't marked passed, its practice log and failed-check count aren't touched, and the student can meet it later in practice.
+- **Up to 2 attempts on each.** On a predict task, a wrong first choice gets "Not quite – you have one more try" without showing the answer. Hints are allowed and counted. A student can also skip a question, which counts as not passed.
+- **Starting level** = the level of the highest placement task passed, with no cap, or 1 if none was passed. Predict (pass), Parsons (fail), Parsons (pass), fill in the blanks (fail) starts at 5. Passing the level 9 task starts at 9. Failing everything starts at 1.
+- Placement attempts don't count towards the adaptive rule (streaks) or the secured score (their phase is `placement`), but they are recorded, classified and matched like any other attempt.
+- The result is shown once on the first practice task, with the questions passed and the start level ("Quick check done – thank you! You passed questions 1 and 3 of 4. You'll start at Level 5 …"). Then it's straight into practice. It is stored as before (`placement`: status, taskIds of the 4 tasks given, step, results, startLevel, used, finishedAt), so the teacher view and the exports read it unchanged.
 - **Taken once per unit.** A student resetting their own progress keeps their placement result and goes back to their placement starting level.
 - **Teacher reset:** on the teacher view, open the student (select their name on the Students page), choose a unit and press **Reset placement**. The student takes it once more the next time they open the unit. Tasks they've already had are avoided, so they get different ones. The reset is logged.
-- Placement tasks are tagged `placement` in `tasks.json` and are never used in normal practice. There are at least 2 per placement level per unit (192 in total), so one reset never repeats a task.
+- Placement tasks are tagged `placement` in `tasks.json` and are never used in normal practice. There are at least 2 per placement level per unit (192 in total). After a teacher reset, the tasks already given are avoided where there's a choice (a retry takes an unused practice task before repeating one).
 - Students who started a unit before placement existed don't take it ("Started before placement" in the teacher view).
 
 ## "This is too easy" and "This is way too hard"
@@ -722,9 +724,9 @@ All values are named constants at the top of `app.js`:
 | `ENDLESS_COMBINED_CHANCE` | 0.35 | Chance of a combined task in Endless mode with 2+ units ticked |
 | `MAX_HINTS_PER_TASK` | 3 | Hints available on a task |
 | `RUN_TIMEOUT_MS` | 5000 | How long a run may take before it is stopped |
-| `PLACEMENT_LEVELS` | 2, 5, 7, 9 | Levels of the placement tasks, in order |
-| `PLACEMENT_ATTEMPTS` | 2 | Checks allowed on each placement task |
-| `PLACEMENT_MAX_LEVEL` | 8 | Highest starting level placement can give |
+| `PLACEMENT_LEVELS` | 2, 5, 7, 9 | Levels of the placement tasks, in order (a pass moves to the next one; a fail gets a similar task at the same level) |
+| `PLACEMENT_TASKS` | 4 | Tasks in every placement test |
+| `PLACEMENT_ATTEMPTS` | 2 | Checks allowed on each placement task (2 wrong = failed) |
 | `BUTTON_JUMP_LEVELS` | 1 | Levels moved by "This is too easy" / "This is way too hard" |
 | `SHOW_HOW_AFTER_FAILS` | 2 | Failed attempts on one task before "Show me how" is offered |
 | `MAX_NEW_VARIANT_TRIES` | 40 | Draws to find a template variant that hasn't been passed |

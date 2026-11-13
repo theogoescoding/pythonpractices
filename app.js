@@ -41,10 +41,12 @@ const SCRATCH_EVERY_N_TASKS = 3;           // after completing a unit, every Nth
 const ENDLESS_COMBINED_CHANCE = 0.35;      // in endless mode with 2+ units ticked, chance that the next task is a combined task
 
 // ===================== Placement test =====================
-// The first time a student opens a unit they take one placement task at each of these levels, in this order.
+// The first time a student opens a unit they take a placement test of PLACEMENT_TASKS tasks. It starts at the first of
+// these levels; a passed task moves on to the next level, and a failed one is followed by a similar task (the same
+// kind) at the same level. The start level is the highest level passed (no cap), or MIN_LEVEL.
 const PLACEMENT_LEVELS = [2, 5, 7, 9];
-const PLACEMENT_ATTEMPTS = 2;              // checks allowed on each placement task (hints are allowed and counted)
-const PLACEMENT_MAX_LEVEL = 8;             // placement never starts a student above this; practice can still reach MAX_LEVEL
+const PLACEMENT_TASKS = 4;                 // tasks in every placement test
+const PLACEMENT_ATTEMPTS = 2;              // checks allowed on each placement task (hints are allowed and counted); 2 wrong = failed
 const PLACEMENT_TAG = "placement";         // tasks with this tag are only used for placement, never in practice
 
 // ===================== "This is too easy" / "This is way too hard" =====================
@@ -73,7 +75,7 @@ const MAX_NEW_VARIANT_TRIES = 40;          // draws to find a template variant t
 const MAX_HINTS_PER_TASK = 3;
 const RUN_TIMEOUT_MS = 5000;               // stop a run after this long (e.g. an infinite loop)
 
-const { UNITS, TYPE_INFO, unitById, unitTitle, levelName, hasScratch, hasPlacement } =
+const { UNITS, TYPE_INFO, unitById, unitTitle, levelName, hasScratch, hasPlacement, isALevel } =
   typeof module === "object" && module.exports ? require("./curriculum.js") : self.Curriculum;
 
 // ===================== Adaptive logic (pure functions) =====================
@@ -331,47 +333,126 @@ function newPlacement(used) {
 const isPlacementTask = (t) => (t.tags || []).includes(PLACEMENT_TAG);
 const needsPlacement = (state) => !!(state && state.placement && ["pending", "in-progress"].includes(state.placement.status));
 
-// One placement task per PLACEMENT_LEVELS level, avoiding tasks this student has already been given (`used`).
-function choosePlacementTasks(tasks, unitId, used, rand) {
-  rand = rand || Math.random;
-  return PLACEMENT_LEVELS.map((level) => {
-    const pool = tasks.filter((t) => t.unit === unitId && t.level === level && isPlacementTask(t));
-    const fresh = pool.filter((t) => !(used || []).includes(t.id));
-    const from = fresh.length ? fresh : pool;
-    return from.length ? from[Math.floor(rand() * from.length)] : null;
-  });
+// A task's kind, for a placement retry: its type, except that in an A-level unit Parsons and partial-Parsons are one
+// kind (a retry at level 5 can be either).
+const placementKind = (t) => (t.type === "partial-parsons" && isALevel(t.unit) ? "parsons" : t.type);
+
+const WRITING_TYPES = ["write", "scratch"];
+
+// One task for a placement step at `level` in the unit. o = { kind, notWriting, given, used, rand }:
+//   kind: for a retry, the failed task's kind (placementKind); none for the first task at a level.
+//   notWriting: no writing task (the student failed a predict in this placement).
+//   given: the tasks already given in this placement, never given again.
+//   used: tasks from earlier placements (before a teacher reset), avoided where there's a choice.
+// The first task at a level: a placement task, as before (random, avoiding `used`). A retry: a placement task of that
+// kind not used before, then a practice task of that kind and level in the unit not used before, then (only if
+// every one has been used in an earlier placement) a used placement task, then a used practice task.
+function pickPlacementTask(tasks, unitId, level, o) {
+  o = o || {};
+  const rand = o.rand || Math.random;
+  const given = o.given || [];
+  const used = o.used || [];
+  const any = (pool) => (pool.length ? pool[Math.floor(rand() * pool.length)] : null);
+  const fresh = (pool) => pool.filter((t) => !used.includes(t.id));
+  const here = tasks.filter((t) => t.unit === unitId && t.level === level && !given.includes(t.id) &&
+    (!o.kind || placementKind(t) === o.kind) && !(o.notWriting && WRITING_TYPES.includes(t.type)));
+  const placement = here.filter(isPlacementTask);
+  if (!o.kind) return any(fresh(placement)) || any(placement);
+  const practice = here.filter((t) => !isPlacementTask(t));
+  return any(fresh(placement)) || any(fresh(practice)) || any(placement) || any(practice);
 }
 
-// Starts (or restarts after a teacher reset) the placement test in a unit.
+// The first placement task at each PLACEMENT_LEVELS level, avoiding tasks this student has already been given (`used`).
+function choosePlacementTasks(tasks, unitId, used, rand) {
+  return PLACEMENT_LEVELS.map((level) => pickPlacementTask(tasks, unitId, level, { used, rand }));
+}
+
+// What the next placement task is: { level, kind, notWriting }, or null when the test is over.
+//   After a fail (2 wrong checks, or a skip): a similar task, the same kind at the same level (kind).
+//   After a pass: the first task at the level after the highest level reached so far.
+//   notWriting: the student failed a predict in this placement, so no writing task (nextPlacementTask gives another
+//   predict where a level has only writing tasks). With 4 tasks, the 4th level is reached only by passing all four.
+// tasks: to find each task's kind.
+function nextPlacementStep(p, tasks) {
+  const results = p.results || [];
+  if (results.length >= PLACEMENT_TASKS) return null;
+  if (!results.length) return { level: PLACEMENT_LEVELS[0], kind: null, notWriting: false };
+  const kindOf = (r) => { const t = tasks.find((x) => x.id === r.taskId); return t ? placementKind(t) : null; };
+  const notWriting = results.some((r) => !r.passed && kindOf(r) === "predict");
+  const last = results[results.length - 1];
+  if (!last.passed) return { level: last.level, kind: kindOf(last), notWriting };
+  const reached = Math.max(...results.map((r) => PLACEMENT_LEVELS.indexOf(r.level)));
+  return reached + 1 < PLACEMENT_LEVELS.length ? { level: PLACEMENT_LEVELS[reached + 1], kind: null, notWriting } : null;
+}
+
+// Chooses the placement's next task, puts it in taskIds (at step) and used, and returns it; null if the test is over
+// or no task is left.
+//   - A student who failed a predict, at a level with only writing tasks: another predict (at the predict level).
+//   - A retry with no similar task left at all (the bank has enough, see the tests): the next level instead.
+function nextPlacementTask(state, tasks, unitId, rand) {
+  const p = state.placement;
+  const next = nextPlacementStep(p, tasks);
+  if (!next) return null;
+  const opts = { given: p.taskIds.slice(0, p.step), used: p.used || [], rand, notWriting: next.notWriting };
+  let t = pickPlacementTask(tasks, unitId, next.level, Object.assign({ kind: next.kind }, opts));
+  if (!t && next.notWriting && !next.kind) t = pickPlacementTask(tasks, unitId, PLACEMENT_LEVELS[0], Object.assign({}, opts, { kind: "predict" }));
+  const i = PLACEMENT_LEVELS.indexOf(next.level);
+  if (!t && next.kind && i + 1 < PLACEMENT_LEVELS.length) t = pickPlacementTask(tasks, unitId, PLACEMENT_LEVELS[i + 1], opts);
+  if (!t) return null;
+  p.taskIds = p.taskIds.slice(0, p.step).concat(t.id);
+  p.used = (p.used || []).concat(p.used && p.used.includes(t.id) ? [] : [t.id]);
+  return t;
+}
+
+// Starts (or restarts after a teacher reset) the placement test in a unit, with its first task.
 function startPlacement(state, tasks, unitId, rand) {
   const p = state.placement || newPlacement();
-  const chosen = choosePlacementTasks(tasks, unitId, p.used, rand).filter(Boolean);
-  state.placement = Object.assign(p, {
-    status: "in-progress", taskIds: chosen.map((t) => t.id), step: 0, results: [], startLevel: null,
-    used: (p.used || []).concat(chosen.map((t) => t.id).filter((id) => !(p.used || []).includes(id))),
-  });
+  state.placement = Object.assign(p, { status: "in-progress", taskIds: [], step: 0, results: [], startLevel: null, used: p.used || [] });
+  nextPlacementTask(state, tasks, unitId, rand);
   return state.placement;
 }
 
-// Highest level passed, at least MIN_LEVEL and at most PLACEMENT_MAX_LEVEL.
+// The highest level passed (no cap: passing the level 9 task starts at 9), or MIN_LEVEL if none was passed.
 // results = [{ level, passed }, …]
 function placementStartLevel(results) {
   const passed = results.filter((r) => r.passed).map((r) => r.level);
-  return passed.length ? Math.max(MIN_LEVEL, Math.min(PLACEMENT_MAX_LEVEL, Math.max(...passed))) : MIN_LEVEL;
+  return passed.length ? Math.max(MIN_LEVEL, Math.min(MAX_LEVEL, Math.max(...passed))) : MIN_LEVEL;
 }
 
-// Records one finished placement task. When the last one is done, sets the unit's starting level.
+// Ends the placement test: sets the unit's starting level.
+function finishPlacement(state) {
+  const p = state.placement;
+  p.status = "done";
+  p.startLevel = placementStartLevel(p.results);
+  p.finishedAt = new Date().toISOString();
+  Object.assign(state, { level: p.startLevel, highest: Math.max(state.highest || 0, p.startLevel), passStreak: 0, strongRun: 0, failStreak: 0, sinceLevelUp: null, ceiling: null, ceilingTasksLeft: 0 });
+}
+
+// Records one finished placement task. After the PLACEMENT_TASKS-th, sets the unit's starting level.
 // result = { taskId, level, passed, attempts, hints }. Returns true when the placement test is finished.
 function recordPlacementStep(state, result) {
   const p = state.placement;
   p.results.push(result);
   p.step += 1;
-  if (p.step < p.taskIds.length) return false;
-  p.status = "done";
-  p.startLevel = placementStartLevel(p.results);
-  p.finishedAt = new Date().toISOString();
-  Object.assign(state, { level: p.startLevel, highest: Math.max(state.highest || 0, p.startLevel), passStreak: 0, strongRun: 0, failStreak: 0, sinceLevelUp: null, ceiling: null, ceilingTasksLeft: 0 });
+  if (p.step < PLACEMENT_TASKS) return false;
+  finishPlacement(state);
   return true;
+}
+
+// The line shown when a placement task ends (p: after recordPlacementStep). After a fail, a similar task comes next.
+function placementStepMessage(p, passed) {
+  const more = p.status !== "done" && p.step < PLACEMENT_TASKS;
+  if (passed) return "Well done! Press Next when you're ready.";
+  return more ? "That one was tricky – that's fine. You'll get a similar task next." : "This one was tricky – that's fine. Press Next to move on.";
+}
+
+// The result shown after the placement test: which questions were passed, and the start level.
+function placementResultText(p, unitId) {
+  const nums = p.results.map((r, i) => (r.passed ? i + 1 : 0)).filter(Boolean);
+  const list = nums.length === 1 ? "question " + nums[0] : "questions " + nums.slice(0, -1).join(", ") + " and " + nums[nums.length - 1];
+  return "Quick check done – thank you! " +
+    (nums.length ? "You passed " + list + " of " + p.results.length + "." : "You didn't pass any of the " + p.results.length + " questions, and that's fine.") +
+    " You'll start at Level " + p.startLevel + " (" + levelName(p.startLevel, unitId) + ").";
 }
 
 // Teacher reset: the student takes the placement test once more the next time they open the unit.
@@ -699,12 +780,13 @@ if (typeof module === "object" && module.exports) {
     FAST_RUN_LENGTH, FAST_MIN_DIFFERENT_SKILLS, FAST_LEVEL_STEP, FAILS_IN_A_ROW_TO_LEVEL_DOWN,
     HINTS_ON_ONE_TASK_TO_LEVEL_DOWN, DOWN_LEVEL_STEP, RECOVERY_WINDOW_TASKS, RECOVERY_CEILING_TASKS, MAX_HINTS_PER_TASK,
     SECURED_PASSES_IN_A_ROW, SECURED_MAX_HINTS, SCRATCH_EVERY_N_TASKS, ENDLESS_COMBINED_CHANCE,
-    PLACEMENT_LEVELS, PLACEMENT_ATTEMPTS, PLACEMENT_MAX_LEVEL, PLACEMENT_TAG, BUTTON_JUMP_LEVELS,
+    PLACEMENT_LEVELS, PLACEMENT_TASKS, PLACEMENT_ATTEMPTS, PLACEMENT_TAG, BUTTON_JUMP_LEVELS,
     SHOW_HOW_AFTER_FAILS, EXPLAINER_AFTER_WRONG_CHECKS, explainerShown, MAX_NEW_VARIANT_TRIES, SKILL_RENAMES, PROGRESS_VERSION,
     migrateProgress, fingerprintOf, hasPassed, recordTaskResult, noteFailedAttempt, showHowAvailable, SHOW_HOW_TIP, showHowState, tipLeft, initialDraft, resetTaskAnswer, isStrongPass,
     EDITOR_INDENT, enterIndent, editorEnter, editorTab, hasCommentStarter, clearStarterComment, codeToRun,
     chooseNextTask, chooseScratchTask, newVariant,
     newPlacement, isPlacementTask, needsPlacement, choosePlacementTasks, startPlacement, placementStartLevel,
+    placementKind, pickPlacementTask, nextPlacementStep, nextPlacementTask, finishPlacement, placementStepMessage, placementResultText,
     recordPlacementStep, resetPlacement, attemptRecord, levelButtonAvailable, applyLevelButton, levelButtonMessage, pressLevelButton,
     freshUnitState, applyOutcome, levelMessage, tasksAt, chooseTask,
     unitOfSkill, updateSkillStates, skillStatus, ensureSkillStates, completesTopLevel,
@@ -943,8 +1025,11 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     if (!log[key]) log[key] = { timesSet: 0, attempts: 0, hintsUsed: 0, passes: 0, fails: 0, lastResult: "in progress", levelAtLastAttempt: us(u).level, lastAttempt: null };
     return log[key];
   }
-  // The per-task log in each unit's saved state. An assignment changes nothing there.
-  const eachLog = (fn) => { if (inAssignment) return; const t = task(); unitsOf(t).forEach((u) => fn(logEntry(u, logKey(t)), u)); };
+  // A practice task given as a placement retry: its practice record (the per-task log, the failed checks for "Show me
+  // how") is left alone, so practice later treats it as new.
+  const practiceTaskInPlacement = (c, t) => !!(c && c.placement && !isPlacementTask(t));
+  // The per-task log in each unit's saved state. An assignment changes nothing there, nor a practice task in placement.
+  const eachLog = (fn) => { if (inAssignment) return; const t = task(); if (practiceTaskInPlacement(cur(), t)) return; unitsOf(t).forEach((u) => fn(logEntry(u, logKey(t)), u)); };
 
   function noteAttempt() {
     if (inAssignment) return;
@@ -1010,7 +1095,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     }
     const lv = (o.levels || {})[u] || { from: us(u).level, to: us(u).level };
     // Failed checks are counted per task in each unit (kept across visits) for "Show me how".
-    if ((o.kind || "attempt") === "attempt" && o.result === "fail") { unitsOf(t).forEach((x) => noteFailedAttempt(us(x), t)); save(); }
+    if ((o.kind || "attempt") === "attempt" && o.result === "fail" && !practiceTaskInPlacement(c, t)) { unitsOf(t).forEach((x) => noteFailedAttempt(us(x), t)); save(); }
     return Store.logAttempt(student.id, attemptRecord({
       task: t, unit: u, phase: c.placement ? "placement" : endless ? "endless" : "practice", kind: o.kind,
       attemptNumber: c.attempts, hints: c.hints, showHow: (c.showHow || 0) > 0, result: o.result, failure: o.failure, code: o.code, levelBefore: lv.from, levelAfter: lv.to,
@@ -1048,10 +1133,17 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     if (s.placement.status === "pending") startPlacement(s, tasks, unitId);
     const p = s.placement;
     let t = taskById[p.taskIds[p.step]];
-    if (!t || t.unit !== unitId) {
-      // The task for this step was moved to another unit since the test started: use another one at that level.
-      t = choosePlacementTasks(tasks, unitId, p.used)[p.step] || null;
-      if (t) { p.taskIds[p.step] = t.id; p.used = (p.used || []).concat(p.used && p.used.includes(t.id) ? [] : [t.id]); }
+    // The next task (after a pass, the next level; after a fail, a similar one), or one to replace a task that was
+    // moved to another unit since it was chosen.
+    if (!t || t.unit !== unitId) t = nextPlacementTask(s, tasks, unitId);
+    if (!t && p.results.length) {
+      // No task left for the rest of the test (the bank has enough, so this shouldn't happen): it ends here.
+      const before = s.level;
+      finishPlacement(s);
+      logPlacementResult(before);
+      notice = { kind: "up", text: placementResultText(p, unitId) };
+      save();
+      return serveNewTask();
     }
     if (!t) { p.status = "not-taken"; save(); return serveNewTask(); } // no placement tasks in this unit (a promise)
     s.current = { taskId: t.id, task: null, placement: true, started: false, hints: 0, attempts: 0, finished: false, passed: false, draft: initialDraft(t) };
@@ -1070,14 +1162,25 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     const s = us();
     const before = s.level;
     const done = recordPlacementStep(s, { taskId: t.id, level: t.level, passed, attempts: c.attempts, hints: c.hints });
-    if (done) {
-      const p = s.placement;
-      Store.logPlacement({ studentId: student.id, unit: unitId, kind: "result", results: p.results, startLevel: p.startLevel });
-      Store.logLevelChange({ studentId: student.id, unit: unitId, from: before, to: p.startLevel, reason: "placement" });
-    }
+    if (done) logPlacementResult(before);
     save();
     renderSide();
   }
+
+  // The placement result, logged as before (the teacher view and the exports read it).
+  function logPlacementResult(before) {
+    const p = us().placement;
+    Store.logPlacement({ studentId: student.id, unit: unitId, kind: "result", results: p.results, startLevel: p.startLevel });
+    Store.logLevelChange({ studentId: student.id, unit: unitId, from: before, to: p.startLevel, reason: "placement" });
+  }
+
+  // The current placement question follows a failed one (so it's a similar task), not a finished one.
+  const placementRetry = () => {
+    const p = us().placement;
+    const c = cur();
+    const last = p && p.results[p.results.length - 1];
+    return !!(c && c.placement && !c.finished && last && !last.passed);
+  };
 
   // A failed placement check: the task ends after PLACEMENT_ATTEMPTS tries.
   function placementAfterFail() {
@@ -1174,7 +1277,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     if (inPlacement()) {
       const p = us().placement;
       $("unit-levels").innerHTML = '<li class="unit-progress"><span class="unit-level">Quick check</span>' +
-        '<span class="small">Question ' + Math.min(p.step + 1, PLACEMENT_LEVELS.length) + " of " + PLACEMENT_LEVELS.length + "</span></li>";
+        '<span class="small">Question ' + Math.min(p.step + 1, PLACEMENT_TASKS) + " of " + PLACEMENT_TASKS + "</span></li>";
       $("streak-info").textContent = "This finds a good starting level for you. You have up to " + PLACEMENT_ATTEMPTS + " tries on each question, and hints are allowed.";
       return;
     }
@@ -1229,7 +1332,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
 
     const placementIntro = c.placement
       ? '<div class="placement-intro"><p><strong>Quick check to find your starting point. Don\'t worry if it\'s tricky.</strong></p>' +
-        '<p class="small">Question ' + (us().placement.step + 1) + " of " + PLACEMENT_LEVELS.length + " · up to " + PLACEMENT_ATTEMPTS + " tries · hints are allowed</p></div>"
+        '<p class="small">Question ' + Math.min(us().placement.step + 1, PLACEMENT_TASKS) + " of " + PLACEMENT_TASKS + " · up to " + PLACEMENT_ATTEMPTS + " tries · hints are allowed</p>" +
+        (placementRetry() ? "<p>This is a similar question to the last one.</p>" : "") + "</div>"
       : "";
 
     if (!c.started) {
@@ -1524,9 +1628,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     if (c.placement && inPlacement()) await servePlacementTask();
     else {
       if (c.placement) {
-        // Placement just finished: show the result once, then straight into practice.
-        const start = us().placement.startLevel;
-        notice = { kind: "up", text: "Quick check done – thank you! You'll start at Level " + start + " (" + levelName(start, unitId) + ")." };
+        // Placement just finished: show the result once (the questions passed and the start level), then into practice.
+        notice = { kind: "up", text: placementResultText(us().placement, unitId) };
       }
       if (!(await serveNewTask())) return;
     }
@@ -1560,7 +1663,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     if (t.type === "predict") return; // predict shows its own result
     const box = document.createElement("p");
     box.className = c.passed ? "notice notice-up" : "notice notice-down";
-    if (c.placement) box.textContent = c.passed ? "Well done! Press Next when you're ready." : "This one was tricky – that's fine. Press Next to move on.";
+    if (c.placement) box.textContent = placementStepMessage(us().placement, c.passed);
     else box.textContent = c.passed ? "You've completed this task. Press Next task when you're ready." : "This task was not passed.";
     $("results").prepend(box);
   }
@@ -1897,6 +2000,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     const results = await runner.run(t.solution, [t.tests[0].inputs]);
     setBusy(false);
     showPredictResult(results ? results[0].output : null);
+    // A finished placement predict task: the same line as other task types (after a fail, a similar task is next).
+    if (c.placement && c.finished && !c.passed) $("results").insertAdjacentHTML("afterbegin", '<p class="notice notice-' + (c.passed ? "up" : "down") + '">' + esc(placementStepMessage(us().placement, c.passed)) + "</p>");
     $("next-btn").focus();
   }
 

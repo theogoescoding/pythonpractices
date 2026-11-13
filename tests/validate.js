@@ -85,7 +85,7 @@ for (const unit of UNIT_IDS) {
     check(n >= MIN_PLACEMENT_PER_LEVEL, `Unit "${unit}" needs at least ${MIN_PLACEMENT_PER_LEVEL} placement tasks at level ${lv}, found ${n}`);
   }
 }
-check(App.PLACEMENT_MAX_LEVEL === 8 && App.BUTTON_JUMP_LEVELS === 1, "PLACEMENT_MAX_LEVEL is 8 and BUTTON_JUMP_LEVELS is 1");
+check(!("PLACEMENT_MAX_LEVEL" in App) && App.PLACEMENT_TASKS === 4 && App.BUTTON_JUMP_LEVELS === 1, "Placement has no level cap and 4 tasks, and BUTTON_JUMP_LEVELS is 1");
 
 // ---------- Misconceptions and buggy variants ----------
 let misconceptions = [];
