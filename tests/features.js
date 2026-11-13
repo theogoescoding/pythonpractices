@@ -993,11 +993,59 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const sol8 = judge(l8, l8.solution), sol10 = judge(l10, l10.solution), rec8 = judge(l8, l8Rec), rec10 = judge(l10, l10Rec);
     check(sol8.passed && sol10.passed && rec8.passed && rec10.passed,
       "Recursion tasks: a recursive answer to rec-L8a and rec-L10a passes (the model solutions, and differently written ones)");
+    // The tasks made from the three templates built on these two (ids with a "#seed" suffix, such as d-rec-L8a#123).
+    const TemplatesR = require(path.join(ROOT, "templates.js"));
+    const tplList = (() => { const j = JSON.parse(fs.readFileSync(path.join(ROOT, "templates.json"), "utf8")); return Array.isArray(j) ? j : j.templates || Object.values(j); })();
+    const tplById = Object.fromEntries(tplList.map((t) => [t.id, t]));
+    const made = {
+      "d-rec-L8a": TemplatesR.realiseSync(tplById["d-rec-L8a"], 123, runPython),
+      "d-rec-L10a": TemplatesR.realiseSync(tplById["d-rec-L10a"], 123, runPython),
+      "scratch-rec-power": TemplatesR.expand(tplById["scratch-rec-power"], 123),
+    };
+    // Swaps one function in a program for another version of it (the def line and its indented body).
+    const swapDef = (code, name, newDef) => {
+      const lines = code.split("\n");
+      const start = lines.findIndex((l) => l.startsWith("def " + name + "("));
+      let end = start + 1;
+      while (end < lines.length && (!lines[end].trim() || /^\s/.test(lines[end]))) end++;
+      while (end > start + 1 && !lines[end - 1].trim()) end--;
+      return lines.slice(0, start).concat(newDef.split("\n"), lines.slice(end)).join("\n");
+    };
+    const loopDefs = {
+      power_rec: "def power_rec(base, exp):\n    answer = 1\n    for i in range(exp):\n        answer = answer * base\n    return answer",
+      biggest: "def biggest(items):\n    best = items[0]\n    for x in items:\n        if x > best:\n            best = x\n    return best",
+      power: "def power(base, exp):\n    answer = 1\n    for i in range(exp):\n        answer = answer * base\n    return answer",
+    };
+    const recDefs = {
+      power_rec: "def power_rec(base, exp):\n    return 1 if exp == 0 else base * power_rec(base, exp - 1)",
+      biggest: "def biggest(items):\n    if len(items) == 1:\n        return items[0]\n    rest = biggest(items[1:])\n    return items[0] if items[0] > rest else rest",
+      power: "def power(b, e):\n    if e == 0:\n        return 1\n    return b * power(b, e - 1)",
+    };
+    const five = [["rec-L8a", l8, "power_rec"], ["rec-L10a", l10, "biggest"], ["d-rec-L8a", made["d-rec-L8a"], "power_rec"],
+      ["d-rec-L10a", made["d-rec-L10a"], "biggest"], ["scratch-rec-power", made["scratch-rec-power"], "power"]];
+    const fiveOut = five.map(([base, t, name]) => {
+      const loop = judge(t, swapDef(t.solution, name, loopDefs[name]));
+      const rec = judge(t, swapDef(t.solution, name, recDefs[name]));
+      const sol = judge(t, t.solution);
+      return { base, id: t.id, name, found: CheckerR.recursiveFunctions(t.solution).join(), loop, rec, sol };
+    });
+    const nameMsg = (n) => "Your function " + n + " needs to call itself. Put a call to " + n + " inside its own body.";
+    check(CheckerR.RECURSION_TASKS.join() === "rec-L8a,rec-L10a,d-rec-L8a,d-rec-L10a,scratch-rec-power" &&
+      fiveOut.map((x) => x.id).join() === "rec-L8a,rec-L10a,d-rec-L8a#123,d-rec-L10a#123,scratch-rec-power#123" &&
+      fiveOut.every((x) => x.found === x.name && x.loop.outputsRight && !x.loop.passed && x.loop.message === nameMsg(x.name) &&
+        CheckerR.failureParts(x.loop.failure).tryNext === "Find the smallest case that needs no call (the base case) and return it. For every other case, return an answer that uses " + x.name + " on a smaller value."),
+      "Recursion tasks: a loop answer prints the right output but fails for all five (rec-L8a, rec-L10a, and suffixed copies such as d-rec-L8a#123, d-rec-L10a#123 and scratch-rec-power#123), naming the function from that task's own model solution (power_rec, biggest, power)");
+    check(fiveOut.every((x) => x.rec.passed && x.sol.passed),
+      "Recursion tasks: a recursive answer passes for all five (the model solution, and one written differently)");
     const others = tasks.filter((t) => t.id !== "rec-L8a" && t.id !== "rec-L10a");
-    check(CheckerR.RECURSION_TASKS.join() === "rec-L8a,rec-L10a" && others.every((t) => CheckerR.recursionProblem(t, "x = 1\nprint(x)") === null && CheckerR.recursionProblem(t, t.solution || "") === null) &&
+    const otherTemplates = tplList.filter((t) => !CheckerR.RECURSION_TASKS.includes(t.id));
+    check(others.every((t) => CheckerR.recursionProblem(t, "x = 1\nprint(x)") === null && CheckerR.recursionProblem(t, t.solution || "") === null) &&
+      otherTemplates.every((t) => CheckerR.recursionProblem({ id: t.id + "#7", solution: t.solution || "" }, "x = 1\nprint(x)") === null) &&
+      ["d-rec-L8b", "d-rec-L9a", "d-rec-L10b", "scratch-rec-sum"].every((id) => CheckerR.recursionProblem({ id: id + "#123", solution: (tplById[id] || l8).solution }, l8Loop) === null) &&
+      ["xd-rec-L8a#1", "rec-L8a2", "d-rec-L8a-x#1", "rec-L8"].every((id) => CheckerR.recursionProblem({ id, solution: l8.solution }, l8Loop) === null) &&
       CheckerR.recursionProblem(byIdR["rec-L8b"], l8Loop) === null && CheckerR.recursionProblem(null, l8Loop) === null &&
       CheckerR.failureParts(CheckerR.classifyAttempt({ type: "write", code: "print(1)", results: [{ output: "1" }], tests: [{ inputs: [], expected: "1" }], passes: [true] })).message !== msg8,
-      "Recursion tasks: every other task is unaffected (the check runs only for rec-L8a and rec-L10a)");
+      "Recursion tasks: every other task is unaffected, including the other d- and scratch- templates (only these five base ids, the part before any #, are checked)");
     const appSrcR = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
     check(/const recursion = Checker\.recursionProblem\(t, built\.code\);/.test(appSrcR) && /const allPass = passes\.every\(Boolean\) && !extraProblem;/.test(appSrcR) &&
       (appSrcR.match(/async function check\(\)/g) || []).length === 1 && /recursion: recursion && recursion\.name/.test(appSrcR),

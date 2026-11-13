@@ -408,10 +408,13 @@
 
   // ---------- Recursion tasks ----------
   // rec-L8a and rec-L10a ask for a recursive function next to a loop one, so a loop can give the right output too.
-  // For these tasks only, a pass also needs the recursive function to call itself. Which function that is comes from
-  // the task's own model solution (the def there whose body calls itself: power_rec, biggest), so tasks.json is
-  // unchanged. The check reads the student's code, not its output.
-  const RECURSION_TASKS = ["rec-L8a", "rec-L10a"];
+  // For these tasks, and the tasks made from the three templates built on them (d-rec-L8a, d-rec-L10a and
+  // scratch-rec-power, whose ids have a "#seed" suffix such as d-rec-L8a#123), a pass also needs the recursive
+  // function to call itself. A task is matched by its base id, the part before any "#". Which function must recurse
+  // comes from the task's own model solution (the def there whose body calls itself), so tasks.json and
+  // templates.json are unchanged. The check reads the student's code, not its output.
+  const RECURSION_TASKS = ["rec-L8a", "rec-L10a", "d-rec-L8a", "d-rec-L10a", "scratch-rec-power"];
+  const baseId = (id) => String(id || "").split("#")[0];
 
   // The code without its strings and comments, so a name inside "text" or after # isn't counted as a call.
   function codeOnly(code) {
@@ -448,7 +451,7 @@
   // null, or { name, message } when the task needs a recursive function and the student's isn't (missing, or no call
   // to itself in its body).
   function recursionProblem(task, code) {
-    if (!task || !RECURSION_TASKS.includes(task.id)) return null;
+    if (!task || !RECURSION_TASKS.includes(baseId(task.id))) return null;
     const mine = functionsIn(code);
     for (const name of recursiveFunctions(task.solution)) {
       const f = mine.find((x) => x.name === name);
@@ -545,7 +548,7 @@
   return {
     normalise, outputsMatch, explainError, mismatchHint,
     CATEGORIES, isNoAnswer, errorKind, classifyAttempt, failureParts, failureMessage, matchMisconceptions,
-    RECURSION_TASKS, functionsIn, recursionProblem,
+    RECURSION_TASKS, functionsIn, recursiveFunctions, recursionProblem,
     MAX_TRACE_ROWS, traceTable, traceProblems, traceCell, traceAnswerRows, traceRowText, gradeTrace, variantTraceRows, traceAnswerText,
   };
 });
