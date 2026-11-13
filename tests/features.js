@@ -770,8 +770,9 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(/test 1 printed/.test(Checker.failureParts({ category: "WRONG_OUTPUT", details: { test: 1 } }, { exampleTests: 1 }).message),
       "A failed example test still says what to compare");
     const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
-    check(/TaskView\.isHidden\(i\)/.test(appSrc) && /failureParts\(failure, \{ exampleTests: TaskView\.EXAMPLE_TESTS \}\)/.test(appSrc),
-      "The practice page hides every test after the example one in its results and messages");
+    check(/html \+= TaskView\.testResultsHtml\(t, results, passes\);/.test(appSrc) && /failureParts\(failure, \{ exampleTests: TaskView\.EXAMPLE_TESTS \}\)/.test(appSrc) &&
+      /isHidden\(i\) \? "Hidden test "/.test(fs.readFileSync(path.join(ROOT, "task-view.js"), "utf8")),
+      "The practice page's failure message says nothing about a hidden test; the results list below it shows the details of each failed test only");
   }
 
   // ===================== Task browser (teacher view) =====================
@@ -2153,7 +2154,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     }
     check(Checker.CATEGORIES.every((c) => samples.some((f) => f.category === c)), "Every failure category has a \"What to try\" line");
     // The practice page shows input, expected output and actual output on labelled lines, and "(no output)" for nothing printed.
-    const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+    const appSrc = fs.readFileSync(path.join(ROOT, "app.js"), "utf8") + fs.readFileSync(path.join(ROOT, "task-view.js"), "utf8");
     check(appSrc.includes("<dt>Input</dt>") && appSrc.includes("<dt>Expected</dt>") && appSrc.includes("<dt>Your output</dt>") && appSrc.includes("(no output)"),
       "A failed test shows Input, Expected and Your output on labelled lines, with (no output) when nothing was printed");
     check(/failureHtml[\s\S]*matchMisconceptions[\s\S]*misconception[\s\S]*parts\.message/.test(appSrc),
@@ -2502,6 +2503,75 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       /\$\("st-summary"\)\.innerHTML = TD\.SUMMARY_TILES\.map/.test(tJs) && /renderCodeCards\(\);/.test(tJs) && /python-practice-overview-/.test(tJs) &&
       /id="overview-tables"/.test(fs.readFileSync(path.join(ROOT, "teacher.html"), "utf8")) && /id="st-summary"/.test(fs.readFileSync(path.join(ROOT, "teacher.html"), "utf8")),
       "Students page: the summary tiles, class code card and exports are unchanged; a column heading in any table sorts them all");
+  }
+
+  // ===================== Failed tests: input, expected output and the student's output =====================
+  // What app.js check() does: one run of every test (runPython here, the worker there), passes worked out from it,
+  // then TaskView.testResultsHtml from those same results.
+  {
+    const TV = require(path.join(ROOT, "task-view.js"));
+    const passesOf = (t, results) => results.map((r, i) => !r.error && !r.notRun && Checker.outputsMatch(r.output, t.tests[i].expected));
+    const checkOnce = (t, code) => { const results = runPython(t.tests.map((x) => ({ code, inputs: x.inputs }))); return { results, passes: passesOf(t, results), html: TV.testResultsHtml(t, results, passesOf(t, results)) }; };
+    const items = (html) => html.split("<li ").slice(1);
+    const escT = TV.esc;
+    // A wrong answer that passes the example (it prints the example's output whatever the input) and fails the rest.
+    const wt = tasks.find((x) => x.type === "write" && x.tests.length >= 3 && x.tests[0].inputs.length && !/random/.test(x.solution) &&
+      x.tests.every((y) => y.inputs.every((v) => v !== "")) &&
+      new Set(x.tests.map((y) => Checker.normalise(y.expected))).size === x.tests.length && !Checker.normalise(x.tests[0].expected).includes("\\"));
+    const hardCoded = "print(" + JSON.stringify(Checker.normalise(wt.tests[0].expected)) + ")";
+    const wrong = checkOnce(wt, hardCoded);
+    const rows = items(wrong.html);
+    const failedRows = rows.filter((r) => r.startsWith('class="fail"'));
+    const detailsRight = wt.tests.slice(1).every((test, k) => {
+      const row = failedRows[k] || "";
+      return row.includes("Hidden test " + (k + 1) + " didn't pass") && row.includes("<dt>Input</dt><dd>" + escT(test.inputs.join(", then ")) + "</dd>") &&
+        row.includes("<dt>Expected</dt><dd><pre>" + escT(Checker.normalise(test.expected)) + "</pre></dd>") &&
+        row.includes("<dt>Your output</dt><dd><pre>" + escT(Checker.normalise(wt.tests[0].expected)) + "</pre></dd>");
+    });
+    check(wrong.passes[0] && !wrong.passes.slice(1).some(Boolean) && failedRows.length === wt.tests.length - 1 && detailsRight,
+      "A wrong answer shows each failed test (hidden ones too) with its input, the expected output and the student's actual output (" + wt.id + ")");
+    const passedRow = rows[0];
+    check(passedRow.startsWith('class="pass"') && !/io-lines|<pre>|Expected/.test(passedRow) && (wrong.html.match(/class="io-lines"/g) || []).length === wt.tests.length - 1 &&
+      items(checkOnce(wt, wt.solution).html).every((r) => r.startsWith('class="pass"') && !/io-lines|<pre>/.test(r)),
+      "A passed test is one line with no input, expected or actual output, so the full set of tests stays hidden");
+    // An error: the output so far, then Python's error line, then the explanation box.
+    const errT = { type: "write", tests: [{ inputs: ["4"], expected: "2.5" }, { inputs: ["0"], expected: "Cannot divide by 0" }] };
+    const errRun = checkOnce(errT, 'n = int(input("Number: "))\nprint("Working")\nprint(10 / n)');
+    const errRow = items(errRun.html)[1] || "";
+    check(errRun.passes.join() === "false,false" && /ZeroDivisionError: division by zero \(line 3\)<\/span><\/pre>/.test(errRow) && /<pre>Working\n<span class="error-line">/.test(errRow) &&
+      errRow.includes("<dt>Input</dt><dd>0</dd>") && errRow.includes("<dt>Expected</dt><dd><pre>Cannot divide by 0</pre>") && /class="error-box"/.test(errRow) &&
+      TV.errorText({ type: "Timeout" }) === "Stopped: it ran for too long." &&
+      /Not run: an earlier test was stopped/.test(TV.testResultsHtml(errT, [{ output: "", error: { type: "Timeout" } }, { output: "", error: null, notRun: true }], [false, false])),
+      "An error shows as the test's output: what was printed, then the error text (ZeroDivisionError: division by zero (line 3)), then the explanation");
+    // From the first check: nothing depends on how many attempts have been made, and the details come from that run.
+    const appF = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+    const checkSrc = appF.slice(appF.indexOf("  async function check() {"), appF.indexOf("  function renderResults("));
+    const renderSrc = appF.slice(appF.indexOf("  function renderResults("), appF.indexOf("  // ---------- Fill in the blanks"));
+    const tvSrc = fs.readFileSync(path.join(ROOT, "task-view.js"), "utf8");
+    const tvFn = tvSrc.slice(tvSrc.indexOf("function testResultsHtml("), tvSrc.indexOf("// ---------- Task browser search"));
+    check((checkSrc.match(/runner\.run\(/g) || []).length === 1 && /renderResults\(results, passes, extraProblem, allPass, failure, tryAgain\);/.test(checkSrc) &&
+      !/attempts|runner/.test(renderSrc + tvFn) && /TaskView\.testResultsHtml\(t, results, passes\)/.test(renderSrc) && items(wrong.html).filter((r) => /io-lines/.test(r)).length > 0,
+      "The details show on the first check (they don't depend on the attempt count) and come from that check's own run: the code runs once per check");
+    // Random: a program using random is seeded from each test's own inputs, so the row shows exactly what that run used.
+    const rt = tasks.find((x) => x.type === "write" && /import random/.test(x.solution) && x.tests.length >= 2 && x.tests[0].inputs.length);
+    const randomWrong = checkOnce(rt, rt.solution + '\nprint("extra")');
+    const solo = runPython(rt.tests.map((x) => ({ code: rt.solution, inputs: x.inputs })));
+    check(rt && randomWrong.passes.every((p) => !p) && items(randomWrong.html).every((row, i) => row.includes("<dt>Input</dt><dd>" + escT(rt.tests[i].inputs.map((v) => (v === "" ? "(nothing – just Enter)" : v)).join(", then ")) + "</dd>") &&
+      row.includes("<dt>Your output</dt><dd><pre>" + escT(Checker.normalise(solo[i].output.replace(/\n?$/, "\n") + "extra")) + "</pre>")),
+      "A program using random: each failed test shows the inputs that run was given and the numbers it actually printed (" + (rt && rt.id) + ")");
+    // The recursion check and the Parsons "line not needed" check: every test passed, so there are no test rows.
+    const rec8 = tasks.find((x) => x.id === "rec-L8a");
+    const loopAnswer = "def power_loop(base, exp):\n    answer = 1\n    for i in range(exp):\n        answer = answer * base\n    return answer\n\n" +
+      "def power_rec(base, exp):\n    return power_loop(base, exp)\n\nb = int(input(\"Base: \"))\ne = int(input(\"Power: \"))\nprint(power_loop(b, e), power_rec(b, e))";
+    const recRun = checkOnce(rec8, loopAnswer);
+    const recFail = Checker.classifyAttempt({ type: "write", code: loopAnswer, results: recRun.results, tests: rec8.tests, passes: recRun.passes, recursion: Checker.recursionProblem(rec8, loopAnswer).name });
+    const pt = tasks.find((x) => x.type === "parsons" && x.distractors && x.distractors.length);
+    const pRun = checkOnce(pt, pt.solution);
+    const pFail = Checker.classifyAttempt({ type: "parsons", code: pt.solution, results: pRun.results, tests: pt.tests, passes: pRun.passes, parsons: { usedDistractor: true, missing: false } });
+    check(recRun.passes.every(Boolean) && recFail.details.recursion && !/io-lines|class="fail"/.test(recRun.html) &&
+      pRun.passes.every(Boolean) && pFail.details.parsons && !/io-lines|class="fail"/.test(pRun.html) &&
+      /needs to call itself/.test(Checker.failureParts(recFail).message) && /line that isn't needed/.test(Checker.failureParts(pFail).message),
+      "The recursion check and the Parsons \"line not needed\" check show their own message and no test rows (every test passed)");
   }
 
   // ===================== Simulated class: matching, export, recheck.py =====================

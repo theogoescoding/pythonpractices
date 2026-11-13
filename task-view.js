@@ -1,5 +1,5 @@
-// What a student sees of a task's tests: the "Expected output" box with one example test, and nothing about the
-// hidden tests. Also the task search used by the teacher's Task browser. Shared by practice.html and teacher.html,
+// What a student sees of a task's tests: the "Expected output" box with one example test (nothing about the hidden
+// tests), and after Check the results, with the details of each failed test (testResultsHtml). Also the task search used by the teacher's Task browser. Shared by practice.html and teacher.html,
 // so both always show the same text, and that text is exactly what the checker compares (Checker.normalise).
 // No DOM here, so tests/features.js can check it. Works in the browser (window.TaskView) and in Node.
 
@@ -37,6 +37,60 @@
       "</section>";
   }
 
+  // ---------- Test results after Check (app.js renderResults) ----------
+  // Practice, placement, endless and assignment tasks all show this. A passed test is one line and nothing more, so
+  // the full set of tests stays hidden. A failed test, the example or a hidden one, from the first check: its input,
+  // the expected output and the student's output, each on its own line. Everything comes from the check's own run
+  // (results), never a second run. The inputs are the task's own (a template variant's are its drawn values, and a
+  // program using random is seeded from them, harness.py), so they are exactly what the program was given.
+  const inputsLine = (inputs) => (inputs.length ? inputs.map((v) => (v === "" ? "(nothing – just Enter)" : v)).join(", then ") : "(no input)");
+  function showOutput(text) {
+    const n = Checker.normalise(text);
+    return n === "" ? '<span class="nothing">(no output)</span>' : esc(n);
+  }
+  const errorBoxHtml = (err) => (err ? '<div class="error-box"><strong>' + esc(err.title) + "</strong><p>" + esc(err.detail) + "</p></div>" : "");
+  // The error as the last line of the output: Python's own error line, or what stopped the program.
+  const STOPPED = {
+    Timeout: "Stopped: it ran for too long.",
+    TooMuchOutput: "Stopped: it printed far too much.",
+    NoMoreInput: "Stopped: it asked for more input than this test gives.",
+    InternalError: "Stopped: something went wrong while running it.",
+  };
+  const errorText = (e) => STOPPED[e.type] || (e.type + (e.message ? ": " + e.message : "") + (e.line ? " (line " + e.line + ")" : ""));
+  function yourOutputHtml(r) {
+    if (r.notRun) return '<p class="not-run">Not run: an earlier test was stopped, so this one didn\'t run.</p>';
+    if (!r.error) return "<pre>" + showOutput(r.output) + "</pre>";
+    const out = Checker.normalise(r.output);
+    return "<pre>" + (out ? esc(out) + "\n" : "") + '<span class="error-line">' + esc(errorText(r.error)) + "</span></pre>";
+  }
+
+  // t: the task as checked; results: one { output, error, inputsLeft, notRun } per test; passes: one boolean per test.
+  function testResultsHtml(t, results, passes) {
+    let html = '<ul class="test-results">';
+    results.forEach((r, i) => {
+      const test = t.tests[i];
+      const label = isHidden(i) ? "Hidden test " + (i + 1 - EXAMPLE_TESTS) : "Example test";
+      if (passes[i]) {
+        html += '<li class="pass"><span class="mark" aria-hidden="true">✓</span> <strong>' + label + " passed</strong>" +
+          (isHidden(i) ? "" : ' <span class="inputs">' + esc(test.inputs.length ? "Input: " + inputsLine(test.inputs) : "No input") + "</span>") + "</li>";
+        return;
+      }
+      html += '<li class="fail"><span class="mark" aria-hidden="true">✗</span> <strong>' + label + (r.notRun ? " not run" : " didn't pass") + "</strong>" +
+        '<dl class="io-lines">' +
+        "<dt>Input</dt><dd>" + esc(inputsLine(test.inputs)) + "</dd>" +
+        "<dt>Expected</dt><dd><pre>" + showOutput(test.expected) + "</pre></dd>" +
+        "<dt>Your output</dt><dd>" + yourOutputHtml(r) + "</dd></dl>";
+      if (r.error) html += errorBoxHtml(Checker.explainError(r.error));
+      else if (!r.notRun) {
+        let tip = Checker.mismatchHint(r.output, test.expected);
+        if (r.inputsLeft > 0) tip += " (Your program didn't use all of the inputs.)";
+        html += '<p class="tip">' + esc(tip) + "</p>";
+      }
+      html += "</li>";
+    });
+    return html + "</ul>";
+  }
+
   // ---------- Task browser search (teacher view) ----------
   // Finds bank tasks by id (any case, also an old id in former_ids, or a template variant id like d-var-L9d#123,
   // which finds the task it was made from, or an id with a number on the end, like var-l9d-2) or by words in the
@@ -66,5 +120,5 @@
   }
 
   return { NO_OUTPUT, EXAMPLE_TESTS, exampleTest, expectedOutput, hiddenTestCount, isHidden, showsExpectedOutput, inputsText,
-    expectedBoxHtml, searchTasks, esc };
+    expectedBoxHtml, searchTasks, esc, showOutput, errorBoxHtml, errorText, testResultsHtml };
 });

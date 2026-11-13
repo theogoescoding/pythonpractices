@@ -889,10 +889,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   const inputsText = (inputs) => (inputs.length ? inputs.map((v) => (v === "" ? "(nothing – just Enter)" : v)).join(", then ") : "(no input)");
   const describeInputs = (inputs) => (inputs.length ? "Input: " + inputsText(inputs) : "No input");
 
-  function showOutput(text) {
-    const n = Checker.normalise(text);
-    return n === "" ? '<span class="nothing">(no output)</span>' : esc(n);
-  }
+  const showOutput = (text) => TaskView.showOutput(text);
 
   // The message for a failed attempt: a matched misconception's explanation first (the main message),
   // then the category message and its "What to try" line.
@@ -1565,9 +1562,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       (err ? errorBox(err) : "");
   }
 
-  function errorBox(err) {
-    return '<div class="error-box"><strong>' + esc(err.title) + "</strong><p>" + esc(err.detail) + "</p></div>";
-  }
+  const errorBox = (err) => TaskView.errorBoxHtml(err);
 
   // ---------- Check (all tests) ----------
   async function check() {
@@ -1664,41 +1659,9 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       return;
     }
 
-    html += '<ul class="test-results">';
-    results.forEach((r, i) => {
-      const test = t.tests[i];
-      // Hidden tests: only whether they passed. Their inputs, expected output and the student's output for them
-      // are never shown, so a hidden test can't be read off the screen.
-      if (TaskView.isHidden(i)) {
-        const label = "Hidden test " + (i + 1 - TaskView.EXAMPLE_TESTS);
-        if (passes[i]) { html += '<li class="pass"><span class="mark" aria-hidden="true">✓</span> <strong>' + label + " passed</strong></li>"; return; }
-        html += '<li class="fail"><span class="mark" aria-hidden="true">✗</span> <strong>' + label + (r.notRun ? " not run" : " didn't pass") + "</strong>";
-        if (r.notRun) html += "<p>This test didn't run because an earlier test was stopped.</p>";
-        else if (r.error) html += errorBox(Checker.explainError(r.error));
-        else html += '<p class="tip">Your program works for the example, but not for this input. Check every branch and the boundaries.</p>';
-        html += "</li>";
-        return;
-      }
-      if (passes[i]) {
-        html += '<li class="pass"><span class="mark" aria-hidden="true">✓</span> <strong>Example test passed</strong> <span class="inputs">' + esc(describeInputs(test.inputs)) + "</span></li>";
-        return;
-      }
-      html += '<li class="fail"><span class="mark" aria-hidden="true">✗</span> <strong>Example test' + (r.notRun ? " not run" : " didn't pass") + "</strong>";
-      if (r.notRun) { html += " <span class=\"inputs\">" + esc(describeInputs(test.inputs)) + "</span><p>This test didn't run because an earlier test was stopped.</p></li>"; return; }
-      // Input, expected output and actual output, each on its own labelled line.
-      html += '<dl class="io-lines">' +
-        "<dt>Input</dt><dd>" + esc(inputsText(test.inputs)) + "</dd>" +
-        "<dt>Expected</dt><dd><pre>" + showOutput(test.expected) + "</pre></dd>" +
-        "<dt>Your output</dt><dd><pre>" + showOutput(r.output) + "</pre></dd></dl>";
-      if (r.error) html += errorBox(Checker.explainError(r.error));
-      else {
-        let tip = Checker.mismatchHint(r.output, test.expected);
-        if (r.inputsLeft > 0) tip += " (Your program didn't use all of the inputs.)";
-        html += '<p class="tip">' + esc(tip) + "</p>";
-      }
-      html += "</li>";
-    });
-    html += "</ul>";
+    // Each failed test, the example or a hidden one, with its input, the expected output and the student's output,
+    // from this check's run (results); a passed test is one line with no details (TaskView.testResultsHtml).
+    html += TaskView.testResultsHtml(t, results, passes);
     $("results").innerHTML = html;
   }
 

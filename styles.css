@@ -399,7 +399,11 @@ pre.code.numbered .ln { color: var(--muted); margin-right: 1rem; user-select: no
 .io-lines { display: grid; grid-template-columns: max-content 1fr; gap: .2rem .75rem; align-items: baseline; margin: .5rem 0 0; }
 .io-lines dt { font-size: .9rem; font-weight: 700; }
 .io-lines dd { margin: 0; min-width: 0; }
-.io-lines pre { background: var(--card); margin: 0; padding: .3rem .6rem; }
+/* A failed test's input, expected output and the student's output (TaskView.testResultsHtml). Long output wraps, so
+   nothing scrolls sideways on a phone; on a phone each label sits above its value. */
+.io-lines pre { background: var(--card); margin: 0; padding: .3rem .6rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.io-lines .error-line { color: var(--fail); font-weight: 700; }
+.io-lines .not-run { margin: 0; font-style: italic; }
 @media (max-width: 600px) { .io-lines { grid-template-columns: 1fr; } }
 .worked { border: 2px solid var(--primary); background: var(--card); border-radius: 8px; padding: .5rem .9rem; margin-top: .75rem; }
 .worked h3 { margin-top: .2rem; }
