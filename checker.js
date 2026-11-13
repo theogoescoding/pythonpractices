@@ -394,6 +394,10 @@
     }
     i = firstError();
     if (i >= 0) return at("OTHER_ERROR", i, { errorType: results[i].error.type, line: results[i].error.line || null });
+    if (failIndex < 0 && a.recursion) {
+      // Every test passed, but the recursion task's function doesn't call itself (recursionProblem).
+      return Object.assign({ category: "WRONG_OUTPUT", details: { recursion: a.recursion } }, noRun);
+    }
     if (failIndex < 0) {
       // Every test passed but the Parsons answer used a line that isn't needed, or left one out.
       return Object.assign({ category: "WRONG_OUTPUT", details: { parsons: a.parsons && a.parsons.usedDistractor ? "used a line that isn't needed" : "left out a line that is needed" } }, noRun);
@@ -401,6 +405,58 @@
     const test = tests[failIndex];
     return at("WRONG_OUTPUT", failIndex, { test: failIndex + 1, inputs: test.inputs, expected: test.expected, actual: results[failIndex].output || "" });
   }
+
+  // ---------- Recursion tasks ----------
+  // rec-L8a and rec-L10a ask for a recursive function next to a loop one, so a loop can give the right output too.
+  // For these tasks only, a pass also needs the recursive function to call itself. Which function that is comes from
+  // the task's own model solution (the def there whose body calls itself: power_rec, biggest), so tasks.json is
+  // unchanged. The check reads the student's code, not its output.
+  const RECURSION_TASKS = ["rec-L8a", "rec-L10a"];
+
+  // The code without its strings and comments, so a name inside "text" or after # isn't counted as a call.
+  function codeOnly(code) {
+    return String(code || "")
+      .replace(/("""|''')[\s\S]*?\1/g, '""')
+      .replace(/(["'])(?:\\.|(?!\1)[^\\\n])*\1/g, '""')
+      .replace(/#.*$/gm, "");
+  }
+
+  // Every function defined in the code: { name, body } (the body: the rest of the def line after its colon, and every
+  // line indented under it).
+  function functionsIn(code) {
+    const lines = codeOnly(code).split("\n");
+    const out = [];
+    lines.forEach((line, i) => {
+      const m = /^(\s*)def\s+([A-Za-z_]\w*)\s*\(/.exec(line);
+      if (!m) return;
+      const indent = m[1].length;
+      const body = [line.slice(line.indexOf(":", m[0].length) + 1)];
+      for (let j = i + 1; j < lines.length; j++) {
+        const l = lines[j];
+        if (l.trim() && l.length - l.trimStart().length <= indent) break;
+        body.push(l);
+      }
+      out.push({ name: m[2], body: body.join("\n") });
+    });
+    return out;
+  }
+
+  // The function calls itself by name in its own body (not as some.name(...), and not a def of the same name).
+  const callsItself = (f) => new RegExp("(^|[^\\w.])" + f.name + "\\s*\\(").test(f.body.replace(new RegExp("\\bdef\\s+" + f.name + "\\b", "g"), ""));
+  const recursiveFunctions = (code) => functionsIn(code).filter(callsItself).map((f) => f.name);
+
+  // null, or { name, message } when the task needs a recursive function and the student's isn't (missing, or no call
+  // to itself in its body).
+  function recursionProblem(task, code) {
+    if (!task || !RECURSION_TASKS.includes(task.id)) return null;
+    const mine = functionsIn(code);
+    for (const name of recursiveFunctions(task.solution)) {
+      const f = mine.find((x) => x.name === name);
+      if (!f || !callsItself(f)) return { name, message: recursionMessage(name) };
+    }
+    return null;
+  }
+  const recursionMessage = (name) => "Your function " + name + " needs to call itself. Put a call to " + name + " inside its own body.";
 
   // A friendly, specific message for a failed attempt. Never includes Python's own error text.
   // Returns { message, tryNext }: what went wrong, and one thing to try next.
@@ -435,6 +491,8 @@
         if (d.trace) return { message: (d.wrongCells === 1 ? "One cell" : d.wrongCells + " cells") + " in your trace table " + (d.wrongCells === 1 ? "doesn't" : "don't") +
             " match what the program does. The first difference is in row " + d.row + ".",
           tryNext: "Go back to row " + d.row + ". Read the line in the Line column, work out the new value using the values above it, and write only what that line changes." };
+        if (d.recursion) return { message: recursionMessage(d.recursion),
+          tryNext: "Find the smallest case that needs no call (the base case) and return it. For every other case, return an answer that uses " + d.recursion + " on a smaller value." };
         if (d.parsons) return { message: "Your program works, but it " + d.parsons + ". Check which lines you've used.",
           tryNext: "Compare each line in your program with the task description. Every line should be needed, and nothing the task asks for should be missing." };
         // A hidden test (opts.exampleTests = how many tests the student can see): nothing about it is shown.
@@ -487,6 +545,7 @@
   return {
     normalise, outputsMatch, explainError, mismatchHint,
     CATEGORIES, isNoAnswer, errorKind, classifyAttempt, failureParts, failureMessage, matchMisconceptions,
+    RECURSION_TASKS, functionsIn, recursionProblem,
     MAX_TRACE_ROWS, traceTable, traceProblems, traceCell, traceAnswerRows, traceRowText, gradeTrace, variantTraceRows, traceAnswerText,
   };
 });

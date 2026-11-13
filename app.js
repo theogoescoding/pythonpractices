@@ -1570,8 +1570,12 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       if (usedDistractor) extraProblem = "Your program uses a line that isn't needed: " + usedDistractor.text + " – move it back out.";
       else if (missing) extraProblem = "Some lines you need are still in 'Lines to use'.";
     }
+    // rec-L8a and rec-L10a: the right output isn't enough, the function must call itself (checker.js recursionProblem).
+    // This holds for every pass: practice, level 10, endless and assignments.
+    const recursion = Checker.recursionProblem(t, built.code);
+    if (recursion && !extraProblem) extraProblem = recursion.message;
     const allPass = passes.every(Boolean) && !extraProblem;
-    const failure = allPass ? null : Checker.classifyAttempt({ type: t.type, code: built.code, results, tests: t.tests, passes, parsons });
+    const failure = allPass ? null : Checker.classifyAttempt({ type: t.type, code: built.code, results, tests: t.tests, passes, parsons, recursion: recursion && recursion.name });
     let tryAgain = "";
     if (counted && !allPass) {
       recordAttempt(t, c, { result: "fail", failure, code: built.code });
@@ -1604,7 +1608,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     if (allPass) html += '<p class="success">✓ Well done – all ' + results.length + " tests passed!</p>";
     else html += "<h3>" + passCount + " of " + results.length + " tests passed</h3>";
     if (failure) html += failureHtml(t, failure, tryAgain);
-    if (extraProblem && !(failure && failure.details && failure.details.parsons)) html += '<p class="problem">' + esc(extraProblem) + "</p>";
+    if (extraProblem && !(failure && failure.details && (failure.details.parsons || failure.details.recursion))) html += '<p class="problem">' + esc(extraProblem) + "</p>";
 
     // A syntax error stops every test the same way – explain it once.
     const first = results[0] && results[0].error;

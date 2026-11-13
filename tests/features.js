@@ -959,6 +959,51 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(!/Haven't started a unit/.test(teacherSrc + teacher), "Teacher overview: the \"Haven't started a unit\" box is gone (the student table still shows Not started cells)");
   }
 
+  // ===================== Recursion tasks must recurse (rec-L8a, rec-L10a) =====================
+  // A loop can print the right answer, so for these two tasks a pass also needs the recursive function to call itself.
+  {
+    const CheckerR = require(path.join(ROOT, "checker.js"));
+    const byIdR = Object.fromEntries(tasks.map((t) => [t.id, t]));
+    const l8 = byIdR["rec-L8a"], l10 = byIdR["rec-L10a"];
+    // What the app does on Check (app.js check): every test must pass and recursionProblem must find nothing.
+    const judge = (t, code) => {
+      const results = runPython(t.tests.map((x) => ({ code, inputs: x.inputs })));
+      const passes = results.map((r, i) => !r.error && CheckerR.outputsMatch(r.output, t.tests[i].expected));
+      const rec = CheckerR.recursionProblem(t, code);
+      const failure = passes.every(Boolean) && !rec ? null : CheckerR.classifyAttempt({ type: t.type, code, results, tests: t.tests, passes, recursion: rec && rec.name });
+      return { outputsRight: passes.every(Boolean), passed: !failure, failure, message: failure ? CheckerR.failureParts(failure).message : "" };
+    };
+    const powerMain = '\nb = int(input("Base: "))\ne = int(input("Power: "))\nprint(power_loop(b, e), power_rec(b, e))';
+    const powerLoopFn = "def power_loop(base, exp):\n    answer = 1\n    for i in range(exp):\n        answer = answer * base\n    return answer\n\n";
+    const l8Loop = powerLoopFn + "def power_rec(base, exp):\n    answer = 1\n    for i in range(exp):\n        answer = answer * base\n    return answer\n" + powerMain;
+    const l8Borrow = powerLoopFn + "def power_rec(base, exp):\n    # power_rec(base, exp - 1) would be recursion\n    note = \"power_rec(base, exp - 1)\"\n    return power_loop(base, exp)\n" + powerMain;
+    const l8Rec = powerLoopFn + "def power_rec(base, exp):\n    if exp == 0:\n        return 1\n    return base*power_rec (base, exp-1)\n" + powerMain;
+    const l10Main = '\nscores.append(int(input("New score: ")))\nprint(biggest(scores), biggest_loop(scores))';
+    const l10LoopFn = "def biggest_loop(items):\n    best = items[0]\n    for x in items:\n        if x > best:\n            best = x\n    return best\n\n";
+    const l10Loop = "scores = [12, 17, 9, 15]\n\n" + l10LoopFn + "def biggest(items):\n    best = items[0]\n    for x in items:\n        if x > best:\n            best = x\n    return best\n" + l10Main;
+    const l10Max = "scores = [12, 17, 9, 15]\n\n" + l10LoopFn + "def biggest(items):\n    return max(items)\n" + l10Main;
+    const l10Rec = "scores = [12, 17, 9, 15]\n\ndef biggest(items):\n    if len(items) == 1:\n        return items[0]\n    rest = biggest(items[1:])\n    return items[0] if items[0] > rest else rest\n\n" + l10LoopFn + l10Main;
+    const msg8 = "Your function power_rec needs to call itself. Put a call to power_rec inside its own body.";
+    const msg10 = "Your function biggest needs to call itself. Put a call to biggest inside its own body.";
+    const loop8 = judge(l8, l8Loop), borrow8 = judge(l8, l8Borrow), loop10 = judge(l10, l10Loop), max10 = judge(l10, l10Max);
+    check(l8 && l10 && loop8.outputsRight && !loop8.passed && loop8.message === msg8 && borrow8.outputsRight && !borrow8.passed && borrow8.message === msg8 &&
+      loop10.outputsRight && !loop10.passed && loop10.message === msg10 && max10.outputsRight && !max10.passed && max10.message === msg10 &&
+      loop8.failure.category === "WRONG_OUTPUT" && loop8.failure.failedTest === null && CheckerR.matchMisconceptions(l8, loop8.failure).length === 0,
+      "Recursion tasks: a loop answer to rec-L8a and rec-L10a prints the right output but fails, with \"Your function … needs to call itself. Put a call to … inside its own body.\" (a call only in a comment or a string, or handing over to the loop function, doesn't count)");
+    const sol8 = judge(l8, l8.solution), sol10 = judge(l10, l10.solution), rec8 = judge(l8, l8Rec), rec10 = judge(l10, l10Rec);
+    check(sol8.passed && sol10.passed && rec8.passed && rec10.passed,
+      "Recursion tasks: a recursive answer to rec-L8a and rec-L10a passes (the model solutions, and differently written ones)");
+    const others = tasks.filter((t) => t.id !== "rec-L8a" && t.id !== "rec-L10a");
+    check(CheckerR.RECURSION_TASKS.join() === "rec-L8a,rec-L10a" && others.every((t) => CheckerR.recursionProblem(t, "x = 1\nprint(x)") === null && CheckerR.recursionProblem(t, t.solution || "") === null) &&
+      CheckerR.recursionProblem(byIdR["rec-L8b"], l8Loop) === null && CheckerR.recursionProblem(null, l8Loop) === null &&
+      CheckerR.failureParts(CheckerR.classifyAttempt({ type: "write", code: "print(1)", results: [{ output: "1" }], tests: [{ inputs: [], expected: "1" }], passes: [true] })).message !== msg8,
+      "Recursion tasks: every other task is unaffected (the check runs only for rec-L8a and rec-L10a)");
+    const appSrcR = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
+    check(/const recursion = Checker\.recursionProblem\(t, built\.code\);/.test(appSrcR) && /const allPass = passes\.every\(Boolean\) && !extraProblem;/.test(appSrcR) &&
+      (appSrcR.match(/async function check\(\)/g) || []).length === 1 && /recursion: recursion && recursion\.name/.test(appSrcR),
+      "Recursion tasks: the check is part of the one Check answer path, so it applies to every pass (practice, the level 10 pass that counts towards the secured score, endless and assignments)");
+  }
+
   // ===================== Deleting an assignment =====================
   // Each assignment has Delete next to Close it. It asks on the page first (never a browser dialog); Cancel changes
   // nothing; Yes deletes the assignment row only (row-level security: the owning teacher, migration 0005).
