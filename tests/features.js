@@ -2623,9 +2623,9 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       /if \(saved && o\.result === "pass" && !c\.placement && !preview\) \{/.test(appU) && /const preview = !!previewId && previewAllowed\(self\);/.test(appU),
       "Secured pop-up: shows in practice and endless mode, never in placement, assignments (they return before the check) or teacher practice");
     // Saved first, shown after: the pass is logged before the check, and the pop-up opens after the page is drawn.
-    const recSrc = appU.slice(appU.indexOf("  function recordAttempt("), appU.indexOf("  function showSecuredDialogIfDue("));
+    const recSrc = appU.slice(appU.indexOf("  function recordAttempt("), appU.indexOf("  function showDialogIfDue("));
     check(recSrc.indexOf("const saved = Store.logAttempt(") < recSrc.indexOf("reachedFullSecure(") && /let securedDue = false;/.test(appU) &&
-      (appU.match(/\$\("next-btn"\)\.focus\(\);\s*showSecuredDialogIfDue\(\);/g) || []).length === 3 && !/save[\w]*\([^)]*securedDue|securedDue[^;\n]*Store\./.test(appU) &&
+      (appU.match(/\$\("next-btn"\)\.focus\(\);\s*showDialogIfDue\(\);/g) || []).length === 3 && !/save[\w]*\([^)]*securedDue|securedDue[^;\n]*Store\./.test(appU) &&
       /<script src="secured\.js"><\/script>\s*<script src="app\.js">/.test(fs.readFileSync(path.join(ROOT, "practice.html"), "utf8")),
       "Secured pop-up: the pass is saved first and the pop-up opens after it (Check, predict and trace); it is never saved, so reloading the page doesn't show it again");
 
@@ -2697,6 +2697,88 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(/padding: 16px; box-sizing: border-box/.test(rule(".modal-backdrop")) && /width: 100%; max-width: 28rem; max-height: calc\(100vh - 32px\); overflow-y: auto/.test(rule(".modal")) &&
       /flex-wrap: wrap/.test(rule(".modal-actions")) && /flex: 1 1 10rem/.test(rule(".modal-actions button")) && !/#[0-9a-f]{3,6}\b|rgb/i.test(modalCss) && /var\(--card\)/.test(rule(".modal")),
       "Secured pop-up: it fits at 390px (at most the screen less 32px; the buttons wrap) and uses theme colours only");
+
+    // ===================== "Assignment complete" =====================
+    // The real code that marks an assignment task done (finishTask's assignment branch), on a stand-in for the page.
+    const finSrc = appU.slice(appU.indexOf("      const ids = assignmentTasks.map((x) => x.id);"), appU.indexOf("      renderSide();\n      return {};\n    }\n    const outcome"));
+    const finish = new Function("assignmentTasks", "work", "save", "preview", "assignmentComplete", "passed", "t",
+      "let assignmentDoneDue = false;\n" + finSrc + "\nreturn assignmentDoneDue;");
+    const aTasks = [{ id: "A" }, { id: "B" }, { id: "C" }];
+    const work = { tried: {} };
+    let saves = 0;
+    const step = (id, passed, wk, prev) => finish(aTasks, wk || work, () => { saves++; }, !!prev, App.assignmentComplete, passed, { id });
+    const shown = [step("A", true), step("B", false), step("B", true), step("C", false), step("C", true), step("A", true)];
+    check(shown.join() === "false,false,false,false,true,false" && JSON.stringify(work.tried) === '{"A":"passed","B":"passed","C":"passed"}' && saves === 6 &&
+      App.assignmentComplete(["A", "B", "C"], work.tried) && !App.assignmentComplete(["A", "B", "C"], { A: "passed", B: "tried", C: "passed" }) && !App.assignmentComplete([], {}),
+      "Assignment complete: it shows when the last task still needed is passed (every task has a pass), not before, and not for a pass after that");
+    const reloaded = JSON.parse(JSON.stringify(work)); // the saved work, as the page loads it again
+    check(!step("B", true, reloaded) && /let assignmentDoneDue = false;/.test(appU) && !/assignmentDoneDue[^;\n]*(save|Store)/.test(appU) &&
+      finSrc.indexOf("save();") < finSrc.indexOf("assignmentDoneDue = true"),
+      "Assignment complete: an assignment already complete when the page loads doesn't show it again (it's never saved; the pass is saved before it opens)");
+    const fresh = { tried: { A: "passed", B: "passed" } };
+    const finishSrc = appU.slice(appU.indexOf("  function finishTask(passed) {"), appU.indexOf("    const outcome = { passed, hints: c.hints"));
+    check(!step("C", true, fresh, true) && /if \(inAssignment\) \{/.test(finishSrc) && (appU.match(/assignmentDoneDue = true/g) || []).length === 1 &&
+      !/finishTask\(/.test(appU.slice(appU.indexOf("  function finishPlacementStep("), appU.indexOf("  function logPlacementResult("))) &&
+      /const assignmentId = preview \? "teacher-practice"/.test(appU),
+      "Assignment complete: only in the student's own assignment work, never in practice, placement or teacher practice");
+    // The breakdown, from the saved work: tasks passed, hints and checks per task (current and drafts).
+    const saved = { index: 2, tried: { A: "passed", B: "passed", C: "passed", D: "tried" },
+      current: { taskId: "C", hints: 2, attempts: 3 }, drafts: { A: { taskId: "A", hints: 1, attempts: 1 }, B: { taskId: "B", hints: 0, attempts: 4 }, D: { taskId: "D", hints: 1, attempts: 2 } } };
+    const sum = App.assignmentSummary(["A", "B", "C", "D"], saved);
+    check(sum.total === 4 && sum.passed === 3 && sum.hints === 4 && sum.attempts === 10 && sum.grade === 67 && sum.band === "Getting there" &&
+      App.assignmentLines(sum).join("|") === "3 of 4 tasks passed|4 hints used|10 attempts|Grade: Getting there" &&
+      JSON.stringify(saved) === JSON.stringify({ index: 2, tried: { A: "passed", B: "passed", C: "passed", D: "tried" }, current: { taskId: "C", hints: 2, attempts: 3 }, drafts: { A: { taskId: "A", hints: 1, attempts: 1 }, B: { taskId: "B", hints: 0, attempts: 4 }, D: { taskId: "D", hints: 1, attempts: 2 } } }),
+      "Assignment complete: the breakdown matches the saved work (tasks passed, hints and attempts added up over the tasks), and nothing new is saved");
+    // The grade: the percentage passed less 2 points a hint, never below 0; 80+ Well done, 50-79 Getting there, under 50 Keep practising.
+    const g = (passed, total, hints) => { const tried = {}; const ids = []; for (let i = 0; i < total; i++) { ids.push("t" + i); if (i < passed) tried["t" + i] = "passed"; }
+      return App.assignmentSummary(ids, { tried, current: { taskId: "t0", hints, attempts: 1 } }); };
+    check(App.ASSIGNMENT_HINT_PENALTY === 2 && App.ASSIGNMENT_WELL_DONE_FROM === 80 && App.ASSIGNMENT_GETTING_THERE_FROM === 50 &&
+      g(8, 8, 0).grade === 100 && g(8, 8, 0).band === "Well done" && g(8, 8, 10).grade === 80 && g(8, 8, 10).band === "Well done" &&
+      g(8, 8, 11).band === "Getting there" && g(8, 8, 25).grade === 50 && g(8, 8, 25).band === "Getting there" && g(8, 8, 26).band === "Keep practising" &&
+      g(8, 8, 20).grade === 60 && g(8, 8, 20).band === "Getting there" && g(2, 8, 20).grade === 0 && g(8, 8, 60).grade === 0 && g(8, 8, 60).band === "Keep practising" &&
+      g(7, 8, 0).band === "Well done" && App.assignmentLines(g(7, 8, 1)).join("|") === "7 of 8 tasks passed|1 hint used|1 attempt|Grade: Well done",
+      "Assignment complete: grade = % of tasks passed less 2 a hint, never below 0 (20 hints: 60, Getting there; with 2 of 8 passed, 0); 80+ Well done, 50-79 Getting there, under 50 Keep practising; attempts don't count");
+    // The unit to go to: more than half of the tasks; otherwise only "Back to units".
+    const u = (...units) => App.assignmentUnit(units.map((x, i) => ({ id: "x" + i, unit: x })));
+    const builder = TD.buildSpread(tasks, "selection", 1, 10, 5).map((x) => x.task);
+    check(u("selection", "selection", "variables") === "selection" && u("output", "variables") === null && u("selection", "selection", "variables", "variables") === null &&
+      u("variables", "maths", "output") === null && u("selection", "selection", "variables", "maths") === null &&
+      App.assignmentUnit(["out-L1e", "var-L9c"].map((id) => byId[id])) === null && App.assignmentUnit(builder) === "selection",
+      "Assignment complete: Go to this unit is the unit of more than half of the tasks; a tie or mixed units with no majority give only Back to units");
+    // The screen on the stand-in page: the heading takes focus, Tab stays inside, Esc goes to Back to units.
+    const dA = page();
+    const go = [];
+    let backA = 0;
+    dA.next.focus();
+    const scr = App.openAssignmentDialog(dA, { summary: sum, unitId: "selection", inert: [dA.main], onUnit: (x) => go.push("unit:" + x), onHome: () => go.push("home"), returnFocus: () => { backA++; } });
+    const boxA = scr.element.children[0];
+    const items = boxA.children[1].children.map((li) => li.textContent);
+    check(boxA.attrs.role === "dialog" && boxA.attrs["aria-modal"] === "true" && boxA.attrs["aria-labelledby"] === scr.heading.id && scr.heading.textContent === "Assignment complete" &&
+      boxA.attrs["aria-describedby"] === boxA.children[1].id && items.join("|") === "3 of 4 tasks passed|4 hints used|10 attempts|Grade: Getting there" &&
+      scr.buttons.map((b) => b.textContent).join("|") === "Go to this unit|Back to units" && dA.activeElement === scr.heading &&
+      scr.buttons.every((b) => b.className === "secondary" && b.attrs.type === "button" && !("autofocus" in b.attrs)) && dA.main.attrs.inert === "",
+      "Assignment complete: a dialog headed \"Assignment complete\" with the breakdown and grade; Go to this unit then Back to units, neither the default; the heading takes focus");
+    scr.buttons[1].focus();
+    const wrapA = dA.key("Tab") && dA.activeElement === scr.buttons[0];
+    const shiftA = dA.key("Tab", true) && dA.activeElement === scr.buttons[1];
+    dA.focusIn(dA.next);
+    const pulled = dA.activeElement === scr.heading;
+    const escA = dA.key("Escape") && !scr.isOpen() && go.join() === "home" && backA === 1 && !("inert" in dA.main.attrs) && !(dA.listeners.keydown || []).length;
+    const dB = page();
+    const goB = [];
+    const scrB = App.openAssignmentDialog(dB, { summary: sum, unitId: "selection", inert: [dB.main], onUnit: (x) => goB.push("unit:" + x), onHome: () => goB.push("home"), returnFocus: () => {} });
+    scrB.buttons[0].click();
+    const dC = page();
+    const goC = [];
+    const scrC = App.openAssignmentDialog(dC, { summary: sum, unitId: null, inert: [dC.main], onUnit: () => goC.push("unit"), onHome: () => goC.push("home"), returnFocus: () => {} });
+    const oneButton = scrC.buttons.map((b) => b.textContent).join("|") === "Back to units";
+    scrC.buttons[0].click();
+    check(wrapA && shiftA && pulled && escA && goB.join() === "unit:selection" && !scrB.isOpen() && oneButton && goC.join() === "home" &&
+      /onUnit: \(u\) => \{ location\.href = "practice\.html\?unit=" \+ encodeURIComponent\(u\); \}/.test(appU),
+      "Assignment complete: Tab and Shift+Tab stay inside, focus can't leave, Esc goes to Back to units (home page) and gives focus back; Go to this unit opens that unit; with no majority there's only Back to units");
+    check(/\.modal-stats \{ margin: 0; padding-left: 1\.25rem;/.test(cssU) && !/#[0-9a-f]{3,6}\b|rgb/i.test(rule(".modal-stats")) &&
+      /width: 100%; max-width: 28rem;/.test(rule(".modal")) && /class="modal|"modal-backdrop"/.test(appU) && /openDialog\(doc, \{\s*id: "assignment-done"/.test(appU) && /openDialog\(doc, \{\s*id: "secured"/.test(appU),
+      "Assignment complete: the same dialog code and styles as the 100% pop-up (fits at 390px, theme colours only)");
   }
 
   // ===================== "Show me how": greyed until two wrong attempts, with a tooltip =====================

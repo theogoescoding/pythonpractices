@@ -134,6 +134,11 @@ A teacher can set a group of tasks for a whole class: a title, a short descripti
   - "Show me how" is there on every task from the start, after any number of fails
   - **Reset this task** works as it does in practice
 - **Recorded.** Every Check press and every use of "Show me how" goes into the same attempt log as practice, with `phase` = `assignment` and the assignment's id (`assignment_id`). The student's level is noted but never changed. Which task is open, the answers so far and the ✓ marks are kept in that browser only.
+- **"Assignment complete" screen.** When the student passes the last task still needed (every task in the assignment has a pass, the same ✓ marks the home page counts), a dialog shows their breakdown, worked out from that browser's saved assignment work (nothing new is saved):
+  - "8 of 8 tasks passed", the hints used and the attempts (Check presses), added up over the tasks
+  - a grade, shown as a band: the percentage of tasks passed less `ASSIGNMENT_HINT_PENALTY` (2) points a hint, never below 0; `ASSIGNMENT_WELL_DONE_FROM` (80) or more **Well done**, `ASSIGNMENT_GETTING_THERE_FROM` (50) to 79 **Getting there**, under 50 **Keep practising** (all three numbers at the top of `app.js`). Attempts don't count.
+  - **Go to this unit** (the unit of more than half of the tasks; with a tie or no majority this button isn't there) and **Back to units**. Neither is the default; the heading takes focus, Tab stays inside, Esc does the same as Back to units, and focus goes back to the task when it closes. It uses the same dialog code as the "Unit secured at 100%" pop-up.
+  - Shown once, after the pass that completes the assignment: not on a reload, not for an assignment that was already complete, and never in practice, placement or teacher practice. The teacher view shows no grade.
 - **Teacher view → Assignments**: a list of the class's assignments, with a button to create one. For each assignment it shows:
   - which tasks have been tried, and by how many students
   - how many passed each task, the failed checks, the uses of "Show me how", the most common failure and the top misconception

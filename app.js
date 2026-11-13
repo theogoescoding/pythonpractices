@@ -40,6 +40,13 @@ const SECURED_MAX_HINTS = 1;               // ...each using this many hints or f
 const SCRATCH_EVERY_N_TASKS = 3;           // after completing a unit, every Nth task there at the top level is "write from scratch"
 const ENDLESS_COMBINED_CHANCE = 0.35;      // in endless mode with 2+ units ticked, chance that the next task is a combined task
 
+// ===================== Assignment completion screen =====================
+// The grade on the "Assignment complete" screen: the percentage of tasks passed, less ASSIGNMENT_HINT_PENALTY points
+// for each hint used (never below 0), shown as one of three bands. Attempts are shown but don't count.
+const ASSIGNMENT_HINT_PENALTY = 2;
+const ASSIGNMENT_WELL_DONE_FROM = 80;      // this grade or more: "Well done"
+const ASSIGNMENT_GETTING_THERE_FROM = 50;  // this grade or more (and under ASSIGNMENT_WELL_DONE_FROM): "Getting there"; under it: "Keep practising"
+
 // ===================== Placement test =====================
 // The first time a student opens a unit they take a placement test of PLACEMENT_TASKS tasks. It starts at the first of
 // these levels; a passed task moves on to the next level, and a failed one is followed by a similar task (the same
@@ -488,45 +495,47 @@ const SECURED_DIALOG = {
   home: "Back to units",
   stay: "Stay in endless mode",
 };
-// Opens the dialog in `doc` (the page, or a stand-in in the tests). o = { inert: elements to make inert while it is
-// open (the rest of the page), onHome: "Back to units", returnFocus: called when it closes }. "Stay in endless mode"
-// and Esc close it. Tab and Shift+Tab stay inside it. Returns { close, element, heading, home, stay }.
-function openSecuredDialog(doc, o) {
-  o = o || {};
+// A dialog over the page, in `doc` (the page, or a stand-in in the tests). The "Unit secured at 100%" pop-up and the
+// "Assignment complete" screen both use it, with the same keyboard rules: the heading takes focus (no button is the
+// default or focused), Tab and Shift+Tab stay inside, Esc does o.onEscape (or closes it), and focus goes back
+// (o.returnFocus) when it closes. The rest of the page (o.inert) is inert while it's open.
+// o = { id (its heading is <id>-h, its body <id>-text), title, body: (make) => element, buttons: [{ label, action(api) }],
+//       onEscape(api), inert, returnFocus }. Returns api = { close, element, heading, buttons, isOpen }.
+function openDialog(doc, o) {
   const make = (tag, cls, text) => { const e = doc.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
   const backdrop = make("div", "modal-backdrop");
   const box = make("div", "modal");
   box.setAttribute("role", "dialog");
   box.setAttribute("aria-modal", "true");
-  box.setAttribute("aria-labelledby", "secured-h");
-  box.setAttribute("aria-describedby", "secured-text");
-  const heading = make("h2", "modal-title", SECURED_DIALOG.title);
-  heading.id = "secured-h";
+  box.setAttribute("aria-labelledby", o.id + "-h");
+  box.setAttribute("aria-describedby", o.id + "-text");
+  const heading = make("h2", "modal-title", o.title);
+  heading.id = o.id + "-h";
   heading.setAttribute("tabindex", "-1");
-  const text = make("p", null, SECURED_DIALOG.text);
-  text.id = "secured-text";
+  const body = o.body(make);
+  body.id = o.id + "-text";
   const row = make("div", "modal-actions");
-  const home = make("button", "secondary", SECURED_DIALOG.home);
-  const stay = make("button", "secondary", SECURED_DIALOG.stay);
-  for (const b of [home, stay]) { b.setAttribute("type", "button"); row.appendChild(b); }
+  const buttons = o.buttons.map((b) => { const el = make("button", "secondary", b.label); el.setAttribute("type", "button"); row.appendChild(el); return el; });
   box.appendChild(heading);
-  box.appendChild(text);
+  box.appendChild(body);
   box.appendChild(row);
   backdrop.appendChild(box);
   const inert = (o.inert || []).filter(Boolean);
   inert.forEach((el) => el.setAttribute("inert", ""));
   doc.body.appendChild(backdrop);
   let open = true;
+  const api = { element: backdrop, heading, buttons, isOpen: () => open };
+  const first = buttons[0], last = buttons[buttons.length - 1];
   const onKey = (e) => {
-    if (e.key === "Escape") { e.preventDefault(); close(); return; }
+    if (e.key === "Escape") { e.preventDefault(); if (o.onEscape) o.onEscape(api); else api.close(); return; }
     if (e.key !== "Tab") return;
     // Focus stays inside: Tab from the last button goes to the first; Shift+Tab from the first (or the heading) to the last.
-    const i = [home, stay].indexOf(doc.activeElement);
-    if (e.shiftKey && i <= 0) { e.preventDefault(); stay.focus(); }
-    else if (!e.shiftKey && i === 1) { e.preventDefault(); home.focus(); }
+    const i = buttons.indexOf(doc.activeElement);
+    if (e.shiftKey && i <= 0) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && i === buttons.length - 1) { e.preventDefault(); first.focus(); }
   };
   const onFocusIn = (e) => { if (open && !backdrop.contains(e.target)) heading.focus(); };
-  function close() {
+  api.close = function () {
     if (!open) return;
     open = false;
     doc.removeEventListener("keydown", onKey);
@@ -534,13 +543,79 @@ function openSecuredDialog(doc, o) {
     inert.forEach((el) => el.removeAttribute("inert"));
     backdrop.remove();
     if (o.returnFocus) o.returnFocus();
-  }
-  home.addEventListener("click", () => { close(); if (o.onHome) o.onHome(); });
-  stay.addEventListener("click", close);
+  };
+  buttons.forEach((el, i) => el.addEventListener("click", () => o.buttons[i].action(api)));
   doc.addEventListener("keydown", onKey);
   doc.addEventListener("focusin", onFocusIn);
   heading.focus();
-  return { close, element: backdrop, heading, home, stay, isOpen: () => open };
+  return api;
+}
+
+// The "Unit secured at 100%" pop-up. o = { inert, onHome: "Back to units", returnFocus }. "Stay in endless mode" and
+// Esc close it. Returns { close, element, heading, home, stay, isOpen }.
+function openSecuredDialog(doc, o) {
+  o = o || {};
+  const api = openDialog(doc, {
+    id: "secured", title: SECURED_DIALOG.title, inert: o.inert, returnFocus: o.returnFocus,
+    body: (make) => make("p", null, SECURED_DIALOG.text),
+    buttons: [
+      { label: SECURED_DIALOG.home, action: (d) => { d.close(); if (o.onHome) o.onHome(); } },
+      { label: SECURED_DIALOG.stay, action: (d) => d.close() },
+    ],
+  });
+  return Object.assign(api, { home: api.buttons[0], stay: api.buttons[1] });
+}
+
+// ---------- "Assignment complete" ----------
+// An assignment is complete when every one of its tasks has been passed: work.tried[id] === "passed", the same record
+// the home page's assignment card counts ("3 of 5 done"). taskIds: the assignment's tasks (as the practice page
+// resolves them).
+const assignmentComplete = (taskIds, tried) => taskIds.length > 0 && taskIds.every((id) => (tried || {})[id] === "passed");
+
+// The band for a grade (0-100).
+const assignmentBand = (grade) => (grade >= ASSIGNMENT_WELL_DONE_FROM ? "Well done" : grade >= ASSIGNMENT_GETTING_THERE_FROM ? "Getting there" : "Keep practising");
+
+// The breakdown, worked out from the saved assignment work (Store.loadAssignmentWork: tried, and each task's hints and
+// checks in current and drafts); nothing new is saved. { total, passed, hints, attempts, grade, band }.
+function assignmentSummary(taskIds, work) {
+  const w = work || {};
+  const stateOf = (id) => (w.current && w.current.taskId === id ? w.current : (w.drafts || {})[id]) || {};
+  const passed = taskIds.filter((id) => (w.tried || {})[id] === "passed").length;
+  const hints = taskIds.reduce((n, id) => n + (stateOf(id).hints || 0), 0);
+  const attempts = taskIds.reduce((n, id) => n + (stateOf(id).attempts || 0), 0);
+  const percent = taskIds.length ? (100 * passed) / taskIds.length : 0;
+  const grade = Math.max(0, percent - ASSIGNMENT_HINT_PENALTY * hints);
+  return { total: taskIds.length, passed, hints, attempts, grade, band: assignmentBand(grade) };
+}
+
+// The unit most of the assignment's tasks come from (more than half of them), or null (a tie, or no unit has more
+// than half): then the screen has only "Back to units". tasks: the assignment's tasks (each with its unit).
+function assignmentUnit(tasks) {
+  const count = {};
+  for (const t of tasks) if (t && t.unit) count[t.unit] = (count[t.unit] || 0) + 1;
+  const best = Object.keys(count).sort((a, b) => count[b] - count[a])[0];
+  return best && count[best] * 2 > tasks.length ? best : null;
+}
+
+const ASSIGNMENT_DIALOG = { title: "Assignment complete", unit: "Go to this unit", home: "Back to units" };
+// The lines of the breakdown, e.g. ["8 of 8 tasks passed", "3 hints used", "12 attempts", "Grade: Well done"].
+const assignmentLines = (s) => [
+  s.passed + " of " + s.total + " task" + (s.total === 1 ? "" : "s") + " passed",
+  s.hints + " hint" + (s.hints === 1 ? "" : "s") + " used",
+  s.attempts + " attempt" + (s.attempts === 1 ? "" : "s"),
+  "Grade: " + s.band,
+];
+
+// The "Assignment complete" screen. o = { summary, unitId (or null), onUnit, onHome, inert, returnFocus }.
+// Buttons: "Go to this unit" (only with a unit), then "Back to units". Esc does the same as "Back to units".
+function openAssignmentDialog(doc, o) {
+  const home = (d) => { d.close(); if (o.onHome) o.onHome(); };
+  const buttons = (o.unitId ? [{ label: ASSIGNMENT_DIALOG.unit, action: (d) => { d.close(); if (o.onUnit) o.onUnit(o.unitId); } }] : [])
+    .concat({ label: ASSIGNMENT_DIALOG.home, action: home });
+  return openDialog(doc, {
+    id: "assignment-done", title: ASSIGNMENT_DIALOG.title, inert: o.inert, returnFocus: o.returnFocus, onEscape: home, buttons,
+    body: (make) => { const ul = make("ul", "modal-stats"); assignmentLines(o.summary).forEach((line) => ul.appendChild(make("li", null, line))); return ul; },
+  });
 }
 
 // ---------- Attempt records ----------
@@ -864,7 +939,9 @@ if (typeof module === "object" && module.exports) {
     EDITOR_INDENT, enterIndent, editorEnter, editorTab, hasCommentStarter, clearStarterComment, codeToRun,
     chooseNextTask, chooseScratchTask, newVariant,
     newPlacement, isPlacementTask, needsPlacement, choosePlacementTasks, startPlacement, placementStartLevel,
-    reachedFullSecure, SECURED_DIALOG, openSecuredDialog,
+    reachedFullSecure, SECURED_DIALOG, openSecuredDialog, openDialog,
+    ASSIGNMENT_HINT_PENALTY, ASSIGNMENT_WELL_DONE_FROM, ASSIGNMENT_GETTING_THERE_FROM, assignmentComplete, assignmentBand, assignmentSummary,
+    assignmentUnit, ASSIGNMENT_DIALOG, assignmentLines, openAssignmentDialog,
     placementKind, pickPlacementTask, nextPlacementStep, nextPlacementTask, finishPlacement, placementStepMessage, placementResultText,
     recordPlacementStep, resetPlacement, attemptRecord, levelButtonAvailable, applyLevelButton, levelButtonMessage, pressLevelButton,
     freshUnitState, applyOutcome, levelMessage, tasksAt, chooseTask,
@@ -1180,7 +1257,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       attemptNumber: c.attempts, hints: c.hints, showHow: (c.showHow || 0) > 0, result: o.result, failure: o.failure, code: o.code, levelBefore: lv.from, levelAfter: lv.to,
     }));
     // The pass is saved (above); if it took the unit to 100% secured, the pop-up opens once the page is drawn
-    // (showSecuredDialogIfDue). Not in placement (and assignments and teacher practice returned above).
+    // (showDialogIfDue). Not in placement (and assignments and teacher practice returned above).
     if (saved && o.result === "pass" && !c.placement && !preview) {
       const before = Store.attempts(student.id).filter((a) => a.id !== saved.id);
       if (reachedFullSecure(before, saved)) securedDue = true;
@@ -1188,19 +1265,31 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     return saved;
   }
 
-  // "Unit secured at 100%": shown after the pass that got there, every time (it's never saved, so a reload doesn't
-  // show it again). Focus goes back to where it was in the task (the Next button), or the task card.
+  // The dialogs after a pass, opened once the page is drawn (showDialogIfDue). Neither is ever saved, so a reload
+  // doesn't show it again. Focus goes back to where it was in the task (the Next button), or the task card.
+  //   "Unit secured at 100%": after the pass that got there, every time.
+  //   "Assignment complete": after the pass that completed the assignment (finishTask).
   let securedDue = false;
-  function showSecuredDialogIfDue() {
-    if (!securedDue) return;
-    securedDue = false;
+  let assignmentDoneDue = false;
+  function showDialogIfDue() {
+    if (!securedDue && !assignmentDoneDue) return;
     const active = document.activeElement;
     const back = active && $("task").contains(active) ? active : $("task");
-    openSecuredDialog(document, {
+    const common = {
       inert: [document.querySelector(".site-header"), document.querySelector("main"), document.querySelector(".skip-link")],
       onHome: () => { location.href = "app.html"; },
       returnFocus: () => back.focus(),
-    });
+    };
+    if (assignmentDoneDue) {
+      assignmentDoneDue = false;
+      openAssignmentDialog(document, Object.assign(common, {
+        summary: assignmentSummary(assignmentTasks.map((x) => x.id), work), unitId: assignmentUnit(assignmentTasks),
+        onUnit: (u) => { location.href = "practice.html?unit=" + encodeURIComponent(u); },
+      }));
+    } else {
+      securedDue = false;
+      openSecuredDialog(document, common);
+    }
   }
 
   // ---------- Assignments ----------
@@ -1298,8 +1387,13 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     const t = task();
     if (inAssignment) {
       // Practice only: the task is marked as done here, and nothing else changes.
+      const ids = assignmentTasks.map((x) => x.id);
+      const wasComplete = assignmentComplete(ids, work.tried);
       work.tried[t.id] = passed ? "passed" : work.tried[t.id] || "tried";
       save();
+      // The pass that completes the assignment (saved above): the completion screen opens once the page is drawn.
+      // Not when it was already complete (on loading the page, or earlier), and not in teacher practice.
+      if (passed && !preview && !wasComplete && assignmentComplete(ids, work.tried)) assignmentDoneDue = true;
       renderSide();
       return {};
     }
@@ -1893,7 +1987,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       renderButtons();
       if (notice && !c.placement) $("results").insertAdjacentHTML("afterbegin", '<p class="notice notice-' + notice.kind + '">' + esc(notice.text) + "</p>");
       $("next-btn").focus();
-      showSecuredDialogIfDue();
+      showDialogIfDue();
     } else if (c.finished) {
       renderButtons();
       if (counted) renderFinishedMessage(); // the last placement try was used
@@ -2105,7 +2199,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     // A finished placement predict task: the same line as other task types (after a fail, a similar task is next).
     if (c.placement && c.finished && !c.passed) $("results").insertAdjacentHTML("afterbegin", '<p class="notice notice-' + (c.passed ? "up" : "down") + '">' + esc(placementStepMessage(us().placement, c.passed)) + "</p>");
     $("next-btn").focus();
-    showSecuredDialogIfDue();
+    showDialogIfDue();
   }
 
   function showPredictResult(actual) {
@@ -2200,7 +2294,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       redraw();
       renderButtons();
       $("next-btn").focus();
-      showSecuredDialogIfDue();
+      showDialogIfDue();
       return;
     }
     redraw();

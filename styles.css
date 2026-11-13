@@ -201,6 +201,9 @@ button[aria-disabled="true"] { color: var(--muted); background: var(--code-bg); 
 .modal-title { margin: 0 0 .5rem; font-size: 1.3rem; }
 .modal-title:focus { outline: 3px solid var(--focus-ring); outline-offset: 3px; border-radius: 4px; }
 .modal p { margin: 0; line-height: 1.5; }
+/* "Assignment complete": the breakdown, one line each; the last line is the grade. */
+.modal-stats { margin: 0; padding-left: 1.25rem; line-height: 1.6; }
+.modal-stats li:last-child { font-weight: 700; }
 .modal-actions { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.1rem; }
 .modal-actions button { flex: 1 1 10rem; }
 
