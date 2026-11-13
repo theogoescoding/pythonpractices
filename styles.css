@@ -47,9 +47,9 @@
   --rag-ink-light: #ffffff;
   --rag-gold: #ffd34d;      /* 100% Secured (glowing) */
   --rag-gold-glow: #f5c518;
-  --rag-fresh: #a9d6ff;     /* 95% Fresh: light blue */
-  --rag-fading: #1f63c6;    /* 80-90% Fading: blue */
-  --rag-soon: #3f2f9e;      /* 50-75% Revisit soon: indigo */
+  --rag-fresh: #a9d6ff;     /* 90% Fresh: light blue */
+  --rag-fading: #1f63c6;    /* 80% Fading: blue */
+  --rag-soon: #3f2f9e;      /* 50-70% Revisit soon: indigo */
   --lvl-red: #c62828;       /* levels 1-3 */
   --lvl-amber: #f5a524;     /* levels 4-6 */
   --lvl-green: #4fcb7d;     /* levels 7-9 */

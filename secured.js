@@ -6,7 +6,8 @@
 //     10 points for each full week (7 to 14 days 90%, 14 to 21 days 80%, 21 to 28 days 70%, 28 to 35 days 60%, then
 //     50%), never below the floor.
 //   - One level 10 pass brings it back to 100%. Each time the unit reaches 100% the floor goes up 10 points: it is
-//     50% the first time, 60% after coming back once, and so on, to at most 95%.
+//     50% the first time, 60% after coming back once, and so on, to at most 100% (after five returns, so from then
+//     on the unit stays at 100%). Every score is a multiple of 10, so no score is 95%.
 // No DOM here: tests/features.js checks it in Node.
 
 (function (root, factory) {
@@ -19,15 +20,16 @@
   const PASSES_TO_SECURE = 2;
   const FLOOR_START = 50;
   const FLOOR_STEP = 10;
-  const FLOOR_CAP = 95;
+  const FLOOR_CAP = 100;
 
   // The freshness ramp, for a secured unit: each band has its label, so colour is never the only signal. A secured
   // unit never falls below its floor (at least 50%), so there is no red band: anything under 80% is Revisit soon.
+  // A unit's score is 100, 90, 80, 70, 60 or 50; an average of several (teacher view) can fall between them.
   const BANDS = [
-    { min: 100, cls: "gold", label: "Secured" },     // gold, glowing
-    { min: 95, cls: "fresh", label: "Fresh" },       // light blue
-    { min: 80, cls: "fading", label: "Fading" },     // blue
-    { min: -Infinity, cls: "soon", label: "Revisit soon" }, // indigo (50-75%)
+    { min: 100, cls: "gold", label: "Secured" },     // 100%: gold, glowing
+    { min: 90, cls: "fresh", label: "Fresh" },       // 90%: light blue
+    { min: 80, cls: "fading", label: "Fading" },     // 80%: blue
+    { min: -Infinity, cls: "soon", label: "Revisit soon" }, // 50% to 70%: indigo
   ];
   const band = (score) => BANDS.find((b) => score >= b.min);
 

@@ -1401,7 +1401,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const two = [pass(D), pass(D + H)];
     const s = (list, at) => Secured.score(list, "selection", at);
     const back = two.concat([pass(D + H + 2 * W + 60000)]);
-    // Back to 100% four more times, each after four weeks away: the floor goes 50, 60, 70, 80, 90, then stops at 95.
+    // Back to 100% six more times, each after four weeks away: the floor goes 50, 60, 70, 80, 90, then 100 after the
+    // fifth return; at 100% the sixth pass isn't a return (the score never dropped).
     let many = two.slice();
     for (let k = 1; k <= 6; k++) many = many.concat([pass(D + H + k * 4 * W)]);
     check(s(two, D + 2 * H).score === 100 && s(two, D + 2 * H).secured && s([pass(D)], D + H).score === null && !s([pass(D)], D + H).secured,
@@ -1422,8 +1423,18 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(s(back, D + H + 2 * W + 120000).score === 100 && s(back, D + H + 2 * W + 120000).floor === 60,
       "Secured score: one level 10 pass with no hints brings it back to 100%, and raises the floor");
     check(s(two, D + 30 * W).score === 50 && s(two, D + 30 * W).floor === 50 && s(back, D + 40 * W).score === 60 &&
-      s(many, D + 80 * W).floor === 95 && s(many, D + 80 * W).score === 95 && s(many, D + 80 * W).timesAt100 === 7,
-      "Secured score: the floor is 50% at first, 60% after coming back once, and never more than 95%");
+      s(many, D + 80 * W).floor === 100 && s(many, D + 80 * W).score === 100 && s(many, D + 80 * W).timesAt100 === 6 && Secured.FLOOR_CAP === 100,
+      "Secured score: the floor is 50% at first, 60% after coming back once, and at most 100%");
+    // The return floor, return by return: each return after two weeks away (when the score is 80%, or the floor).
+    let hist = two.slice();
+    const floors = [s(hist, D + 2 * H).floor];
+    for (let k = 1; k <= 6; k++) { hist = hist.concat([pass(D + H + k * 2 * W + 60000)]); floors.push(s(hist, D + H + k * 2 * W + 120000).floor); }
+    const fifth = two.concat([1, 2, 3, 4, 5].map((k) => pass(D + H + k * 2 * W + 60000)));
+    const fourth = two.concat([1, 2, 3, 4].map((k) => pass(D + H + k * 2 * W + 60000)));
+    const afterFifth = D + H + 10 * W + 60000;
+    check(floors.join() === "50,60,70,80,90,100,100" && s(fifth, afterFifth + 60 * DAY).score === 100 && s(fifth, afterFifth + 365 * DAY).score === 100 &&
+      s(fifth, afterFifth).timesAt100 === 6 && s(fourth, D + H + 8 * W + 60000 + 60 * DAY).score === 90,
+      "Secured score: the floor goes 50%, 60%, 70%, 80%, 90%, then 100% after the fifth return (and stays there), so the unit no longer drops; after four returns it stops at 90%");
     check(s([pass(D, { hints: 1 }), pass(D + H, { hints: 2 })], D + 2 * H).secured === false && s([pass(D, { phase: "endless", taskLevel: 6 }), pass(D + H, { phase: "endless", taskLevel: 3 })], D + 2 * H).score === 100 &&
       !s([pass(D, { taskLevel: 9 }), pass(D + H, { taskLevel: 9 })], D + 2 * H).secured && !s([pass(D, { phase: "assignment" }), pass(D + H, { phase: "placement" })], D + 2 * H).secured &&
       !s([pass(D), pass(D + H, { unit: "maths" })], D + 2 * H).secured && !s([pass(D), pass(D + H, { result: "fail" })], D + 2 * H).secured,
@@ -1458,13 +1469,28 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(madeEarly.every((list) => !s(list, D + 2 * H).secured && !s(viaServer(list), D + 2 * H).secured) &&
       s(madeTop, D + 2 * H).score === 100 && s(viaServer(madeTop), D + 2 * H).score === 100,
       "Secured score: the app's own attempt records (and the same records after the server round trip) secure only after two level 10 passes with no hints");
-    const labels = [100, 95, 90, 80, 75, 50].map((x) => Secured.band(x).label + ":" + Secured.band(x).cls).join();
+    const labels = [100, 90, 80, 70, 60, 50].map((x) => Secured.band(x).label + ":" + Secured.band(x).cls).join();
     const cssAll = read("styles.css");
     const token = (name) => ((cssAll.match(new RegExp("--" + name + ":\\s*(#[0-9a-fA-F]{6})")) || [])[1] || "").toLowerCase();
-    check(labels === "Secured:gold,Fresh:fresh,Fading:fading,Fading:fading,Revisit soon:soon,Revisit soon:soon" &&
+    check(labels === "Secured:gold,Fresh:fresh,Fading:fading,Revisit soon:soon,Revisit soon:soon,Revisit soon:soon" &&
+      [99, 95, 90].every((x) => Secured.band(x).label === "Fresh") && [89, 85, 80].every((x) => Secured.band(x).label === "Fading") && Secured.band(79).label === "Revisit soon" &&
       ["gold", "fresh", "fading", "soon"].every((c) => cssAll.includes(".rag-" + c + " ")) && /rag-gold \{[^}]*box-shadow/.test(cssAll) &&
       token("rag-gold") === "#ffd34d" && token("rag-fresh") === "#a9d6ff" && token("rag-fading") === "#1f63c6" && token("rag-soon") === "#3f2f9e",
-      "Freshness ramp: gold (glowing) 100% Secured, light blue 95% Fresh, blue 80–90% Fading, indigo 50–75% Revisit soon, each with its label");
+      "Freshness ramp: gold (glowing) 100% Secured, light blue 90% Fresh, blue 80% Fading, indigo 50–70% Revisit soon, each with its label (an average between them takes the band below)");
+    // No unit score is ever 95% (every score is a multiple of 10), and 90% shows as Fresh.
+    const scoresSeen = new Set();
+    for (const gap of [1, 2, 3, 4, 5, 6, 8]) {
+      let h = two.slice();
+      for (let k = 1; k <= 8; k++) h = h.concat([pass(D + H + k * gap * W + 60000)]);
+      for (let d = 0; d <= gap * 8 * 7 + 60; d += 1) { const r = s(h, D + H + d * DAY + 30000); if (r.secured) scoresSeen.add(r.score); }
+    }
+    const nineties = s(two, D + H + 8 * DAY);
+    check([...scoresSeen].sort((x, y) => x - y).join() === "50,60,70,80,90,100" && !scoresSeen.has(95) &&
+      !/95%/.test(read("app.html") + read("teacher.html") + read("tour.js") + read("home.js") + read("teacher.js")),
+      "Secured score: no unit ever shows 95% (scores are 100, 90, 80, 70, 60 or 50), and no colour key mentions 95%");
+    check(nineties.score === 90 && Secured.band(90).label === "Fresh" && Secured.band(90).cls === "fresh" &&
+      Secured.unitColour({ started: true, placed: true, secured: true, score: nineties.score }).label === "90% · Fresh",
+      "Secured score: 90% (a week after the last pass) shows as Fresh, light blue");
     // No secured unit can show red: the floor is at least 50%, every band below 80% is Revisit soon (indigo), and
     // no freshness band uses a red, amber or green level colour.
     const securedScores = [];
@@ -1569,11 +1595,11 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       attempts: [pass(D + 8 * W, { studentId: "a" }), pass(D + 8 * W + H, { studentId: "a" }), pass(D, { studentId: "b" }), pass(D + H, { studentId: "b" })] };
     const tt = TD.scoreTable(tileData, ["selection"], D + H + 8 * W + 2 * H);
     const tileOf = (n) => tt.rows.find((r) => r.name === n).summaryTile;
-    check(TD.SUMMARY_TILES.map((t) => t.key + "/" + t.cls + "/" + t.label).join("|") === "fresh/fresh/Fresh (80%+)|soon/soon/Revisit soon|" +
+    check(TD.SUMMARY_TILES.map((t) => t.key + "/" + t.cls + "/" + t.label).join("|") === "fresh/fresh/Fresh or Fading (80%+)|soon/soon/Revisit soon|" +
       "lv-red/lv-red/Levels 1 to 3: still learning|lv-amber/lv-amber/Levels 4 to 6: still learning|lv-green/lv-green/Levels 7 to 9: still learning|" +
       "lv-top/lv-top/Level 10: not secured yet|none/none/Not placed yet" && TD.SUMMARY_TILES.every((t) => t.note && t.note.length > 10) &&
       ["Ava:fresh", "Ben:soon", "Cal:lv-red", "Eve:lv-amber", "Fay:lv-green", "Gil:lv-top", "Nia:none", "Max:none"].every((x) => tileOf(x.split(":")[0]) === x.split(":")[1]),
-      "Summary tiles: Fresh (80%+) light blue, Revisit soon indigo, then (nothing secured yet) a tile per average level band in its level colour, and Not placed yet grey, each label saying what it counts");
+      "Summary tiles: Fresh or Fading (80%+) light blue, Revisit soon indigo, then (nothing secured yet) a tile per average level band in its level colour, and Not placed yet grey, each label saying what it counts");
     const tileTotal = Object.values(tt.summary.tiles).reduce((x, y) => x + y, 0);
     check(tileTotal === Object.keys(tileData.students).length && tt.rows.every((r) => r.summaryTile in tt.summary.tiles) &&
       Object.entries(tt.summary.tiles).every(([k, v]) => v === tt.rows.filter((r) => r.summaryTile === k).length) &&
@@ -1603,7 +1629,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       /rag-placement \{[^}]*var\(--placement-bg\)[^}]*var\(--placement-ink\)[^}]*dashed/.test(cssAll) &&
       !/--(rag|lvl)-[\w-]+:\s*#1f4fd1/i.test(cssAll) && (cssAll.match(/var\(--placement-ink\)/g) || []).length === 2,
       "Unit cards: before the placement is done the unit shows blue \"Placement to do\" (a dashed outline, its own blue, used for nothing else), then its level colour");
-    check(uc({ secured: true, score: 100 }).cls === "gold" && uc({ secured: true, score: 100 }).label === "100% · Secured" && uc({ secured: true, score: 95 }).label === "95% · Fresh" &&
+    check(uc({ secured: true, score: 100 }).cls === "gold" && uc({ secured: true, score: 100 }).label === "100% · Secured" && uc({ secured: true, score: 90 }).label === "90% · Fresh" &&
       uc({ secured: true, score: 85 }).cls === "fading" && uc({ secured: true, score: 60 }).cls === "soon" && uc({ secured: true, score: 60 }).label === "60% · Revisit soon" &&
       /self\.Secured\.unitColour\(\{ started: !!s, placed: !!s && !placing, level: s && s\.level, secured: sec\.secured, score: sec\.score \}\)/.test(read("home.js")) &&
       /const placing = s && needsPlacement\(s\);/.test(read("home.js")) && /★ Level 10 passed/.test(read("home.js")) && /One level 10 pass with no hints brings it back to 100%/.test(read("home.js")),
@@ -1617,7 +1643,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const appHtml = read("app.html");
     const keyOf = (html) => ((html.match(/<p class="small rag-key"[^>]*>([\s\S]*?)<\/p>/) || [])[1] || "");
     const studentKey = keyOf(appHtml), teacherKey = keyOf(teacher);
-    const ramps = (k) => ["rag-gold\">100% Secured", "rag-fresh\">95% Fresh", "rag-fading\">80–90% Fading", "rag-soon\">50–75% Revisit soon",
+    const ramps = (k) => ["rag-gold\">100% Secured", "rag-fresh\">90% Fresh", "rag-fading\">80% Fading", "rag-soon\">50–70% Revisit soon",
       "rag-lv-red\">Level 1–3", "rag-lv-amber\">Level 4–6", "rag-lv-green\">Level 7–9", "rag-lv-top\">Level 10"].every((x) => k.includes(x));
     check(ramps(studentKey) && ramps(teacherKey) && studentKey.includes('rag-placement">Placement to do') && teacherKey.includes('rag-none">grey: Not placed yet'),
       "Colour key: the student's page and the teacher's Students page each show the level ramp and the freshness ramp (and the placement colour)");

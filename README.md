@@ -769,7 +769,7 @@ A walkthrough over the real screen, one step at a time, on the student pages onl
 **Students (`#students`, the default)**
 
 - The class code card (with Copy code), then a **summary strip** of seven tiles that count students, each student in exactly one; then the **class average secured score per unit** (of the students who have secured it). Each tile's label is a chip in a colour the unit cells use, and says what it counts:
-  - a student with a secured unit, by the average of their secured units: light blue **Fresh (80%+)**, or indigo **Revisit soon** (50% to 79%; a secured average is never under 50%);
+  - a student with a secured unit, by the average of their secured units: light blue **Fresh or Fading (80%+)**, or indigo **Revisit soon** (50% to 79%; a secured average is never under 50%);
   - a student with placed units but nothing secured yet, by their average level: red **Levels 1 to 3: still learning**, amber **Levels 4 to 6: still learning**, green **Levels 7 to 9: still learning**, light green **Level 10: not secured yet**;
   - grey **Not placed yet**: no placed unit.
 
@@ -832,9 +832,9 @@ A walkthrough over the real screen, one step at a time, on the student pages onl
   | 35 or more | 50% (the floor) |
 
   With a higher floor (after coming back to 100%) the score stops at that floor instead.
-- The floor is 50% the first time the unit reaches 100%, and 10 points higher each time it comes back to 100% (60%, 70%, …), up to **95%**. A pass while the score is still 100% keeps it fresh but doesn't raise the floor.
+- The floor is 50% the first time the unit reaches 100%, and 10 points higher each time it comes back to 100% (60%, 70%, 80%, 90%), up to **100%** after five returns: from then on the unit stays at 100%. A pass while the score is still 100% keeps it fresh but doesn't raise the floor. Every score is a multiple of 10, so no unit ever shows 95%.
 - Two colour ramps (`secured.js`, used by both views), each colour always shown with its label:
-  - **Freshness ramp**, a secured unit: gold, glowing, **100% Secured**; light blue **95% Fresh**; blue **80–90% Fading**; indigo **50–75% Revisit soon**. A secured unit never falls below 50%, so this ramp has no red.
+  - **Freshness ramp**, a secured unit: gold, glowing, **100% Secured**; light blue **90% Fresh**; blue **80% Fading**; indigo **50–70% Revisit soon**. A secured unit never falls below 50%, so this ramp has no red. An average of several units (teacher view) can fall between these and takes the band below it (for example 95% is Fresh, 85% Fading).
   - **Level ramp**, a placed unit that isn't secured yet ("Level N"): red **levels 1–3**, amber **4–6**, green **7–9**, light green **10**.
   - Before its placement is done a unit is grey, **Not placed yet**, in the teacher view, and a dashed blue outline, **Placement to do**, on the student's unit card.
 - In the student view a secured unit glows gold at 100% and shows its colour and label as the score falls; a placed unit that isn't secured shows its level in its colour. A unit with a level 10 pass that isn't secured yet keeps its "★ Level 10 passed" note. Both pages have a colour key.

@@ -322,7 +322,7 @@
   // colour is one the unit cards use: the freshness ramp for a secured average, the level ramp for a student with
   // nothing secured yet (by their average level), grey for a student with no placed unit.
   const SUMMARY_TILES = [
-    { key: "fresh", cls: "fresh", label: "Fresh (80%+)", note: "secured average 80% or more" },
+    { key: "fresh", cls: "fresh", label: "Fresh or Fading (80%+)", note: "secured average 80% or more" },
     { key: "soon", cls: "soon", label: "Revisit soon", note: "secured average 50% to 79%" },
     { key: "lv-red", cls: "lv-red", label: "Levels 1 to 3: still learning", note: "nothing secured yet, average level 1 to 3" },
     { key: "lv-amber", cls: "lv-amber", label: "Levels 4 to 6: still learning", note: "nothing secured yet, average level 4 to 6" },
