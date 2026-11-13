@@ -321,9 +321,13 @@
   // The summary tiles on the Students page, in order. Each student is in exactly one (summaryTileOf), and each tile's
   // colour is one the unit cards use: the freshness ramp for a secured average, the level ramp for a student with
   // nothing secured yet (by their average level), grey for a student with no placed unit.
+  // A student with a secured unit is counted by the band of their secured average (Secured.band): an average between
+  // two bands takes the one below, so 95% is Fresh and 85% Fading, and only 100% is Secured.
   const SUMMARY_TILES = [
-    { key: "fresh", cls: "fresh", label: "Fresh or Fading (80%+)", note: "secured average 80% or more" },
-    { key: "soon", cls: "soon", label: "Revisit soon", note: "secured average 50% to 79%" },
+    { key: "gold", cls: "gold", label: "Secured (100%)", note: "secured average 100%" },
+    { key: "fresh", cls: "fresh", label: "Fresh (90%)", note: "secured average 90% to 99%" },
+    { key: "fading", cls: "fading", label: "Fading (80%)", note: "secured average 80% to 89%" },
+    { key: "soon", cls: "soon", label: "Revisit soon (50% to 70%)", note: "secured average 50% to 79%" },
     { key: "lv-red", cls: "lv-red", label: "Levels 1 to 3: still learning", note: "nothing secured yet, average level 1 to 3" },
     { key: "lv-amber", cls: "lv-amber", label: "Levels 4 to 6: still learning", note: "nothing secured yet, average level 4 to 6" },
     { key: "lv-green", cls: "lv-green", label: "Levels 7 to 9: still learning", note: "nothing secured yet, average level 7 to 9" },
@@ -331,7 +335,7 @@
     { key: "none", cls: "none", label: "Not placed yet", note: "no unit placed yet" },
   ];
   // A secured average is at least 50% (every secured score is), so anything under 80% is Revisit soon.
-  const summaryTileOf = (r) => (r.average != null ? (r.average >= 80 ? "fresh" : "soon") : r.levelBand ? r.levelBand.cls : "none");
+  const summaryTileOf = (r) => (r.average != null ? Secured.band(r.average).cls : r.levelBand ? r.levelBand.cls : "none");
 
   // One row per student, one cell per unit in unitIds. A cell has unitCell's fields (tooEasy and tooHard: the student
   // pressed that button in the unit), plus tooEasyAt and tooHardAt (the newest press), placed, and:

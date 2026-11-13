@@ -588,11 +588,22 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .rag-placement { background: var(--placement-bg); color: var(--placement-ink); border: 2px dashed var(--placement-ink); }
 .rag-key .rag { margin: .1rem .1rem; }
 .flag-block { display: inline-flex; flex-direction: column; align-items: flex-start; margin-right: .3rem; vertical-align: top; }
-.rag-tiles { display: flex; flex-wrap: wrap; gap: .75rem; margin: .75rem 0; }
-.rag-tile { flex: 1 1 8rem; border: 2px solid var(--border); border-radius: 8px; padding: .5rem .9rem; background: var(--card); }
+/* The nine summary tiles: a three-by-three grid (phones and most screens), one row of nine on a wide screen. Each tile
+   can shrink to its column and wraps its words, so there is never sideways scrolling. */
+.rag-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; margin: .75rem 0; }
+@media (min-width: 1300px) { .rag-tiles { grid-template-columns: repeat(9, minmax(0, 1fr)); } }
+.rag-tile { min-width: 0; overflow-wrap: anywhere; border: 2px solid var(--border); border-radius: 8px; padding: .5rem .9rem; background: var(--card); }
 .rag-tile strong { display: block; font-size: 1.8rem; }
+@media (max-width: 600px) {
+  .rag-tiles { gap: .4rem; }
+  .rag-tile { padding: .35rem .45rem; border-left-width: 6px !important; }
+  .rag-tile .rag { font-size: .72rem; }
+  .rag-tile strong { font-size: 1.4rem; }
+}
 /* Summary tiles (teacher.js): the band's colour on the left edge and on the label chip, the same colours as the cells. */
+.rag-tile-gold { border-left: 10px solid var(--rag-gold); }
 .rag-tile-fresh { border-left: 10px solid var(--rag-fresh); }
+.rag-tile-fading { border-left: 10px solid var(--rag-fading); }
 .rag-tile-soon { border-left: 10px solid var(--rag-soon); }
 .rag-tile-lv-red { border-left: 10px solid var(--lvl-red); }
 .rag-tile-lv-amber { border-left: 10px solid var(--lvl-amber); }
@@ -607,6 +618,7 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .score-bar .bar { height: .6rem; border: 1px solid var(--border); border-radius: 999px; background: var(--code-bg); overflow: hidden; margin-top: .3rem; }
 .score-bar .bar span { display: block; height: 100%; }
 .secured-note { margin-top: .5rem !important; }
+.score-note { margin: .5rem 0 0; font-size: .95rem; } /* My progress: what a unit's score means (secured.js studentNote) */
 .quick-look { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
 .quick-look section { background: var(--card); border: 2px solid var(--border); border-radius: 8px; padding: .5rem .9rem; }
 .quick-look h3 { margin: .25rem 0 .5rem; font-size: 1.05rem; }

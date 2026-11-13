@@ -1491,6 +1491,41 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(nineties.score === 90 && Secured.band(90).label === "Fresh" && Secured.band(90).cls === "fresh" &&
       Secured.unitColour({ started: true, placed: true, secured: true, score: nineties.score }).label === "90% · Fresh",
       "Secured score: 90% (a week after the last pass) shows as Fresh, light blue");
+    // My progress: one plain sentence or two per unit, from the unit's score (secured.js studentNote).
+    const P = Date.parse("2026-11-09T12:00:00Z"); // a Monday, at midday
+    const twoAt = [pass(P - H), pass(P)];
+    const at100 = s(twoAt, P + 2 * H);
+    const fmtD = Secured.studentDate;
+    check(Secured.studentNote(s([pass(P)], P + H)) === "Reach level 10 and pass twice with no hints to secure this unit." &&
+      Secured.studentNote({ secured: false }) === "Reach level 10 and pass twice with no hints to secure this unit." &&
+      Secured.studentNote(at100) === "Secured. Keep it at 100% by doing a level 10 pass with no hints before Monday 16 November." &&
+      Secured.studentNote(s(twoAt, P + 8 * DAY)) === "Your score is 90%. A level 10 pass with no hints brings it back to 100%." &&
+      Secured.studentNote(s(twoAt, P + 22 * DAY)) === "Your score is 70%. A level 10 pass with no hints brings it back to 100%." &&
+      Secured.studentNote(s(twoAt, P + 60 * DAY)) === "Your score is 50%. A level 10 pass with no hints brings it back to 100%.",
+      "My progress: \"Secured. Keep it at 100% by doing a level 10 pass with no hints before Monday 16 November.\", \"Your score is 90%. A level 10 pass with no hints brings it back to 100%.\" and \"Reach level 10 and pass twice with no hints to secure this unit.\"");
+    // The date: the last level 10 pass with no hints plus 7 days (not the last attempt); none below 100%, or once it can't drop.
+    const laterTries = twoAt.concat([pass(P + 2 * DAY, { result: "fail" }), pass(P + 3 * DAY, { hints: 1 }), pass(P + 4 * DAY, { phase: "assignment" })]);
+    const morePass = twoAt.concat([pass(P + 2 * DAY)]);
+    check(Secured.keepByDate(at100).getTime() === P + 7 * DAY && fmtD(Secured.keepByDate(at100)) === "Monday 16 November" &&
+      Secured.keepByDate(s(laterTries, P + 5 * DAY)).getTime() === P + 7 * DAY && Secured.keepByDate(s(morePass, P + 5 * DAY)).getTime() === P + 9 * DAY &&
+      Secured.keepByDate(s(twoAt, P + 8 * DAY)) === null && Secured.keepByDate(s(fifth, afterFifth + 60 * DAY)) === null &&
+      Secured.studentNote(s(fifth, afterFifth + 60 * DAY)) === "Secured. It stays at 100% now.",
+      "My progress: the date is the last level 10 pass with no hints plus 7 days (a later fail, hinted pass or assignment pass doesn't move it), shown only at 100%; a unit that can no longer drop says it stays at 100%");
+    // The numbers in the sentence are the unit's score, as the unit cards show it.
+    const noteNumbersOk = [0, 3, 7, 8, 14, 15, 21, 22, 28, 29, 35, 36, 90].every((d) => {
+      const r = s(twoAt, P + d * DAY);
+      const shown = Secured.unitColour({ started: true, placed: true, secured: true, score: r.score }).label; // "90% · Fresh"
+      const said = Secured.studentNote(r);
+      return r.score === 100 ? /^Secured\./.test(said) && shown.startsWith("100%") : said.startsWith("Your score is " + r.score + "%.") && shown.startsWith(r.score + "%");
+    });
+    const progSrc = read("progress.js"), progHtml = read("progress.html");
+    const allNotes = [Secured.studentNote({ secured: false }), Secured.studentNote(at100), Secured.studentNote(s(twoAt, P + 8 * DAY)), Secured.studentNote(s(fifth, afterFifth + 60 * DAY))];
+    check(noteNumbersOk && /<p id="score-rule">A unit's score goes down a little each week unless you pass its level 10 challenge with no hints\.<\/p>/.test(progHtml) &&
+      /<script src="secured\.js"><\/script>\s*<script src="progress\.js"><\/script>/.test(progHtml) &&
+      /self\.Secured\.score\(attempts, u\.id\)/.test(progSrc) && /note: self\.Secured\.studentNote\(sec\)/.test(progSrc) && /<p class="score-note">' \+ esc\(x\.note\)/.test(progSrc) &&
+      /skills secured\. " \+ x\.note \+ " Show skills\./.test(progSrc) && !/DROP_PER_WEEK|WEEK_MS|FLOOR_/.test(progSrc) &&
+      !/freshness|decay|floor/i.test(allNotes.join(" ") + progHtml.replace(/<!--[\s\S]*?-->/g, "")),
+      "My progress: the sentence's numbers are the score the unit cards show (both from secured.js, no rule copied), the page has its one-line rule at the top, and none of it says freshness, decay or floor");
     // No secured unit can show red: the floor is at least 50%, every band below 80% is Revisit soon (indigo), and
     // no freshness band uses a red, amber or green level colour.
     const securedScores = [];
@@ -1595,11 +1630,37 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       attempts: [pass(D + 8 * W, { studentId: "a" }), pass(D + 8 * W + H, { studentId: "a" }), pass(D, { studentId: "b" }), pass(D + H, { studentId: "b" })] };
     const tt = TD.scoreTable(tileData, ["selection"], D + H + 8 * W + 2 * H);
     const tileOf = (n) => tt.rows.find((r) => r.name === n).summaryTile;
-    check(TD.SUMMARY_TILES.map((t) => t.key + "/" + t.cls + "/" + t.label).join("|") === "fresh/fresh/Fresh or Fading (80%+)|soon/soon/Revisit soon|" +
+    check(TD.SUMMARY_TILES.length === 9 && TD.SUMMARY_TILES.map((t) => t.key + "/" + t.cls + "/" + t.label).join("|") ===
+      "gold/gold/Secured (100%)|fresh/fresh/Fresh (90%)|fading/fading/Fading (80%)|soon/soon/Revisit soon (50% to 70%)|" +
       "lv-red/lv-red/Levels 1 to 3: still learning|lv-amber/lv-amber/Levels 4 to 6: still learning|lv-green/lv-green/Levels 7 to 9: still learning|" +
       "lv-top/lv-top/Level 10: not secured yet|none/none/Not placed yet" && TD.SUMMARY_TILES.every((t) => t.note && t.note.length > 10) &&
-      ["Ava:fresh", "Ben:soon", "Cal:lv-red", "Eve:lv-amber", "Fay:lv-green", "Gil:lv-top", "Nia:none", "Max:none"].every((x) => tileOf(x.split(":")[0]) === x.split(":")[1]),
-      "Summary tiles: Fresh or Fading (80%+) light blue, Revisit soon indigo, then (nothing secured yet) a tile per average level band in its level colour, and Not placed yet grey, each label saying what it counts");
+      ["Ava:gold", "Ben:soon", "Cal:lv-red", "Eve:lv-amber", "Fay:lv-green", "Gil:lv-top", "Nia:none", "Max:none"].every((x) => tileOf(x.split(":")[0]) === x.split(":")[1]),
+      "Summary tiles: nine, in order (Secured gold, Fresh light blue, Fading blue, Revisit soon indigo, the four level bands in their level colours, Not placed yet grey), each label saying what it counts");
+    // Students averaging 100, 95, 90, 85 and 75% (two units each, scores from days since each unit's last pass), with the
+    // level and Not placed yet students: each in the tile of their average's band (an average between bands takes the one below).
+    const NOW = D + 400 * Secured.DAY_MS;
+    const passPair = (sid, unit, daysAgo) => [pass(NOW - daysAgo * Secured.DAY_MS - H, { studentId: sid, unit }), pass(NOW - daysAgo * Secured.DAY_MS, { studentId: sid, unit })];
+    const avgDays = { p100: [0, 0], p95: [0, 8], p90: [8, 8], p85: [8, 15], p75: [15, 22] }; // 0 days 100%, 8 days 90%, 15 days 80%, 22 days 70%
+    const sample = { levelLog: [], buttonLog: [], students: {}, progress: {}, attempts: [] };
+    for (const [sid, [d1, d2]] of Object.entries(avgDays)) {
+      sample.students[sid] = { name: sid };
+      sample.progress[sid] = { units: { selection: done(10), maths: done(10) } };
+      sample.attempts.push(...passPair(sid, "selection", d1), ...passPair(sid, "maths", d2));
+    }
+    Object.assign(sample.students, { c: { name: "Cal" }, e: { name: "Eve" }, f: { name: "Fay" }, g: { name: "Gil" }, n: { name: "Nia" }, m: { name: "Max" } });
+    Object.assign(sample.progress, { c: tileData.progress.c, e: tileData.progress.e, f: tileData.progress.f, g: tileData.progress.g, n: tileData.progress.n, m: tileData.progress.m });
+    const st = TD.scoreTable(sample, ["selection", "maths"], NOW);
+    const avgOf = (sid) => st.rows.find((r) => r.studentId === sid).average;
+    const tileOfS = (sid) => st.rows.find((r) => r.studentId === sid).summaryTile;
+    check(["p100", "p95", "p90", "p85", "p75"].map((sid) => avgOf(sid) + ":" + tileOfS(sid)).join() === "100:gold,95:fresh,90:fresh,85:fading,75:soon" &&
+      [100, 95, 90, 85, 75].map((a) => TD.summaryTileOf({ average: a })).join() === "gold,fresh,fresh,fading,soon",
+      "Summary tiles: a student averaging 100% is Secured, 95% and 90% Fresh, 85% Fading and 75% Revisit soon (an average between two bands takes the one below)");
+    check(TD.SUMMARY_TILES.map((t) => t.key + "=" + st.summary.tiles[t.key]).join() === "gold=1,fresh=2,fading=1,soon=1,lv-red=1,lv-amber=1,lv-green=1,lv-top=1,none=2" &&
+      Object.values(st.summary.tiles).reduce((x, y) => x + y, 0) === Object.keys(sample.students).length,
+      "Summary tiles: on a sample of 11 students each tile counts the right students (1 Secured, 2 Fresh, 1 Fading, 1 Revisit soon, 1 in each level band, 2 Not placed yet), and they add up to 11");
+    check(/\.rag-tiles \{ display: grid; grid-template-columns: repeat\(3, minmax\(0, 1fr\)\);/.test(cssAll) && /\.rag-tile \{ min-width: 0; overflow-wrap: anywhere;/.test(cssAll) &&
+      TD.SUMMARY_TILES.every((t) => new RegExp("\\.rag-tile-" + t.cls + " \\{ border-left: 10px solid var\\(--").test(cssAll) && new RegExp("\\.rag-" + t.cls + " \\{[^}]*background: var\\(--").test(cssAll)),
+      "Summary tiles: a three-by-three grid whose tiles shrink to fit (no sideways scrolling on a phone), and every tile has its colour (edge and label chip)");
     const tileTotal = Object.values(tt.summary.tiles).reduce((x, y) => x + y, 0);
     check(tileTotal === Object.keys(tileData.students).length && tt.rows.every((r) => r.summaryTile in tt.summary.tiles) &&
       Object.entries(tt.summary.tiles).every(([k, v]) => v === tt.rows.filter((r) => r.summaryTile === k).length) &&
@@ -1610,7 +1671,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const edge = (cls) => ((cssAll.match(new RegExp("\\.rag-tile-" + cls + " \\{[^}]*var\\(--([\\w-]+)\\)")) || [])[1]);
     const fill = (cls) => ((cssAll.match(new RegExp("\\.rag-" + cls + " \\{[^}]*background: var\\(--([\\w-]+)\\)")) || [])[1]);
     check(tileCls.every((c) => cardCls.includes(c)) && tileCls.every((c) => edge(c) && edge(c) === fill(c)) && !/rag-tile-(green|amber|red)\b/.test(cssAll + teacherSrc) &&
-      /TD\.SUMMARY_TILES\.map\(\(t\) => '<div class="rag-tile rag-tile-' \+ t\.cls \+ '"><span class="rag rag-' \+ t\.cls \+ '">' \+ esc\(t\.label\)/.test(teacherSrc) &&
+      /TD\.SUMMARY_TILES\.map\(\(t\) => '<div class="rag-tile rag-tile-' \+ t\.cls \+ '" title="' \+ esc\(t\.label \+ ": " \+ t\.note\) \+ '"><span class="rag rag-' \+ t\.cls \+ '">' \+ esc\(t\.label\)/.test(teacherSrc) &&
       tt.rows.find((r) => r.name === "Ava").band.cls === "gold" && tt.rows.find((r) => r.name === "Ben").band.cls === "soon" && tt.rows.find((r) => r.name === "Fay").levelBand.cls === "lv-green",
       "Summary tiles and unit cards use the same colours: each tile's edge and label chip are the cells' own band and level colours (no separate green, amber and red tiles)");
     const sorted = TD.sortScoreTable(lt.rows, "selection", 1).map((r) => r.name).join();

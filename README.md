@@ -267,6 +267,12 @@ Clicking a card opens a list of that unit's skills, each marked **Secured**, **I
 
 Skills come from each task's `skills` field. Progress saved before skills were tracked is rebuilt from the student's history the first time it's loaded.
 
+**What a unit's score means.** The top of the page says: "A unit's score goes down a little each week unless you pass its level 10 challenge with no hints." Each unit card, and the unit's own page, then has one plain sentence from its [secured score](#secured-score) (`secured.js` `studentNote`, so it always matches the score on the unit cards):
+
+- at 100%: "Secured. Keep it at 100% by doing a level 10 pass with no hints before Monday 16 November." The date is the last level 10 pass with no hints plus 7 days, the first day the score would drop (`keepByDate`). Once a unit can no longer drop (after five returns), it says "Secured. It stays at 100% now."
+- between 50% and 90%: "Your score is 80%. A level 10 pass with no hints brings it back to 100%."
+- not secured yet (including a unit whose quick check isn't done): "Reach level 10 and pass twice with no hints to secure this unit."
+
 ## Completing a unit, Endless mode and "Write from scratch"
 
 **Completing a unit.** A unit is completed when the student meets the normal move-up rule at Level 10 (2 strong passes in a row there). They see a message, and the teacher's level log records it. Completing a unit unlocks two things for it:
@@ -768,8 +774,8 @@ A walkthrough over the real screen, one step at a time, on the student pages onl
 
 **Students (`#students`, the default)**
 
-- The class code card (with Copy code), then a **summary strip** of seven tiles that count students, each student in exactly one; then the **class average secured score per unit** (of the students who have secured it). Each tile's label is a chip in a colour the unit cells use, and says what it counts:
-  - a student with a secured unit, by the average of their secured units: light blue **Fresh or Fading (80%+)**, or indigo **Revisit soon** (50% to 79%; a secured average is never under 50%);
+- The class code card (with Copy code), then a **summary strip** of nine tiles that count students, each student in exactly one; then the **class average secured score per unit** (of the students who have secured it). The tiles are a three-by-three grid (one row of nine on a wide screen). Each tile's label is a chip in a colour the unit cells use, and says what it counts (also shown when you point at the tile):
+  - a student with a secured unit, by the band of the average of their secured units (an average between two bands takes the one below, so 95% is Fresh and 85% Fading): gold **Secured (100%)**, light blue **Fresh (90%)** (90% to 99%), blue **Fading (80%)** (80% to 89%), indigo **Revisit soon (50% to 70%)** (50% to 79%; a secured average is never under 50%);
   - a student with placed units but nothing secured yet, by their average level: red **Levels 1 to 3: still learning**, amber **Levels 4 to 6: still learning**, green **Levels 7 to 9: still learning**, light green **Level 10: not secured yet**;
   - grey **Not placed yet**: no placed unit.
 

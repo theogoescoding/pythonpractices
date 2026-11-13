@@ -144,7 +144,7 @@
     // One tile per group (TD.SUMMARY_TILES), each student in exactly one: by their secured average, or with nothing
     // secured yet by their average level, or Not placed yet. Each tile's label is a chip in the colour the unit cards
     // use for that band, so the label says what it counts and the colour matches the cells.
-    $("st-summary").innerHTML = TD.SUMMARY_TILES.map((t) => '<div class="rag-tile rag-tile-' + t.cls + '"><span class="rag rag-' + t.cls + '">' + esc(t.label) + "</span><strong>" +
+    $("st-summary").innerHTML = TD.SUMMARY_TILES.map((t) => '<div class="rag-tile rag-tile-' + t.cls + '" title="' + esc(t.label + ": " + t.note) + '"><span class="rag rag-' + t.cls + '">' + esc(t.label) + "</span><strong>" +
       s.tiles[t.key] + '</strong><span class="small">' + esc(t.note) + "</span></div>").join("");
     const started = table.unitAverages.filter((u) => u.average != null);
     $("st-averages").innerHTML = '<p class="small">Class average secured score per unit (students who have secured it):</p>' + (started.length

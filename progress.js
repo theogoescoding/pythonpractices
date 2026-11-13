@@ -17,6 +17,7 @@ Store.whenReady(function () {
 
   let tasks = [];
   let progress = null;
+  const attempts = Store.attempts(student.id); // for each unit's score (secured.js, the same as the unit cards)
 
   function summary(u) {
     const s = progress.units[u.id];
@@ -25,7 +26,9 @@ Store.whenReady(function () {
     const passed = s ? mine.filter((t) => hasPassed(s, t.id)).length : 0;
     const skills = u.skills.map((sk) => ({ skill: sk, state: s && s.skills ? s.skills[sk] : null }));
     const secured = skills.filter((x) => skillStatus(x.state) === "secured").length;
-    return { s, total: mine.length, passed, percent: mine.length ? Math.round((passed / mine.length) * 100) : 0, skills, secured };
+    // The unit's score and what it means for the student (secured.js): placed units only, as on the unit cards.
+    const sec = s && !needsPlacement(s) ? self.Secured.score(attempts, u.id) : { secured: false };
+    return { s, total: mine.length, passed, percent: mine.length ? Math.round((passed / mine.length) * 100) : 0, skills, secured, sec, note: self.Secured.studentNote(sec) };
   }
 
   function renderOverview() {
@@ -33,7 +36,7 @@ Store.whenReady(function () {
       const x = summary(u);
       const level = x.s ? "Level " + x.s.level : "Not started";
       return '<li><button type="button" class="unit-card" data-unit="' + u.id + '" aria-label="' +
-        esc(u.title + ": " + level + ", " + x.percent + "% of tasks passed, " + x.secured + " of " + u.skills.length + " skills secured. Show skills.") + '">' +
+        esc(u.title + ": " + level + ", " + x.percent + "% of tasks passed, " + x.secured + " of " + u.skills.length + " skills secured. " + x.note + " Show skills.") + '">' +
         "<h3>" + esc(u.title) + "</h3>" +
         '<div class="stat-row">' +
           '<span class="stat"><strong>' + esc(level) + "</strong>" + (x.s ? esc(levelName(x.s.level, u.id)) : "&nbsp;") + "</span>" +
@@ -41,6 +44,7 @@ Store.whenReady(function () {
           '<span class="stat"><strong>' + x.secured + " / " + u.skills.length + "</strong>skills secured</span>" +
         "</div>" +
         (x.s && x.s.completedTop ? '<p class="unit-meta"><span class="status status-secured">Unit completed – endless mode unlocked</span></p>' : "") +
+        '<p class="score-note">' + esc(x.note) + "</p>" +
         "</button></li>";
     }).join("");
   }
@@ -49,7 +53,7 @@ Store.whenReady(function () {
     const x = summary(u);
     $("detail-h").textContent = u.title;
     $("detail-summary").textContent = (x.s ? "Level " + x.s.level + " (" + levelName(x.s.level, u.id) + ")" : "Not started yet") +
-      " · " + x.percent + "% of tasks passed · " + x.secured + " of " + u.skills.length + " skills secured";
+      " · " + x.percent + "% of tasks passed · " + x.secured + " of " + u.skills.length + " skills secured. " + x.note;
     $("skill-list").innerHTML = x.skills.map(({ skill, state }) => {
       const status = skillStatus(state);
       const detail = state && state.attempts ? state.passes + " passed of " + state.attempts + " tried" : "";

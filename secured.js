@@ -83,5 +83,22 @@
     return { cls: lb.cls, label: lb.label, ramp: "level" };
   }
 
-  return { DAY_MS, WEEK_MS, DROP_PER_WEEK, PASSES_TO_SECURE, FLOOR_START, FLOOR_STEP, FLOOR_CAP, BANDS, band, levelBand, unitColour, isTopPass, score };
+  // ---------- What the student is told (My progress) ----------
+  // sec = score(...) for one unit. The date is the last level 10 pass with no hints plus 7 days: the first day the
+  // score would drop to 90%. Null unless the unit is at 100% and can still drop (its floor is below 100%).
+  const keepByDate = (sec) => (sec && sec.secured && sec.score >= 100 && sec.floor < 100 && sec.lastPass ? new Date(Date.parse(sec.lastPass) + WEEK_MS) : null);
+  // The date as the page shows it: "Monday 16 November".
+  const studentDate = (d) => d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+  // One plain sentence or two for a unit, from its score: secured at 100%, a lower score, or not secured yet.
+  function studentNote(sec, formatDate) {
+    const fmt = formatDate || studentDate;
+    if (!sec || !sec.secured) return "Reach level 10 and pass twice with no hints to secure this unit.";
+    if (sec.score >= 100) {
+      const by = keepByDate(sec);
+      return by ? "Secured. Keep it at 100% by doing a level 10 pass with no hints before " + fmt(by) + "." : "Secured. It stays at 100% now.";
+    }
+    return "Your score is " + sec.score + "%. A level 10 pass with no hints brings it back to 100%.";
+  }
+
+  return { DAY_MS, WEEK_MS, DROP_PER_WEEK, keepByDate, studentDate, studentNote, PASSES_TO_SECURE, FLOOR_START, FLOOR_STEP, FLOOR_CAP, BANDS, band, levelBand, unitColour, isTopPass, score };
 });
