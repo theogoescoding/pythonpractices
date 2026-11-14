@@ -61,8 +61,9 @@ Store.whenReady(function () {
         '<span class="status status-' + status + '">' + STATUS_TEXT[status] + "</span></li>";
     }).join("");
     $("practise-link").href = "practice.html?unit=" + encodeURIComponent(u.id);
-    // A unit with sections (Validation): the same section links as on its home card, once its placement is done.
-    const sections = x.s && !needsPlacement(x.s) ? u.sections || [] : [];
+    // A unit with sections (Validation): the same section links as on its home card, from the start (before the
+    // placement too).
+    const sections = u.sections || [];
     $("section-box").hidden = !sections.length;
     $("section-links").innerHTML = sections.map((sec) => '<li><a class="section-link" href="practice.html?unit=' + encodeURIComponent(u.id) +
       "&amp;section=" + encodeURIComponent(sec.name) + '" title="' + esc(sec.description) + '">' + esc(sec.title) + "</a></li>").join("");

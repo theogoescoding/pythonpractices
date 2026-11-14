@@ -1055,11 +1055,13 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
 
   const us = (u) => progress.units[u || unitId];
   // SECTION PRACTICE (practice.html?unit=validation&section=range): one section of a unit with sections, at the
-  // student's level. The parameter is ignored for any other unit, an unknown section, and until the placement is done
-  // (inSection). Its task in progress is kept apart from the unit's own (unit state "sections"), so the unit's
-  // practice carries on where it was. See finishSectionTask for what a section pass records.
+  // student's level (sectionLevel). The parameter is ignored for any other unit and an unknown section. It works
+  // before the placement is done too: the placement waits for the unit's own practice, and the section is at level 1
+  // until then. Its task in progress is kept apart from the unit's own (unit state "sections"), so the unit's
+  // practice (or its placement) carries on where it was. See finishSectionTask for what a section pass records.
   const section = unitId ? sectionByName(unitId, params.get("section")) : null;
-  const inSection = () => !!section && !needsPlacement(us());
+  const inSection = () => !!section;
+  const sectionLevel = () => (needsPlacement(us()) ? 1 : us().level);
   const sectionHolder = () => {
     const s = us();
     s.sections = s.sections || {};
@@ -1227,7 +1229,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   let activeEditor = null; // CodeMirror instance on a write task (null with the plain text box)
 
   const cur = () => holder().current;
-  const inPlacement = () => !endless && !inAssignment && needsPlacement(us());
+  const inPlacement = () => !endless && !inAssignment && !inSection() && needsPlacement(us());
   // Generated tasks (template variants) are kept whole in the current-task record.
   const task = () => cur().task || taskById[cur().taskId];
   const unitsOf = (t) => t.units || [t.unit];         // units whose levels this task counts towards
@@ -1263,8 +1265,10 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     }
     const s = us();
     if (inSection()) {
-      // Only this section's tasks and templates, picked as normal practice picks them, at the unit's level.
-      return chooseNextTask(Object.assign(choice, sectionPool(tasks, templates, unitId, section.id), { unitId, state: s, last: sectionHolder().last || {} }));
+      // Only this section's tasks and templates, picked as normal practice picks them, at the unit's level (level 1
+      // before the placement is done). The level is only read here, never changed.
+      const state = Object.assign({}, s, { level: sectionLevel() });
+      return chooseNextTask(Object.assign(choice, sectionPool(tasks, templates, unitId, section.id), { unitId, state, last: sectionHolder().last || {} }));
     }
     const last = { key: s.lastFingerprint || s.lastTaskId, templateId: s.lastTemplateId, signature: s.lastSignature };
     Object.assign(choice, { unitId, state: s, last });
@@ -1285,8 +1289,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     try { t = await nextTaskFor(); } finally { serving = false; }
     if (!t) {
       // A section with nothing at this level says so, and offers the unit's normal practice (never another section's task).
-      if (inSection() && !sectionHasLevel(sectionPool(tasks, templates, unitId, section.id), unitId, us().level)) {
-        $("task").innerHTML = sectionLineHtml() + '<p class="problem" role="status">' + esc(sectionNoTaskText(section.title, us().level, unit.title)) + "</p>" +
+      if (inSection() && !sectionHasLevel(sectionPool(tasks, templates, unitId, section.id), unitId, sectionLevel())) {
+        $("task").innerHTML = sectionLineHtml() + '<p class="problem" role="status">' + esc(sectionNoTaskText(section.title, sectionLevel(), unit.title)) + "</p>" +
           '<p><a class="menu-link" href="practice.html?unit=' + encodeURIComponent(unitId) + '">Practise the whole ' + esc(unit.title) + " unit</a></p>";
         return false;
       }
@@ -1555,12 +1559,12 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     }
     const shown = endless ? progress.endless.units : [unitId];
     $("unit-levels").innerHTML = shown.map((u) => {
-      const s = us(u);
-      return '<li class="unit-progress" aria-label="' + esc(unitTitle(u) + ": level " + s.level + " of 10, " + levelName(s.level, u)) + '">' +
+      const level = inSection() ? sectionLevel() : us(u).level;
+      return '<li class="unit-progress" aria-label="' + esc(unitTitle(u) + ": level " + level + " of 10, " + levelName(level, u)) + '">' +
         (endless ? '<span class="unit-name">' + esc(unitTitle(u)) + "</span>" : "") +
-        '<span class="unit-level">Level ' + s.level + "</span>" +
-        '<span class="small">' + esc(levelName(s.level, u)) + "</span>" +
-        '<span class="cat-bar" aria-hidden="true"><span style="width:' + s.level * 10 + '%"></span></span></li>';
+        '<span class="unit-level">Level ' + level + "</span>" +
+        '<span class="small">' + esc(levelName(level, u)) + "</span>" +
+        '<span class="cat-bar" aria-hidden="true"><span style="width:' + level * 10 + '%"></span></span></li>';
     }).join("");
     let info = "";
     if (!endless) {
@@ -1571,7 +1575,9 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     } else {
       info = "Tasks come from the units you ticked, at your level in each." + (progress.endless.units.length > 1 ? " Some tasks combine skills from two units." : "");
     }
-    if (inSection()) info = "Section practice: " + section.title + " checks at your level. It doesn't change your level; the unit's own practice does that.";
+    if (inSection()) info = needsPlacement(us())
+      ? "Section practice: " + section.title + " checks at level 1, until you've done the unit's quick check. It doesn't change your level; the unit's own practice does that."
+      : "Section practice: " + section.title + " checks at your level. It doesn't change your level; the unit's own practice does that.";
     $("streak-info").textContent = info;
   }
 

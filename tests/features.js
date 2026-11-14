@@ -1669,9 +1669,31 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(TD.SUMMARY_TILES.map((t) => t.key + "=" + st.summary.tiles[t.key]).join() === "gold=1,fresh=2,fading=1,soon=1,lv-red=1,lv-amber=1,lv-green=1,lv-top=1,none=2" &&
       Object.values(st.summary.tiles).reduce((x, y) => x + y, 0) === Object.keys(sample.students).length,
       "Summary tiles: on a sample of 11 students each tile counts the right students (1 Secured, 2 Fresh, 1 Fading, 1 Revisit soon, 1 in each level band, 2 Not placed yet), and they add up to 11");
-    check(/\.rag-tiles \{ display: grid; grid-template-columns: repeat\(3, minmax\(0, 1fr\)\);/.test(cssAll) && /\.rag-tile \{ min-width: 0; overflow-wrap: anywhere;/.test(cssAll) &&
+    check(/\.rag-tiles \{ display: grid; grid-template-columns: repeat\(3, minmax\(0, 1fr\)\);/.test(cssAll) && /\.rag-tile \{ min-width: 0; overflow-wrap: break-word;/.test(cssAll) &&
+      !/\.rag-tile[^{]*\{[^}]*overflow-wrap: anywhere/.test(cssAll) && /\.rag-tile \.rag \{ display: block; \}/.test(cssAll) &&
       TD.SUMMARY_TILES.every((t) => new RegExp("\\.rag-tile-" + t.cls + " \\{ border-left: 10px solid var\\(--").test(cssAll) && new RegExp("\\.rag-" + t.cls + " \\{[^}]*background: var\\(--").test(cssAll)),
-      "Summary tiles: a three-by-three grid whose tiles shrink to fit (no sideways scrolling on a phone), and every tile has its colour (edge and label chip)");
+      "Summary tiles: a three-by-three grid whose tiles shrink to fit (no sideways scrolling), labels that use the tile's full width and never break inside a word (\"Secu red\"), and every tile has its colour (edge and label chip)");
+    // Three columns at every width: the one rule that sets the columns has no media query around it, and no other
+    // rule (in any media query) changes them, so it is 3 × 3 at 1280px (desktop) and at 390px (phone) alike.
+    {
+      const tileRules = [];
+      let depth = 0, media = [], start = 0;
+      for (let i = 0; i < cssAll.length; i++) {
+        const ch = cssAll[i];
+        if (ch === "{") {
+          const sel = cssAll.slice(start, i).trim();
+          if (sel.startsWith("@media")) media.push({ sel, depth }); else if (/\.rag-tiles\b/.test(sel)) tileRules.push({ sel, media: media.map((m) => m.sel), body: cssAll.slice(i + 1, cssAll.indexOf("}", i)) });
+          depth++; start = i + 1;
+        } else if (ch === "}") { depth--; if (media.length && media[media.length - 1].depth === depth) media.pop(); start = i + 1; }
+        else if (ch === ";" && depth === 0) start = i + 1;
+      }
+      const setsColumns = tileRules.filter((r) => /grid-template-columns/.test(r.body));
+      const at = (w) => setsColumns.filter((r) => r.media.every((m) => { const min = /min-width:\s*(\d+)px/.exec(m), max = /max-width:\s*(\d+)px/.exec(m); return (!min || w >= +min[1]) && (!max || w <= +max[1]); }));
+      const colsAt = (w) => at(w).map((r) => /grid-template-columns:\s*([^;]+)/.exec(r.body)[1].trim());
+      check(setsColumns.length === 1 && setsColumns[0].media.length === 0 && colsAt(1280).join() === "repeat(3, minmax(0, 1fr))" && colsAt(390).join() === "repeat(3, minmax(0, 1fr))" &&
+        colsAt(1000).join() === "repeat(3, minmax(0, 1fr))" && !/repeat\(9/.test(cssAll) && TD.SUMMARY_TILES.length === 9,
+        "Summary tiles: three columns at 1280px and at 390px (and 1000px): no rule for a wide screen makes them one row of nine");
+    }
     const tileTotal = Object.values(tt.summary.tiles).reduce((x, y) => x + y, 0);
     check(tileTotal === Object.keys(tileData.students).length && tt.rows.every((r) => r.summaryTile in tt.summary.tiles) &&
       Object.entries(tt.summary.tiles).every(([k, v]) => v === tt.rows.filter((r) => r.summaryTile === k).length) &&
@@ -2691,7 +2713,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     }
     const appV = read("app.js");
     check(!wrongBank && !emptyLevels && !wrongTpl &&
-      /if \(inSection\(\)\) \{\s*\/\/[^\n]*\n\s*return chooseNextTask\(Object\.assign\(choice, sectionPool\(tasks, templates, unitId, section\.id\), \{ unitId, state: s, last: sectionHolder\(\)\.last \|\| \{\} \}\)\);/.test(appV),
+      /if \(inSection\(\)\) \{\s*(\/\/[^\n]*\n\s*)+const state = Object\.assign\(\{\}, s, \{ level: sectionLevel\(\) \}\);\s*return chooseNextTask\(Object\.assign\(choice, sectionPool\(tasks, templates, unitId, section\.id\), \{ unitId, state, last: sectionHolder\(\)\.last \|\| \{\} \}\)\);/.test(appV),
       "Validation sections: for each of the five sections at each level 1-10, practice picks only that section's bank task at the student's level, and only its templates (chooseNextTask, as normal practice)");
     // The same, through chooseNextTask itself once the bank task is passed (a variant), in a child process (it's async).
     const variantRun = require("child_process").execFileSync(process.execPath, ["-e", `
@@ -2722,7 +2744,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const serveSrc = appV.slice(appV.indexOf("  async function serveNewTask() {"), appV.indexOf("    holder().current = { taskId: t.id, task: t.generated ? t : null"));
     check(!App.sectionHasLevel(thin, "validation", 3) && App.chooseTask(thin.tasks, "validation", 3, {}, null, rng, {}) === null && App.singleTemplates(thin.templates, "validation", 3).length === 0 &&
       App.sectionNoTaskText("Range", 3, "Validation") === "There's no Range task at Level 3 right now. You can practise the whole Validation unit instead." &&
-      /if \(inSection\(\) && !sectionHasLevel\(sectionPool\(tasks, templates, unitId, section\.id\), unitId, us\(\)\.level\)\) \{[\s\S]*sectionNoTaskText\(section\.title, us\(\)\.level, unit\.title\)[\s\S]*Practise the whole ' \+ esc\(unit\.title\) \+ " unit<\/a><\/p>";\s*return false;/.test(serveSrc),
+      /if \(inSection\(\) && !sectionHasLevel\(sectionPool\(tasks, templates, unitId, section\.id\), unitId, sectionLevel\(\)\)\) \{[\s\S]*sectionNoTaskText\(section\.title, sectionLevel\(\), unit\.title\)[\s\S]*Practise the whole ' \+ esc\(unit\.title\) \+ " unit<\/a><\/p>";\s*return false;/.test(serveSrc),
       "Validation sections: a section with no task at the student's level says \"There's no Range task at Level 3 right now…\", offers the unit's normal practice, and sets no task from another section");
     // 4. A section pass: recorded as practice, but no change to the level, streaks, history or the secured score.
     const t10 = byIdV["val-L10r"];
@@ -2740,20 +2762,41 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       /finishSectionTask\(us\(\), t, \{ passed, hints: c\.hints/.test(finSrc) && /save\(\);\s*renderSide\(\);\s*return \{\};/.test(finSrc) && !/applyOutcome|logLevelChange|passedTop/.test(finSrc) &&
       /const showLevelButtons = !endless && !inAssignment && !c\.placement && !inSection\(\);/.test(appV) && /section: !c\.placement && inSection\(\) \? section\.name : null,/.test(appV),
       "Validation sections: a section pass is a practice attempt and counts on My progress (passed task, log, skill), but never changes the level, streaks, history, ★ Level 10 or the secured score (hintType section-range); no level buttons there");
-    // 5. The links: on the home card and on My progress, once placed; not on placement or assignments.
+    // 5. The links: on the home card and on My progress from the start (before the placement too); not on the
+    // placement's own page or on assignments.
     const homeV = read("home.js");
     const linksFn = new Function("esc", homeV.slice(homeV.indexOf("  function sectionLinksHtml("), homeV.indexOf("  function showUnits()")) + "\nreturn sectionLinksHtml;")((s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"));
     const valUnit = Curriculum.unitById("validation");
-    const links = linksFn(valUnit, true);
+    const links = linksFn(valUnit);
     const hrefs = [...links.matchAll(/href="([^"]+)"/g)].map((m) => m[1].replace(/&amp;/g, "&"));
     const progV = read("progress.js");
     check(hrefs.join() === ["presence", "type", "range", "format", "length"].map((n) => "practice.html?unit=validation&section=" + n).join() &&
       [...links.matchAll(/>([A-Za-z]+)<\/a>/g)].map((m) => m[1]).join() === "Presence,Type,Range,Format,Length" &&
-      linksFn(valUnit, false) === "" && linksFn(Curriculum.unitById("selection"), true) === "" &&
-      /"<\/a>" \+ sectionLinksHtml\(u, s && !placing\) \+ "<\/li>"/.test(homeV) && !/assignment-card[^\n]*sectionLinksHtml/.test(homeV) &&
-      /const sections = x\.s && !needsPlacement\(x\.s\) \? u\.sections \|\| \[\] : \[\];/.test(progV) && /"&amp;section=" \+ encodeURIComponent\(sec\.name\)/.test(progV) &&
+      linksFn(Curriculum.unitById("selection")) === "" &&
+      /"<\/a>" \+ sectionLinksHtml\(u\) \+ "<\/li>"/.test(homeV) && !/assignment-card[^\n]*sectionLinksHtml/.test(homeV) &&
+      /const sections = u\.sections \|\| \[\];/.test(progV) && /"&amp;section=" \+ encodeURIComponent\(sec\.name\)/.test(progV) &&
       /id="section-links" class="section-links"/.test(read("progress.html")) && !/section-links/.test(appV),
-      "Validation sections: the five links (Presence, Type, Range, Format, Length → practice.html?unit=validation&section=…) are under the home card and on My progress once the placement is done; never during placement, on assignments or on the practice page");
+      "Validation sections: the five links (Presence, Type, Range, Format, Length → practice.html?unit=validation&section=…) are under the home card and on My progress; never on the placement's page, on assignments or on the practice page");
+    // Before the placement: the links show on the home card (not started, or the quick check still to do) and on My
+    // progress, and a section practice is at level 1 without serving the placement; once placed, at the unit's level.
+    const levelSrc = appV.slice(appV.indexOf("  const inSection = () =>"), appV.indexOf("  const sectionHolder = () =>"));
+    const placementSrc = (appV.match(/  const inPlacement = \(\) => [^\n]+/) || [""])[0];
+    const levelFor = (state, sectionOn) => new Function("needsPlacement", "us", "section", "endless", "inAssignment",
+      levelSrc + placementSrc + "\nreturn { level: sectionLevel(), inSection: inSection(), inPlacement: inPlacement() };")(App.needsPlacement, () => state, sectionOn ? Curriculum.sectionByName("validation", "range") : null, false, false);
+    const fresh = Object.assign(App.freshUnitState(), { placement: App.newPlacement() });
+    const midway = Object.assign(App.freshUnitState(6), { placement: Object.assign(App.newPlacement(), { status: "in-progress", step: 2 }) });
+    const placedAt7 = Object.assign(App.freshUnitState(7), { placement: { status: "done", startLevel: 7 } });
+    const progSrc = progV.slice(progV.indexOf("    // A unit with sections (Validation)"), progV.indexOf("  }", progV.indexOf("    // A unit with sections (Validation)")));
+    const box = { hidden: true }, list = { innerHTML: "" };
+    new Function("u", "x", "$", "esc", progSrc)(valUnit, { s: fresh }, (id) => (id === "section-box" ? box : list), (s) => String(s));
+    const cardSrc = homeV.slice(homeV.indexOf("  function unitCard("), homeV.indexOf("  function sectionLinksHtml("));
+    check(levelFor(fresh, true).level === 1 && levelFor(fresh, true).inSection && !levelFor(fresh, true).inPlacement &&
+      levelFor(midway, true).level === 1 && !levelFor(midway, true).inPlacement && levelFor(midway, false).inPlacement && levelFor(fresh, false).inPlacement &&
+      levelFor(placedAt7, true).level === 7 && !levelFor(placedAt7, false).inSection &&
+      box.hidden === false && (list.innerHTML.match(/class="section-link"/g) || []).length === 5 &&
+      /sectionLinksHtml\(u\)/.test(cardSrc) && !/placing\)|placed\)/.test(cardSrc.slice(cardSrc.indexOf("sectionLinksHtml"))) &&
+      linksFn(valUnit) === links && /level 1 until you've done the unit's quick check/.test(read("progress.html")),
+      "Validation sections before the placement: the five links show on the home card and on My progress (before the unit is started and while its quick check is still to do), and a section practice is at level 1 without serving the placement (it waits for the unit's own practice); once placed, a section uses the unit's level");
     // 6. The section line and the way back; 7. 390px; 8. other units ignore the parameter.
     const cssV = read("styles.css");
     const rule = (sel) => { const i = cssV.indexOf(sel + " {"); return i < 0 ? "" : cssV.slice(i, cssV.indexOf("}", i)); };
@@ -2764,9 +2807,11 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       !/#[0-9a-f]{3,6}\b|rgb/i.test(rule(".section-links") + rule(".section-link") + rule(".section-line")),
       "Validation sections: the links wrap onto more lines at 390px (pills of .9rem text) and use theme colours only");
     check(Curriculum.sectionByName("selection", "range") === null && Curriculum.sectionByName("validation", "nope") === null && Curriculum.sectionByName("validation", "range").id === "r" &&
-      /const section = unitId \? sectionByName\(unitId, params\.get\("section"\)\) : null;/.test(appV) && /const inSection = \(\) => !!section && !needsPlacement\(us\(\)\);/.test(appV) &&
+      /const section = unitId \? sectionByName\(unitId, params\.get\("section"\)\) : null;/.test(appV) && /const inSection = \(\) => !!section;/.test(appV) &&
+      /const sectionLevel = \(\) => \(needsPlacement\(us\(\)\) \? 1 : us\(\)\.level\);/.test(appV) &&
+      /const inPlacement = \(\) => !endless && !inAssignment && !inSection\(\) && needsPlacement\(us\(\)\);/.test(appV) &&
       /const unitId = endless \|\| inAssignment \? null : params\.get\("unit"\);/.test(appV),
-      "Validation sections: the section parameter is ignored for other units, unknown sections, endless mode, assignments, and until the placement is done");
+      "Validation sections: the section parameter is ignored for other units, unknown sections, endless mode and assignments; before the placement a section is at level 1 and the placement isn't served there");
   }
 
   // ===================== Selection, trimmed =====================

@@ -655,11 +655,12 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .rag-placement { background: var(--placement-bg); color: var(--placement-ink); border: 2px dashed var(--placement-ink); }
 .rag-key .rag { margin: .1rem .1rem; }
 .flag-block { display: inline-flex; flex-direction: column; align-items: flex-start; margin-right: .3rem; vertical-align: top; }
-/* The nine summary tiles: a three-by-three grid (phones and most screens), one row of nine on a wide screen. Each tile
-   can shrink to its column and wraps its words, so there is never sideways scrolling. */
+/* The nine summary tiles: always a three-by-three grid, on every screen. Each tile can shrink to its column, so there
+   is never sideways scrolling, and its label chip takes the tile's full width and wraps only between words (break-word
+   splits a word only if it can't fit on a line by itself, which these labels never need). */
 .rag-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; margin: .75rem 0; }
-@media (min-width: 1300px) { .rag-tiles { grid-template-columns: repeat(9, minmax(0, 1fr)); } }
-.rag-tile { min-width: 0; overflow-wrap: anywhere; border: 2px solid var(--border); border-radius: 8px; padding: .5rem .9rem; background: var(--card); }
+.rag-tile { min-width: 0; overflow-wrap: break-word; border: 2px solid var(--border); border-radius: 8px; padding: .5rem .9rem; background: var(--card); }
+.rag-tile .rag { display: block; }
 .rag-tile strong { display: block; font-size: 1.8rem; }
 @media (max-width: 600px) {
   .rag-tiles { gap: .4rem; }
