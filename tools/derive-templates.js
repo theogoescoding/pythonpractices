@@ -55,6 +55,8 @@ const MIN_VARIANTS = 5;
 //   words:     false to switch off word swaps
 //   swaps:     [[tuple, tuple, …], …] linked strings; the first tuple is the task's own, changed together everywhere
 //   testSets:  alternative lists of test inputs (the first is the task's own), for inputs that carry meaning
+//   says:      with testSets, what the description says was typed for each set (the first is the task's own words,
+//              which must be in its description once): a predict task's variant then names its own input
 const OVERRIDES = {
   // Data types and casting.
   "types-L1b": { swaps: [[["42"], ["17"], ["8"], ["63"], ["25"], ["31"]]] },
@@ -481,6 +483,9 @@ const OVERRIDES = {
   "hash-L9b": { noNumbers: true, swaps: [[["[11, 17, 5, 23]"], ["[5, 11, 17, 29]"], ["[23, 29, 5, 11]"], ["[17, 5, 29, 35]"], ["[35, 11, 23, 5]"], ["[29, 17, 41, 5]"]]] },
   "hash-L10b": { noNumbers: true, swaps: [[["30"], ["2"], ["37"], ["44"], ["51"], ["58"]]] },
 };
+// The five Validation units (Presence, Type, Range, Format and Length checks): their overrides are kept with their
+// tasks, in tools/validation-units-tasks.js, so each variant's input is drawn from both sides of the check.
+Object.assign(OVERRIDES, require("./validation-units-tasks.js").OVERRIDES);
 
 const isPlacement = (t) => (t.tags || []).includes("placement");
 // A number in text or code. It may be followed by a unit ("50g", "20p", "3pm", "5s" in "under 5s"), but not be part
@@ -760,6 +765,13 @@ function derive(t, fixedExtra, opts) {
   const s = (x) => substituteWords(substituteNumbers(applySwaps(x, swaps), map, fmt), words);
   // Text (title, description, hints): as the code, except that the new units keep their line and index references.
   const st = keepPos ? (x) => substituteWords(substituteNumbers(applySwaps(keepPositions(x), swaps), textMap, fmt), words) : s;
+  // says: the description names the typed input, which changes with the test set.
+  let description = t.description;
+  if (ov.says) {
+    if (!ov.testSets || ov.says.length !== ov.testSets.length) throw new Error(t.id + ": says needs one entry for each test set");
+    if (description.split(ov.says[0]).length !== 2) throw new Error(t.id + ": the description must say \"" + ov.says[0] + "\" once");
+    description = description.replace(ov.says[0], "{{SAYS[ts]}}");
+  }
   const tpl = {
     id: "d-" + t.id,
     units: [t.unit],
@@ -768,7 +780,7 @@ function derive(t, fixedExtra, opts) {
     level: t.level,
     type: t.type,
     title: st(t.title),
-    description: st(markExampleOutputs(t.description, t.tests)),
+    description: st(markExampleOutputs(description, t.tests)),
     starter: s(t.starter || ""),
   };
   if (t.type === "fill") tpl.answers = t.answers.map(s);
@@ -785,6 +797,7 @@ function derive(t, fixedExtra, opts) {
     params.ts = { int: [0, ov.testSets.length - 1] };
     values.TS = JSON.stringify(ov.testSets);
     tpl.tests = ov.testSets[0].map((_, k) => ({ inputs: [{ list: "TS[ts][" + k + "]" }] }));
+    if (ov.says) values.SAYS = JSON.stringify(ov.says);
   }
   // Hand-written hints (OVERRIDES … hints) for hints that work through the sums: {{v(17)}} is this variant's value
   // for the bank task's 17.
@@ -803,7 +816,7 @@ function derive(t, fixedExtra, opts) {
   if (where.length) tpl.where = where.join(" && ");
   tpl.params = params;
   if (Object.keys(values).length) tpl.values = values;
-  tpl.fingerprintVars = Object.keys(values).filter((k) => k !== "TS").concat(Object.values(words), swaps.map((g) => g.param), ov.testSets ? ["ts"] : []);
+  tpl.fingerprintVars = Object.keys(values).filter((k) => k !== "TS" && k !== "SAYS").concat(Object.values(words), swaps.map((g) => g.param), ov.testSets ? ["ts"] : []);
   return tpl;
 }
 

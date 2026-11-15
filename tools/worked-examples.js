@@ -514,6 +514,130 @@ const EXAMPLES = {
     key_idea: "A validation function does the checks and returns True or False. The rest of the program only has to call it, for example while not valid_house(house):",
   },
 
+  // ---------- The five Validation units (Presence, Type, Range, Format and Length checks) ----------
+  // One example for each skill in each unit. Contexts the tasks don't use: a space station, an aquarium, a museum, a
+  // zoo, a farm, a ship, a desert caravan, caves, kites and magic words.
+  "validation-presence:presence": {
+    problem: "A space station log asks for the astronaut on duty. The user just presses Enter.",
+    code: 'crew = input("Astronaut on duty: ")\nif crew == "":\n    print("No astronaut named")\nelse:\n    print("On duty:", crew)',
+    inputs: [""],
+    key_idea: "A presence check compares the answer with \"\", the empty string. Pressing Enter without typing gives \"\".",
+  },
+  "validation-presence:strip-spaces": {
+    problem: "An aquarium labels each tank with a fish's name. The user types only spaces.",
+    code: 'fish = input("Aquarium fish: ").strip()\nif fish == "":\n    print("Fish name is blank")\nelse:\n    print("Tank label:", fish)',
+    inputs: ["   "],
+    key_idea: ".strip() takes the spaces off both ends first, so an answer of only spaces becomes \"\" and the presence check refuses it.",
+  },
+  "validation-presence:re-ask": {
+    problem: "A museum keeps asking until an exhibit has a name. The user presses Enter, then types Mummy.",
+    code: 'exhibit = input("Exhibit name: ").strip()\nwhile exhibit == "":\n    print("Exhibits need a name")\n    exhibit = input("Exhibit name: ").strip()\nprint("Exhibit added:", exhibit)',
+    inputs: ["", "Mummy"],
+    key_idea: "The while loop runs while the answer is still empty. Ask again inside the loop and store it in the same variable, so the condition can change.",
+  },
+  "validation-presence:validation-function": {
+    problem: "A zoo checks that a keeper and an animal were both typed. The user types Kemi, then only a space.",
+    code: 'def has_text(text):\n    if text.strip() == "":\n        return False\n    return True\n\nkeeper = input("Keeper: ")\nanimal = input("Animal: ")\nif has_text(keeper) and has_text(animal):\n    print(keeper.strip(), "feeds the", animal.strip())\nelse:\n    print("Keeper and animal are both needed")',
+    inputs: ["Kemi", " "],
+    key_idea: "The function does the presence check and returns True or False. Call it once for each answer; join the calls with and when both are needed.",
+  },
+  "validation-type:type-check": {
+    problem: "A space station counts its oxygen tanks. The user types six.",
+    code: 'tanks = input("Oxygen tanks: ")\nif tanks.isdigit():\n    print("Loading", int(tanks), "tanks")\nelse:\n    print("Count the tanks in digits")',
+    inputs: ["six"],
+    key_idea: ".isdigit() is True only when every character is a digit. Cast with int() only after the check passes, or int() stops the program.",
+  },
+  "validation-type:negative-numbers": {
+    problem: "A freezer reading can be below zero. The user types -18.",
+    code: 'reading = input("Freezer reading: ")\nif reading.isdigit() or (len(reading) > 1 and reading[0] == "-" and reading[1:].isdigit()):\n    print("Freezer at", int(reading))\nelse:\n    print("Readings are whole numbers")',
+    inputs: ["-18"],
+    key_idea: ".isdigit() is False for -18, because - isn't a digit. Also allow a - at index 0 when everything after it, reading[1:], is digits.",
+  },
+  "validation-type:re-ask": {
+    problem: "A farm keeps asking until the hay bales are counted in digits. The user types lots, then 14.",
+    code: 'bales = input("Hay bales: ")\nwhile not bales.isdigit():\n    print("Count the bales in digits")\n    bales = input("Hay bales: ")\nprint("Bales stacked:", int(bales))',
+    inputs: ["lots", "14"],
+    key_idea: "while not bales.isdigit(): keeps asking until the answer is all digits. Cast it with int() after the loop.",
+  },
+  "validation-type:validation-function": {
+    problem: "A glacier camp records the lowest and highest temperature, which can be negative. The user types -7, then 5.",
+    code: 'def is_number(text):\n    if text.isdigit():\n        return True\n    if len(text) > 1 and text[0] == "-" and text[1:].isdigit():\n        return True\n    return False\n\nlow = input("Lowest temperature: ")\nhigh = input("Highest temperature: ")\nif is_number(low) and is_number(high):\n    print("A spread of", int(high) - int(low), "degrees")\nelse:\n    print("Type whole numbers only")',
+    inputs: ["-7", "5"],
+    key_idea: "The function returns True for digits, or a - followed by digits, and False otherwise. The program only has to call it for each answer.",
+  },
+  "validation-range:range": {
+    problem: "A travel site rates hotels from 1 to 5 stars. The user types 5.",
+    code: 'stars = int(input("Hotel stars: "))\nif stars >= 1 and stars <= 5:\n    print("A", stars, "star hotel")\nelse:\n    print("Hotels have 1 to 5 stars")',
+    inputs: ["5"],
+    key_idea: "A range check compares with the lowest and the highest value. Both must be True, so join them with and.",
+  },
+  "validation-range:boundaries": {
+    problem: "A ride's car takes up to 4 riders, including 4. The user types 4.",
+    code: 'riders = int(input("Riders in the car: "))\nif riders <= 4:\n    print("The car can go")\nelse:\n    print("No more than 4 riders")',
+    inputs: ["4"],
+    key_idea: "<= and >= include the end value; < and > leave it out. Read the rule carefully: \"up to 4, including 4\" needs <= 4.",
+  },
+  "validation-range:re-ask": {
+    problem: "A cruise ship has decks 1 to 6. The user types 9, then 3.",
+    code: 'deck = int(input("Deck (1 to 6): "))\nwhile deck < 1 or deck > 6:\n    print("The ship has decks 1 to 6")\n    deck = int(input("Deck (1 to 6): "))\nprint("Cabin on deck", deck)',
+    inputs: ["9", "3"],
+    key_idea: "The loop runs while the number is outside the range: below the lowest or above the highest, joined with or.",
+  },
+  "validation-range:validation-function": {
+    problem: "A desert caravan needs 2 to 12 camels. The user types 14.",
+    code: 'def between(n, low, high):\n    if n >= low and n <= high:\n        return True\n    return False\n\ncamels = input("Camels in the caravan: ")\nif camels.isdigit() and between(int(camels), 2, 12):\n    print("The caravan sets off")\nelse:\n    print("Caravans need 2 to 12 camels")',
+    inputs: ["14"],
+    key_idea: "Do the type check first: with and, Python stops if .isdigit() is False, so int() is only used on digits. Then the function does the range check.",
+  },
+  "validation-format:format": {
+    problem: "A spaceship takes a three-letter planet code from a list. The user types JUP.",
+    code: 'planet = input("Planet code: ")\nif planet in ["MER", "VEN", "MAR"]:\n    print("Course set for", planet)\nelse:\n    print("Unknown planet code")',
+    inputs: ["JUP"],
+    key_idea: "in a list is True only when the answer matches one item exactly, capital letters and all.",
+  },
+  "validation-format:positions": {
+    problem: "A zoo's cages are labelled like Z07: 3 characters, a Z, then two digits. The user types Z07.",
+    code: 'cage = input("Cage label: ")\nif len(cage) == 3 and cage[0] == "Z" and cage[1:].isdigit():\n    print("Feeding cage", cage)\nelse:\n    print("Cage labels look like Z07")',
+    inputs: ["Z07"],
+    key_idea: "Check the pattern piece by piece: the length, the character at each index (starting at 0), and that a slice is all digits.",
+  },
+  "validation-format:re-ask": {
+    problem: "A harbour keeps asking until the berth looks like B12. The user types 12, then B12.",
+    code: 'berth = input("Boat berth: ")\nwhile len(berth) != 3 or berth[0] != "B" or not berth[1:].isdigit():\n    print("Berths look like B12")\n    berth = input("Boat berth: ")\nprint("Moor at berth", berth[1:])',
+    inputs: ["12", "B12"],
+    key_idea: "The loop runs while any rule is broken, so join the broken rules with or. After the loop the pieces can be used safely.",
+  },
+  "validation-format:validation-function": {
+    problem: "A function checks cave numbers like CV05. The user types CV05.",
+    code: 'def valid_cave(text):\n    if len(text) == 4 and text[:2] == "CV" and text[2:].isdigit():\n        return True\n    return False\n\ncave = input("Cave number: ")\nif valid_cave(cave):\n    print("Explore cave", int(cave[2:]))\nelse:\n    print("Cave numbers look like CV05")',
+    inputs: ["CV05"],
+    key_idea: "The function checks the whole pattern and returns True or False. int(cave[2:]) then turns the digits into a number.",
+  },
+  "validation-length:length": {
+    problem: "A radio club's call signs have exactly 5 characters. The user types ALPHA1.",
+    code: 'call_sign = input("Radio call sign: ")\nif len(call_sign) == 5:\n    print("Call sign logged")\nelse:\n    print("Call signs have 5 characters")',
+    inputs: ["ALPHA1"],
+    key_idea: "len() counts every character, digits and spaces too. == 5 is True only for exactly 5.",
+  },
+  "validation-length:least-and-most": {
+    problem: "A harbour registers ship names of 4 to 14 characters. The user types Kon.",
+    code: 'ship = input("Ship name: ")\nif len(ship) >= 4 and len(ship) <= 14:\n    print("Ship registered")\nelse:\n    print("Ship names have 4 to 14 characters")',
+    inputs: ["Kon"],
+    key_idea: "For a least and a most, both must be True, so join them with and. >= and <= include the two limits.",
+  },
+  "validation-length:re-ask": {
+    problem: "A magic show keeps asking until the magic word has 5 letters or more. The user types zap, then presto.",
+    code: 'spell = input("Magic word: ")\nwhile len(spell) < 5:\n    print("Magic words need 5 letters or more")\n    spell = input("Magic word: ")\nprint("Abracadabra! You said", spell)',
+    inputs: ["zap", "presto"],
+    key_idea: "The loop runs while the word is too short. Ask again inside the loop and store it in the same variable.",
+  },
+  "validation-length:validation-function": {
+    problem: "A kite shop prints tags of 8 characters at most. The user types Skydancer.",
+    code: 'def short_enough(text, most):\n    if len(text) <= most:\n        return True\n    return False\n\nkite = input("Kite name: ")\nif short_enough(kite, 8):\n    print("Kite tag printed:", kite)\nelse:\n    print("Kite names fit 8 characters")',
+    inputs: ["Skydancer"],
+    key_idea: "The function returns True or False using len(text) <= most. Pass the limit as an argument, so one function works for every answer.",
+  },
+
   // ---------- Authentication ----------
   // A different context from the tasks (a games console, a safe, a lock screen), so no prompt or message is shared.
   "authentication:match": {

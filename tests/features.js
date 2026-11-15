@@ -168,8 +168,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
 
   // ===================== Strings, Random and Lists units =====================
   {
-    check(Curriculum.UNITS.map((u) => u.id).join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d,validation,authentication,trace-tables,linear-search,binary-search,bubble-sort,insertion-sort,merge-sort,recursion,scope-parameters,oop-classes,oop-methods,oop-encapsulation,oop-inheritance,debugging,records-tuples,stacks-queues,linked-lists,hash-tables,arrays-3d",
-      "Unit order: Output, Variables, Data types, Maths, Selection, the two loops units, Strings, Random, Lists, the two functions units, File handling, 2D arrays, Validation, Authentication, Trace tables, Linear search, Binary search, Bubble sort, Insertion sort, Merge sort, then the seven A-level programming techniques units and the five A-level data structures units");
+    check(Curriculum.UNITS.map((u) => u.id).join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d,validation,validation-presence,validation-type,validation-range,validation-format,validation-length,authentication,trace-tables,linear-search,binary-search,bubble-sort,insertion-sort,merge-sort,recursion,scope-parameters,oop-classes,oop-methods,oop-encapsulation,oop-inheritance,debugging,records-tuples,stacks-queues,linked-lists,hash-tables,arrays-3d",
+      "Unit order: Output, Variables, Data types, Maths, Selection, the two loops units, Strings, Random, Lists, the two functions units, File handling, 2D arrays, Validation, the five Validation units (Presence, Type, Range, Format and Length checks), Authentication, Trace tables, Linear search, Binary search, Bubble sort, Insertion sort, Merge sort, then the seven A-level programming techniques units and the five A-level data structures units");
     const NEW = {
       strings: { title: "Strings", prefix: "str", skills: "length,indexing,slicing,upper/lower,find,replace,in" },
       random: { title: "Random", prefix: "rand", skills: "import,randint,choice,simulation" },
@@ -878,9 +878,9 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     }
     check(G[0].units.join() === "output,variables,data-types,maths,selection,loops-condition,loops-count" &&
       G[1].units.join() === "strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d" &&
-      G[2].units.join() === "validation,authentication,trace-tables" &&
+      G[2].units.join() === "validation,validation-presence,validation-type,validation-range,validation-format,validation-length,authentication,trace-tables" &&
       G[3].units.join() === "linear-search,binary-search,bubble-sort,insertion-sort,merge-sort",
-      "Unit menu: fundamentals and advanced units as listed; the Validation group holds Validation, Authentication and Trace tables; Searching and sorting holds its five units");
+      "Unit menu: fundamentals and advanced units as listed; the Validation group holds Validation, the five Validation units (Presence, Type, Range, Format and Length checks), Authentication and Trace tables; Searching and sorting holds its five units");
     const collapseSrc = read("collapse.js");
     check(/aria-expanded/.test(collapseSrc) && /try \{[^}]*localStorage\.getItem\(key/.test(collapseSrc) && /try \{[^}]*localStorage\.setItem\(key/.test(collapseSrc) &&
       /Collapse\.buttonHtml\(/.test(homeSrc) && /Collapse\.wire\(\$\("unit-list"\), COLLAPSED_KEY\)/.test(homeSrc) && !/localStorage/.test(homeSrc) &&
@@ -2567,7 +2567,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     });
     check(tablesL.length === groupsL.length && everyTwo && groupsL.reduce((n, g) => n + g.units.length, 0) === gcse.length &&
       groupsL.every((g) => g.units.length <= TD.OVERVIEW_MAX_UNITS) && TD.OVERVIEW_MAX_UNITS === 5 &&
-      JSON.stringify(groupsL.map((g) => g.units.length)) === "[4,3,4,3,3,5]" && groupsL[1].title === "Programming fundamentals (continued)",
+      JSON.stringify(groupsL.map((g) => g.units.length)) === "[4,3,4,3,4,4,5]" && groupsL[1].title === "Programming fundamentals (continued)",
       "Students page: every student has two rows in every table (Freshness, then Level, the name merged across both), and every unit is in one table of at most 5 units");
     // The same text and colours as the single cell before, split between the rows: a frozen copy of the old cell code.
     const escO = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -2640,19 +2640,19 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const kept = nonDerived.filter((t) => keyOf(t) === srcKey(t));
     const moved = nonDerived.filter((t) => keyOf(t) !== srcKey(t));
     const selVal = nonDerived.filter((t) => t.units.some((u) => ["selection", "validation"].includes(u)));
-    check(nonDerived.length === 243 && nonDerived.every((t) => t.worked_example && t.worked_example.problem && t.worked_example.code && typeof t.worked_example.output === "string" && t.worked_example.key_idea) &&
-      selVal.length === 32 && selVal.every((t) => t.worked_example),
-      "Show me how: every non-derived template (243, including the 32 Selection and Validation ones) has its own worked example");
+    check(nonDerived.length === 266 && nonDerived.every((t) => t.worked_example && t.worked_example.problem && t.worked_example.code && typeof t.worked_example.output === "string" && t.worked_example.key_idea) &&
+      selVal.length === 35 && selVal.every((t) => t.worked_example),
+      "Show me how: every non-derived template (266, including the 35 Selection and Validation ones) has its own worked example");
     check(nonDerived.every((t) => t.worked_example.skill === keyOf(t).split(":")[1] && keyOf(t).startsWith(W.templateUnit(t) + ":")) &&
-      moved.length === 100 && moved.every((t) => JSON.stringify(t.worked_example) !== JSON.stringify(byIdW[t.source].worked_example)) &&
+      moved.length === 115 && moved.every((t) => JSON.stringify(t.worked_example) !== JSON.stringify(byIdW[t.source].worked_example)) &&
       moved.some((t) => t.id === "sel-t8" && keyOf(t) === "selection:modulo-conditions") && moved.some((t) => t.id === "comb-val-auth-pin" && keyOf(t) === "validation:type-check"),
-      "Show me how: the 100 templates that showed another topic's example now use the key their own unit, type and skills give (e.g. sel-t8: selection:modulo-conditions)");
-    check(kept.length === 143 && kept.every((t) => JSON.stringify(t.worked_example) === JSON.stringify(byIdW[t.source].worked_example)),
-      "Show me how: the 143 templates whose example already fitted keep exactly the same example");
-    check(derived.length === 1191 && derived.every((t) => !("worked_example" in t) && byIdW[t.source].worked_example && W.exampleKey(byIdW[t.source]) === W.exampleKey({ unit: t.units[0], type: t.type, skills: t.skills })),
-      "Show me how: derived templates (1191) are unchanged: no example of their own, so their variants use their source task's, which has the same unit, type and skills");
+      "Show me how: the 115 templates whose source task's example is another topic's use the key their own unit, type and skills give (e.g. sel-t8: selection:modulo-conditions)");
+    check(kept.length === 151 && kept.every((t) => JSON.stringify(t.worked_example) === JSON.stringify(byIdW[t.source].worked_example)),
+      "Show me how: the 151 templates whose example already fitted keep exactly the same example");
+    check(derived.length === 1341 && derived.every((t) => !("worked_example" in t) && byIdW[t.source].worked_example && W.exampleKey(byIdW[t.source]) === W.exampleKey({ unit: t.units[0], type: t.type, skills: t.skills })),
+      "Show me how: derived templates (1341) have no example of their own, so their variants use their source task's, which has the same unit, type and skills");
     const combined = nonDerived.filter((t) => t.units.length > 1);
-    check(combined.length === 115 && combined.every((t) => W.templateUnit(t) === App.unitOfSkill(t.skills[0], t.units) && keyOf(t).startsWith(W.templateUnit(t) + ":")) &&
+    check(combined.length === 133 && combined.every((t) => W.templateUnit(t) === App.unitOfSkill(t.skills[0], t.units) && keyOf(t).startsWith(W.templateUnit(t) + ":")) &&
       combined.some((t) => W.templateUnit(t) !== t.units[0]),
       "Show me how: a combined template's example comes from the unit of its first skill");
     // Across several seeds: a different context, not the variant's solution, and the stored output is a fresh run's.
@@ -2667,8 +2667,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     }
     const distinct = [...new Map(nonDerived.map((t) => [t.worked_example.code + "|" + JSON.stringify(t.worked_example.inputs || []), t.worked_example])).values()];
     const freshW = runPython(distinct.map((e) => ({ code: e.code, inputs: e.inputs || [] })));
-    check(variantsW === 972 && !sharedW && !sameW && freshW.every((r, i) => !r.error && Checker.normalise(r.output) === distinct[i].output),
-      "Show me how: on 4 seeds of every non-derived template (972 variants), the example shares no 4+ character text with the variant, isn't its solution, and its stored output matches a fresh run (" + distinct.length + " examples)");
+    check(variantsW === 1064 && !sharedW && !sameW && freshW.every((r, i) => !r.error && Checker.normalise(r.output) === distinct[i].output),
+      "Show me how: on 4 seeds of every non-derived template (1064 variants), the example shares no 4+ character text with the variant, isn't its solution, and its stored output matches a fresh run (" + distinct.length + " examples)");
     // The tool: running it again changes nothing (tasks.json and templates.json).
     const againT = W.withTemplateExamples(tplW);
     const againK = W.withWorkedExamples(tasks);
