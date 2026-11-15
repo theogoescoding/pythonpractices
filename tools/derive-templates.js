@@ -57,6 +57,8 @@ const MIN_VARIANTS = 5;
 //   testSets:  alternative lists of test inputs (the first is the task's own), for inputs that carry meaning
 //   says:      with testSets, what the description says was typed for each set (the first is the task's own words,
 //              which must be in its description once): a predict task's variant then names its own input
+//   wrongOutputs: a predict task's extra wrong options, as text with {{…}} placeholders (templates.js), for a program
+//              whose common mistakes mostly end in an error
 const OVERRIDES = {
   // Data types and casting.
   "types-L1b": { swaps: [[["42"], ["17"], ["8"], ["63"], ["25"], ["31"]]] },
@@ -787,6 +789,7 @@ function derive(t, fixedExtra, opts) {
   else tpl.solution = s(t.solution);
   if (t.type === "parsons") tpl.distractors = t.distractors.map(s);
   if (t.type === "predict") tpl.optionCount = t.options.length;
+  if (t.type === "predict" && ov.wrongOutputs) tpl.wrongOutputs = ov.wrongOutputs; // more wrong options (templates.js)
   // Pick the missing line: the same options in the same order (each changed like the code), the same right one.
   if (t.type === "partial-parsons") { tpl.options = t.options.map(s); tpl.answer = t.answer; delete tpl.solution; }
   // A trace table is made again from the variant's own program, with the same spec and number of rows.

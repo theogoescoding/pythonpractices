@@ -14,17 +14,20 @@ Store.whenReady(function () {
   const ticked = (progress.endless && progress.endless.units) || [];
 
   function render(tasks) {
-    const units = UNITS.filter((u) => tasks.some((t) => t.unit === u.id));
+    // The old Validation unit only once the student has started it (Curriculum.studentSeesUnit), as on the home page.
+    const attempts = Store.attempts(student.id);
+    const units = UNITS.filter((u) => tasks.some((t) => t.unit === u.id) && self.Curriculum.studentSeesUnit(u.id, progress, attempts));
     $("endless-units").innerHTML = units.map((u) => {
       const s = progress.units[u.id];
       const open = !!(s && s.completedTop);
+      const name = self.Curriculum.studentUnitTitle(u.id);
       const level = s ? "Level " + s.level + " – " + levelName(s.level, u.id) : "Not started";
       const msg = s && s.level === 10
-        ? "Get 2 strong passes in a row at Level 10 in " + u.title + " to unlock."
-        : "Complete Level 10 in " + u.title + " to unlock." + (s ? " You're at Level " + s.level + "." : "");
+        ? "Get 2 strong passes in a row at Level 10 in " + name + " to unlock."
+        : "Complete Level 10 in " + name + " to unlock." + (s ? " You're at Level " + s.level + "." : "");
       return '<li class="' + (open ? "" : "locked") + '"><label><input type="checkbox" name="unit" value="' + u.id + '"' +
         (open ? (ticked.includes(u.id) || !ticked.length ? " checked" : "") : " disabled") +
-        (open ? "" : ' aria-describedby="lock-' + u.id + '"') + "> " + esc(u.title) +
+        (open ? "" : ' aria-describedby="lock-' + u.id + '"') + "> " + esc(name) +
         ' <span class="small">(' + esc(level) + ")</span></label>" +
         (open ? "" : '<p class="lock-msg" id="lock-' + u.id + '">🔒 ' + esc(msg) + "</p>") + "</li>";
     }).join("");

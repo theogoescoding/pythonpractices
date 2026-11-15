@@ -2686,6 +2686,83 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "Practice page: the unit parameter is ignored in endless mode and assignments");
   }
 
+  // ===================== The five Validation units: the rules they were built to =====================
+  // tests/validation-units-check.js (a child process: chooseNextTask is async) makes the templates' variants and runs
+  // a climb up each unit's ladder; its results are checked here.
+  {
+    const V = ["validation-presence", "validation-type", "validation-range", "validation-format", "validation-length"];
+    const vr = JSON.parse(require("child_process").execFileSync(process.execPath, [path.join(ROOT, "tests", "validation-units-check.js")], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 }));
+    const info = Object.fromEntries(vr.templates.map((t) => [t.id, t]));
+    const unitTasks = (u) => tasks.filter((t) => t.unit === u);
+    const practiceOf = (u) => unitTasks(u).filter((t) => !App.isPlacementTask(t));
+    const placementOf = (u) => unitTasks(u).filter(App.isPlacementTask);
+    const right = (t) => t.options[t.answer];
+    // 1. Three practice tasks at every level, each with a derived template making 5 or more different variants.
+    const thin = [];
+    for (const u of V) for (let lv = 1; lv <= 10; lv++) if (practiceOf(u).filter((t) => t.level === lv).length !== 3) thin.push(u + " level " + lv);
+    const weak = V.flatMap(practiceOf).filter((t) => { const d = info["d-" + t.id]; return !d || d.different < 5 || d.poolSize < 5; }).map((t) => t.id);
+    check(!thin.length && !weak.length,
+      "Five Validation units: every level of every unit has 3 practice tasks, and every practice task has a derived template that makes at least 5 different variants" + (thin.concat(weak).length ? " (" + thin.concat(weak).join(", ") + ")" : ""));
+    // 2. Different right answers at each predict level, and from each predict template's variants.
+    const sameAnswers = V.flatMap((u) => [1, 2].filter((lv) => new Set(practiceOf(u).filter((t) => t.level === lv).map(right)).size !== 3).map((lv) => u + " level " + lv));
+    const oneAnswer = vr.templates.filter((t) => t.type === "predict" && t.answers < 2).map((t) => t.id);
+    check(!sameAnswers.length && !oneAnswer.length,
+      "Five Validation units: at each predict level the 3 tasks have different right answers, and each predict template's variants have more than one right answer (inputs from both sides of the check)" + (sameAnswers.concat(oneAnswer).length ? " (" + sameAnswers.concat(oneAnswer).join(", ") + ")" : ""));
+    // 3. Tests: one for a predict task; otherwise two, an answer that passes the check and one that fails it.
+    const badTests = V.flatMap(unitTasks).filter((t) => (t.type === "predict" ? t.tests.length !== 1 : t.tests.length !== 2 || t.tests[0].expected === t.tests[1].expected)).map((t) => t.id)
+      .concat(vr.templates.filter((t) => t.sameTests).map((t) => t.id));
+    check(!badTests.length,
+      "Five Validation units: every predict task has exactly 1 test, and every other task (practice and placement) and template variant has 2 tests, one answer that passes the check and one that fails it" + (badTests.length ? " (" + badTests.join(", ") + ")" : ""));
+    const clashes = vr.templates.filter((t) => t.shared).map((t) => t.id);
+    check(!clashes.length && vr.made > 4000,
+      "Five Validation units: no template variant (" + vr.made + " made, in every context) shares 4+ character text with its worked example" + (clashes.length ? " (" + clashes.join(", ") + ")" : ""));
+    // 4. Variety: at least 90 different variants at every level.
+    const perLevel = V.flatMap((u) => Array.from({ length: 10 }, (_, i) => ({ k: u + " level " + (i + 1), n: vr.templates.filter((t) => t.unit === u && t.level === i + 1).reduce((a, t) => a + t.different, 0) })));
+    const low = perLevel.filter((x) => x.n < 90);
+    check(!low.length && vr.templates.length === 150,
+      "Five Validation units: every level of every unit offers at least 90 different variants across its templates (fewest: " + Math.min(...perLevel.map((x) => x.n)) + "; each made and checked where a template has up to 150)" + (low.length ? " (" + low.map((x) => x.k + " " + x.n).join(", ") + ")" : ""));
+    // 5. Placement: 2 at each of levels 2, 5, 7 and 9, none a copy of a practice task.
+    const badPlacement = V.filter((u) => {
+      const pl = placementOf(u), pr = practiceOf(u);
+      return [2, 5, 7, 9].map((lv) => pl.filter((t) => t.level === lv).length).join() !== "2,2,2,2" || pl.length !== 8 ||
+        pl.some((p) => pr.some((t) => t.solution === p.solution || t.title === p.title || t.description === p.description));
+    });
+    check(!badPlacement.length,
+      "Five Validation units: every unit has 2 placement tasks at each of levels 2, 5, 7 and 9, and none is a copy of a practice task (its program, title and prompt are its own)" + (badPlacement.length ? " (" + badPlacement.join(", ") + ")" : ""));
+    // 6 and 7. The climb.
+    const passAll = vr.sims.filter((s) => s.kind === "pass-all"), failAt7 = vr.sims.filter((s) => s.kind === "fail-at-7");
+    check(passAll.length === 5 && passAll.every((s) => s.top === 10 && !s.ranOut) && failAt7.length === 5 && failAt7.every((s) => !s.ranOut && s.steps === 60 && s.levels.includes("7x")),
+      "Five Validation units: in a simulated climb, a student who passes everything reaches level 10 in every unit, and a student placed at level 7 who fails every level 7 task never runs out of tasks (60 tasks each; no \"Your next task couldn't be made\")");
+    const repeats = vr.sims.filter((s) => s.sameId || s.sameAnswer).map((s) => s.unit + " " + s.kind);
+    check(!repeats.length && vr.sims.length === 10,
+      "Five Validation units: in every simulated climb (10 of them), no two tasks in a row share an id or a right answer" + (repeats.length ? " (" + repeats.join(", ") + ")" : ""));
+  }
+
+  // ===================== The old Validation unit: only for students who started it =====================
+  {
+    const C = Curriculum;
+    const NEW = ["validation-presence", "validation-type", "validation-range", "validation-format", "validation-length"];
+    const sees = (progress, attempts) => C.UNITS.map((u) => u.id).filter((u) => C.studentSeesUnit(u, progress, attempts));
+    const all = C.UNITS.map((u) => u.id);
+    const fresh = sees({ units: {} }, []);
+    const savedState = sees({ units: { validation: App.freshUnitState(4), "validation-range": App.freshUnitState(2) } }, []);
+    const attemptOnly = sees({ units: {} }, [{ kind: "attempt", unit: "validation", taskId: "val-L3r", result: "fail" }]);
+    const passedOnly = C.hasStartedUnit("validation", { units: { validation: { passedFingerprints: { "val-L1i": "2026-11-01" } } } }, []);
+    const others = sees({ units: { selection: App.freshUnitState(5), "validation-type": App.freshUnitState(3) } }, [{ kind: "attempt", unit: "selection", taskId: "sel-L1a", result: "pass" }]);
+    check(!fresh.includes("validation") && NEW.every((u) => fresh.includes(u)) && fresh.length === all.length - 1 &&
+      savedState.includes("validation") && savedState.length === all.length && attemptOnly.includes("validation") && passedOnly &&
+      !others.includes("validation") && NEW.every((u) => others.includes(u)) &&
+      C.studentUnitTitle("validation") === "Validation (old version)" && C.studentUnitTitle("validation-range") === "Range checks" && C.unitTitle("validation") === "Validation",
+      "Old Validation unit: a new student sees the five Validation units but not the old one; a student with saved progress in it (or only an attempt, or only a passed task) sees it too, as Validation (old version); a student who has started other units only doesn't");
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const studentPages = ["home.js", "progress.js", "endless.js"];
+    const defines = fs.readdirSync(ROOT).filter((f) => f.endsWith(".js")).filter((f) => /function hasStartedUnit|const OLD_UNITS =/.test(read(f)));
+    check(studentPages.every((f) => /self\.Curriculum\.studentSeesUnit\(u\.id, progress, (attempts|studentAttempts)\)/.test(read(f)) && /self\.Curriculum\.studentUnitTitle\(u\.id\)/.test(read(f))) &&
+      /studentUnitTitle\(unit\.id\)/.test(read("app.js")) && defines.join() === "curriculum.js" && !/studentSeesUnit/.test(read("teacher.js") + read("teacher-data.js")) &&
+      C.stageUnits("gcse").includes("validation") && NEW.every((u) => C.stageUnits("gcse").includes(u)) && C.UNITS.some((u) => u.id === "validation"),
+      "Old Validation unit: one rule in curriculum.js (studentSeesUnit, studentUnitTitle), used by the home page, My progress, endless mode and the practice page's title; teachers still see all six units");
+  }
+
   // ===================== Selection, trimmed =====================
   // 74 practice tasks (7 or 8 a level, none with a function) and 8 placement tasks; every removed id is in one kept
   // task's former_ids, marked as a replacement (a different task, so a student's progress isn't moved onto it).

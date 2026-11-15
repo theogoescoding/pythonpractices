@@ -460,6 +460,9 @@
     if (tpl.type === "predict") {
       mutants = variants.map((v) => v.code).concat(mutate(task.solution, tpl.units)).filter((c, i, a) => a.indexOf(c) === i);
       mutants.forEach((c) => parts.mutants.push(add(c, tests[0].inputs)));
+      // wrongOutputs (optional): more wrong options, as text with {{…}} placeholders (e.g. the typed answer itself),
+      // used after the common-mistake ones, for a program whose mistakes mostly end in an error.
+      parts.extraWrong = (tpl.wrongOutputs || []).map((w) => Checker.normalise(fillText(w, scope)));
     }
     task.tests = tests;
     if (variants.length) task.buggy_variants = variants;
@@ -523,6 +526,7 @@
         const o = Checker.normalise(r.output);
         if (o !== correct && !wrong.includes(o)) wrong.push(o);
       }
+      for (const o of parts.extraWrong || []) if (o !== correct && !wrong.includes(o)) wrong.push(o);
       // As many options as the source task (3 or 4) where there are enough different wrong outputs, and never fewer than 3.
       const n = Math.min(tpl.optionCount || 4, wrong.length + 1);
       if (n < 3) return null;

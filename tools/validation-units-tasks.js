@@ -1324,7 +1324,7 @@ const LENGTH = [
     description: "Ask for a line of a poem. While it has fewer than 10 or more than 40 characters, print Lines have 10 to 40 characters and ask again. Then print its length, for example:\nLength: 25 characters",
     solution: 'line = input("Poem line: ")\nwhile len(line) < 10 or len(line) > 40:\n    print("Lines have 10 to 40 characters")\n    line = input("Poem line: ")\nprint("Length:", len(line), "characters")',
     sets: [[["The moon is a silver boat"], ["Moon", "The moon is a silver boat"]], [["Waves crash on the shore"], ["Waves", "Waves crash on the shore"]],
-      [["Leaves fall like rain"], ["Leaves fall", "Leaves fall like rain"]], [["The fox ran through the snow"], ["Fox", "The fox ran through the snow"]],
+      [["Leaves fall like rain"], ["Leaves", "Leaves fall like rain"]], [["The fox ran through the snow"], ["Fox", "The fox ran through the snow"]],
       [["Stars blink in the dark"], ["", "Stars blink in the dark"]], [["Rain taps on my window"], ["Rain", "Rain taps on my window"]],
       [["A river sings all night"], ["The river sings and sings and sings all night long", "A river sings all night"]], [["Snow sleeps on the hills"], ["Snow", "Snow sleeps on the hills"]]],
     hints: ["Too short or too long: use or in the loop.", "len(line) gives the length to print."],
@@ -1422,24 +1422,171 @@ const UNIT_SPECS = {
   "validation-length": { PRACTICE: LENGTH, PLACEMENT: LENGTH_PLACEMENT },
 };
 
-// tools/derive-templates.js overrides for the practice tasks with a "vary" list (see the top of this file).
+// ---------- Context swaps (2026-11, second pass) ----------
+// So every level offers at least 90 different variants (tests/features.js checks this): linked strings changed together
+// everywhere in a variant (title, description, code, hints), the task's own strings first. Each gives the same check
+// and the same right-answer logic in a different context. A lower-case string that is a variable in the code is
+// swapped for another valid name. Task text itself is never changed: only its templates' variants differ.
+// With 8 test sets and 4 contexts, a text template makes 8 x 4 - 1 = 31 variants; a template varied by numbers makes
+// its number variants in each context.
+const CONTEXTS = {
+  // Presence checks
+  "pres-L1c": [["Goals scored", "Goals"], ["Points scored", "Points"], ["Runs scored", "Runs"], ["Tries scored", "Tries"]],
+  "pres-L2a": [["Band"], ["Choir"], ["Group"], ["Duo"]],
+  "pres-L2b": [["Shop"], ["Cafe"], ["Stall"], ["Kiosk"]],
+  "pres-L2c": [["Song title", "song title"], ["Album title", "album title"], ["Poem title", "poem title"], ["Story title", "story title"]],
+  "pres-L3a": [["Colour", "colour"], ["Paint", "paint"], ["Ink", "ink"], ["Hue", "hue"]],
+  "pres-L3b": [["Form tutor", "Tutor"], ["Class teacher", "Teacher"], ["Head of year", "Head of year"], ["Sports coach", "Coach"]],
+  "pres-L3c": [["fruit", "Fruit"], ["juice", "Juice"], ["smoothie", "Smoothie"], ["sorbet", "Sorbet"]],
+  "pres-L4a": [["Street", "street"], ["Address", "address"], ["Location", "location"], ["Destination", "destination"]],
+  "pres-L4b": [["Captain", "captain"], ["Goalkeeper", "goalkeeper"], ["Leader", "leader"], ["Referee", "referee"]],
+  "pres-L4c": [["contact", "Contact"], ["carer", "Carer"], ["guardian", "Guardian"], ["helper", "Helper"]],
+  "pres-L5a": [["hobby", "Hobby"], ["interest", "Interest"], ["pastime", "Pastime"], ["activity", "Activity"]],
+  "pres-L5b": [["Lunch", "lunch"], ["Dinner", "dinner"], ["Breakfast", "breakfast"], ["Supper", "supper"]],
+  "pres-L5c": [["instrument", "Instrument"], ["choice", "Choice"], ["solo", "Solo"], ["part", "Part"]],
+  "pres-L7a": [["sport", "Sport"], ["game", "Game"], ["hobby", "Hobby"], ["activity", "Activity"]],
+  "pres-L7b": [["book", "Book"], ["film", "Film"], ["comic", "Comic"], ["poem", "Poem"]],
+  "pres-L7c": [["Pen pal"], ["Cousin"], ["Penfriend"], ["Friend"]],
+  "pres-L8a": [["Film", "film"], ["Movie", "movie"], ["Show", "show"], ["Play", "play"]],
+  "pres-L8b": [["dish", "Dish"], ["meal", "Meal"], ["soup", "Soup"], ["pudding", "Pudding"]],
+  "pres-L8c": [["Holiday destination"], ["School trip destination"], ["Gap year destination"], ["Weekend away"]],
+  "pres-L9a": [["Recipe", "recipe"], ["Dish", "dish"], ["Bake", "bake"], ["Meal", "meal"]],
+  // Few numbers to vary in these two, so 8 contexts each.
+  "pres-L9b": [["bike", "Bike"], ["kayak", "Kayak"], ["scooter", "Scooter"], ["canoe", "Canoe"], ["paddleboard", "Paddleboard"], ["rowing boat", "Rowing boat"],
+    ["tandem", "Tandem"], ["go-kart", "Go-kart"]],
+  "pres-L9c": [["raffle", "Raffle"], ["tombola", "Tombola"], ["lottery", "Lottery"], ["prize draw", "Prize draw"], ["sweepstake", "Sweepstake"], ["lucky dip", "Lucky dip"],
+    ["bingo", "Bingo"], ["quiz night", "Quiz night"]],
+  "pres-L10a": [["survey", "Survey"], ["quiz", "Quiz"], ["poll", "Poll"], ["form", "Form"]],
+  // Type checks
+  "typ-L1a": [["Slices of pizza"], ["Slices of cake"], ["Slices of toast"], ["Slices of melon"]],
+  "typ-L1b": [["Stickers", "stickers"], ["Badges", "badges"], ["Marbles", "marbles"], ["Stamps", "stamps"]],
+  "typ-L1c": [["Eggs"], ["Apples"], ["Lemons"], ["Oranges"]],
+  "typ-L2a": [["Hours of sleep", "Sleep"], ["Hours of reading", "Reading"], ["Hours of practice", "Practice"], ["Hours of training", "Training"]],
+  "typ-L2b": [["Row"], ["Gate"], ["Lane"], ["Seat"]],
+  "typ-L2c": [["score"], ["points"], ["stars"], ["goals"]],
+  "typ-L5b": [["Spare batteries", "batteries"], ["Spare pencils", "pencils"], ["Spare bulbs", "bulbs"], ["Spare fuses", "fuses"]],
+  "typ-L5c": [["Goals", "goals"], ["Points", "points"], ["Wins", "wins"], ["Assists", "assists"]],
+  "typ-L7a": [["Plants", "plants", "plant"], ["Trees", "trees", "tree"], ["Shrubs", "shrubs", "shrub"], ["Seedlings", "seedlings", "seedling"]],
+  "typ-L7c": [["Minutes: "], ["Minutes of exercise: "], ["Minutes on the bus: "], ["Minutes of music: "]],
+  "typ-L8a": [["Rows of seats", "Rows", "rows"], ["Benches in the hall", "Benches", "benches"], ["Tables in the canteen", "Tables", "tables"], ["Lanes at the pool", "Lanes", "lanes"]],
+  "typ-L8b": [["Tonight", "tonight"], ["This morning", "this morning"], ["At noon", "at noon"], ["At midnight", "at midnight"]],
+  "typ-L8c": [["rug", "Rug"], ["mat", "Mat"], ["carpet", "Carpet"], ["patio", "Patio"]],
+  // Few numbers to vary in these two, so 8 contexts each.
+  "typ-L9a": [["tables", "Table", "table"], ["teams", "Team", "team"], ["rounds", "Round", "round"], ["groups", "Group", "group"], ["boxes", "Box", "box"],
+    ["levels", "Level", "level"], ["stations", "Station", "station"], ["pages", "Page", "page"]],
+  "typ-L9b": [["Lift off!"], ["Blast off!"], ["Go!"], ["Ready or not!"], ["Take off!"], ["Here we go!"], ["Launch!"], ["We have lift-off!"]],
+  "typ-L9c": [["Number: "], ["Times table: "], ["Pick a number: "], ["Your number: "]],
+  // Range checks
+  "rng-L1a": [["Shoe size", "Shoe sizes"], ["Boot size", "Boot sizes"], ["Slipper size", "Slipper sizes"], ["Wellie size", "Wellie sizes"]],
+  "rng-L1b": [["Spice level", "Spice"], ["Sauce level", "Sauce"], ["Heat level", "Heat"], ["Chilli level", "Chilli"]],
+  "rng-L1c": [["Total of two dice"], ["Two dice added"], ["Score on two dice"], ["Sum of two dice"]],
+  "rng-L2a": [["Speed"], ["Bike speed"], ["Scooter speed"], ["Skate speed"]],
+  "rng-L2b": [["Brightness"], ["Contrast"], ["Sharpness"], ["Saturation"]],
+  "rng-L2c": [["Items bought"], ["Books bought"], ["Tickets bought"], ["Comics bought"]],
+  "rng-L5a": [["Volume", "volume"], ["Bass", "bass"], ["Treble", "treble"], ["Echo", "echo"]],
+  "rng-L8a": [["sweet", "Sweet"], ["prize", "Prize"], ["card", "Card"], ["locker", "Locker"]],
+  "rng-L8b": [["players", "Players"], ["teams", "Teams"], ["children", "Children"], ["guests", "Guests"]],
+  "rng-L8c": [["Teeing off at", "Golf hole"], ["Playing", "Mini golf hole"], ["Walking to", "Crazy golf hole"], ["Putting at", "Pitch and putt hole"]],
+  // Format checks
+  "fmt-L1a": [["Hashtag", "Hashtags"], ["Topic tag", "Topic tags"], ["Post tag", "Post tags"], ["Trend", "Trends"]],
+  "fmt-L1b": [["Full name"], ["Your name"], ["Name on the card"], ["Name for the badge"]],
+  "fmt-L1c": [["Your question", "Question added"], ["Quiz question", "Quiz question added"], ["Ask a question", "Question sent"], ["Class question", "Class question added"]],
+  "fmt-L2a": [["Colour", "colour"], ["Paint", "paint"], ["Kit", "kit"], ["Bib", "bib"]],
+  "fmt-L2b": [["Size", "Sizes"], ["Shirt size", "Shirt sizes"], ["Cup size", "Cup sizes"], ["Box size", "Box sizes"]],
+  "fmt-L2c": [["Booked in"], ["Welcome"], ["Checked in"], ["Staying"]],
+  "fmt-L3a": [["Book code", "Book codes", "book codes"], ["Shelf code", "Shelf codes", "shelf codes"], ["Box code", "Box codes", "box codes"], ["Bin code", "Bin codes", "bin codes"]],
+  "fmt-L3b": [["Ticket code"], ["Pass code"], ["Wristband code"], ["Entry code"]],
+  "fmt-L3c": [["Shelf label"], ["Bin label"], ["Crate label"], ["Drawer label"]],
+  "fmt-L4a": [["Room", "Rooms"], ["Lab", "Labs"], ["Studio", "Studios"], ["Hall", "Halls"]],
+  "fmt-L4b": [["Night bus routes", "Night bus", "Night routes"], ["Night tram lines", "Night tram", "Night lines"], ["Night ferry crossings", "Night ferry", "Night crossings"],
+    ["Night train services", "Night train", "Night services"]],
+  "fmt-L4c": [["Product code", "Product codes", "Product found"], ["Stock code", "Stock codes", "Stock found"], ["Item code", "Item codes", "Item found"], ["Part code", "Part codes", "Part found"]],
+  "fmt-L5a": [["Seat", "Seats"], ["Place", "Places"], ["Chair", "Chairs"], ["Spot", "Spots"]],
+  "fmt-L5b": [["Bay", "Bays", "bay"], ["Space", "Spaces", "space"], ["Slot", "Slots", "slot"], ["Stand", "Stands", "stand"]],
+  "fmt-L5c": [["Show", "Shows", "show"], ["Film", "Films", "film"], ["Concert", "Concerts", "concert"], ["Gig", "Gigs", "gig"]],
+  "fmt-L6a": [["Post tag"], ["Photo tag"], ["Video tag"], ["Blog tag"]],
+  "fmt-L6b": [["File name", "file name"], ["Note name", "note name"], ["Log name", "log name"], ["Report name", "report name"]],
+  "fmt-L6c": [["An extension", "Extensions", "Extension", "extension"], ["A desk line", "Desk lines", "Desk line", "desk line"], ["A room line", "Room lines", "Room line", "room line"],
+    ["A phone line", "Phone lines", "Phone line", "phone line"]],
+  "fmt-L7a": [["Ticket", "ticket"], ["Fare", "fare"], ["Wristband", "wristband"], ["Badge", "badge"]],
+  "fmt-L7b": [["pizza", "Pizza"], ["coffee", "Coffee"], ["milkshake", "Milkshake"], ["popcorn", "Popcorn"]],
+  "fmt-L7c": [["Heading"], ["Sailing"], ["Walking"], ["Flying"]],
+  "fmt-L8a": [["Lock code", "Lock codes", "Lock opens"], ["Gate code", "Gate codes", "Gate opens"], ["Door code", "Door codes", "Door opens"], ["Hatch code", "Hatch codes", "Hatch opens"]],
+  "fmt-L8b": [["Parcel"], ["Suitcase"], ["Box"], ["Sack"]],
+  "fmt-L8c": [["Reference", "References"], ["Booking ref", "Booking refs"], ["Order ref", "Order refs"], ["Claim ref", "Claim refs"]],
+  "fmt-L9a": [["Home", "Away"], ["Us", "Them"], ["Red", "Blue"], ["Hosts", "Guests"]],
+  "fmt-L9b": [["Top", "bottom"], ["Numerator", "denominator"], ["Upper", "lower"], ["Above", "below"]],
+  "fmt-L9c": [["Area"], ["Floor area"], ["Space"], ["Squares"]],
+  // Length checks
+  "len-L1a": [["Initials"], ["Monogram"], ["Code letters"], ["Tag letters"]],
+  "len-L1b": [["Year", "Years"], ["Birth year", "Birth years"], ["Start year", "Start years"], ["Build year", "Build years"]],
+  "len-L1c": [["Postcode area", "Area", "Areas"], ["Region code", "Region", "Regions"], ["Zone code", "Zone", "Zones"], ["District code", "District", "Districts"]],
+  "len-L2a": [["Display name"], ["Screen name"], ["Badge name"], ["Card name"]],
+  "len-L2b": [["Code", "Codes"], ["Tag", "Tags"], ["Key", "Keys"], ["Label", "Labels"]],
+  "len-L2c": [["Three-letter word"], ["3-letter word"], ["Short word"], ["Tiny word"]],
+  "len-L3a": [["Post", "Posts", "post", "posts"], ["Reply", "Replies", "reply", "replies"], ["Caption", "Captions", "caption", "captions"], ["Comment", "Comments", "comment", "comments"]],
+  "len-L3b": [["crossword"], ["puzzle"], ["word grid"], ["word game"]],
+  "len-L3c": [["Message", "message"], ["Reply", "reply"], ["Note", "note"], ["Caption", "caption"]],
+  "len-L4a": [["Pet name", "Pet names", "pet name"], ["Dog name", "Dog names", "dog name"], ["Cat name", "Cat names", "cat name"], ["Fish name", "Fish names", "fish name"]],
+  "len-L4b": [["Club", "club"], ["Society", "society"], ["Group", "group"], ["Team", "team"]],
+  "len-L4c": [["Spelling word", "spelling words"], ["Reading word", "reading words"], ["Topic word", "topic words"], ["Science word", "science words"]],
+  "len-L5a": [["Book title"], ["Film title"], ["Song title"], ["Game title"]],
+  "len-L5b": [["Name tag"], ["Door sign"], ["Desk label"], ["Locker label"]],
+  "len-L5c": [["Shout-out", "Shout-outs", "shout-out"], ["Thank-you", "Thank-yous", "thank-you"], ["Message", "Messages", "message"], ["Cheer", "Cheers", "cheer"]],
+  "len-L6a": [["Security answer"], ["Memory answer"], ["Secret answer"], ["Clue answer"]],
+  "len-L6b": [["Chant", "Chants", "chant"], ["Song", "Songs", "song"], ["Cheer", "Cheers", "cheer"], ["Slogan", "Slogans", "slogan"]],
+  "len-L6c": [["Plant label"], ["Herb label"], ["Seed label"], ["Pot label"]],
+  "len-L7a": [["Registration", "registration", "Registrations"], ["Number plate", "number plate", "Number plates"], ["Plate", "plate", "Plates"], ["Reg plate", "reg plate", "Reg plates"]],
+  "len-L7b": [["Text message", "Text", "text", "Texts"], ["Chat message", "Message", "message", "Messages"], ["Pager message", "Note", "note", "Notes"], ["Group message", "Reply", "reply", "Replies"]],
+  "len-L7c": [["Card", "card"], ["Voucher", "voucher"], ["Ticket", "ticket"], ["Account", "account"]],
+  "len-L8a": [["Gamer tag", "gamer tag"], ["Player tag", "player tag"], ["Team tag", "team tag"], ["Guild tag", "guild tag"]],
+  "len-L8b": [["club", "Club"], ["school", "School"], ["team", "Team"], ["choir", "Choir"]],
+  "len-L8c": [["Recipe", "recipe"], ["Dish", "dish"], ["Snack", "snack"], ["Bake", "bake"]],
+  "len-L9a": [["Message", "message", "Messages"], ["Reply", "reply", "Replies"], ["Note", "note", "Notes"], ["Caption", "caption", "Captions"]],
+  "len-L9b": [["poem", "Poem"], ["song", "Song"], ["story", "Story"], ["play", "Play"]],
+  "len-L9c": [["Name", "name", "Names"], ["Word", "word", "Words"], ["Title", "title", "Titles"], ["Label", "label", "Labels"]],
+};
+
+// The text a context swap can change, and whether a string is in it as a whole word (as applySwaps matches it).
+const textOf = (s) => [s.title, s.description, s.solution || "", s.starter || "", ...(s.answers || []), ...(s.distractors || []), ...(s.hints || []),
+  ...(s.buggy || []).map(([, code]) => code)].join("\n");
+const hasWhole = (text, str) => new RegExp((/^\w/.test(str) ? "\\b" : "") + str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + (/\w$/.test(str) ? "\\b" : "")).test(text);
+function contextsFor(s, inline) {
+  const ctx = CONTEXTS[s.id] || inline;
+  if (!ctx) return null;
+  const text = textOf(s);
+  for (const str of ctx[0]) if (!hasWhole(text, str)) throw new Error(s.id + ": context string \"" + str + "\" isn't in the task's text");
+  if (ctx.some((tu) => tu.length !== ctx[0].length)) throw new Error(s.id + ": every context needs the same number of strings");
+  if (new Set(ctx.map((tu) => JSON.stringify(tu))).size !== ctx.length) throw new Error(s.id + ": two contexts are the same");
+  return ctx;
+}
+
+// tools/derive-templates.js overrides for the practice tasks with a "vary" list or contexts (see the top of this file).
 const OVERRIDES = {};
 for (const { PRACTICE } of Object.values(UNIT_SPECS)) {
   for (const s of PRACTICE) {
     const v = s.vary;
-    if (!v) continue;
+    const ctx = contextsFor(s, v && v.ctx);
+    if (!v) {
+      if (ctx) OVERRIDES[s.id] = { swaps: [ctx] }; // a task varied by its numbers, in each context too
+      continue;
+    }
     if (s.type === "predict") {
       const o = { noNumbers: true, words: false, testSets: v.inputs.map((x) => [[x]]), says: v.inputs.map(says) };
-      if (v.ctx) o.swaps = [v.ctx];
+      if (ctx) o.swaps = [ctx];
+      // A type check's mistakes mostly stop at int() for an answer that isn't a number, so the typed answer itself is
+      // also a wrong option: then an answer on either side of the check makes a variant.
+      if (s.id.startsWith("typ-")) o.wrongOutputs = ["{{TS[ts][0][0]}}"];
       OVERRIDES[s.id] = o;
     } else {
       if (JSON.stringify(v.sets[0]) !== JSON.stringify(s.tests.map((t) => t.inputs))) throw new Error(s.id + ": the first test set must be the task's own tests");
       const o = { noNumbers: true, words: false, testSets: v.sets };
-      if (v.ctx) o.swaps = [v.ctx];
+      if (ctx) o.swaps = [ctx];
       OVERRIDES[s.id] = o;
     }
   }
 }
+for (const id of Object.keys(CONTEXTS)) if (!(id in OVERRIDES)) throw new Error(id + ": contexts for a task that isn't in these units");
 
 // The task specs as tools/unit-tasks.js takes them (without "vary").
 const specsFor = (unit) => {

@@ -32,12 +32,13 @@ Store.whenReady(function () {
   }
 
   function renderOverview() {
-    $("progress-cards").innerHTML = UNITS.filter((u) => tasks.some((t) => t.unit === u.id)).map((u) => {
+    // The old Validation unit only once the student has started it (Curriculum.studentSeesUnit), as on the home page.
+    $("progress-cards").innerHTML = UNITS.filter((u) => tasks.some((t) => t.unit === u.id) && self.Curriculum.studentSeesUnit(u.id, progress, attempts)).map((u) => {
       const x = summary(u);
       const level = x.s ? "Level " + x.s.level : "Not started";
       return '<li><button type="button" class="unit-card" data-unit="' + u.id + '" aria-label="' +
-        esc(u.title + ": " + level + ", " + x.percent + "% of tasks passed, " + x.secured + " of " + u.skills.length + " skills secured. " + x.note + " Show skills.") + '">' +
-        "<h3>" + esc(u.title) + "</h3>" +
+        esc(self.Curriculum.studentUnitTitle(u.id) + ": " + level + ", " + x.percent + "% of tasks passed, " + x.secured + " of " + u.skills.length + " skills secured. " + x.note + " Show skills.") + '">' +
+        "<h3>" + esc(self.Curriculum.studentUnitTitle(u.id)) + "</h3>" +
         '<div class="stat-row">' +
           '<span class="stat"><strong>' + esc(level) + "</strong>" + (x.s ? esc(levelName(x.s.level, u.id)) : "&nbsp;") + "</span>" +
           '<span class="stat"><strong>' + x.percent + "%</strong>tasks passed (" + x.passed + " of " + x.total + ")</span>" +
@@ -51,7 +52,7 @@ Store.whenReady(function () {
 
   function renderDetail(u) {
     const x = summary(u);
-    $("detail-h").textContent = u.title;
+    $("detail-h").textContent = self.Curriculum.studentUnitTitle(u.id);
     $("detail-summary").textContent = (x.s ? "Level " + x.s.level + " (" + levelName(x.s.level, u.id) + ")" : "Not started yet") +
       " · " + x.percent + "% of tasks passed · " + x.secured + " of " + u.skills.length + " skills secured. " + x.note;
     $("skill-list").innerHTML = x.skills.map(({ skill, state }) => {

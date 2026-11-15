@@ -82,7 +82,7 @@ const MAX_NEW_VARIANT_TRIES = 40;          // draws to find a template variant t
 const MAX_HINTS_PER_TASK = 3;
 const RUN_TIMEOUT_MS = 5000;               // stop a run after this long (e.g. an infinite loop)
 
-const { UNITS, TYPE_INFO, unitById, unitTitle, levelName, hasScratch, hasPlacement, isALevel } =
+const { UNITS, TYPE_INFO, unitById, unitTitle, levelName, hasScratch, hasPlacement, isALevel, studentUnitTitle } =
   typeof module === "object" && module.exports ? require("./curriculum.js") : self.Curriculum;
 
 // ===================== Adaptive logic (pure functions) =====================
@@ -1019,7 +1019,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   const levelIn = (u) => (progress.units[u] ? progress.units[u].level : null);
 
   Store.setupDisplaySettings();
-  const pageTitle = preview ? "Teacher practice" : inAssignment ? "Assignment: " + (assignment ? assignment.title : "not found") : endless ? "Endless mode" : unit.title;
+  const pageTitle = preview ? "Teacher practice" : inAssignment ? "Assignment: " + (assignment ? assignment.title : "not found") : endless ? "Endless mode" : studentUnitTitle(unit.id); // "Validation (old version)" for the old unit
   document.title = pageTitle + " – Python Practice";
   document.getElementById("unit-title").textContent = pageTitle;
   document.getElementById("student-name").textContent = student.name;

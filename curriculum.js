@@ -381,6 +381,23 @@
   const A_LEVEL_UNIT_IDS = (UNIT_GROUPS.find((g) => g.id === "a-level") || { units: [] }).units;
   const isALevel = (unitId) => A_LEVEL_UNIT_IDS.includes(unitId);
 
+  // ---------- The old Validation unit ----------
+  // The five Validation units (one for each kind of check) replaced it. It is kept as it was, with its tasks and saved
+  // progress, but a student only sees it once they have started it, with "(old version)" after its name. The student
+  // pages (home.js, progress.js, endless.js, the practice page's title) use these; teachers see every unit as before.
+  // "Started": any saved state in the unit (its level, placement, passed tasks, task log or history), or any attempt in it.
+  const OLD_UNITS = ["validation"];
+  const OLD_UNIT_NOTE = "(old version)";
+  function hasStartedUnit(unitId, progress, attempts) {
+    const s = progress && progress.units ? progress.units[unitId] : null;
+    if (s && (s.level != null || s.placement || Object.keys(s.passedFingerprints || {}).length || Object.keys(s.log || {}).length || (s.history || []).length)) return true;
+    return (attempts || []).some((a) => a.unit === unitId || (a.units || []).includes(unitId));
+  }
+  // Whether a student sees a unit on their pages: every unit, except an old one they haven't started.
+  const studentSeesUnit = (unitId, progress, attempts) => !OLD_UNITS.includes(unitId) || hasStartedUnit(unitId, progress, attempts);
+  // A unit's name as a student sees it: "Validation (old version)" for the old unit.
+  const studentUnitTitle = (unitId) => unitTitle(unitId) + (OLD_UNITS.includes(unitId) ? " " + OLD_UNIT_NOTE : "");
+
   // A class's stage (classes.stage, migration 0013): which unit groups its students' menu opens by default, and which
   // units the teacher's Students page shows. Classes made before 0013, and local mode, are GCSE.
   const STAGES = {
@@ -394,5 +411,6 @@
   const stageUnits = (id) => UNITS.map((u) => u.id).filter((u) => UNIT_GROUPS.some((g) => stageGroups(id).includes(g.id) && g.units.includes(u)));
 
   return { UNITS, UNIT_GROUPS, LEVELS, TYPE_INFO, SCRATCH_LEVEL, unitById, unitTitle, levelName, levelType, levelTypes, hasScratch, hasPlacement,
-    A_LEVEL_UNIT_IDS, isALevel, STAGES, DEFAULT_STAGE, stageOf, stageGroups, stageUnits };
+    A_LEVEL_UNIT_IDS, isALevel, STAGES, DEFAULT_STAGE, stageOf, stageGroups, stageUnits,
+    OLD_UNITS, OLD_UNIT_NOTE, hasStartedUnit, studentSeesUnit, studentUnitTitle };
 });

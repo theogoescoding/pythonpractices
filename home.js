@@ -169,11 +169,13 @@ Store.whenReady(function () {
 
   // The units under their group headings (Curriculum.UNIT_GROUPS), in the same order as UNITS. A unit missing from
   // every group is still shown, in a last group, so no unit can disappear from the menu. A group with no units isn't shown.
-  function groupsToShow() {
+  // The old Validation unit is only shown to a student who has started it (Curriculum.studentSeesUnit).
+  function groupsToShow(progress, attempts) {
+    const seen = UNITS.filter((u) => self.Curriculum.studentSeesUnit(u.id, progress, attempts));
     const listed = new Set(self.Curriculum.UNIT_GROUPS.flatMap((g) => g.units));
-    const groups = self.Curriculum.UNIT_GROUPS.map((g) => Object.assign({}, g, { units: UNITS.filter((u) => g.units.includes(u.id)) }))
+    const groups = self.Curriculum.UNIT_GROUPS.map((g) => Object.assign({}, g, { units: seen.filter((u) => g.units.includes(u.id)) }))
       .filter((g) => g.units.length);
-    const others = UNITS.filter((u) => !listed.has(u.id));
+    const others = seen.filter((u) => !listed.has(u.id));
     if (others.length) groups.push({ id: "other", title: "More units", units: others });
     return groups;
   }
@@ -189,9 +191,9 @@ Store.whenReady(function () {
     // open any section. Local mode has no class, so every section starts open as before.
     bandsShown = {};
     const stage = Store.classStage(student.id);
-    if (stage) Collapse.resetForStage(COLLAPSED_KEY, stage, groupsToShow().map((g) => g.id).filter((id) => !self.Curriculum.stageGroups(stage).includes(id)));
+    if (stage) Collapse.resetForStage(COLLAPSED_KEY, stage, groupsToShow(progress, studentAttempts).map((g) => g.id).filter((id) => !self.Curriculum.stageGroups(stage).includes(id)));
     const collapsed = Collapse.collapsedIds(COLLAPSED_KEY);
-    $("unit-list").innerHTML = groupsToShow().map((g) => {
+    $("unit-list").innerHTML = groupsToShow(progress, studentAttempts).map((g) => {
       const open = !collapsed.includes(g.id);
       const list = (units, sub) => '<ul class="unit-list">' + units.map((u) => unitCard(u, progress, sub)).join("") + "</ul>";
       // Subsections (the A-level group's "Programming techniques"): a heading over each one's units, in their order.
@@ -222,7 +224,7 @@ Store.whenReady(function () {
   function unitCard(u, progress, sub) {
     const count = tasks.filter((t) => t.unit === u.id).length;
     const h = sub ? "h5" : "h4";
-    const title = "<" + h + ">" + esc(u.title) + "</" + h + "><p>" + esc(u.description) + "</p>" + (u.note ? '<p class="unit-note small">' + esc(u.note) + "</p>" : "");
+    const title = "<" + h + ">" + esc(self.Curriculum.studentUnitTitle(u.id)) + "</" + h + "><p>" + esc(u.description) + "</p>" + (u.note ? '<p class="unit-note small">' + esc(u.note) + "</p>" : "");
     const s = progress.units[u.id];
     const level = unitLevel(progress, u.id);
     let levelText;

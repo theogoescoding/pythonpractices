@@ -124085,7 +124085,7 @@
     "title": "Zero goals",
     "description": "input() always gives a string, even when the user types a number. The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "goals = input(\"{{[\"Goals scored\",\"Points scored\",\"Runs scored\"][p0]}}: \")\nif goals == \"\":\n    print(\"{{[\"Goals\",\"Points\",\"Runs\"][p0]}} are missing\")\nelse:\n    print(\"{{[\"Goals\",\"Points\",\"Runs\"][p0]}} saved:\", goals)",
+    "solution": "goals = input(\"{{[\"Goals scored\",\"Points scored\",\"Runs scored\",\"Tries scored\"][p0]}}: \")\nif goals == \"\":\n    print(\"{{[\"Goals\",\"Points\",\"Runs\",\"Tries\"][p0]}} are missing\")\nelse:\n    print(\"{{[\"Goals\",\"Points\",\"Runs\",\"Tries\"][p0]}} saved:\", goals)",
     "optionCount": 3,
     "tests": [
       {
@@ -124112,7 +124112,7 @@
       "p0": {
         "int": [
           0,
-          2
+          3
         ]
       },
       "ts": {
@@ -124143,7 +124143,7 @@
     "title": "Two spaces",
     "description": "This presence check doesn't use .strip(). The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "band = input(\"{{[\"Band\",\"Choir\",\"Group\"][p0]}} name: \")\nif band == \"\":\n    print(\"{{[\"Band\",\"Choir\",\"Group\"][p0]}} name is missing\")\nelse:\n    print(\"{{[\"Band\",\"Choir\",\"Group\"][p0]}} saved\")",
+    "solution": "band = input(\"{{[\"Band\",\"Choir\",\"Group\",\"Duo\"][p0]}} name: \")\nif band == \"\":\n    print(\"{{[\"Band\",\"Choir\",\"Group\",\"Duo\"][p0]}} name is missing\")\nelse:\n    print(\"{{[\"Band\",\"Choir\",\"Group\",\"Duo\"][p0]}} saved\")",
     "optionCount": 3,
     "tests": [
       {
@@ -124172,7 +124172,7 @@
       "p0": {
         "int": [
           0,
-          2
+          3
         ]
       },
       "ts": {
@@ -124203,7 +124203,7 @@
     "title": "Spaces taken off",
     "description": "This presence check uses .strip() first. The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "shop = input(\"{{[\"Shop\",\"Cafe\",\"Stall\"][p0]}} name: \").strip()\nif shop == \"\":\n    print(\"{{[\"Shop\",\"Cafe\",\"Stall\"][p0]}} name is missing\")\nelse:\n    print(\"{{[\"Shop\",\"Cafe\",\"Stall\"][p0]}}:\", shop)",
+    "solution": "shop = input(\"{{[\"Shop\",\"Cafe\",\"Stall\",\"Kiosk\"][p0]}} name: \").strip()\nif shop == \"\":\n    print(\"{{[\"Shop\",\"Cafe\",\"Stall\",\"Kiosk\"][p0]}} name is missing\")\nelse:\n    print(\"{{[\"Shop\",\"Cafe\",\"Stall\",\"Kiosk\"][p0]}}:\", shop)",
     "optionCount": 3,
     "tests": [
       {
@@ -124232,7 +124232,7 @@
       "p0": {
         "int": [
           0,
-          2
+          3
         ]
       },
       "ts": {
@@ -124263,7 +124263,7 @@
     "title": "Not empty",
     "description": "This presence check uses != (not equal to). The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "title = input(\"{{[\"Song title\",\"Album title\",\"Poem title\"][p0]}}: \")\nif title != \"\":\n    print(\"Playing\", title)\nelse:\n    print(\"Type a {{[\"song title\",\"album title\",\"poem title\"][p0]}}\")",
+    "solution": "title = input(\"{{[\"Song title\",\"Album title\",\"Poem title\",\"Story title\"][p0]}}: \")\nif title != \"\":\n    print(\"Playing\", title)\nelse:\n    print(\"Type a {{[\"song title\",\"album title\",\"poem title\",\"story title\"][p0]}}\")",
     "optionCount": 3,
     "tests": [
       {
@@ -124291,7 +124291,7 @@
       "p0": {
         "int": [
           0,
-          2
+          3
         ]
       },
       "ts": {
@@ -124319,9 +124319,9 @@
     "derived": true,
     "level": 3,
     "type": "fill",
-    "title": "Strip the colour",
+    "title": "Strip the {{[\"colour\",\"paint\",\"ink\",\"hue\"][p0]}}",
     "description": "Fill in the blank so the answer has its spaces taken off before the presence check.",
-    "starter": "colour = input(\"Colour: \").____()\nif colour == \"\":\n    print(\"Pick a colour\")\nelse:\n    print(\"Colour:\", colour)",
+    "starter": "{{[\"colour\",\"paint\",\"ink\",\"hue\"][p0]}} = input(\"{{[\"Colour\",\"Paint\",\"Ink\",\"Hue\"][p0]}}: \").____()\nif {{[\"colour\",\"paint\",\"ink\",\"hue\"][p0]}} == \"\":\n    print(\"Pick a {{[\"colour\",\"paint\",\"ink\",\"hue\"][p0]}}\")\nelse:\n    print(\"{{[\"Colour\",\"Paint\",\"Ink\",\"Hue\"][p0]}}:\", {{[\"colour\",\"paint\",\"ink\",\"hue\"][p0]}})",
     "answers": [
       "strip"
     ],
@@ -124353,8 +124353,14 @@
     "skills": [
       "strip-spaces"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -124366,6 +124372,7 @@
       "TS": "[[[\" blue \"],[\"   \"]],[[\"red  \"],[\"  \"]],[[\"  green\"],[\" \"]],[[\"pink\"],[\"    \"]],[[\" grey \"],[\"\"]],[[\"  gold \"],[\"   \"]],[[\"teal \"],[\"  \"]],[[\" plum\"],[\" \"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -124378,9 +124385,9 @@
     "derived": true,
     "level": 3,
     "type": "fill",
-    "title": "Form tutor",
+    "title": "{{[\"Form tutor\",\"Class teacher\",\"Head of year\",\"Sports coach\"][p0]}}",
     "description": "Fill in the blank so the presence check refuses an empty answer.",
-    "starter": "tutor = input(\"Form tutor: \").strip()\nif tutor == ____:\n    print(\"Tutor is missing\")\nelse:\n    print(\"Tutor:\", tutor)",
+    "starter": "tutor = input(\"{{[\"Form tutor\",\"Class teacher\",\"Head of year\",\"Sports coach\"][p0]}}: \").strip()\nif tutor == ____:\n    print(\"{{[\"Tutor\",\"Teacher\",\"Head of year\",\"Coach\"][p0]}} is missing\")\nelse:\n    print(\"{{[\"Tutor\",\"Teacher\",\"Head of year\",\"Coach\"][p0]}}:\", tutor)",
     "answers": [
       "\"\""
     ],
@@ -124411,8 +124418,14 @@
     "skills": [
       "presence"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -124424,6 +124437,7 @@
       "TS": "[[[\"Mr Patel\"],[\"\"]],[[\"Ms Khan\"],[\"  \"]],[[\"Mr Lee\"],[\" \"]],[[\"Dr Okafor\"],[\"\"]],[[\"Mrs Shah\"],[\"  \"]],[[\"Mr Hughes\"],[\" \"]],[[\"Ms Rossi\"],[\"\"]],[[\"Mrs Ade\"],[\"  \"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -124437,8 +124451,8 @@
     "level": 3,
     "type": "fill",
     "title": "Keep the stripped answer",
-    "description": "Fill in the blank so the stripped answer is stored back in fruit before the presence check.",
-    "starter": "fruit = input(\"Favourite fruit: \")\nfruit = fruit.____()\nif fruit == \"\":\n    print(\"Fruit is missing\")\nelse:\n    print(\"Fruit:\", fruit)",
+    "description": "Fill in the blank so the stripped answer is stored back in {{[\"fruit\",\"juice\",\"smoothie\",\"sorbet\"][p0]}} before the presence check.",
+    "starter": "{{[\"fruit\",\"juice\",\"smoothie\",\"sorbet\"][p0]}} = input(\"Favourite {{[\"fruit\",\"juice\",\"smoothie\",\"sorbet\"][p0]}}: \")\n{{[\"fruit\",\"juice\",\"smoothie\",\"sorbet\"][p0]}} = {{[\"fruit\",\"juice\",\"smoothie\",\"sorbet\"][p0]}}.____()\nif {{[\"fruit\",\"juice\",\"smoothie\",\"sorbet\"][p0]}} == \"\":\n    print(\"{{[\"Fruit\",\"Juice\",\"Smoothie\",\"Sorbet\"][p0]}} is missing\")\nelse:\n    print(\"{{[\"Fruit\",\"Juice\",\"Smoothie\",\"Sorbet\"][p0]}}:\", {{[\"fruit\",\"juice\",\"smoothie\",\"sorbet\"][p0]}})",
     "answers": [
       "strip"
     ],
@@ -124460,7 +124474,7 @@
     ],
     "hints": [
       ".strip() gives a new string with the spaces taken off.",
-      "fruit = fruit.strip() keeps that new string."
+      "{{[\"fruit\",\"juice\",\"smoothie\",\"sorbet\"][p0]}} = {{[\"fruit\",\"juice\",\"smoothie\",\"sorbet\"][p0]}}.strip() keeps that new string."
     ],
     "tags": [
       "presence check",
@@ -124474,11 +124488,17 @@
     "buggy_variants": [
       {
         "misconception": "STRING_METHOD_NOT_SAVED",
-        "code": "fruit = input(\"Favourite fruit: \")\nfruit.strip()\nif fruit == \"\":\n    print(\"Fruit is missing\")\nelse:\n    print(\"Fruit:\", fruit)"
+        "code": "{{[\"fruit\",\"juice\",\"smoothie\",\"sorbet\"][p0]}} = input(\"Favourite {{[\"fruit\",\"juice\",\"smoothie\",\"sorbet\"][p0]}}: \")\n{{[\"fruit\",\"juice\",\"smoothie\",\"sorbet\"][p0]}}.strip()\nif {{[\"fruit\",\"juice\",\"smoothie\",\"sorbet\"][p0]}} == \"\":\n    print(\"{{[\"Fruit\",\"Juice\",\"Smoothie\",\"Sorbet\"][p0]}} is missing\")\nelse:\n    print(\"{{[\"Fruit\",\"Juice\",\"Smoothie\",\"Sorbet\"][p0]}}:\", {{[\"fruit\",\"juice\",\"smoothie\",\"sorbet\"][p0]}})"
       }
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -124490,6 +124510,7 @@
       "TS": "[[[\"  kiwi\"],[\"  \"]],[[\"plum \"],[\"   \"]],[[\" fig \"],[\" \"]],[[\"mango\"],[\"  \"]],[[\"  lime\"],[\"   \"]],[[\" pear \"],[\" \"]],[[\"date  \"],[\"  \"]],[[\"apple\"],[\"   \"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -124502,9 +124523,9 @@
     "derived": true,
     "level": 4,
     "type": "fill",
-    "title": "Which street?",
-    "description": "Fill in both blanks so the program keeps asking for a street until one is typed: a presence check in a while loop.",
-    "starter": "street = input(\"Street: \").strip()\n____ street == \"\":\n    print(\"Please type a street\")\n    street = input(\"Street: \").____()\nprint(\"Street:\", street)",
+    "title": "Which {{[\"street\",\"address\",\"location\",\"destination\"][p0]}}?",
+    "description": "Fill in both blanks so the program keeps asking for a {{[\"street\",\"address\",\"location\",\"destination\"][p0]}} until one is typed: a presence check in a while loop.",
+    "starter": "{{[\"street\",\"address\",\"location\",\"destination\"][p0]}} = input(\"{{[\"Street\",\"Address\",\"Location\",\"Destination\"][p0]}}: \").strip()\n____ {{[\"street\",\"address\",\"location\",\"destination\"][p0]}} == \"\":\n    print(\"Please type a {{[\"street\",\"address\",\"location\",\"destination\"][p0]}}\")\n    {{[\"street\",\"address\",\"location\",\"destination\"][p0]}} = input(\"{{[\"Street\",\"Address\",\"Location\",\"Destination\"][p0]}}: \").____()\nprint(\"{{[\"Street\",\"Address\",\"Location\",\"Destination\"][p0]}}:\", {{[\"street\",\"address\",\"location\",\"destination\"][p0]}})",
     "answers": [
       "while",
       "strip"
@@ -124542,11 +124563,17 @@
     "buggy_variants": [
       {
         "misconception": "REASK_CONDITION_UNCHANGED",
-        "code": "street = input(\"Street: \").strip()\nwhile street == \"\":\n    print(\"Please type a street\")\n    new_street = input(\"Street: \").strip()\nprint(\"Street:\", street)"
+        "code": "{{[\"street\",\"address\",\"location\",\"destination\"][p0]}} = input(\"{{[\"Street\",\"Address\",\"Location\",\"Destination\"][p0]}}: \").strip()\nwhile {{[\"street\",\"address\",\"location\",\"destination\"][p0]}} == \"\":\n    print(\"Please type a {{[\"street\",\"address\",\"location\",\"destination\"][p0]}}\")\n    new_street = input(\"{{[\"Street\",\"Address\",\"Location\",\"Destination\"][p0]}}: \").strip()\nprint(\"{{[\"Street\",\"Address\",\"Location\",\"Destination\"][p0]}}:\", {{[\"street\",\"address\",\"location\",\"destination\"][p0]}})"
       }
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -124558,6 +124585,7 @@
       "TS": "[[[\"Mill Lane\"],[\"  \",\"Mill Lane\"]],[[\"Park Road\"],[\"\",\"Park Road\"]],[[\"Hill Street\"],[\" \",\"Hill Street\"]],[[\"Elm Close\"],[\"   \",\"Elm Close\"]],[[\"Brook Way\"],[\"\",\"Brook Way\"]],[[\"Oak Avenue\"],[\"  \",\"Oak Avenue\"]],[[\"Quay Side\"],[\" \",\"Quay Side\"]],[[\"Rose Walk\"],[\"    \",\"Rose Walk\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -124570,12 +124598,12 @@
     "derived": true,
     "level": 4,
     "type": "fill",
-    "title": "Pick a captain",
-    "description": "Fill in both blanks so the program keeps asking until a captain is typed, storing each new answer where the loop checks it.",
-    "starter": "captain = input(\"Captain: \").strip()\nwhile captain == ____:\n    print(\"A team needs a captain\")\n    ____ = input(\"Captain: \").strip()\nprint(\"Captain:\", captain)",
+    "title": "Pick a {{[\"captain\",\"goalkeeper\",\"leader\",\"referee\"][p0]}}",
+    "description": "Fill in both blanks so the program keeps asking until a {{[\"captain\",\"goalkeeper\",\"leader\",\"referee\"][p0]}} is typed, storing each new answer where the loop checks it.",
+    "starter": "{{[\"captain\",\"goalkeeper\",\"leader\",\"referee\"][p0]}} = input(\"{{[\"Captain\",\"Goalkeeper\",\"Leader\",\"Referee\"][p0]}}: \").strip()\nwhile {{[\"captain\",\"goalkeeper\",\"leader\",\"referee\"][p0]}} == ____:\n    print(\"A team needs a {{[\"captain\",\"goalkeeper\",\"leader\",\"referee\"][p0]}}\")\n    ____ = input(\"{{[\"Captain\",\"Goalkeeper\",\"Leader\",\"Referee\"][p0]}}: \").strip()\nprint(\"{{[\"Captain\",\"Goalkeeper\",\"Leader\",\"Referee\"][p0]}}:\", {{[\"captain\",\"goalkeeper\",\"leader\",\"referee\"][p0]}})",
     "answers": [
       "\"\"",
-      "captain"
+      "{{[\"captain\",\"goalkeeper\",\"leader\",\"referee\"][p0]}}"
     ],
     "tests": [
       {
@@ -124594,8 +124622,8 @@
       }
     ],
     "hints": [
-      "The loop runs while captain is still the empty string.",
-      "Store the new answer in captain, or the condition never changes."
+      "The loop runs while {{[\"captain\",\"goalkeeper\",\"leader\",\"referee\"][p0]}} is still the empty string.",
+      "Store the new answer in {{[\"captain\",\"goalkeeper\",\"leader\",\"referee\"][p0]}}, or the condition never changes."
     ],
     "tags": [
       "presence check",
@@ -124610,11 +124638,17 @@
     "buggy_variants": [
       {
         "misconception": "REASK_CONDITION_UNCHANGED",
-        "code": "captain = input(\"Captain: \").strip()\nwhile captain == \"\":\n    print(\"A team needs a captain\")\n    answer = input(\"Captain: \").strip()\nprint(\"Captain:\", captain)"
+        "code": "{{[\"captain\",\"goalkeeper\",\"leader\",\"referee\"][p0]}} = input(\"{{[\"Captain\",\"Goalkeeper\",\"Leader\",\"Referee\"][p0]}}: \").strip()\nwhile {{[\"captain\",\"goalkeeper\",\"leader\",\"referee\"][p0]}} == \"\":\n    print(\"A team needs a {{[\"captain\",\"goalkeeper\",\"leader\",\"referee\"][p0]}}\")\n    answer = input(\"{{[\"Captain\",\"Goalkeeper\",\"Leader\",\"Referee\"][p0]}}: \").strip()\nprint(\"{{[\"Captain\",\"Goalkeeper\",\"Leader\",\"Referee\"][p0]}}:\", {{[\"captain\",\"goalkeeper\",\"leader\",\"referee\"][p0]}})"
       }
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -124626,6 +124660,7 @@
       "TS": "[[[\"Jo\"],[\"\",\"Jo\"]],[[\"Ravi\"],[\"  \",\"Ravi\"]],[[\"Bea\"],[\" \",\"Bea\"]],[[\"Tariq\"],[\"\",\"Tariq\"]],[[\"Wen\"],[\"   \",\"Wen\"]],[[\"Lola\"],[\"\",\"Lola\"]],[[\"Femi\"],[\"  \",\"Femi\"]],[[\"Ines\"],[\" \",\"Ines\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -124638,9 +124673,9 @@
     "derived": true,
     "level": 4,
     "type": "fill",
-    "title": "Emergency contact",
+    "title": "Emergency {{[\"contact\",\"carer\",\"guardian\",\"helper\"][p0]}}",
     "description": "Fill in both blanks: strip the first answer, and keep asking while it is empty.",
-    "starter": "contact = input(\"Emergency contact: \").____()\nwhile contact == ____:\n    print(\"A contact is needed\")\n    contact = input(\"Emergency contact: \").strip()\nprint(\"Contact saved:\", contact)",
+    "starter": "{{[\"contact\",\"carer\",\"guardian\",\"helper\"][p0]}} = input(\"Emergency {{[\"contact\",\"carer\",\"guardian\",\"helper\"][p0]}}: \").____()\nwhile {{[\"contact\",\"carer\",\"guardian\",\"helper\"][p0]}} == ____:\n    print(\"A {{[\"contact\",\"carer\",\"guardian\",\"helper\"][p0]}} is needed\")\n    {{[\"contact\",\"carer\",\"guardian\",\"helper\"][p0]}} = input(\"Emergency {{[\"contact\",\"carer\",\"guardian\",\"helper\"][p0]}}: \").strip()\nprint(\"{{[\"Contact\",\"Carer\",\"Guardian\",\"Helper\"][p0]}} saved:\", {{[\"contact\",\"carer\",\"guardian\",\"helper\"][p0]}})",
     "answers": [
       "strip",
       "\"\""
@@ -124674,8 +124709,14 @@
       "presence",
       "re-ask"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -124687,6 +124728,7 @@
       "TS": "[[[\"Gran\"],[\"   \",\"Gran\"]],[[\"Uncle Raj\"],[\"  \",\"Uncle Raj\"]],[[\"Mum\"],[\" \",\"Mum\"]],[[\"Aunt Sue\"],[\"    \",\"Aunt Sue\"]],[[\"Dad\"],[\"  \",\"Dad\"]],[[\"Grandpa Joe\"],[\" \",\"Grandpa Joe\"]],[[\"Nan\"],[\"   \",\"Nan\"]],[[\"Cousin Al\"],[\"  \",\"Cousin Al\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -124699,12 +124741,12 @@
     "derived": true,
     "level": 5,
     "type": "parsons",
-    "title": "Hobby",
-    "description": "Arrange the lines so the program strips the spaces off the hobby, does a presence check, and prints either way.\nOne line is not needed.",
+    "title": "{{[\"Hobby\",\"Interest\",\"Pastime\",\"Activity\"][p0]}}",
+    "description": "Arrange the lines so the program strips the spaces off the {{[\"hobby\",\"interest\",\"pastime\",\"activity\"][p0]}}, does a presence check, and prints either way.\nOne line is not needed.",
     "starter": "",
-    "solution": "hobby = input(\"Hobby: \").strip()\nif hobby == \"\":\n    print(\"Hobby is missing\")\nelse:\n    print(\"Hobby:\", hobby)",
+    "solution": "{{[\"hobby\",\"interest\",\"pastime\",\"activity\"][p0]}} = input(\"{{[\"Hobby\",\"Interest\",\"Pastime\",\"Activity\"][p0]}}: \").strip()\nif {{[\"hobby\",\"interest\",\"pastime\",\"activity\"][p0]}} == \"\":\n    print(\"{{[\"Hobby\",\"Interest\",\"Pastime\",\"Activity\"][p0]}} is missing\")\nelse:\n    print(\"{{[\"Hobby\",\"Interest\",\"Pastime\",\"Activity\"][p0]}}:\", {{[\"hobby\",\"interest\",\"pastime\",\"activity\"][p0]}})",
     "distractors": [
-      "hobby = input(\"Hobby: \")"
+      "{{[\"hobby\",\"interest\",\"pastime\",\"activity\"][p0]}} = input(\"{{[\"Hobby\",\"Interest\",\"Pastime\",\"Activity\"][p0]}}: \")"
     ],
     "tests": [
       {
@@ -124735,8 +124777,14 @@
       "strip-spaces",
       "presence"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -124748,6 +124796,7 @@
       "TS": "[[[\" chess \"],[\"   \"]],[[\"darts  \"],[\" \"]],[[\"  yoga\"],[\"    \"]],[[\" judo \"],[\"  \"]],[[\"drawing \"],[\"   \"]],[[\"  karate \"],[\" \"]],[[\"  origami\"],[\"    \"]],[[\" baking\"],[\"  \"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -124760,10 +124809,10 @@
     "derived": true,
     "level": 5,
     "type": "parsons",
-    "title": "Lunch choice",
-    "description": "Arrange the lines so lunch is booked only when a choice was typed (a presence check with !=).\nOne line is not needed.",
+    "title": "{{[\"Lunch\",\"Dinner\",\"Breakfast\",\"Supper\"][p0]}} choice",
+    "description": "Arrange the lines so {{[\"lunch\",\"dinner\",\"breakfast\",\"supper\"][p0]}} is booked only when a choice was typed (a presence check with !=).\nOne line is not needed.",
     "starter": "",
-    "solution": "meal = input(\"Lunch choice: \").strip()\nif meal != \"\":\n    print(\"Lunch booked:\", meal)\nelse:\n    print(\"No lunch chosen\")",
+    "solution": "meal = input(\"{{[\"Lunch\",\"Dinner\",\"Breakfast\",\"Supper\"][p0]}} choice: \").strip()\nif meal != \"\":\n    print(\"{{[\"Lunch\",\"Dinner\",\"Breakfast\",\"Supper\"][p0]}} booked:\", meal)\nelse:\n    print(\"No {{[\"lunch\",\"dinner\",\"breakfast\",\"supper\"][p0]}} chosen\")",
     "distractors": [
       "if meal != \" \":"
     ],
@@ -124796,8 +124845,14 @@
       "presence",
       "strip-spaces"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -124809,6 +124864,7 @@
       "TS": "[[[\"pasta\"],[\"  \"]],[[\"wrap\"],[\" \"]],[[\"jacket potato\"],[\"   \"]],[[\"rice\"],[\"  \"]],[[\"salad bowl\"],[\" \"]],[[\"falafel\"],[\"   \"]],[[\"bagel\"],[\"  \"]],[[\"stew\"],[\" \"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -124821,12 +124877,12 @@
     "derived": true,
     "level": 5,
     "type": "parsons",
-    "title": "Instrument",
+    "title": "{{[\"Instrument\",\"Choice\",\"Solo\",\"Part\"][p0]}}",
     "description": "Arrange the lines so the program stores the stripped answer, then does a presence check.\nOne line is not needed.",
     "starter": "",
-    "solution": "instrument = input(\"Instrument: \")\ninstrument = instrument.strip()\nif instrument == \"\":\n    print(\"Instrument is missing\")\nelse:\n    print(\"Playing:\", instrument)",
+    "solution": "{{[\"instrument\",\"choice\",\"solo\",\"part\"][p0]}} = input(\"{{[\"Instrument\",\"Choice\",\"Solo\",\"Part\"][p0]}}: \")\n{{[\"instrument\",\"choice\",\"solo\",\"part\"][p0]}} = {{[\"instrument\",\"choice\",\"solo\",\"part\"][p0]}}.strip()\nif {{[\"instrument\",\"choice\",\"solo\",\"part\"][p0]}} == \"\":\n    print(\"{{[\"Instrument\",\"Choice\",\"Solo\",\"Part\"][p0]}} is missing\")\nelse:\n    print(\"Playing:\", {{[\"instrument\",\"choice\",\"solo\",\"part\"][p0]}})",
     "distractors": [
-      "instrument.strip()"
+      "{{[\"instrument\",\"choice\",\"solo\",\"part\"][p0]}}.strip()"
     ],
     "tests": [
       {
@@ -124845,8 +124901,8 @@
       }
     ],
     "hints": [
-      ".strip() on its own line doesn't change instrument.",
-      "Store the result: instrument = instrument.strip()."
+      ".strip() on its own line doesn't change {{[\"instrument\",\"choice\",\"solo\",\"part\"][p0]}}.",
+      "Store the result: {{[\"instrument\",\"choice\",\"solo\",\"part\"][p0]}} = {{[\"instrument\",\"choice\",\"solo\",\"part\"][p0]}}.strip()."
     ],
     "tags": [
       "presence check",
@@ -124860,11 +124916,17 @@
     "buggy_variants": [
       {
         "misconception": "STRING_METHOD_NOT_SAVED",
-        "code": "instrument = input(\"Instrument: \")\ninstrument.strip()\nif instrument == \"\":\n    print(\"Instrument is missing\")\nelse:\n    print(\"Playing:\", instrument)"
+        "code": "{{[\"instrument\",\"choice\",\"solo\",\"part\"][p0]}} = input(\"{{[\"Instrument\",\"Choice\",\"Solo\",\"Part\"][p0]}}: \")\n{{[\"instrument\",\"choice\",\"solo\",\"part\"][p0]}}.strip()\nif {{[\"instrument\",\"choice\",\"solo\",\"part\"][p0]}} == \"\":\n    print(\"{{[\"Instrument\",\"Choice\",\"Solo\",\"Part\"][p0]}} is missing\")\nelse:\n    print(\"Playing:\", {{[\"instrument\",\"choice\",\"solo\",\"part\"][p0]}})"
       }
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -124876,6 +124938,7 @@
       "TS": "[[[\" drums\"],[\"  \"]],[[\"flute \"],[\"   \"]],[[\"  harp\"],[\" \"]],[[\" cello \"],[\"  \"]],[[\"violin\"],[\"   \"]],[[\"  oboe \"],[\" \"]],[[\"tuba \"],[\"  \"]],[[\" sitar\"],[\"   \"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -125132,10 +125195,10 @@
     "derived": true,
     "level": 7,
     "type": "write",
-    "title": "Favourite sport",
-    "description": "Strip the spaces off the answer, then add a presence check. If it is empty, print Sport is missing. Otherwise print it, for example:\nSport: tennis",
-    "starter": "sport = input(\"Favourite sport: \")\n# Strip the spaces, then add a presence check",
-    "solution": "sport = input(\"Favourite sport: \")\nsport = sport.strip()\nif sport == \"\":\n    print(\"Sport is missing\")\nelse:\n    print(\"Sport:\", sport)",
+    "title": "Favourite {{[\"sport\",\"game\",\"hobby\",\"activity\"][p0]}}",
+    "description": "Strip the spaces off the answer, then add a presence check. If it is empty, print {{[\"Sport\",\"Game\",\"Hobby\",\"Activity\"][p0]}} is missing. Otherwise print it, for example:\n{{[\"Sport\",\"Game\",\"Hobby\",\"Activity\"][p0]}}: tennis",
+    "starter": "{{[\"sport\",\"game\",\"hobby\",\"activity\"][p0]}} = input(\"Favourite {{[\"sport\",\"game\",\"hobby\",\"activity\"][p0]}}: \")\n# Strip the spaces, then add a presence check",
+    "solution": "{{[\"sport\",\"game\",\"hobby\",\"activity\"][p0]}} = input(\"Favourite {{[\"sport\",\"game\",\"hobby\",\"activity\"][p0]}}: \")\n{{[\"sport\",\"game\",\"hobby\",\"activity\"][p0]}} = {{[\"sport\",\"game\",\"hobby\",\"activity\"][p0]}}.strip()\nif {{[\"sport\",\"game\",\"hobby\",\"activity\"][p0]}} == \"\":\n    print(\"{{[\"Sport\",\"Game\",\"Hobby\",\"Activity\"][p0]}} is missing\")\nelse:\n    print(\"{{[\"Sport\",\"Game\",\"Hobby\",\"Activity\"][p0]}}:\", {{[\"sport\",\"game\",\"hobby\",\"activity\"][p0]}})",
     "tests": [
       {
         "inputs": [
@@ -125153,8 +125216,8 @@
       }
     ],
     "hints": [
-      "sport = sport.strip() keeps the stripped answer.",
-      "Then compare sport with \"\"."
+      "{{[\"sport\",\"game\",\"hobby\",\"activity\"][p0]}} = {{[\"sport\",\"game\",\"hobby\",\"activity\"][p0]}}.strip() keeps the stripped answer.",
+      "Then compare {{[\"sport\",\"game\",\"hobby\",\"activity\"][p0]}} with \"\"."
     ],
     "tags": [
       "presence check",
@@ -125165,8 +125228,14 @@
       "strip-spaces",
       "presence"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -125178,6 +125247,7 @@
       "TS": "[[[\"tennis \"],[\"  \"]],[[\" judo\"],[\" \"]],[[\"  rugby \"],[\"   \"]],[[\"golf\"],[\"  \"]],[[\" squash \"],[\" \"]],[[\"rowing  \"],[\"   \"]],[[\" fencing\"],[\"  \"]],[[\"darts \"],[\" \"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -125190,10 +125260,10 @@
     "derived": true,
     "level": 7,
     "type": "write",
-    "title": "Favourite book",
-    "description": "Add a presence check that ignores spaces. If the book is blank, print Book is missing. Otherwise print it without its spaces, for example:\nBook: Matilda",
-    "starter": "book = input(\"Favourite book: \")\n# Add a presence check here",
-    "solution": "book = input(\"Favourite book: \")\nif book.strip() == \"\":\n    print(\"Book is missing\")\nelse:\n    print(\"Book:\", book.strip())",
+    "title": "Favourite {{[\"book\",\"film\",\"comic\",\"poem\"][p0]}}",
+    "description": "Add a presence check that ignores spaces. If the {{[\"book\",\"film\",\"comic\",\"poem\"][p0]}} is blank, print {{[\"Book\",\"Film\",\"Comic\",\"Poem\"][p0]}} is missing. Otherwise print it without its spaces, for example:\n{{[\"Book\",\"Film\",\"Comic\",\"Poem\"][p0]}}: Matilda",
+    "starter": "{{[\"book\",\"film\",\"comic\",\"poem\"][p0]}} = input(\"Favourite {{[\"book\",\"film\",\"comic\",\"poem\"][p0]}}: \")\n# Add a presence check here",
+    "solution": "{{[\"book\",\"film\",\"comic\",\"poem\"][p0]}} = input(\"Favourite {{[\"book\",\"film\",\"comic\",\"poem\"][p0]}}: \")\nif {{[\"book\",\"film\",\"comic\",\"poem\"][p0]}}.strip() == \"\":\n    print(\"{{[\"Book\",\"Film\",\"Comic\",\"Poem\"][p0]}} is missing\")\nelse:\n    print(\"{{[\"Book\",\"Film\",\"Comic\",\"Poem\"][p0]}}:\", {{[\"book\",\"film\",\"comic\",\"poem\"][p0]}}.strip())",
     "tests": [
       {
         "inputs": [
@@ -125211,8 +125281,8 @@
       }
     ],
     "hints": [
-      "book.strip() == \"\" is True for an answer of only spaces.",
-      "Print book.strip(), so no spaces are shown."
+      "{{[\"book\",\"film\",\"comic\",\"poem\"][p0]}}.strip() == \"\" is True for an answer of only spaces.",
+      "Print {{[\"book\",\"film\",\"comic\",\"poem\"][p0]}}.strip(), so no spaces are shown."
     ],
     "tags": [
       "presence check",
@@ -125223,8 +125293,14 @@
       "presence",
       "strip-spaces"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -125236,6 +125312,7 @@
       "TS": "[[[\"Matilda\"],[\" \"]],[[\" Holes\"],[\"  \"]],[[\"Wonder \"],[\"\"]],[[\"Coraline\"],[\" \"]],[[\" Skellig \"],[\"  \"]],[[\"Varjak Paw\"],[\"\"]],[[\"Pig-Heart Boy\"],[\" \"]],[[\"Room 13\"],[\"  \"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -125248,10 +125325,10 @@
     "derived": true,
     "level": 7,
     "type": "write",
-    "title": "Pen pal",
+    "title": "{{[\"Pen pal\",\"Cousin\",\"Penfriend\",\"Friend\"][p0]}}",
     "description": "Add a presence check. If the country is empty, print Country is missing. Otherwise print, for example:\nWriting to Kenya",
-    "starter": "country = input(\"Pen pal's country: \").strip()\n# Add a presence check here",
-    "solution": "country = input(\"Pen pal's country: \").strip()\nif country == \"\":\n    print(\"Country is missing\")\nelse:\n    print(\"Writing to\", country)",
+    "starter": "country = input(\"{{[\"Pen pal\",\"Cousin\",\"Penfriend\",\"Friend\"][p0]}}'s country: \").strip()\n# Add a presence check here",
+    "solution": "country = input(\"{{[\"Pen pal\",\"Cousin\",\"Penfriend\",\"Friend\"][p0]}}'s country: \").strip()\nif country == \"\":\n    print(\"Country is missing\")\nelse:\n    print(\"Writing to\", country)",
     "tests": [
       {
         "inputs": [
@@ -125279,8 +125356,14 @@
     "skills": [
       "presence"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -125292,6 +125375,7 @@
       "TS": "[[[\"  Kenya\"],[\"\"]],[[\"Peru\"],[\"  \"]],[[\" Japan \"],[\" \"]],[[\"Chile\"],[\"\"]],[[\"Ghana \"],[\"  \"]],[[\"  Nepal\"],[\" \"]],[[\"Fiji\"],[\"\"]],[[\" Oman\"],[\"  \"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -125304,10 +125388,10 @@
     "derived": true,
     "level": 8,
     "type": "write",
-    "title": "Film night",
-    "description": "Ask for a film title and strip the spaces off it. While it is blank, print Title can't be blank and ask again. Then print, for example:\nNow showing: Up",
+    "title": "{{[\"Film\",\"Movie\",\"Show\",\"Play\"][p0]}} night",
+    "description": "Ask for a {{[\"film\",\"movie\",\"show\",\"play\"][p0]}} title and strip the spaces off it. While it is blank, print Title can't be blank and ask again. Then print, for example:\nNow showing: Up",
     "starter": "# Write your program here",
-    "solution": "film = input(\"Film title: \").strip()\nwhile film == \"\":\n    print(\"Title can't be blank\")\n    film = input(\"Film title: \").strip()\nprint(\"Now showing:\", film)",
+    "solution": "{{[\"film\",\"movie\",\"show\",\"play\"][p0]}} = input(\"{{[\"Film\",\"Movie\",\"Show\",\"Play\"][p0]}} title: \").strip()\nwhile {{[\"film\",\"movie\",\"show\",\"play\"][p0]}} == \"\":\n    print(\"Title can't be blank\")\n    {{[\"film\",\"movie\",\"show\",\"play\"][p0]}} = input(\"{{[\"Film\",\"Movie\",\"Show\",\"Play\"][p0]}} title: \").strip()\nprint(\"Now showing:\", {{[\"film\",\"movie\",\"show\",\"play\"][p0]}})",
     "tests": [
       {
         "inputs": [
@@ -125325,8 +125409,8 @@
       }
     ],
     "hints": [
-      "The while loop keeps going while film is \"\".",
-      "Ask again inside the loop and store it in film."
+      "The while loop keeps going while {{[\"film\",\"movie\",\"show\",\"play\"][p0]}} is \"\".",
+      "Ask again inside the loop and store it in {{[\"film\",\"movie\",\"show\",\"play\"][p0]}}."
     ],
     "tags": [
       "presence check",
@@ -125341,11 +125425,17 @@
     "buggy_variants": [
       {
         "misconception": "REASK_CONDITION_UNCHANGED",
-        "code": "film = input(\"Film title: \").strip()\nwhile film == \"\":\n    print(\"Title can't be blank\")\n    title = input(\"Film title: \").strip()\nprint(\"Now showing:\", film)"
+        "code": "{{[\"film\",\"movie\",\"show\",\"play\"][p0]}} = input(\"{{[\"Film\",\"Movie\",\"Show\",\"Play\"][p0]}} title: \").strip()\nwhile {{[\"film\",\"movie\",\"show\",\"play\"][p0]}} == \"\":\n    print(\"Title can't be blank\")\n    title = input(\"{{[\"Film\",\"Movie\",\"Show\",\"Play\"][p0]}} title: \").strip()\nprint(\"Now showing:\", {{[\"film\",\"movie\",\"show\",\"play\"][p0]}})"
       }
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -125357,6 +125447,7 @@
       "TS": "[[[\"Up\"],[\"  \",\"Up\"]],[[\"Cars\"],[\"\",\"Cars\"]],[[\"Brave\"],[\" \",\"Brave\"]],[[\"Moana\"],[\"   \",\"Moana\"]],[[\"Coco\"],[\"\",\"  \",\"Coco\"]],[[\"Elf\"],[\" \",\"Elf\"]],[[\"Wall-E\"],[\"  \",\"Wall-E\"]],[[\"Soul\"],[\"\",\"Soul\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -125369,10 +125460,10 @@
     "derived": true,
     "level": 8,
     "type": "write",
-    "title": "Dish of the day",
-    "description": "Ask for the dish of the day. While it is blank or only spaces, print Type a dish and ask again. Then print it without its spaces, for example:\nToday's special: curry",
+    "title": "{{[\"Dish\",\"Meal\",\"Soup\",\"Pudding\"][p0]}} of the day",
+    "description": "Ask for the {{[\"dish\",\"meal\",\"soup\",\"pudding\"][p0]}} of the day. While it is blank or only spaces, print Type a {{[\"dish\",\"meal\",\"soup\",\"pudding\"][p0]}} and ask again. Then print it without its spaces, for example:\nToday's special: curry",
     "starter": "# Write your program here",
-    "solution": "dish = input(\"Dish of the day: \")\nwhile dish.strip() == \"\":\n    print(\"Type a dish\")\n    dish = input(\"Dish of the day: \")\nprint(\"Today's special:\", dish.strip())",
+    "solution": "{{[\"dish\",\"meal\",\"soup\",\"pudding\"][p0]}} = input(\"{{[\"Dish\",\"Meal\",\"Soup\",\"Pudding\"][p0]}} of the day: \")\nwhile {{[\"dish\",\"meal\",\"soup\",\"pudding\"][p0]}}.strip() == \"\":\n    print(\"Type a {{[\"dish\",\"meal\",\"soup\",\"pudding\"][p0]}}\")\n    {{[\"dish\",\"meal\",\"soup\",\"pudding\"][p0]}} = input(\"{{[\"Dish\",\"Meal\",\"Soup\",\"Pudding\"][p0]}} of the day: \")\nprint(\"Today's special:\", {{[\"dish\",\"meal\",\"soup\",\"pudding\"][p0]}}.strip())",
     "tests": [
       {
         "inputs": [
@@ -125390,8 +125481,8 @@
       }
     ],
     "hints": [
-      "dish.strip() == \"\" is True for blank answers and answers of only spaces.",
-      "Print dish.strip() at the end."
+      "{{[\"dish\",\"meal\",\"soup\",\"pudding\"][p0]}}.strip() == \"\" is True for blank answers and answers of only spaces.",
+      "Print {{[\"dish\",\"meal\",\"soup\",\"pudding\"][p0]}}.strip() at the end."
     ],
     "tags": [
       "presence check",
@@ -125402,8 +125493,14 @@
       "re-ask",
       "strip-spaces"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -125415,6 +125512,7 @@
       "TS": "[[[\"curry\"],[\" \",\"curry\"]],[[\"risotto\"],[\"  \",\" risotto\"]],[[\"chilli\"],[\"\",\"chilli \"]],[[\"paella\"],[\"   \",\"paella\"]],[[\"lasagne\"],[\" \",\"lasagne\"]],[[\"goulash\"],[\"  \",\"goulash\"]],[[\"ramen\"],[\"\",\" \",\"ramen\"]],[[\"tagine\"],[\" \",\"tagine\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -125430,7 +125528,7 @@
     "title": "Holiday plans",
     "description": "Ask where to go on holiday, stripping the spaces. Keep asking while the answer is empty, printing Where would you like to go? each time. Then print, for example:\nPacking for Rome",
     "starter": "# Write your program here",
-    "solution": "place = input(\"Holiday destination: \").strip()\nwhile place == \"\":\n    print(\"Where would you like to go?\")\n    place = input(\"Holiday destination: \").strip()\nprint(\"Packing for\", place)",
+    "solution": "place = input(\"{{[\"Holiday destination\",\"School trip destination\",\"Gap year destination\",\"Weekend away\"][p0]}}: \").strip()\nwhile place == \"\":\n    print(\"Where would you like to go?\")\n    place = input(\"{{[\"Holiday destination\",\"School trip destination\",\"Gap year destination\",\"Weekend away\"][p0]}}: \").strip()\nprint(\"Packing for\", place)",
     "tests": [
       {
         "inputs": [
@@ -125460,8 +125558,14 @@
       "presence",
       "re-ask"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -125473,6 +125577,7 @@
       "TS": "[[[\"Rome\"],[\"\",\"   \",\"Rome\"]],[[\"Paris\"],[\"\",\"Paris\"]],[[\"Oslo\"],[\"  \",\"Oslo\"]],[[\"Cairo\"],[\" \",\"\",\"Cairo\"]],[[\"Lima\"],[\"\",\"Lima\"]],[[\"Dublin\"],[\"  \",\"Dublin\"]],[[\"Seoul\"],[\"\",\"Seoul\"]],[[\"Tunis\"],[\" \",\"Tunis\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -125485,10 +125590,10 @@
     "derived": true,
     "level": 9,
     "type": "write",
-    "title": "Recipe card",
-    "description": "Ask for a recipe, then the number of servings, stripping the spaces off each. While the recipe is blank, print Recipe can't be blank and ask again; do the same for the servings (Servings can't be blank). Then cast the servings to an integer and print, for example:\n[[out:0:0]]",
+    "title": "{{[\"Recipe\",\"Dish\",\"Bake\",\"Meal\"][p0]}} card",
+    "description": "Ask for a {{[\"recipe\",\"dish\",\"bake\",\"meal\"][p0]}}, then the number of servings, stripping the spaces off each. While the {{[\"recipe\",\"dish\",\"bake\",\"meal\"][p0]}} is blank, print {{[\"Recipe\",\"Dish\",\"Bake\",\"Meal\"][p0]}} can't be blank and ask again; do the same for the servings (Servings can't be blank). Then cast the servings to an integer and print, for example:\n[[out:0:0]]",
     "starter": "# Write your program here",
-    "solution": "recipe = input(\"Recipe: \").strip()\nwhile recipe == \"\":\n    print(\"Recipe can't be blank\")\n    recipe = input(\"Recipe: \").strip()\nservings = input(\"Servings: \").strip()\nwhile servings == \"\":\n    print(\"Servings can't be blank\")\n    servings = input(\"Servings: \").strip()\nprint(recipe, \"for\", int(servings))",
+    "solution": "{{[\"recipe\",\"dish\",\"bake\",\"meal\"][p0]}} = input(\"{{[\"Recipe\",\"Dish\",\"Bake\",\"Meal\"][p0]}}: \").strip()\nwhile {{[\"recipe\",\"dish\",\"bake\",\"meal\"][p0]}} == \"\":\n    print(\"{{[\"Recipe\",\"Dish\",\"Bake\",\"Meal\"][p0]}} can't be blank\")\n    {{[\"recipe\",\"dish\",\"bake\",\"meal\"][p0]}} = input(\"{{[\"Recipe\",\"Dish\",\"Bake\",\"Meal\"][p0]}}: \").strip()\nservings = input(\"Servings: \").strip()\nwhile servings == \"\":\n    print(\"Servings can't be blank\")\n    servings = input(\"Servings: \").strip()\nprint({{[\"recipe\",\"dish\",\"bake\",\"meal\"][p0]}}, \"for\", int(servings))",
     "tests": [
       {
         "inputs": [
@@ -125522,10 +125627,10 @@
     "buggy_variants": [
       {
         "misconception": "EMPTY_AFTER_CAST",
-        "code": "recipe = input(\"Recipe: \").strip()\nwhile recipe == \"\":\n    print(\"Recipe can't be blank\")\n    recipe = input(\"Recipe: \").strip()\nservings = int(input(\"Servings: \"))\nwhile servings == \"\":\n    print(\"Servings can't be blank\")\n    servings = int(input(\"Servings: \"))\nprint(recipe, \"for\", servings)"
+        "code": "{{[\"recipe\",\"dish\",\"bake\",\"meal\"][p0]}} = input(\"{{[\"Recipe\",\"Dish\",\"Bake\",\"Meal\"][p0]}}: \").strip()\nwhile {{[\"recipe\",\"dish\",\"bake\",\"meal\"][p0]}} == \"\":\n    print(\"{{[\"Recipe\",\"Dish\",\"Bake\",\"Meal\"][p0]}} can't be blank\")\n    {{[\"recipe\",\"dish\",\"bake\",\"meal\"][p0]}} = input(\"{{[\"Recipe\",\"Dish\",\"Bake\",\"Meal\"][p0]}}: \").strip()\nservings = int(input(\"Servings: \"))\nwhile servings == \"\":\n    print(\"Servings can't be blank\")\n    servings = int(input(\"Servings: \"))\nprint({{[\"recipe\",\"dish\",\"bake\",\"meal\"][p0]}}, \"for\", servings)"
       }
     ],
-    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 4)",
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 4 || p0 !== 0)",
     "params": {
       "f": {
         "choice": [
@@ -125546,13 +125651,20 @@
           -3,
           3
         ]
+      },
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
       }
     },
     "values": {
       "a0": "Math.round(4 * f) + j0"
     },
     "fingerprintVars": [
-      "a0"
+      "a0",
+      "p0"
     ]
   },
   {
@@ -125564,8 +125676,8 @@
     "derived": true,
     "level": 9,
     "type": "write",
-    "title": "Bike hire",
-    "description": "Ask for a name, then the hours of bike hire. Strip each answer, and keep asking while it is blank, printing Please fill this in each time. Then print the cost at {{a0}} pounds an hour, for example:\n[[out:0:0]]",
+    "title": "{{[\"Bike\",\"Kayak\",\"Scooter\",\"Canoe\",\"Paddleboard\",\"Rowing boat\",\"Tandem\",\"Go-kart\"][p0]}} hire",
+    "description": "Ask for a name, then the hours of {{[\"bike\",\"kayak\",\"scooter\",\"canoe\",\"paddleboard\",\"rowing boat\",\"tandem\",\"go-kart\"][p0]}} hire. Strip each answer, and keep asking while it is blank, printing Please fill this in each time. Then print the cost at {{a0}} pounds an hour, for example:\n[[out:0:0]]",
     "starter": "# Write your program here",
     "solution": "name = input(\"Name: \").strip()\nwhile name == \"\":\n    print(\"Please fill this in\")\n    name = input(\"Name: \").strip()\nhours = input(\"Hours: \").strip()\nwhile hours == \"\":\n    print(\"Please fill this in\")\n    hours = input(\"Hours: \").strip()\nprint(\"Total for \" + name + \":\", int(hours) * {{a0}})",
     "tests": [
@@ -125597,7 +125709,7 @@
       "re-ask",
       "presence"
     ],
-    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 3)",
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 3 || p0 !== 0)",
     "params": {
       "f": {
         "choice": [
@@ -125615,16 +125727,23 @@
       },
       "j0": {
         "int": [
-          3,
-          12
+          -3,
+          3
+        ]
+      },
+      "p0": {
+        "int": [
+          0,
+          7
         ]
       }
     },
     "values": {
-      "a0": "j0"
+      "a0": "Math.round(3 * f) + j0"
     },
     "fingerprintVars": [
-      "a0"
+      "a0",
+      "p0"
     ]
   },
   {
@@ -125636,8 +125755,8 @@
     "derived": true,
     "level": 9,
     "type": "write",
-    "title": "Raffle tickets",
-    "description": "Ask for a name and then the number of raffle tickets. Keep asking for each while it is empty (after .strip()), printing Name is missing or Tickets are missing. Tickets cost 2 pounds each. Print, for example:\n[[out:0:0]]",
+    "title": "{{[\"Raffle\",\"Tombola\",\"Lottery\",\"Prize draw\",\"Sweepstake\",\"Lucky dip\",\"Bingo\",\"Quiz night\"][p0]}} tickets",
+    "description": "Ask for a name and then the number of {{[\"raffle\",\"tombola\",\"lottery\",\"prize draw\",\"sweepstake\",\"lucky dip\",\"bingo\",\"quiz night\"][p0]}} tickets. Keep asking for each while it is empty (after .strip()), printing Name is missing or Tickets are missing. Tickets cost 2 pounds each. Print, for example:\n[[out:0:0]]",
     "starter": "# Write your program here",
     "solution": "name = input(\"Name: \").strip()\nwhile name == \"\":\n    print(\"Name is missing\")\n    name = input(\"Name: \").strip()\ntickets = input(\"Tickets: \").strip()\nwhile tickets == \"\":\n    print(\"Tickets are missing\")\n    tickets = input(\"Tickets: \").strip()\nprint(name, \"pays\", int(tickets) * 2)",
     "tests": [
@@ -125668,7 +125787,7 @@
       "presence",
       "re-ask"
     ],
-    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 3)",
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 3 || p0 !== 0)",
     "params": {
       "f": {
         "choice": [
@@ -125686,16 +125805,23 @@
       },
       "j0": {
         "int": [
-          3,
-          12
+          -3,
+          3
+        ]
+      },
+      "p0": {
+        "int": [
+          0,
+          7
         ]
       }
     },
     "values": {
-      "a0": "j0"
+      "a0": "Math.round(3 * f) + j0"
     },
     "fingerprintVars": [
-      "a0"
+      "a0",
+      "p0"
     ]
   },
   {
@@ -125707,8 +125833,8 @@
     "derived": true,
     "level": 10,
     "type": "write",
-    "title": "Survey answers",
-    "description": "Write a function is_filled(text) that returns False if text is empty after .strip(), and True otherwise. Ask the three survey questions in the list, and count the answers that aren't filled in. Print, for example:\n[[out:0:0]]",
+    "title": "{{[\"Survey\",\"Quiz\",\"Poll\",\"Form\"][p0]}} answers",
+    "description": "Write a function is_filled(text) that returns False if text is empty after .strip(), and True otherwise. Ask the three {{[\"survey\",\"quiz\",\"poll\",\"form\"][p0]}} questions in the list, and count the answers that aren't filled in. Print, for example:\n[[out:0:0]]",
     "starter": "questions = [\"Favourite food: \", \"Favourite colour: \", \"Favourite pet: \"]\n# Write is_filled, then ask each question",
     "solution": "questions = [\"Favourite food: \", \"Favourite colour: \", \"Favourite pet: \"]\n\ndef is_filled(text):\n    if text.strip() == \"\":\n        return False\n    return True\n\nblank = 0\nfor question in questions:\n    answer = input(question)\n    if not is_filled(answer):\n        blank = blank + 1\nprint(blank, \"answers left blank\")",
     "tests": [
@@ -125740,8 +125866,14 @@
       "validation-function",
       "presence"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -125753,6 +125885,7 @@
       "TS": "[[[\"pizza\",\"\",\"  \"],[\"pizza\",\"red\",\"cat\"]],[[\"\",\"\",\"\"],[\"soup\",\"blue\",\"dog\"]],[[\"toast\",\"green\",\"hamster\"],[\"\",\" \",\"\"]],[[\"\",\"pink\",\" \"],[\"curry\",\"grey\",\"fish\"]],[[\"  \",\"\",\"owl\"],[\"  \",\" \",\"   \"]],[[\"salad\",\"gold\",\"pony\"],[\"\",\"lime\",\"\"]],[[\"\",\" \",\"   \"],[\"rice\",\"\",\"  \"]],[[\"\",\"navy\",\"\"],[\"pasta\",\"plum\",\"frog\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -125903,11 +126036,14 @@
     "derived": true,
     "level": 1,
     "type": "predict",
-    "title": "{{[\"Slices of pizza\",\"Slices of cake\",\"Slices of toast\"][p0]}}",
+    "title": "{{[\"Slices of pizza\",\"Slices of cake\",\"Slices of toast\",\"Slices of melon\"][p0]}}",
     "description": "A type check makes sure the answer can be turned into a whole number. .isdigit() is True only when every character is a digit. The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "slices = input(\"{{[\"Slices of pizza\",\"Slices of cake\",\"Slices of toast\"][p0]}}: \")\nif slices.isdigit():\n    print(\"Slices:\", int(slices))\nelse:\n    print(\"Slices must be a whole number\")",
+    "solution": "slices = input(\"{{[\"Slices of pizza\",\"Slices of cake\",\"Slices of toast\",\"Slices of melon\"][p0]}}: \")\nif slices.isdigit():\n    print(\"Slices:\", int(slices))\nelse:\n    print(\"Slices must be a whole number\")",
     "optionCount": 3,
+    "wrongOutputs": [
+      "{{TS[ts][0][0]}}"
+    ],
     "tests": [
       {
         "inputs": [
@@ -125934,7 +126070,7 @@
       "p0": {
         "int": [
           0,
-          2
+          3
         ]
       },
       "ts": {
@@ -125965,8 +126101,11 @@
     "title": "Sticker count",
     "description": "The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "{{[\"stickers\",\"badges\",\"marbles\"][p0]}} = input(\"{{[\"Stickers\",\"Badges\",\"Marbles\"][p0]}}: \")\nif {{[\"stickers\",\"badges\",\"marbles\"][p0]}}.isdigit():\n    print(\"You have\", int({{[\"stickers\",\"badges\",\"marbles\"][p0]}}), \"{{[\"stickers\",\"badges\",\"marbles\"][p0]}}\")\nelse:\n    print(\"Type a number of {{[\"stickers\",\"badges\",\"marbles\"][p0]}}\")",
+    "solution": "{{[\"stickers\",\"badges\",\"marbles\",\"stamps\"][p0]}} = input(\"{{[\"Stickers\",\"Badges\",\"Marbles\",\"Stamps\"][p0]}}: \")\nif {{[\"stickers\",\"badges\",\"marbles\",\"stamps\"][p0]}}.isdigit():\n    print(\"You have\", int({{[\"stickers\",\"badges\",\"marbles\",\"stamps\"][p0]}}), \"{{[\"stickers\",\"badges\",\"marbles\",\"stamps\"][p0]}}\")\nelse:\n    print(\"Type a number of {{[\"stickers\",\"badges\",\"marbles\",\"stamps\"][p0]}}\")",
     "optionCount": 3,
+    "wrongOutputs": [
+      "{{TS[ts][0][0]}}"
+    ],
     "tests": [
       {
         "inputs": [
@@ -125993,7 +126132,7 @@
       "p0": {
         "int": [
           0,
-          2
+          3
         ]
       },
       "ts": {
@@ -126021,11 +126160,14 @@
     "derived": true,
     "level": 1,
     "type": "predict",
-    "title": "{{[\"Eggs\",\"Apples\",\"Lemons\"][p0]}} in the box",
+    "title": "{{[\"Eggs\",\"Apples\",\"Lemons\",\"Oranges\"][p0]}} in the box",
     "description": "The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "eggs = input(\"{{[\"Eggs\",\"Apples\",\"Lemons\"][p0]}}: \")\nif eggs.isdigit():\n    print(\"{{[\"Eggs\",\"Apples\",\"Lemons\"][p0]}}:\", int(eggs))\nelse:\n    print(\"Use digits, not words\")",
+    "solution": "eggs = input(\"{{[\"Eggs\",\"Apples\",\"Lemons\",\"Oranges\"][p0]}}: \")\nif eggs.isdigit():\n    print(\"{{[\"Eggs\",\"Apples\",\"Lemons\",\"Oranges\"][p0]}}:\", int(eggs))\nelse:\n    print(\"Use digits, not words\")",
     "optionCount": 3,
+    "wrongOutputs": [
+      "{{TS[ts][0][0]}}"
+    ],
     "tests": [
       {
         "inputs": [
@@ -126052,7 +126194,7 @@
       "p0": {
         "int": [
           0,
-          2
+          3
         ]
       },
       "ts": {
@@ -126080,11 +126222,14 @@
     "derived": true,
     "level": 2,
     "type": "predict",
-    "title": "{{[\"Hours of sleep\",\"Hours of reading\",\"Hours of practice\"][p0]}}",
+    "title": "{{[\"Hours of sleep\",\"Hours of reading\",\"Hours of practice\",\"Hours of training\"][p0]}}",
     "description": "The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "hours = input(\"{{[\"Hours of sleep\",\"Hours of reading\",\"Hours of practice\"][p0]}}: \")\nif hours.isdigit():\n    print(\"{{[\"Sleep\",\"Reading\",\"Practice\"][p0]}}:\", int(hours), \"hours\")\nelse:\n    print(\"Hours must be a whole number\")",
+    "solution": "hours = input(\"{{[\"Hours of sleep\",\"Hours of reading\",\"Hours of practice\",\"Hours of training\"][p0]}}: \")\nif hours.isdigit():\n    print(\"{{[\"Sleep\",\"Reading\",\"Practice\",\"Training\"][p0]}}:\", int(hours), \"hours\")\nelse:\n    print(\"Hours must be a whole number\")",
     "optionCount": 3,
+    "wrongOutputs": [
+      "{{TS[ts][0][0]}}"
+    ],
     "tests": [
       {
         "inputs": [
@@ -126111,7 +126256,7 @@
       "p0": {
         "int": [
           0,
-          2
+          3
         ]
       },
       "ts": {
@@ -126142,8 +126287,11 @@
     "title": "Leading zeros",
     "description": "The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "row = input(\"{{[\"Row\",\"Gate\",\"Lane\"][p0]}} number: \")\nif row.isdigit():\n    print(\"{{[\"Row\",\"Gate\",\"Lane\"][p0]}}\", int(row))\nelse:\n    print(\"{{[\"Row\",\"Gate\",\"Lane\"][p0]}} numbers are digits only\")",
+    "solution": "row = input(\"{{[\"Row\",\"Gate\",\"Lane\",\"Seat\"][p0]}} number: \")\nif row.isdigit():\n    print(\"{{[\"Row\",\"Gate\",\"Lane\",\"Seat\"][p0]}}\", int(row))\nelse:\n    print(\"{{[\"Row\",\"Gate\",\"Lane\",\"Seat\"][p0]}} numbers are digits only\")",
     "optionCount": 3,
+    "wrongOutputs": [
+      "{{TS[ts][0][0]}}"
+    ],
     "tests": [
       {
         "inputs": [
@@ -126170,7 +126318,7 @@
       "p0": {
         "int": [
           0,
-          2
+          3
         ]
       },
       "ts": {
@@ -126201,8 +126349,11 @@
     "title": "Below zero",
     "description": "The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "change = input(\"Change in {{[\"score\",\"points\",\"stars\"][p0]}}: \")\nif change.isdigit():\n    print(\"New {{[\"score\",\"points\",\"stars\"][p0]}}:\", 20 + int(change))\nelse:\n    print(\"Not a whole number\")",
+    "solution": "change = input(\"Change in {{[\"score\",\"points\",\"stars\",\"goals\"][p0]}}: \")\nif change.isdigit():\n    print(\"New {{[\"score\",\"points\",\"stars\",\"goals\"][p0]}}:\", 20 + int(change))\nelse:\n    print(\"Not a whole number\")",
     "optionCount": 3,
+    "wrongOutputs": [
+      "{{TS[ts][0][0]}}"
+    ],
     "tests": [
       {
         "inputs": [
@@ -126231,7 +126382,7 @@
       "p0": {
         "int": [
           0,
-          2
+          3
         ]
       },
       "ts": {
@@ -126771,10 +126922,10 @@
     "derived": true,
     "level": 5,
     "type": "parsons",
-    "title": "Spare batteries",
-    "description": "Arrange the lines so the answer is checked, then cast, then {{a0}} more batteries are added.\nOne line is not needed.",
+    "title": "{{[\"Spare batteries\",\"Spare pencils\",\"Spare bulbs\",\"Spare fuses\"][p0]}}",
+    "description": "Arrange the lines so the answer is checked, then cast, then {{a0}} more {{[\"batteries\",\"pencils\",\"bulbs\",\"fuses\"][p0]}} are added.\nOne line is not needed.",
     "starter": "",
-    "solution": "spare = input(\"Spare batteries: \")\nif spare.isdigit():\n    print(\"After the new pack:\", int(spare) + {{a0}})\nelse:\n    print(\"Type a whole number\")",
+    "solution": "spare = input(\"{{[\"Spare batteries\",\"Spare pencils\",\"Spare bulbs\",\"Spare fuses\"][p0]}}: \")\nif spare.isdigit():\n    print(\"After the new pack:\", int(spare) + {{a0}})\nelse:\n    print(\"Type a whole number\")",
     "distractors": [
       "print(\"After the new pack:\", spare + {{a0}})"
     ],
@@ -126801,7 +126952,7 @@
     "skills": [
       "type-check"
     ],
-    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 4)",
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 4 || p0 !== 0)",
     "params": {
       "f": {
         "choice": [
@@ -126822,13 +126973,20 @@
           -3,
           3
         ]
+      },
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
       }
     },
     "values": {
       "a0": "Math.round(4 * f) + j0"
     },
     "fingerprintVars": [
-      "a0"
+      "a0",
+      "p0"
     ]
   },
   {
@@ -126840,12 +126998,12 @@
     "derived": true,
     "level": 5,
     "type": "parsons",
-    "title": "Goals this season",
-    "description": "Arrange the lines so the spaces are stripped, the type check runs, and the goals are printed.\nOne line is not needed.",
+    "title": "{{[\"Goals\",\"Points\",\"Wins\",\"Assists\"][p0]}} this season",
+    "description": "Arrange the lines so the spaces are stripped, the type check runs, and the {{[\"goals\",\"points\",\"wins\",\"assists\"][p0]}} are printed.\nOne line is not needed.",
     "starter": "",
-    "solution": "goals = input(\"Goals this season: \").strip()\nif goals.isdigit():\n    print(\"Goals:\", int(goals))\nelse:\n    print(\"Goals are a whole number\")",
+    "solution": "{{[\"goals\",\"points\",\"wins\",\"assists\"][p0]}} = input(\"{{[\"Goals\",\"Points\",\"Wins\",\"Assists\"][p0]}} this season: \").strip()\nif {{[\"goals\",\"points\",\"wins\",\"assists\"][p0]}}.isdigit():\n    print(\"{{[\"Goals\",\"Points\",\"Wins\",\"Assists\"][p0]}}:\", int({{[\"goals\",\"points\",\"wins\",\"assists\"][p0]}}))\nelse:\n    print(\"{{[\"Goals\",\"Points\",\"Wins\",\"Assists\"][p0]}} are a whole number\")",
     "distractors": [
-      "if goals.isdigit:"
+      "if {{[\"goals\",\"points\",\"wins\",\"assists\"][p0]}}.isdigit:"
     ],
     "tests": [
       {
@@ -126855,7 +127013,7 @@
       },
       {
         "inputs": [
-          "{{a0}} goals"
+          "{{a0}} {{[\"goals\",\"points\",\"wins\",\"assists\"][p0]}}"
         ]
       }
     ],
@@ -126871,7 +127029,7 @@
     "skills": [
       "type-check"
     ],
-    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 9)",
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 9 || p0 !== 0)",
     "params": {
       "f": {
         "choice": [
@@ -126892,13 +127050,20 @@
           -3,
           3
         ]
+      },
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
       }
     },
     "values": {
       "a0": "Math.round(9 * f) + j0"
     },
     "fingerprintVars": [
-      "a0"
+      "a0",
+      "p0"
     ]
   },
   {
@@ -127144,10 +127309,10 @@
     "derived": true,
     "level": 7,
     "type": "write",
-    "title": "Watering plants",
-    "description": "Add a type check. If plants is a whole number, cast it and print 2 cups for each plant, for example:\n[[out:0:0]]\nOtherwise print Plants must be a whole number.",
-    "starter": "plants = input(\"Plants: \")\n# Add a type check here",
-    "solution": "plants = input(\"Plants: \")\nif plants.isdigit():\n    print(\"Water needed:\", int(plants) * 2, \"cups\")\nelse:\n    print(\"Plants must be a whole number\")",
+    "title": "Watering {{[\"plants\",\"trees\",\"shrubs\",\"seedlings\"][p0]}}",
+    "description": "Add a type check. If {{[\"plants\",\"trees\",\"shrubs\",\"seedlings\"][p0]}} is a whole number, cast it and print 2 cups for each {{[\"plant\",\"tree\",\"shrub\",\"seedling\"][p0]}}, for example:\n[[out:0:0]]\nOtherwise print {{[\"Plants\",\"Trees\",\"Shrubs\",\"Seedlings\"][p0]}} must be a whole number.",
+    "starter": "{{[\"plants\",\"trees\",\"shrubs\",\"seedlings\"][p0]}} = input(\"{{[\"Plants\",\"Trees\",\"Shrubs\",\"Seedlings\"][p0]}}: \")\n# Add a type check here",
+    "solution": "{{[\"plants\",\"trees\",\"shrubs\",\"seedlings\"][p0]}} = input(\"{{[\"Plants\",\"Trees\",\"Shrubs\",\"Seedlings\"][p0]}}: \")\nif {{[\"plants\",\"trees\",\"shrubs\",\"seedlings\"][p0]}}.isdigit():\n    print(\"Water needed:\", int({{[\"plants\",\"trees\",\"shrubs\",\"seedlings\"][p0]}}) * 2, \"cups\")\nelse:\n    print(\"{{[\"Plants\",\"Trees\",\"Shrubs\",\"Seedlings\"][p0]}} must be a whole number\")",
     "tests": [
       {
         "inputs": [
@@ -127156,7 +127321,7 @@
       },
       {
         "inputs": [
-          "{{a0}} plants"
+          "{{a0}} {{[\"plants\",\"trees\",\"shrubs\",\"seedlings\"][p0]}}"
         ]
       }
     ],
@@ -127176,10 +127341,10 @@
     "buggy_variants": [
       {
         "misconception": "INPUT_NOT_INT",
-        "code": "plants = input(\"Plants: \")\nif plants.isdigit():\n    print(\"Water needed:\", plants * 2, \"cups\")\nelse:\n    print(\"Plants must be a whole number\")"
+        "code": "{{[\"plants\",\"trees\",\"shrubs\",\"seedlings\"][p0]}} = input(\"{{[\"Plants\",\"Trees\",\"Shrubs\",\"Seedlings\"][p0]}}: \")\nif {{[\"plants\",\"trees\",\"shrubs\",\"seedlings\"][p0]}}.isdigit():\n    print(\"Water needed:\", {{[\"plants\",\"trees\",\"shrubs\",\"seedlings\"][p0]}} * 2, \"cups\")\nelse:\n    print(\"{{[\"Plants\",\"Trees\",\"Shrubs\",\"Seedlings\"][p0]}} must be a whole number\")"
       }
     ],
-    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 4)",
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 4 || p0 !== 0)",
     "params": {
       "f": {
         "choice": [
@@ -127200,13 +127365,20 @@
           -3,
           3
         ]
+      },
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
       }
     },
     "values": {
       "a0": "Math.round(4 * f) + j0"
     },
     "fingerprintVars": [
-      "a0"
+      "a0",
+      "p0"
     ]
   },
   {
@@ -127295,8 +127467,8 @@
     "type": "write",
     "title": "Minutes to seconds",
     "description": "Add a type check. If the minutes are a whole number, print them in seconds, for example:\n[[out:0:0]]\nOtherwise print Use whole minutes.",
-    "starter": "minutes = input(\"Minutes: \")\n# Add a type check here",
-    "solution": "minutes = input(\"Minutes: \")\nif minutes.isdigit():\n    print(\"Seconds:\", int(minutes) * 60)\nelse:\n    print(\"Use whole minutes\")",
+    "starter": "minutes = input(\"{{[\"Minutes: \",\"Minutes of exercise: \",\"Minutes on the bus: \",\"Minutes of music: \"][p0]}}\")\n# Add a type check here",
+    "solution": "minutes = input(\"{{[\"Minutes: \",\"Minutes of exercise: \",\"Minutes on the bus: \",\"Minutes of music: \"][p0]}}\")\nif minutes.isdigit():\n    print(\"Seconds:\", int(minutes) * 60)\nelse:\n    print(\"Use whole minutes\")",
     "tests": [
       {
         "inputs": [
@@ -127321,7 +127493,7 @@
     "skills": [
       "type-check"
     ],
-    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && a1 > 0 && a0 < a1 && (a0 !== 3 || a1 !== 3.5)",
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && a1 > 0 && a0 < a1 && (a0 !== 3 || a1 !== 3.5 || p0 !== 0)",
     "params": {
       "f": {
         "choice": [
@@ -127342,6 +127514,12 @@
           -3,
           3
         ]
+      },
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
       }
     },
     "values": {
@@ -127350,7 +127528,8 @@
     },
     "fingerprintVars": [
       "a0",
-      "a1"
+      "a1",
+      "p0"
     ]
   },
   {
@@ -127362,10 +127541,10 @@
     "derived": true,
     "level": 8,
     "type": "write",
-    "title": "Rows of seats",
-    "description": "Strip the spaces off the answer. If it is then empty, print Rows are missing. If it is a whole number, cast it and print it, for example:\n[[out:0:0]]\nOtherwise print Rows must be a whole number.",
+    "title": "{{[\"Rows of seats\",\"Benches in the hall\",\"Tables in the canteen\",\"Lanes at the pool\"][p0]}}",
+    "description": "Strip the spaces off the answer. If it is then empty, print {{[\"Rows\",\"Benches\",\"Tables\",\"Lanes\"][p0]}} are missing. If it is a whole number, cast it and print it, for example:\n[[out:0:0]]\nOtherwise print {{[\"Rows\",\"Benches\",\"Tables\",\"Lanes\"][p0]}} must be a whole number.",
     "starter": "# Write your program here",
-    "solution": "rows = input(\"Rows of seats: \").strip()\nif rows == \"\":\n    print(\"Rows are missing\")\nelif rows.isdigit():\n    print(\"Rows:\", int(rows))\nelse:\n    print(\"Rows must be a whole number\")",
+    "solution": "{{[\"rows\",\"benches\",\"tables\",\"lanes\"][p0]}} = input(\"{{[\"Rows of seats\",\"Benches in the hall\",\"Tables in the canteen\",\"Lanes at the pool\"][p0]}}: \").strip()\nif {{[\"rows\",\"benches\",\"tables\",\"lanes\"][p0]}} == \"\":\n    print(\"{{[\"Rows\",\"Benches\",\"Tables\",\"Lanes\"][p0]}} are missing\")\nelif {{[\"rows\",\"benches\",\"tables\",\"lanes\"][p0]}}.isdigit():\n    print(\"{{[\"Rows\",\"Benches\",\"Tables\",\"Lanes\"][p0]}}:\", int({{[\"rows\",\"benches\",\"tables\",\"lanes\"][p0]}}))\nelse:\n    print(\"{{[\"Rows\",\"Benches\",\"Tables\",\"Lanes\"][p0]}} must be a whole number\")",
     "tests": [
       {
         "inputs": [
@@ -127374,7 +127553,7 @@
       },
       {
         "inputs": [
-          "{{a0}} rows"
+          "{{a0}} {{[\"rows\",\"benches\",\"tables\",\"lanes\"][p0]}}"
         ]
       }
     ],
@@ -127391,7 +127570,7 @@
     "skills": [
       "type-check"
     ],
-    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 12)",
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 12 || p0 !== 0)",
     "params": {
       "f": {
         "choice": [
@@ -127412,13 +127591,20 @@
           -3,
           3
         ]
+      },
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
       }
     },
     "values": {
       "a0": "Math.round(12 * f) + j0"
     },
     "fingerprintVars": [
-      "a0"
+      "a0",
+      "p0"
     ]
   },
   {
@@ -127433,7 +127619,7 @@
     "title": "Night temperature",
     "description": "Strip the spaces off the temperature. Accept whole numbers, including negative ones such as {{a0}}, and print, for example:\n[[out:0:0]]\nOtherwise print Type a whole number of degrees.",
     "starter": "# Write your program here",
-    "solution": "temp = input(\"Temperature tonight: \").strip()\nif temp.isdigit() or (len(temp) > 1 and temp[0] == \"-\" and temp[1:].isdigit()):\n    print(\"Tonight:\", int(temp))\nelse:\n    print(\"Type a whole number of degrees\")",
+    "solution": "temp = input(\"Temperature {{[\"tonight\",\"this morning\",\"at noon\",\"at midnight\"][p0]}}: \").strip()\nif temp.isdigit() or (len(temp) > 1 and temp[0] == \"-\" and temp[1:].isdigit()):\n    print(\"{{[\"Tonight\",\"This morning\",\"At noon\",\"At midnight\"][p0]}}:\", int(temp))\nelse:\n    print(\"Type a whole number of degrees\")",
     "tests": [
       {
         "inputs": [
@@ -127463,10 +127649,10 @@
     "buggy_variants": [
       {
         "misconception": "ISDIGIT_NEGATIVE",
-        "code": "temp = input(\"Temperature tonight: \").strip()\nif temp.isdigit():\n    print(\"Tonight:\", int(temp))\nelse:\n    print(\"Type a whole number of degrees\")"
+        "code": "temp = input(\"Temperature {{[\"tonight\",\"this morning\",\"at noon\",\"at midnight\"][p0]}}: \").strip()\nif temp.isdigit():\n    print(\"{{[\"Tonight\",\"This morning\",\"At noon\",\"At midnight\"][p0]}}:\", int(temp))\nelse:\n    print(\"Type a whole number of degrees\")"
       }
     ],
-    "where": "a0 < 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== -3)",
+    "where": "a0 < 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== -3 || p0 !== 0)",
     "params": {
       "f": {
         "choice": [
@@ -127484,16 +127670,23 @@
       },
       "j0": {
         "int": [
-          3,
-          12
+          -3,
+          3
+        ]
+      },
+      "p0": {
+        "int": [
+          0,
+          3
         ]
       }
     },
     "values": {
-      "a0": "-j0"
+      "a0": "Math.round(-3 * f) + j0"
     },
     "fingerprintVars": [
-      "a0"
+      "a0",
+      "p0"
     ]
   },
   {
@@ -127505,8 +127698,8 @@
     "derived": true,
     "level": 8,
     "type": "write",
-    "title": "Rug size",
-    "description": "Ask for the width and then the length of a rug. If both are whole numbers, print the area, for example:\n[[out:0:0]]\nOtherwise print Use whole numbers for both.",
+    "title": "{{[\"Rug\",\"Mat\",\"Carpet\",\"Patio\"][p0]}} size",
+    "description": "Ask for the width and then the length of a {{[\"rug\",\"mat\",\"carpet\",\"patio\"][p0]}}. If both are whole numbers, print the area, for example:\n[[out:0:0]]\nOtherwise print Use whole numbers for both.",
     "starter": "# Write your program here",
     "solution": "width = input(\"Width: \")\nlength = input(\"Length: \")\nif width.isdigit() and length.isdigit():\n    print(\"Area:\", int(width) * int(length))\nelse:\n    print(\"Use whole numbers for both\")",
     "tests": [
@@ -127542,7 +127735,7 @@
         "code": "width = input(\"Width: \")\nlength = input(\"Length: \")\nif width.isdigit() or length.isdigit():\n    print(\"Area:\", int(width) * int(length))\nelse:\n    print(\"Use whole numbers for both\")"
       }
     ],
-    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && a1 > 0 && ![0, 1, 2].includes(Math.abs(a1)) && a0 < a1 && (a0 !== 3 || a1 !== 4)",
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && a1 > 0 && ![0, 1, 2].includes(Math.abs(a1)) && a0 < a1 && (a0 !== 3 || a1 !== 4 || p0 !== 0)",
     "params": {
       "f": {
         "choice": [
@@ -127569,6 +127762,12 @@
           -3,
           3
         ]
+      },
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
       }
     },
     "values": {
@@ -127577,7 +127776,8 @@
     },
     "fingerprintVars": [
       "a0",
-      "a1"
+      "a1",
+      "p0"
     ]
   },
   {
@@ -127589,10 +127789,10 @@
     "derived": true,
     "level": 9,
     "type": "write",
-    "title": "Party tables",
-    "description": "Ask how many tables. While the answer isn't a whole number, print Type a whole number and ask again. Then print a line for each table, for example:\n[[out:0]]",
+    "title": "Party {{[\"tables\",\"teams\",\"rounds\",\"groups\",\"boxes\",\"levels\",\"stations\",\"pages\"][p0]}}",
+    "description": "Ask how many {{[\"tables\",\"teams\",\"rounds\",\"groups\",\"boxes\",\"levels\",\"stations\",\"pages\"][p0]}}. While the answer isn't a whole number, print Type a whole number and ask again. Then print a line for each {{[\"table\",\"team\",\"round\",\"group\",\"box\",\"level\",\"station\",\"page\"][p0]}}, for example:\n[[out:0]]",
     "starter": "# Write your program here",
-    "solution": "tables = input(\"How many tables? \")\nwhile not tables.isdigit():\n    print(\"Type a whole number\")\n    tables = input(\"How many tables? \")\nfor n in range(1, int(tables) + 1):\n    print(\"Table\", n)",
+    "solution": "{{[\"tables\",\"teams\",\"rounds\",\"groups\",\"boxes\",\"levels\",\"stations\",\"pages\"][p0]}} = input(\"How many {{[\"tables\",\"teams\",\"rounds\",\"groups\",\"boxes\",\"levels\",\"stations\",\"pages\"][p0]}}? \")\nwhile not {{[\"tables\",\"teams\",\"rounds\",\"groups\",\"boxes\",\"levels\",\"stations\",\"pages\"][p0]}}.isdigit():\n    print(\"Type a whole number\")\n    {{[\"tables\",\"teams\",\"rounds\",\"groups\",\"boxes\",\"levels\",\"stations\",\"pages\"][p0]}} = input(\"How many {{[\"tables\",\"teams\",\"rounds\",\"groups\",\"boxes\",\"levels\",\"stations\",\"pages\"][p0]}}? \")\nfor n in range(1, int({{[\"tables\",\"teams\",\"rounds\",\"groups\",\"boxes\",\"levels\",\"stations\",\"pages\"][p0]}}) + 1):\n    print(\"{{[\"Table\",\"Team\",\"Round\",\"Group\",\"Box\",\"Level\",\"Station\",\"Page\"][p0]}}\", n)",
     "tests": [
       {
         "inputs": [
@@ -127607,8 +127807,8 @@
       }
     ],
     "hints": [
-      "while not tables.isdigit(): keeps asking until it is all digits.",
-      "range(1, int(tables) + 1) counts from 1 to the number of tables."
+      "while not {{[\"tables\",\"teams\",\"rounds\",\"groups\",\"boxes\",\"levels\",\"stations\",\"pages\"][p0]}}.isdigit(): keeps asking until it is all digits.",
+      "range(1, int({{[\"tables\",\"teams\",\"rounds\",\"groups\",\"boxes\",\"levels\",\"stations\",\"pages\"][p0]}}) + 1) counts from 1 to the number of {{[\"tables\",\"teams\",\"rounds\",\"groups\",\"boxes\",\"levels\",\"stations\",\"pages\"][p0]}}."
     ],
     "tags": [
       "type check",
@@ -127624,10 +127824,10 @@
     "buggy_variants": [
       {
         "misconception": "REASK_CONDITION_UNCHANGED",
-        "code": "tables = input(\"How many tables? \")\nwhile not tables.isdigit():\n    print(\"Type a whole number\")\n    answer = input(\"How many tables? \")\nfor n in range(1, int(tables) + 1):\n    print(\"Table\", n)"
+        "code": "{{[\"tables\",\"teams\",\"rounds\",\"groups\",\"boxes\",\"levels\",\"stations\",\"pages\"][p0]}} = input(\"How many {{[\"tables\",\"teams\",\"rounds\",\"groups\",\"boxes\",\"levels\",\"stations\",\"pages\"][p0]}}? \")\nwhile not {{[\"tables\",\"teams\",\"rounds\",\"groups\",\"boxes\",\"levels\",\"stations\",\"pages\"][p0]}}.isdigit():\n    print(\"Type a whole number\")\n    answer = input(\"How many {{[\"tables\",\"teams\",\"rounds\",\"groups\",\"boxes\",\"levels\",\"stations\",\"pages\"][p0]}}? \")\nfor n in range(1, int({{[\"tables\",\"teams\",\"rounds\",\"groups\",\"boxes\",\"levels\",\"stations\",\"pages\"][p0]}}) + 1):\n    print(\"{{[\"Table\",\"Team\",\"Round\",\"Group\",\"Box\",\"Level\",\"Station\",\"Page\"][p0]}}\", n)"
       }
     ],
-    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 3)",
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 3 || p0 !== 0)",
     "params": {
       "f": {
         "choice": [
@@ -127645,16 +127845,23 @@
       },
       "j0": {
         "int": [
-          3,
-          12
+          -3,
+          3
+        ]
+      },
+      "p0": {
+        "int": [
+          0,
+          7
         ]
       }
     },
     "values": {
-      "a0": "j0"
+      "a0": "Math.round(3 * f) + j0"
     },
     "fingerprintVars": [
-      "a0"
+      "a0",
+      "p0"
     ]
   },
   {
@@ -127667,9 +127874,9 @@
     "level": 9,
     "type": "write",
     "title": "Countdown",
-    "description": "Ask for a number to count down from. While it isn't a whole number, print Type a whole number and ask again. Then count down to 1 and print Lift off!, for example:\n[[out:0]]",
+    "description": "Ask for a number to count down from. While it isn't a whole number, print Type a whole number and ask again. Then count down to 1 and print {{[\"Lift off!\",\"Blast off!\",\"Go!\",\"Ready or not!\",\"Take off!\",\"Here we go!\",\"Launch!\",\"We have lift-off!\"][p0]}}, for example:\n[[out:0]]",
     "starter": "# Write your program here",
-    "solution": "start = input(\"Count down from: \")\nwhile not start.isdigit():\n    print(\"Type a whole number\")\n    start = input(\"Count down from: \")\nfor n in range(int(start), 0, -1):\n    print(n)\nprint(\"Lift off!\")",
+    "solution": "start = input(\"Count down from: \")\nwhile not start.isdigit():\n    print(\"Type a whole number\")\n    start = input(\"Count down from: \")\nfor n in range(int(start), 0, -1):\n    print(n)\nprint(\"{{[\"Lift off!\",\"Blast off!\",\"Go!\",\"Ready or not!\",\"Take off!\",\"Here we go!\",\"Launch!\",\"We have lift-off!\"][p0]}}\")",
     "tests": [
       {
         "inputs": [
@@ -127697,7 +127904,7 @@
       "type-check",
       "re-ask"
     ],
-    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 3)",
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 3 || p0 !== 0)",
     "params": {
       "f": {
         "choice": [
@@ -127715,16 +127922,23 @@
       },
       "j0": {
         "int": [
-          3,
-          12
+          -3,
+          3
+        ]
+      },
+      "p0": {
+        "int": [
+          0,
+          7
         ]
       }
     },
     "values": {
-      "a0": "j0"
+      "a0": "Math.round(3 * f) + j0"
     },
     "fingerprintVars": [
-      "a0"
+      "a0",
+      "p0"
     ]
   },
   {
@@ -127739,7 +127953,7 @@
     "title": "Times table",
     "description": "Ask for a number. While it isn't a whole number, print Type a whole number and ask again. Then print the first three lines of its times table, for example:\n[[out:0]]",
     "starter": "# Write your program here",
-    "solution": "n = input(\"Number: \")\nwhile not n.isdigit():\n    print(\"Type a whole number\")\n    n = input(\"Number: \")\nn = int(n)\nfor k in range(1, {{a0}}):\n    print(n, \"x\", k, \"=\", n * k)",
+    "solution": "n = input(\"{{[\"Number: \",\"Times table: \",\"Pick a number: \",\"Your number: \"][p0]}}\")\nwhile not n.isdigit():\n    print(\"Type a whole number\")\n    n = input(\"{{[\"Number: \",\"Times table: \",\"Pick a number: \",\"Your number: \"][p0]}}\")\nn = int(n)\nfor k in range(1, {{a0}}):\n    print(n, \"x\", k, \"=\", n * k)",
     "tests": [
       {
         "inputs": [
@@ -127767,7 +127981,7 @@
       "re-ask",
       "type-check"
     ],
-    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 4)",
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 4 || p0 !== 0)",
     "params": {
       "f": {
         "choice": [
@@ -127788,13 +128002,20 @@
           -3,
           3
         ]
+      },
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
       }
     },
     "values": {
       "a0": "Math.round(4 * f) + j0"
     },
     "fingerprintVars": [
-      "a0"
+      "a0",
+      "p0"
     ]
   },
   {
@@ -128062,10 +128283,10 @@
     "derived": true,
     "level": 1,
     "type": "predict",
-    "title": "{{[\"Shoe size\",\"Boot size\",\"Slipper size\"][p0]}}",
+    "title": "{{[\"Shoe size\",\"Boot size\",\"Slipper size\",\"Wellie size\"][p0]}}",
     "description": "int() turns the text typed into a whole number: this is called casting. A range check makes sure a number is between a lowest and a highest value. The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "size = int(input(\"{{[\"Shoe size\",\"Boot size\",\"Slipper size\"][p0]}}: \"))\nif size >= 1 and size <= 13:\n    print(\"{{[\"Shoe size\",\"Boot size\",\"Slipper size\"][p0]}} accepted\")\nelse:\n    print(\"{{[\"Shoe sizes\",\"Boot sizes\",\"Slipper sizes\"][p0]}} go from 1 to 13\")",
+    "solution": "size = int(input(\"{{[\"Shoe size\",\"Boot size\",\"Slipper size\",\"Wellie size\"][p0]}}: \"))\nif size >= 1 and size <= 13:\n    print(\"{{[\"Shoe size\",\"Boot size\",\"Slipper size\",\"Wellie size\"][p0]}} accepted\")\nelse:\n    print(\"{{[\"Shoe sizes\",\"Boot sizes\",\"Slipper sizes\",\"Wellie sizes\"][p0]}} go from 1 to 13\")",
     "optionCount": 3,
     "tests": [
       {
@@ -128093,7 +128314,7 @@
       "p0": {
         "int": [
           0,
-          2
+          3
         ]
       },
       "ts": {
@@ -128121,10 +128342,10 @@
     "derived": true,
     "level": 1,
     "type": "predict",
-    "title": "{{[\"Spice level\",\"Sauce level\",\"Heat level\"][p0]}}",
+    "title": "{{[\"Spice level\",\"Sauce level\",\"Heat level\",\"Chilli level\"][p0]}}",
     "description": "int() turns the text typed into a whole number: this is called casting. The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "spice = int(input(\"{{[\"Spice level\",\"Sauce level\",\"Heat level\"][p0]}} (1 to 5): \"))\nif spice >= 1 and spice <= 5:\n    print(\"{{[\"Spice level\",\"Sauce level\",\"Heat level\"][p0]}}\", spice, \"coming up\")\nelse:\n    print(\"Choose 1 to 5\")",
+    "solution": "spice = int(input(\"{{[\"Spice level\",\"Sauce level\",\"Heat level\",\"Chilli level\"][p0]}} (1 to 5): \"))\nif spice >= 1 and spice <= 5:\n    print(\"{{[\"Spice level\",\"Sauce level\",\"Heat level\",\"Chilli level\"][p0]}}\", spice, \"coming up\")\nelse:\n    print(\"Choose 1 to 5\")",
     "optionCount": 3,
     "tests": [
       {
@@ -128151,7 +128372,7 @@
       "p0": {
         "int": [
           0,
-          2
+          3
         ]
       },
       "ts": {
@@ -128182,7 +128403,7 @@
     "title": "Dice total",
     "description": "int() turns the text typed into a whole number: this is called casting. The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "total = int(input(\"{{[\"Total of two dice\",\"Two dice added\",\"Score on two dice\"][p0]}}: \"))\nif total >= 2 and total <= 12:\n    print(\"Total recorded:\", total)\nelse:\n    print(\"Not a possible total\")",
+    "solution": "total = int(input(\"{{[\"Total of two dice\",\"Two dice added\",\"Score on two dice\",\"Sum of two dice\"][p0]}}: \"))\nif total >= 2 and total <= 12:\n    print(\"Total recorded:\", total)\nelse:\n    print(\"Not a possible total\")",
     "optionCount": 3,
     "tests": [
       {
@@ -128209,7 +128430,7 @@
       "p0": {
         "int": [
           0,
-          2
+          3
         ]
       },
       "ts": {
@@ -128237,10 +128458,10 @@
     "derived": true,
     "level": 2,
     "type": "predict",
-    "title": "{{[\"Speed\",\"Bike speed\",\"Scooter speed\"][p0]}} limit",
+    "title": "{{[\"Speed\",\"Bike speed\",\"Scooter speed\",\"Skate speed\"][p0]}} limit",
     "description": "int() turns the text typed into a whole number: this is called casting. Look carefully at < and <=. The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "speed = int(input(\"{{[\"Speed\",\"Bike speed\",\"Scooter speed\"][p0]}}: \"))\nif speed > 0 and speed < 30:\n    print(\"Safe speed\")\nelse:\n    print(\"Too fast\")",
+    "solution": "speed = int(input(\"{{[\"Speed\",\"Bike speed\",\"Scooter speed\",\"Skate speed\"][p0]}}: \"))\nif speed > 0 and speed < 30:\n    print(\"Safe speed\")\nelse:\n    print(\"Too fast\")",
     "optionCount": 3,
     "tests": [
       {
@@ -128270,7 +128491,7 @@
       "p0": {
         "int": [
           0,
-          2
+          3
         ]
       },
       "ts": {
@@ -128298,10 +128519,10 @@
     "derived": true,
     "level": 2,
     "type": "predict",
-    "title": "{{[\"Brightness\",\"Contrast\",\"Sharpness\"][p0]}}",
+    "title": "{{[\"Brightness\",\"Contrast\",\"Sharpness\",\"Saturation\"][p0]}}",
     "description": "int() turns the text typed into a whole number: this is called casting. This range check uses or to find numbers outside the range. The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "level = int(input(\"{{[\"Brightness\",\"Contrast\",\"Sharpness\"][p0]}} (1 to 10): \"))\nif level < 1 or level > 10:\n    print(\"{{[\"Brightness\",\"Contrast\",\"Sharpness\"][p0]}} out of range\")\nelse:\n    print(\"{{[\"Brightness\",\"Contrast\",\"Sharpness\"][p0]}} set to\", level)",
+    "solution": "level = int(input(\"{{[\"Brightness\",\"Contrast\",\"Sharpness\",\"Saturation\"][p0]}} (1 to 10): \"))\nif level < 1 or level > 10:\n    print(\"{{[\"Brightness\",\"Contrast\",\"Sharpness\",\"Saturation\"][p0]}} out of range\")\nelse:\n    print(\"{{[\"Brightness\",\"Contrast\",\"Sharpness\",\"Saturation\"][p0]}} set to\", level)",
     "optionCount": 3,
     "tests": [
       {
@@ -128331,7 +128552,7 @@
       "p0": {
         "int": [
           0,
-          2
+          3
         ]
       },
       "ts": {
@@ -128362,7 +128583,7 @@
     "title": "Bulk discount",
     "description": "int() turns the text typed into a whole number: this is called casting. Look carefully at > and >=. The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "items = int(input(\"{{[\"Items bought\",\"Books bought\",\"Tickets bought\"][p0]}}: \"))\nif items > 10:\n    print(\"Discount applied\")\nelse:\n    print(\"No discount\")",
+    "solution": "items = int(input(\"{{[\"Items bought\",\"Books bought\",\"Tickets bought\",\"Comics bought\"][p0]}}: \"))\nif items > 10:\n    print(\"Discount applied\")\nelse:\n    print(\"No discount\")",
     "optionCount": 3,
     "tests": [
       {
@@ -128391,7 +128612,7 @@
       "p0": {
         "int": [
           0,
-          2
+          3
         ]
       },
       "ts": {
@@ -128862,11 +129083,11 @@
     "level": 5,
     "type": "parsons",
     "title": "Up to {{a0}}",
-    "description": "Arrange the lines so the volume is cast, then checked: 0 to {{a0}} is allowed, including 0 and {{a0}}.\nOne line is not needed.",
+    "description": "Arrange the lines so the {{[\"volume\",\"bass\",\"treble\",\"echo\"][p0]}} is cast, then checked: 0 to {{a0}} is allowed, including 0 and {{a0}}.\nOne line is not needed.",
     "starter": "",
-    "solution": "volume = int(input(\"Volume (0 to {{a0}}): \"))\nif volume >= 0 and volume <= {{a0}}:\n    print(\"Volume:\", volume)\nelse:\n    print(\"Volume goes from 0 to {{a0}}\")",
+    "solution": "{{[\"volume\",\"bass\",\"treble\",\"echo\"][p0]}} = int(input(\"{{[\"Volume\",\"Bass\",\"Treble\",\"Echo\"][p0]}} (0 to {{a0}}): \"))\nif {{[\"volume\",\"bass\",\"treble\",\"echo\"][p0]}} >= 0 and {{[\"volume\",\"bass\",\"treble\",\"echo\"][p0]}} <= {{a0}}:\n    print(\"{{[\"Volume\",\"Bass\",\"Treble\",\"Echo\"][p0]}}:\", {{[\"volume\",\"bass\",\"treble\",\"echo\"][p0]}})\nelse:\n    print(\"{{[\"Volume\",\"Bass\",\"Treble\",\"Echo\"][p0]}} goes from 0 to {{a0}}\")",
     "distractors": [
-      "if volume > 0 and volume < {{a0}}:"
+      "if {{[\"volume\",\"bass\",\"treble\",\"echo\"][p0]}} > 0 and {{[\"volume\",\"bass\",\"treble\",\"echo\"][p0]}} < {{a0}}:"
     ],
     "tests": [
       {
@@ -128896,10 +129117,10 @@
     "buggy_variants": [
       {
         "misconception": "BOUNDARY_LT_VS_LTE",
-        "code": "volume = int(input(\"Volume (0 to {{a0}}): \"))\nif volume > 0 and volume < {{a0}}:\n    print(\"Volume:\", volume)\nelse:\n    print(\"Volume goes from 0 to {{a0}}\")"
+        "code": "{{[\"volume\",\"bass\",\"treble\",\"echo\"][p0]}} = int(input(\"{{[\"Volume\",\"Bass\",\"Treble\",\"Echo\"][p0]}} (0 to {{a0}}): \"))\nif {{[\"volume\",\"bass\",\"treble\",\"echo\"][p0]}} > 0 and {{[\"volume\",\"bass\",\"treble\",\"echo\"][p0]}} < {{a0}}:\n    print(\"{{[\"Volume\",\"Bass\",\"Treble\",\"Echo\"][p0]}}:\", {{[\"volume\",\"bass\",\"treble\",\"echo\"][p0]}})\nelse:\n    print(\"{{[\"Volume\",\"Bass\",\"Treble\",\"Echo\"][p0]}} goes from 0 to {{a0}}\")"
       }
     ],
-    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 11)",
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 11 || p0 !== 0)",
     "params": {
       "f": {
         "choice": [
@@ -128920,13 +129141,20 @@
           -3,
           3
         ]
+      },
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
       }
     },
     "values": {
       "a0": "Math.round(11 * f) + j0"
     },
     "fingerprintVars": [
-      "a0"
+      "a0",
+      "p0"
     ]
   },
   {
@@ -129556,10 +129784,10 @@
     "derived": true,
     "level": 8,
     "type": "write",
-    "title": "Pick a sweet",
-    "description": "Ask for a sweet number (cast it to an integer). While it is below 1 or above 12, print [[out:1:0]] and ask again. Then print, for example:\n[[out:0:0]]",
+    "title": "Pick a {{[\"sweet\",\"prize\",\"card\",\"locker\"][p0]}}",
+    "description": "Ask for a {{[\"sweet\",\"prize\",\"card\",\"locker\"][p0]}} number (cast it to an integer). While it is below 1 or above 12, print [[out:1:0]] and ask again. Then print, for example:\n[[out:0:0]]",
     "starter": "# Write your program here",
-    "solution": "sweet = int(input(\"Sweet (1 to 12): \"))\nwhile sweet < 1 or sweet > 12:\n    print(\"Choose a sweet from 1 to 12\")\n    sweet = int(input(\"Sweet (1 to 12): \"))\nprint(\"You picked sweet\", sweet)",
+    "solution": "{{[\"sweet\",\"prize\",\"card\",\"locker\"][p0]}} = int(input(\"{{[\"Sweet\",\"Prize\",\"Card\",\"Locker\"][p0]}} (1 to 12): \"))\nwhile {{[\"sweet\",\"prize\",\"card\",\"locker\"][p0]}} < 1 or {{[\"sweet\",\"prize\",\"card\",\"locker\"][p0]}} > 12:\n    print(\"Choose a {{[\"sweet\",\"prize\",\"card\",\"locker\"][p0]}} from 1 to 12\")\n    {{[\"sweet\",\"prize\",\"card\",\"locker\"][p0]}} = int(input(\"{{[\"Sweet\",\"Prize\",\"Card\",\"Locker\"][p0]}} (1 to 12): \"))\nprint(\"You picked {{[\"sweet\",\"prize\",\"card\",\"locker\"][p0]}}\", {{[\"sweet\",\"prize\",\"card\",\"locker\"][p0]}})",
     "tests": [
       {
         "inputs": [
@@ -129590,10 +129818,10 @@
     "buggy_variants": [
       {
         "misconception": "REASK_CONDITION_UNCHANGED",
-        "code": "sweet = int(input(\"Sweet (1 to 12): \"))\nwhile sweet < 1 or sweet > 12:\n    print(\"Choose a sweet from 1 to 12\")\n    choice = int(input(\"Sweet (1 to 12): \"))\nprint(\"You picked sweet\", sweet)"
+        "code": "{{[\"sweet\",\"prize\",\"card\",\"locker\"][p0]}} = int(input(\"{{[\"Sweet\",\"Prize\",\"Card\",\"Locker\"][p0]}} (1 to 12): \"))\nwhile {{[\"sweet\",\"prize\",\"card\",\"locker\"][p0]}} < 1 or {{[\"sweet\",\"prize\",\"card\",\"locker\"][p0]}} > 12:\n    print(\"Choose a {{[\"sweet\",\"prize\",\"card\",\"locker\"][p0]}} from 1 to 12\")\n    choice = int(input(\"{{[\"Sweet\",\"Prize\",\"Card\",\"Locker\"][p0]}} (1 to 12): \"))\nprint(\"You picked {{[\"sweet\",\"prize\",\"card\",\"locker\"][p0]}}\", {{[\"sweet\",\"prize\",\"card\",\"locker\"][p0]}})"
       }
     ],
-    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 13)",
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 13 || p0 !== 0)",
     "params": {
       "f": {
         "choice": [
@@ -129614,13 +129842,20 @@
           -3,
           3
         ]
+      },
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
       }
     },
     "values": {
       "a0": "Math.round(13 * f) + j0"
     },
     "fingerprintVars": [
-      "a0"
+      "a0",
+      "p0"
     ]
   },
   {
@@ -129632,10 +129867,10 @@
     "derived": true,
     "level": 8,
     "type": "write",
-    "title": "Board game players",
-    "description": "int() turns the text typed into a whole number: this is called casting. Ask for the number of players. While it is below 2 or above 6, print [[out:1:0]] and ask again. Then print, for example:\n[[out:0:0]]",
+    "title": "Board game {{[\"players\",\"teams\",\"children\",\"guests\"][p0]}}",
+    "description": "int() turns the text typed into a whole number: this is called casting. Ask for the number of {{[\"players\",\"teams\",\"children\",\"guests\"][p0]}}. While it is below 2 or above 6, print [[out:1:0]] and ask again. Then print, for example:\n[[out:0:0]]",
     "starter": "# Write your program here",
-    "solution": "players = int(input(\"Players: \"))\nwhile players < 2 or players > 6:\n    print(\"The game is for 2 to 6 players\")\n    players = int(input(\"Players: \"))\nprint(\"Dealing for\", players, \"players\")",
+    "solution": "{{[\"players\",\"teams\",\"children\",\"guests\"][p0]}} = int(input(\"{{[\"Players\",\"Teams\",\"Children\",\"Guests\"][p0]}}: \"))\nwhile {{[\"players\",\"teams\",\"children\",\"guests\"][p0]}} < 2 or {{[\"players\",\"teams\",\"children\",\"guests\"][p0]}} > 6:\n    print(\"The game is for 2 to 6 {{[\"players\",\"teams\",\"children\",\"guests\"][p0]}}\")\n    {{[\"players\",\"teams\",\"children\",\"guests\"][p0]}} = int(input(\"{{[\"Players\",\"Teams\",\"Children\",\"Guests\"][p0]}}: \"))\nprint(\"Dealing for\", {{[\"players\",\"teams\",\"children\",\"guests\"][p0]}}, \"{{[\"players\",\"teams\",\"children\",\"guests\"][p0]}}\")",
     "tests": [
       {
         "inputs": [
@@ -129651,7 +129886,7 @@
       }
     ],
     "hints": [
-      "Use while players < 2 or players > 6:",
+      "Use while {{[\"players\",\"teams\",\"children\",\"guests\"][p0]}} < 2 or {{[\"players\",\"teams\",\"children\",\"guests\"][p0]}} > 6:",
       "The loop may run more than once."
     ],
     "tags": [
@@ -129663,7 +129898,7 @@
       "range",
       "re-ask"
     ],
-    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 7)",
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 7 || p0 !== 0)",
     "params": {
       "f": {
         "choice": [
@@ -129684,13 +129919,20 @@
           -3,
           3
         ]
+      },
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
       }
     },
     "values": {
       "a0": "Math.round(7 * f) + j0"
     },
     "fingerprintVars": [
-      "a0"
+      "a0",
+      "p0"
     ]
   },
   {
@@ -129702,10 +129944,10 @@
     "derived": true,
     "level": 8,
     "type": "write",
-    "title": "Golf hole",
+    "title": "{{[\"Golf hole\",\"Mini golf hole\",\"Crazy golf hole\",\"Pitch and putt hole\"][p0]}}",
     "description": "Ask for a hole number. While it is below 1 or above 18, print [[out:1:0]] and ask again. Then print, for example:\n[[out:0:0]]",
     "starter": "# Write your program here",
-    "solution": "hole = int(input(\"Hole: \"))\nwhile hole < 1 or hole > 18:\n    print(\"Holes go from 1 to 18\")\n    hole = int(input(\"Hole: \"))\nprint(\"Teeing off at hole\", hole)",
+    "solution": "hole = int(input(\"Hole: \"))\nwhile hole < 1 or hole > 18:\n    print(\"Holes go from 1 to 18\")\n    hole = int(input(\"Hole: \"))\nprint(\"{{[\"Teeing off at\",\"Playing\",\"Walking to\",\"Putting at\"][p0]}} hole\", hole)",
     "tests": [
       {
         "inputs": [
@@ -129732,7 +129974,7 @@
       "boundaries",
       "re-ask"
     ],
-    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 19)",
+    "where": "a0 > 0 && ![0, 1, 2].includes(Math.abs(a0)) && (a0 !== 19 || p0 !== 0)",
     "params": {
       "f": {
         "choice": [
@@ -129753,13 +129995,20 @@
           -4,
           4
         ]
+      },
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
       }
     },
     "values": {
       "a0": "Math.round(19 * f) + j0"
     },
     "fingerprintVars": [
-      "a0"
+      "a0",
+      "p0"
     ]
   },
   {
@@ -130312,10 +130561,10 @@
     "derived": true,
     "level": 1,
     "type": "predict",
-    "title": "Hashtag",
+    "title": "{{[\"Hashtag\",\"Topic tag\",\"Post tag\",\"Trend\"][p0]}}",
     "description": "A format check makes sure the answer has the right pattern. in checks whether one string is inside another. The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "tag = input(\"Hashtag: \")\nif \"#\" in tag:\n    print(\"Tag saved:\", tag)\nelse:\n    print(\"Hashtags need a #\")",
+    "solution": "tag = input(\"{{[\"Hashtag\",\"Topic tag\",\"Post tag\",\"Trend\"][p0]}}: \")\nif \"#\" in tag:\n    print(\"Tag saved:\", tag)\nelse:\n    print(\"{{[\"Hashtags\",\"Topic tags\",\"Post tags\",\"Trends\"][p0]}} need a #\")",
     "optionCount": 3,
     "tests": [
       {
@@ -130337,8 +130586,14 @@
     "skills": [
       "format"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -130351,6 +130606,7 @@
       "SAYS": "[\"types summer\",\"types #summer\",\"types fun#\",\"types sunny\",\"types #1\",\"types beach\",\"types #goals\",\"types picnic\"]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -130366,7 +130622,7 @@
     "title": "First and last name",
     "description": "The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "full = input(\"Full name: \")\nif \" \" in full:\n    print(\"Thanks,\", full)\nelse:\n    print(\"Type your first and last name\")",
+    "solution": "full = input(\"{{[\"Full name\",\"Your name\",\"Name on the card\",\"Name for the badge\"][p0]}}: \")\nif \" \" in full:\n    print(\"Thanks,\", full)\nelse:\n    print(\"Type your first and last name\")",
     "optionCount": 3,
     "tests": [
       {
@@ -130389,8 +130645,14 @@
     "skills": [
       "format"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -130403,6 +130665,7 @@
       "SAYS": "[\"types Ava Patel\",\"types Ava\",\"types Jo Li\",\"types Kim\",\"types Sam Hart\",\"types Bea\",\"types Leo Fox\",\"types Raj\"]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -130418,7 +130681,7 @@
     "title": "A question?",
     "description": "The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "question = input(\"{{[\"Your question\",\"Quiz question\",\"Ask a question\"][p0]}}: \")\nif \"?\" in question:\n    print(\"{{[\"Question added\",\"Quiz question added\",\"Question sent\"][p0]}}\")\nelse:\n    print(\"A question needs a ?\")",
+    "solution": "question = input(\"{{[\"Your question\",\"Quiz question\",\"Ask a question\",\"Class question\"][p0]}}: \")\nif \"?\" in question:\n    print(\"{{[\"Question added\",\"Quiz question added\",\"Question sent\",\"Class question added\"][p0]}}\")\nelse:\n    print(\"A question needs a ?\")",
     "optionCount": 3,
     "tests": [
       {
@@ -130446,7 +130709,7 @@
       "p0": {
         "int": [
           0,
-          2
+          3
         ]
       },
       "ts": {
@@ -130477,7 +130740,7 @@
     "title": "Capital letter",
     "description": "The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "colour = input(\"Colour: \")\nif colour in [\"red\", \"blue\"]:\n    print(\"Colour chosen:\", colour)\nelse:\n    print(\"Choose red or blue\")",
+    "solution": "{{[\"colour\",\"paint\",\"kit\",\"bib\"][p0]}} = input(\"{{[\"Colour\",\"Paint\",\"Kit\",\"Bib\"][p0]}}: \")\nif {{[\"colour\",\"paint\",\"kit\",\"bib\"][p0]}} in [\"red\", \"blue\"]:\n    print(\"{{[\"Colour\",\"Paint\",\"Kit\",\"Bib\"][p0]}} chosen:\", {{[\"colour\",\"paint\",\"kit\",\"bib\"][p0]}})\nelse:\n    print(\"Choose red or blue\")",
     "optionCount": 3,
     "tests": [
       {
@@ -130501,8 +130764,14 @@
     "skills": [
       "format"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -130515,6 +130784,7 @@
       "SAYS": "[\"types Red\",\"types red\",\"types blue\",\"types Blue\",\"types RED\",\"types green\",\"types BLUE\",\"types pink\"]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -130530,7 +130800,7 @@
     "title": "Part of a string",
     "description": "This format check uses in with a string, not a list. The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "size = input(\"Size: \")\nif size in \"SML\":\n    print(\"Size\", size, \"booked\")\nelse:\n    print(\"Sizes are S, M or L\")",
+    "solution": "size = input(\"{{[\"Size\",\"Shirt size\",\"Cup size\",\"Box size\"][p0]}}: \")\nif size in \"SML\":\n    print(\"{{[\"Size\",\"Shirt size\",\"Cup size\",\"Box size\"][p0]}}\", size, \"booked\")\nelse:\n    print(\"{{[\"Sizes\",\"Shirt sizes\",\"Cup sizes\",\"Box sizes\"][p0]}} are S, M or L\")",
     "optionCount": 3,
     "tests": [
       {
@@ -130554,8 +130824,14 @@
       "format",
       "positions"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -130568,6 +130844,7 @@
       "SAYS": "[\"types ML\",\"types XL\",\"types S\",\"types SM\",\"types L\",\"types XS\",\"types SML\",\"types LS\"]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -130583,7 +130860,7 @@
     "title": "Cats and dogs",
     "description": "The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "pet = input(\"Pet: \")\nif pet in [\"cat\", \"dog\"]:\n    print(\"Booked in:\", pet)\nelse:\n    print(\"We only take a cat or a dog\")",
+    "solution": "pet = input(\"Pet: \")\nif pet in [\"cat\", \"dog\"]:\n    print(\"{{[\"Booked in\",\"Welcome\",\"Checked in\",\"Staying\"][p0]}}:\", pet)\nelse:\n    print(\"We only take a cat or a dog\")",
     "optionCount": 3,
     "tests": [
       {
@@ -130607,8 +130884,14 @@
     "skills": [
       "format"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -130621,6 +130904,7 @@
       "SAYS": "[\"types cats\",\"types cat\",\"types dog\",\"types Dog\",\"types do\",\"types hamster\",\"types dogs\",\"types ca\"]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -130633,9 +130917,9 @@
     "derived": true,
     "level": 3,
     "type": "fill",
-    "title": "Book code",
-    "description": "Fill in the blank so the format check looks at the first character of the code: book codes start with B.",
-    "starter": "code = input(\"Book code: \")\nif code[____] == \"B\":\n    print(\"Book code accepted\")\nelse:\n    print(\"Book codes start with B\")",
+    "title": "{{[\"Book code\",\"Shelf code\",\"Box code\",\"Bin code\"][p0]}}",
+    "description": "Fill in the blank so the format check looks at the first character of the code: {{[\"book codes\",\"shelf codes\",\"box codes\",\"bin codes\"][p0]}} start with B.",
+    "starter": "code = input(\"{{[\"Book code\",\"Shelf code\",\"Box code\",\"Bin code\"][p0]}}: \")\nif code[____] == \"B\":\n    print(\"{{[\"Book code\",\"Shelf code\",\"Box code\",\"Bin code\"][p0]}} accepted\")\nelse:\n    print(\"{{[\"Book codes\",\"Shelf codes\",\"Box codes\",\"Bin codes\"][p0]}} start with B\")",
     "answers": [
       "0"
     ],
@@ -130671,11 +130955,17 @@
     "buggy_variants": [
       {
         "misconception": "INDEX_FROM_ONE",
-        "code": "code = input(\"Book code: \")\nif code[1] == \"B\":\n    print(\"Book code accepted\")\nelse:\n    print(\"Book codes start with B\")"
+        "code": "code = input(\"{{[\"Book code\",\"Shelf code\",\"Box code\",\"Bin code\"][p0]}}: \")\nif code[1] == \"B\":\n    print(\"{{[\"Book code\",\"Shelf code\",\"Box code\",\"Bin code\"][p0]}} accepted\")\nelse:\n    print(\"{{[\"Book codes\",\"Shelf codes\",\"Box codes\",\"Bin codes\"][p0]}} start with B\")"
       }
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -130687,6 +130977,7 @@
       "TS": "[[[\"B204\"],[\"A204\"]],[[\"B7\"],[\"7B\"]],[[\"Bx1\"],[\"xB1\"]],[[\"B\"],[\"b\"]],[[\"BB12\"],[\"CB12\"]],[[\"B0\"],[\"D0\"]],[[\"B-55\"],[\"-B55\"]],[[\"B9a\"],[\"9Ba\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -130701,7 +130992,7 @@
     "type": "fill",
     "title": "VIP ticket",
     "description": "Fill in the blank with the character that VIP ticket codes start with: a capital V.",
-    "starter": "ticket = input(\"Ticket code: \")\nif ticket[0] == ____:\n    print(\"Welcome to the VIP area\")\nelse:\n    print(\"This ticket is not VIP\")",
+    "starter": "ticket = input(\"{{[\"Ticket code\",\"Pass code\",\"Wristband code\",\"Entry code\"][p0]}}: \")\nif ticket[0] == ____:\n    print(\"Welcome to the VIP area\")\nelse:\n    print(\"This ticket is not VIP\")",
     "answers": [
       "\"V\""
     ],
@@ -130734,8 +131025,14 @@
       "positions",
       "format"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -130747,6 +131044,7 @@
       "TS": "[[[\"V12\"],[\"G12\"]],[[\"V7\"],[\"v7\"]],[[\"VX9\"],[\"XV9\"]],[[\"V\"],[\"A\"]],[[\"V100\"],[\"S100\"]],[[\"VV1\"],[\"W1\"]],[[\"V3b\"],[\"3Vb\"]],[[\"V-4\"],[\"-V4\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -130759,9 +131057,9 @@
     "derived": true,
     "level": 3,
     "type": "fill",
-    "title": "Shelf label",
+    "title": "{{[\"Shelf label\",\"Bin label\",\"Crate label\",\"Drawer label\"][p0]}}",
     "description": "Fill in the blank so the format check needs a digit as the second character of the label, such as A3.",
-    "starter": "label = input(\"Shelf label: \")\nif label[1].____():\n    print(\"Label accepted\")\nelse:\n    print(\"The second character must be a digit\")",
+    "starter": "label = input(\"{{[\"Shelf label\",\"Bin label\",\"Crate label\",\"Drawer label\"][p0]}}: \")\nif label[1].____():\n    print(\"Label accepted\")\nelse:\n    print(\"The second character must be a digit\")",
     "answers": [
       "isdigit"
     ],
@@ -130794,8 +131092,14 @@
     "skills": [
       "positions"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -130807,6 +131111,7 @@
       "TS": "[[[\"A3\"],[\"AB\"]],[[\"C7\"],[\"CC\"]],[[\"B0x\"],[\"Bx0\"]],[[\"Z9\"],[\"Z-\"]],[[\"D45\"],[\"DD5\"]],[[\"E1\"],[\"E \"]],[[\"F8\"],[\"FF\"]],[[\"K2k\"],[\"KK2\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -130819,9 +131124,9 @@
     "derived": true,
     "level": 4,
     "type": "fill",
-    "title": "Room code",
-    "description": "Room codes look like A12: a letter A, B or C, then digits. Fill in both blanks so the slice after the first character must be all digits.",
-    "starter": "room = input(\"Room: \")\nif room[0] in \"ABC\" and room[____:].____():\n    print(\"Room\", room, \"booked\")\nelse:\n    print(\"Rooms look like A12\")",
+    "title": "{{[\"Room\",\"Lab\",\"Studio\",\"Hall\"][p0]}} code",
+    "description": "{{[\"Room\",\"Lab\",\"Studio\",\"Hall\"][p0]}} codes look like A12: a letter A, B or C, then digits. Fill in both blanks so the slice after the first character must be all digits.",
+    "starter": "room = input(\"{{[\"Room\",\"Lab\",\"Studio\",\"Hall\"][p0]}}: \")\nif room[0] in \"ABC\" and room[____:].____():\n    print(\"{{[\"Room\",\"Lab\",\"Studio\",\"Hall\"][p0]}}\", room, \"booked\")\nelse:\n    print(\"{{[\"Rooms\",\"Labs\",\"Studios\",\"Halls\"][p0]}} look like A12\")",
     "answers": [
       "1",
       "isdigit"
@@ -130855,8 +131160,14 @@
       "positions",
       "format"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -130868,6 +131179,7 @@
       "TS": "[[[\"A12\"],[\"D12\"]],[[\"B7\"],[\"B7a\"]],[[\"C305\"],[\"C3x5\"]],[[\"A1\"],[\"AA1\"]],[[\"B44\"],[\"44\"]],[[\"C9\"],[\"c9\"]],[[\"A60\"],[\"A-60\"]],[[\"B21\"],[\"E21\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -130880,9 +131192,9 @@
     "derived": true,
     "level": 4,
     "type": "fill",
-    "title": "Night bus",
-    "description": "Night bus routes look like N5: an N first, then digits. Fill in both blanks.",
-    "starter": "route = input(\"Route: \")\nif route[____] == \"N\" ____ route[1:].isdigit():\n    print(\"Night bus\", route)\nelse:\n    print(\"Night routes look like N5\")",
+    "title": "{{[\"Night bus\",\"Night tram\",\"Night ferry\",\"Night train\"][p0]}}",
+    "description": "{{[\"Night bus routes\",\"Night tram lines\",\"Night ferry crossings\",\"Night train services\"][p0]}} look like N5: an N first, then digits. Fill in both blanks.",
+    "starter": "route = input(\"Route: \")\nif route[____] == \"N\" ____ route[1:].isdigit():\n    print(\"{{[\"Night bus\",\"Night tram\",\"Night ferry\",\"Night train\"][p0]}}\", route)\nelse:\n    print(\"{{[\"Night routes\",\"Night lines\",\"Night crossings\",\"Night services\"][p0]}} look like N5\")",
     "answers": [
       "0",
       "and"
@@ -130919,11 +131231,17 @@
     "buggy_variants": [
       {
         "misconception": "AND_OR_CONFUSED",
-        "code": "route = input(\"Route: \")\nif route[0] == \"N\" or route[1:].isdigit():\n    print(\"Night bus\", route)\nelse:\n    print(\"Night routes look like N5\")"
+        "code": "route = input(\"Route: \")\nif route[0] == \"N\" or route[1:].isdigit():\n    print(\"{{[\"Night bus\",\"Night tram\",\"Night ferry\",\"Night train\"][p0]}}\", route)\nelse:\n    print(\"{{[\"Night routes\",\"Night lines\",\"Night crossings\",\"Night services\"][p0]}} look like N5\")"
       }
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -130935,6 +131253,7 @@
       "TS": "[[[\"N5\"],[\"N5x\"]],[[\"N12\"],[\"X12\"]],[[\"N3\"],[\"n3\"]],[[\"N88\"],[\"N8 8\"]],[[\"N1\"],[\"M1\"]],[[\"N40\"],[\"NN40\"]],[[\"N7\"],[\"N\"]],[[\"N26\"],[\"N2b\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -130947,9 +131266,9 @@
     "derived": true,
     "level": 4,
     "type": "fill",
-    "title": "Product code",
-    "description": "Product codes look like 123A: three digits, then A, B or C. Fill in both blanks.",
-    "starter": "code = input(\"Product code: \")\nif code[:____].isdigit() and code[3:] ____ [\"A\", \"B\", \"C\"]:\n    print(\"Product found\")\nelse:\n    print(\"Codes look like 123A\")",
+    "title": "{{[\"Product code\",\"Stock code\",\"Item code\",\"Part code\"][p0]}}",
+    "description": "{{[\"Product codes\",\"Stock codes\",\"Item codes\",\"Part codes\"][p0]}} look like 123A: three digits, then A, B or C. Fill in both blanks.",
+    "starter": "code = input(\"{{[\"Product code\",\"Stock code\",\"Item code\",\"Part code\"][p0]}}: \")\nif code[:____].isdigit() and code[3:] ____ [\"A\", \"B\", \"C\"]:\n    print(\"{{[\"Product found\",\"Stock found\",\"Item found\",\"Part found\"][p0]}}\")\nelse:\n    print(\"Codes look like 123A\")",
     "answers": [
       "3",
       "in"
@@ -130984,8 +131303,14 @@
       "positions",
       "format"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -130997,6 +131322,7 @@
       "TS": "[[[\"123A\"],[\"12AA\"]],[[\"480C\"],[\"480D\"]],[[\"007B\"],[\"07B\"]],[[\"555A\"],[\"555\"]],[[\"910C\"],[\"910CC\"]],[[\"246B\"],[\"24B6\"]],[[\"300A\"],[\"300a\"]],[[\"781C\"],[\"X81C\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -131009,10 +131335,10 @@
     "derived": true,
     "level": 5,
     "type": "parsons",
-    "title": "Seat number",
+    "title": "{{[\"Seat\",\"Place\",\"Chair\",\"Spot\"][p0]}} number",
     "description": "[[out:1:0]]: 2 characters, a row letter from A to F, then a digit. Arrange the lines.\nOne line is not needed.",
     "starter": "",
-    "solution": "seat = input(\"Seat: \")\nif len(seat) == 2 and seat[0] in \"ABCDEF\" and seat[1].isdigit():\n    print(\"Seat\", seat, \"booked\")\nelse:\n    print(\"Seats look like C7\")",
+    "solution": "seat = input(\"{{[\"Seat\",\"Place\",\"Chair\",\"Spot\"][p0]}}: \")\nif len(seat) == 2 and seat[0] in \"ABCDEF\" and seat[1].isdigit():\n    print(\"{{[\"Seat\",\"Place\",\"Chair\",\"Spot\"][p0]}}\", seat, \"booked\")\nelse:\n    print(\"{{[\"Seats\",\"Places\",\"Chairs\",\"Spots\"][p0]}} look like C7\")",
     "distractors": [
       "if len(seat) == 2 or seat[0] in \"ABCDEF\" or seat[1].isdigit():"
     ],
@@ -131046,8 +131372,14 @@
       "format",
       "positions"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -131059,6 +131391,7 @@
       "TS": "[[[\"C7\"],[\"G7\"]],[[\"A1\"],[\"A12\"]],[[\"F9\"],[\"FF\"]],[[\"B4\"],[\"4B\"]],[[\"D2\"],[\"d2\"]],[[\"E5\"],[\"E\"]],[[\"A8\"],[\"H8\"]],[[\"F3\"],[\"F 3\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -131071,12 +131404,12 @@
     "derived": true,
     "level": 5,
     "type": "parsons",
-    "title": "Parking bay",
+    "title": "Parking {{[\"bay\",\"space\",\"slot\",\"stand\"][p0]}}",
     "description": "[[out:1:0]]: 3 characters, a P, then two digits. Arrange the lines.\nOne line is not needed.",
     "starter": "",
-    "solution": "bay = input(\"Bay: \")\nif len(bay) == 3 and bay[0] == \"P\" and bay[1:].isdigit():\n    print(\"Park in bay\", bay)\nelse:\n    print(\"Bays look like P12\")",
+    "solution": "{{[\"bay\",\"space\",\"slot\",\"stand\"][p0]}} = input(\"{{[\"Bay\",\"Space\",\"Slot\",\"Stand\"][p0]}}: \")\nif len({{[\"bay\",\"space\",\"slot\",\"stand\"][p0]}}) == 3 and {{[\"bay\",\"space\",\"slot\",\"stand\"][p0]}}[0] == \"P\" and {{[\"bay\",\"space\",\"slot\",\"stand\"][p0]}}[1:].isdigit():\n    print(\"Park in {{[\"bay\",\"space\",\"slot\",\"stand\"][p0]}}\", {{[\"bay\",\"space\",\"slot\",\"stand\"][p0]}})\nelse:\n    print(\"{{[\"Bays\",\"Spaces\",\"Slots\",\"Stands\"][p0]}} look like P12\")",
     "distractors": [
-      "if len(bay) == 3 and bay[1] == \"P\" and bay[1:].isdigit():"
+      "if len({{[\"bay\",\"space\",\"slot\",\"stand\"][p0]}}) == 3 and {{[\"bay\",\"space\",\"slot\",\"stand\"][p0]}}[1] == \"P\" and {{[\"bay\",\"space\",\"slot\",\"stand\"][p0]}}[1:].isdigit():"
     ],
     "tests": [
       {
@@ -131096,7 +131429,7 @@
     ],
     "hints": [
       "The P is the first character, at index 0.",
-      "bay[1:] is the two digits."
+      "{{[\"bay\",\"space\",\"slot\",\"stand\"][p0]}}[1:] is the two digits."
     ],
     "tags": [
       "format check",
@@ -131107,8 +131440,14 @@
     "skills": [
       "positions"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -131120,6 +131459,7 @@
       "TS": "[[[\"P12\"],[\"P1\"]],[[\"P07\"],[\"Q07\"]],[[\"P99\"],[\"P9x\"]],[[\"P40\"],[\"40P\"]],[[\"P31\"],[\"P311\"]],[[\"P58\"],[\"p58\"]],[[\"P20\"],[\"PP2\"]],[[\"P64\"],[\"P 4\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -131132,12 +131472,12 @@
     "derived": true,
     "level": 5,
     "type": "parsons",
-    "title": "Show time",
-    "description": "Show times look like 7pm: at least 3 characters, ending in pm. Arrange the lines.\nOne line is not needed.",
+    "title": "{{[\"Show\",\"Film\",\"Concert\",\"Gig\"][p0]}} time",
+    "description": "{{[\"Show\",\"Film\",\"Concert\",\"Gig\"][p0]}} times look like 7pm: at least 3 characters, ending in pm. Arrange the lines.\nOne line is not needed.",
     "starter": "",
-    "solution": "show = input(\"Show time: \")\nif len(show) >= 3 and show[-2:] == \"pm\":\n    print(\"Show starts at\", show)\nelse:\n    print(\"Shows are in the evening, such as 7pm\")",
+    "solution": "{{[\"show\",\"film\",\"concert\",\"gig\"][p0]}} = input(\"{{[\"Show\",\"Film\",\"Concert\",\"Gig\"][p0]}} time: \")\nif len({{[\"show\",\"film\",\"concert\",\"gig\"][p0]}}) >= 3 and {{[\"show\",\"film\",\"concert\",\"gig\"][p0]}}[-2:] == \"pm\":\n    print(\"{{[\"Show\",\"Film\",\"Concert\",\"Gig\"][p0]}} starts at\", {{[\"show\",\"film\",\"concert\",\"gig\"][p0]}})\nelse:\n    print(\"{{[\"Shows\",\"Films\",\"Concerts\",\"Gigs\"][p0]}} are in the evening, such as 7pm\")",
     "distractors": [
-      "if len(show) >= 3 or show[-2:] == \"pm\":"
+      "if len({{[\"show\",\"film\",\"concert\",\"gig\"][p0]}}) >= 3 or {{[\"show\",\"film\",\"concert\",\"gig\"][p0]}}[-2:] == \"pm\":"
     ],
     "tests": [
       {
@@ -131156,7 +131496,7 @@
       }
     ],
     "hints": [
-      "show[-2:] is the last two characters.",
+      "{{[\"show\",\"film\",\"concert\",\"gig\"][p0]}}[-2:] is the last two characters.",
       "Both rules must be True."
     ],
     "tags": [
@@ -131168,8 +131508,14 @@
       "positions",
       "format"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -131181,6 +131527,7 @@
       "TS": "[[[\"7pm\"],[\"7am\"]],[[\"8pm\"],[\"pm\"]],[[\"10pm\"],[\"10 p\"]],[[\"6pm\"],[\"6PM\"]],[[\"9pm\"],[\"9\"]],[[\"5pm\"],[\"5mp\"]],[[\"11pm\"],[\"11am\"]],[[\"4pm\"],[\"pm4\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -131193,10 +131540,10 @@
     "derived": true,
     "level": 6,
     "type": "parsons",
-    "title": "Post tag",
+    "title": "{{[\"Post tag\",\"Photo tag\",\"Video tag\",\"Blog tag\"][p0]}}",
     "description": "A tag must start with # and have no spaces in it. Arrange the lines.\nTwo lines are not needed.",
     "starter": "",
-    "solution": "tag = input(\"Post tag: \")\nif tag[0] == \"#\" and \" \" not in tag:\n    print(\"Tag OK:\", tag)\nelse:\n    print(\"Tags start with # and have no spaces\")",
+    "solution": "tag = input(\"{{[\"Post tag\",\"Photo tag\",\"Video tag\",\"Blog tag\"][p0]}}: \")\nif tag[0] == \"#\" and \" \" not in tag:\n    print(\"Tag OK:\", tag)\nelse:\n    print(\"Tags start with # and have no spaces\")",
     "distractors": [
       "if tag[0] == \"#\" or \" \" not in tag:",
       "if tag[1] == \"#\" and \" \" not in tag:"
@@ -131234,11 +131581,17 @@
     "buggy_variants": [
       {
         "misconception": "AND_OR_CONFUSED",
-        "code": "tag = input(\"Post tag: \")\nif tag[0] == \"#\" or \" \" not in tag:\n    print(\"Tag OK:\", tag)\nelse:\n    print(\"Tags start with # and have no spaces\")"
+        "code": "tag = input(\"{{[\"Post tag\",\"Photo tag\",\"Video tag\",\"Blog tag\"][p0]}}: \")\nif tag[0] == \"#\" or \" \" not in tag:\n    print(\"Tag OK:\", tag)\nelse:\n    print(\"Tags start with # and have no spaces\")"
       }
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -131250,6 +131603,7 @@
       "TS": "[[[\"#sunny\"],[\"#sunny day\"]],[[\"#win\"],[\"win\"]],[[\"#gr8\"],[\"# gr8\"]],[[\"#fun\"],[\"f#un\"]],[[\"#team\"],[\"#team \"]],[[\"#go\"],[\"go#\"]],[[\"#art\"],[\"art\"]],[[\"#yes\"],[\"#y e s\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -131262,10 +131616,10 @@
     "derived": true,
     "level": 6,
     "type": "parsons",
-    "title": "File name",
-    "description": "A file name must end in .txt and have no spaces. Arrange the lines.\nTwo lines are not needed.",
+    "title": "{{[\"File name\",\"Note name\",\"Log name\",\"Report name\"][p0]}}",
+    "description": "A {{[\"file name\",\"note name\",\"log name\",\"report name\"][p0]}} must end in .txt and have no spaces. Arrange the lines.\nTwo lines are not needed.",
     "starter": "",
-    "solution": "name = input(\"File name: \")\nif name[-4:] == \".txt\" and \" \" not in name:\n    print(\"Saving\", name)\nelse:\n    print(\"Use a name like notes.txt, with no spaces\")",
+    "solution": "name = input(\"{{[\"File name\",\"Note name\",\"Log name\",\"Report name\"][p0]}}: \")\nif name[-4:] == \".txt\" and \" \" not in name:\n    print(\"Saving\", name)\nelse:\n    print(\"Use a name like notes.txt, with no spaces\")",
     "distractors": [
       "if name[-4:] == \".txt\" and \" \" in name:",
       "if name[-3:] == \".txt\" and \" \" not in name:"
@@ -131300,8 +131654,14 @@
       "format",
       "positions"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -131313,6 +131673,7 @@
       "TS": "[[[\"notes.txt\"],[\"my notes.txt\"]],[[\"list.txt\"],[\"list.doc\"]],[[\"a.txt\"],[\"a txt\"]],[[\"plan.txt\"],[\"plan.txt \"]],[[\"todo.txt\"],[\"todo\"]],[[\"poem.txt\"],[\"poem .txt\"]],[[\"x1.txt\"],[\"x1.tx\"]],[[\"menu.txt\"],[\"menu.TXT\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -131325,10 +131686,10 @@
     "derived": true,
     "level": 6,
     "type": "parsons",
-    "title": "Phone extension",
-    "description": "An extension is all digits and doesn't start with 0. Arrange the lines.\nTwo lines are not needed.",
+    "title": "Phone {{[\"extension\",\"desk line\",\"room line\",\"phone line\"][p0]}}",
+    "description": "{{[\"An extension\",\"A desk line\",\"A room line\",\"A phone line\"][p0]}} is all digits and doesn't start with 0. Arrange the lines.\nTwo lines are not needed.",
     "starter": "",
-    "solution": "ext = input(\"Extension: \")\nif ext.isdigit() and ext[0] != \"0\":\n    print(\"Calling extension\", ext)\nelse:\n    print(\"Extensions are digits and don't start with 0\")",
+    "solution": "ext = input(\"{{[\"Extension\",\"Desk line\",\"Room line\",\"Phone line\"][p0]}}: \")\nif ext.isdigit() and ext[0] != \"0\":\n    print(\"Calling {{[\"extension\",\"desk line\",\"room line\",\"phone line\"][p0]}}\", ext)\nelse:\n    print(\"{{[\"Extensions\",\"Desk lines\",\"Room lines\",\"Phone lines\"][p0]}} are digits and don't start with 0\")",
     "distractors": [
       "if ext.isdigit() or ext[0] != \"0\":",
       "if ext.isdigit() and ext[0] == \"0\":"
@@ -131363,8 +131724,14 @@
       "format",
       "positions"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -131376,6 +131743,7 @@
       "TS": "[[[\"245\"],[\"045\"]],[[\"31\"],[\"3a\"]],[[\"9000\"],[\"0900\"]],[[\"7\"],[\"x7\"]],[[\"120\"],[\"12 0\"]],[[\"58\"],[\"05\"]],[[\"4411\"],[\"44-11\"]],[[\"6\"],[\"0\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -131388,10 +131756,10 @@
     "derived": true,
     "level": 7,
     "type": "write",
-    "title": "Ticket type",
-    "description": "Add a format check using in: the ticket type must be adult, child or senior. Print, for example:\nTicket: child\nOtherwise print Ticket types are adult, child or senior.",
-    "starter": "ticket = input(\"Ticket type: \")\n# Add a format check here",
-    "solution": "ticket = input(\"Ticket type: \")\nif ticket in [\"adult\", \"child\", \"senior\"]:\n    print(\"Ticket:\", ticket)\nelse:\n    print(\"Ticket types are adult, child or senior\")",
+    "title": "{{[\"Ticket\",\"Fare\",\"Wristband\",\"Badge\"][p0]}} type",
+    "description": "Add a format check using in: the {{[\"ticket\",\"fare\",\"wristband\",\"badge\"][p0]}} type must be adult, child or senior. Print, for example:\n{{[\"Ticket\",\"Fare\",\"Wristband\",\"Badge\"][p0]}}: child\nOtherwise print {{[\"Ticket\",\"Fare\",\"Wristband\",\"Badge\"][p0]}} types are adult, child or senior.",
+    "starter": "{{[\"ticket\",\"fare\",\"wristband\",\"badge\"][p0]}} = input(\"{{[\"Ticket\",\"Fare\",\"Wristband\",\"Badge\"][p0]}} type: \")\n# Add a format check here",
+    "solution": "{{[\"ticket\",\"fare\",\"wristband\",\"badge\"][p0]}} = input(\"{{[\"Ticket\",\"Fare\",\"Wristband\",\"Badge\"][p0]}} type: \")\nif {{[\"ticket\",\"fare\",\"wristband\",\"badge\"][p0]}} in [\"adult\", \"child\", \"senior\"]:\n    print(\"{{[\"Ticket\",\"Fare\",\"Wristband\",\"Badge\"][p0]}}:\", {{[\"ticket\",\"fare\",\"wristband\",\"badge\"][p0]}})\nelse:\n    print(\"{{[\"Ticket\",\"Fare\",\"Wristband\",\"Badge\"][p0]}} types are adult, child or senior\")",
     "tests": [
       {
         "inputs": [
@@ -131424,11 +131792,17 @@
     "buggy_variants": [
       {
         "misconception": "IN_NOT_EQUALS",
-        "code": "ticket = input(\"Ticket type: \")\nif ticket == [\"adult\", \"child\", \"senior\"]:\n    print(\"Ticket:\", ticket)\nelse:\n    print(\"Ticket types are adult, child or senior\")"
+        "code": "{{[\"ticket\",\"fare\",\"wristband\",\"badge\"][p0]}} = input(\"{{[\"Ticket\",\"Fare\",\"Wristband\",\"Badge\"][p0]}} type: \")\nif {{[\"ticket\",\"fare\",\"wristband\",\"badge\"][p0]}} == [\"adult\", \"child\", \"senior\"]:\n    print(\"{{[\"Ticket\",\"Fare\",\"Wristband\",\"Badge\"][p0]}}:\", {{[\"ticket\",\"fare\",\"wristband\",\"badge\"][p0]}})\nelse:\n    print(\"{{[\"Ticket\",\"Fare\",\"Wristband\",\"Badge\"][p0]}} types are adult, child or senior\")"
       }
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -131440,6 +131814,7 @@
       "TS": "[[[\"child\"],[\"student\"]],[[\"adult\"],[\"Child\"]],[[\"senior\"],[\"kid\"]],[[\"child\"],[\"teen\"]],[[\"senior\"],[\"ADULT\"]],[[\"adult\"],[\"baby\"]],[[\"child\"],[\"elder\"]],[[\"adult\"],[\"grown-up\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -131452,10 +131827,10 @@
     "derived": true,
     "level": 7,
     "type": "write",
-    "title": "Pizza size",
-    "description": "Add a format check: the size must be small, medium or large. Print, for example:\nOne medium pizza\nOtherwise print Choose small, medium or large.",
+    "title": "{{[\"Pizza\",\"Coffee\",\"Milkshake\",\"Popcorn\"][p0]}} size",
+    "description": "Add a format check: the size must be small, medium or large. Print, for example:\nOne medium {{[\"pizza\",\"coffee\",\"milkshake\",\"popcorn\"][p0]}}\nOtherwise print Choose small, medium or large.",
     "starter": "size = input(\"Size: \")\n# Add a format check here",
-    "solution": "size = input(\"Size: \")\nif size in [\"small\", \"medium\", \"large\"]:\n    print(\"One\", size, \"pizza\")\nelse:\n    print(\"Choose small, medium or large\")",
+    "solution": "size = input(\"Size: \")\nif size in [\"small\", \"medium\", \"large\"]:\n    print(\"One\", size, \"{{[\"pizza\",\"coffee\",\"milkshake\",\"popcorn\"][p0]}}\")\nelse:\n    print(\"Choose small, medium or large\")",
     "tests": [
       {
         "inputs": [
@@ -131484,8 +131859,14 @@
     "skills": [
       "format"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -131497,6 +131878,7 @@
       "TS": "[[[\"medium\"],[\"huge\"]],[[\"small\"],[\"Medium\"]],[[\"large\"],[\"med\"]],[[\"small\"],[\"tiny\"]],[[\"medium\"],[\"LARGE\"]],[[\"large\"],[\"big\"]],[[\"large\"],[\"sm\"]],[[\"medium\"],[\"mega\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -131510,9 +131892,9 @@
     "level": 7,
     "type": "write",
     "title": "Compass direction",
-    "description": "Add a format check: the direction must be N, E, S or W (capital letters). Print, for example:\nHeading E\nOtherwise print Type N, E, S or W.",
+    "description": "Add a format check: the direction must be N, E, S or W (capital letters). Print, for example:\n{{[\"Heading\",\"Sailing\",\"Walking\",\"Flying\"][p0]}} E\nOtherwise print Type N, E, S or W.",
     "starter": "direction = input(\"Direction: \")\n# Add a format check here",
-    "solution": "direction = input(\"Direction: \")\nif direction in [\"N\", \"E\", \"S\", \"W\"]:\n    print(\"Heading\", direction)\nelse:\n    print(\"Type N, E, S or W\")",
+    "solution": "direction = input(\"Direction: \")\nif direction in [\"N\", \"E\", \"S\", \"W\"]:\n    print(\"{{[\"Heading\",\"Sailing\",\"Walking\",\"Flying\"][p0]}}\", direction)\nelse:\n    print(\"Type N, E, S or W\")",
     "tests": [
       {
         "inputs": [
@@ -131541,8 +131923,14 @@
     "skills": [
       "format"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -131554,6 +131942,7 @@
       "TS": "[[[\"E\"],[\"e\"]],[[\"N\"],[\"NE\"]],[[\"S\"],[\"North\"]],[[\"W\"],[\"w\"]],[[\"N\"],[\"X\"]],[[\"E\"],[\"SE\"]],[[\"W\"],[\"s\"]],[[\"S\"],[\"NN\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -131566,10 +131955,10 @@
     "derived": true,
     "level": 8,
     "type": "write",
-    "title": "Lock code",
-    "description": "Lock codes look like 12-34: 5 characters, a - at index 2, and digits before and after it. Print Lock opens if the code follows every rule, otherwise print [[out:1:0]].",
+    "title": "{{[\"Lock code\",\"Gate code\",\"Door code\",\"Hatch code\"][p0]}}",
+    "description": "{{[\"Lock codes\",\"Gate codes\",\"Door codes\",\"Hatch codes\"][p0]}} look like 12-34: 5 characters, a - at index 2, and digits before and after it. Print {{[\"Lock opens\",\"Gate opens\",\"Door opens\",\"Hatch opens\"][p0]}} if the code follows every rule, otherwise print [[out:1:0]].",
     "starter": "# Write your program here",
-    "solution": "code = input(\"Lock code: \")\nif len(code) == 5 and code[2] == \"-\" and code[:2].isdigit() and code[3:].isdigit():\n    print(\"Lock opens\")\nelse:\n    print(\"Codes look like 12-34\")",
+    "solution": "code = input(\"{{[\"Lock code\",\"Gate code\",\"Door code\",\"Hatch code\"][p0]}}: \")\nif len(code) == 5 and code[2] == \"-\" and code[:2].isdigit() and code[3:].isdigit():\n    print(\"{{[\"Lock opens\",\"Gate opens\",\"Door opens\",\"Hatch opens\"][p0]}}\")\nelse:\n    print(\"Codes look like 12-34\")",
     "tests": [
       {
         "inputs": [
@@ -131599,8 +131988,14 @@
       "positions",
       "format"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -131612,6 +132007,7 @@
       "TS": "[[[\"12-34\"],[\"1234-\"]],[[\"90-01\"],[\"90_01\"]],[[\"55-55\"],[\"5-555\"]],[[\"07-30\"],[\"07-3a\"]],[[\"11-22\"],[\"11-222\"]],[[\"48-16\"],[\"ab-16\"]],[[\"63-80\"],[\"6380\"]],[[\"20-02\"],[\"20 02\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -131624,10 +132020,10 @@
     "derived": true,
     "level": 8,
     "type": "write",
-    "title": "Parcel weight",
+    "title": "{{[\"Parcel\",\"Suitcase\",\"Box\",\"Sack\"][p0]}} weight",
     "description": "Weights are typed like 12kg: 4 characters, two digits, then kg. Print, for example:\n[[out:0:0]]\nOtherwise print [[out:1:0]].",
     "starter": "# Write your program here",
-    "solution": "weight = input(\"Weight: \")\nif len(weight) == 4 and weight[:2].isdigit() and weight[2:] == \"kg\":\n    print(\"Parcel weighs\", weight)\nelse:\n    print(\"Type the weight like 12kg\")",
+    "solution": "weight = input(\"Weight: \")\nif len(weight) == 4 and weight[:2].isdigit() and weight[2:] == \"kg\":\n    print(\"{{[\"Parcel\",\"Suitcase\",\"Box\",\"Sack\"][p0]}} weighs\", weight)\nelse:\n    print(\"Type the weight like 12kg\")",
     "tests": [
       {
         "inputs": [
@@ -131657,8 +132053,14 @@
       "format",
       "positions"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -131670,6 +132072,7 @@
       "TS": "[[[\"12kg\"],[\"12 kg\"]],[[\"05kg\"],[\"5kg\"]],[[\"30kg\"],[\"30KG\"]],[[\"99kg\"],[\"99g\"]],[[\"41kg\"],[\"4lkg\"]],[[\"18kg\"],[\"kg18\"]],[[\"60kg\"],[\"60kgs\"]],[[\"27kg\"],[\"27lb\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -131683,9 +132086,9 @@
     "level": 8,
     "type": "write",
     "title": "Ticket reference",
-    "description": "[[out:1:0]]: 5 characters, a T, a -, then three digits. Print Reference found if it follows every rule, otherwise print [[out:1:0]].",
+    "description": "[[out:1:0]]: 5 characters, a T, a -, then three digits. Print {{[\"Reference\",\"Booking ref\",\"Order ref\",\"Claim ref\"][p0]}} found if it follows every rule, otherwise print [[out:1:0]].",
     "starter": "# Write your program here",
-    "solution": "ref = input(\"Reference: \")\nif len(ref) == 5 and ref[0] == \"T\" and ref[1] == \"-\" and ref[2:].isdigit():\n    print(\"Reference found\")\nelse:\n    print(\"References look like T-123\")",
+    "solution": "ref = input(\"{{[\"Reference\",\"Booking ref\",\"Order ref\",\"Claim ref\"][p0]}}: \")\nif len(ref) == 5 and ref[0] == \"T\" and ref[1] == \"-\" and ref[2:].isdigit():\n    print(\"{{[\"Reference\",\"Booking ref\",\"Order ref\",\"Claim ref\"][p0]}} found\")\nelse:\n    print(\"{{[\"References\",\"Booking refs\",\"Order refs\",\"Claim refs\"][p0]}} look like T-123\")",
     "tests": [
       {
         "inputs": [
@@ -131714,8 +132117,14 @@
     "skills": [
       "positions"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -131727,6 +132136,7 @@
       "TS": "[[[\"T-123\"],[\"T123\"]],[[\"T-900\"],[\"t-900\"]],[[\"T-045\"],[\"T-45\"]],[[\"T-777\"],[\"T_777\"]],[[\"T-310\"],[\"T-31a\"]],[[\"T-002\"],[\"-T002\"]],[[\"T-561\"],[\"T-5610\"]],[[\"T-888\"],[\"X-888\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -131742,7 +132152,7 @@
     "title": "Match score",
     "description": "[[out:1:0]]: 3 characters, a digit, a - and a digit. Ask for a score; while it doesn't follow the format, print [[out:1:0]] and ask again. Then print the two parts, for example:\n[[out:0:0]]",
     "starter": "# Write your program here",
-    "solution": "score = input(\"Score: \")\nwhile len(score) != 3 or score[1] != \"-\" or not score[0].isdigit() or not score[2].isdigit():\n    print(\"Scores look like 3-1\")\n    score = input(\"Score: \")\nprint(\"Home\", score[0], \"Away\", score[2])",
+    "solution": "score = input(\"Score: \")\nwhile len(score) != 3 or score[1] != \"-\" or not score[0].isdigit() or not score[2].isdigit():\n    print(\"Scores look like 3-1\")\n    score = input(\"Score: \")\nprint(\"{{[\"Home\",\"Us\",\"Red\",\"Hosts\"][p0]}}\", score[0], \"{{[\"Away\",\"Them\",\"Blue\",\"Guests\"][p0]}}\", score[2])",
     "tests": [
       {
         "inputs": [
@@ -131773,8 +132183,14 @@
       "re-ask",
       "positions"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -131786,6 +132202,7 @@
       "TS": "[[[\"3-1\"],[\"31\",\"2-2\"]],[[\"0-0\"],[\"0:0\",\"1-0\"]],[[\"4-2\"],[\"4 - 2\",\"4-2\"]],[[\"2-5\"],[\"two-five\",\"2-5\"]],[[\"1-3\"],[\"1-\",\"1-3\"]],[[\"5-0\"],[\"50\",\"5-0\"]],[[\"6-4\"],[\"6-x\",\"6-4\"]],[[\"2-1\"],[\"2--1\",\"2-1\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -131801,7 +132218,7 @@
     "title": "Fractions",
     "description": "Fractions are typed like 3/4: 3 characters, a digit, a / and a digit. Ask for a fraction; while it isn't in this format, print [[out:1:0]] and ask again. Then print, for example:\n[[out:0:0]]",
     "starter": "# Write your program here",
-    "solution": "frac = input(\"Fraction: \")\nwhile len(frac) != 3 or frac[1] != \"/\" or not frac[0].isdigit() or not frac[2].isdigit():\n    print(\"Type a fraction like 3/4\")\n    frac = input(\"Fraction: \")\nprint(\"Top \" + frac[0] + \", bottom \" + frac[2])",
+    "solution": "frac = input(\"Fraction: \")\nwhile len(frac) != 3 or frac[1] != \"/\" or not frac[0].isdigit() or not frac[2].isdigit():\n    print(\"Type a fraction like 3/4\")\n    frac = input(\"Fraction: \")\nprint(\"{{[\"Top\",\"Numerator\",\"Upper\",\"Above\"][p0]}} \" + frac[0] + \", {{[\"bottom\",\"denominator\",\"lower\",\"below\"][p0]}} \" + frac[2])",
     "tests": [
       {
         "inputs": [
@@ -131831,8 +132248,14 @@
       "positions",
       "re-ask"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -131844,6 +132267,7 @@
       "TS": "[[[\"3/4\"],[\"34\",\"1/2\"]],[[\"2/3\"],[\"2/3/\",\"2/3\"]],[[\"1/8\"],[\"1-8\",\"1/8\"]],[[\"5/6\"],[\"5/x\",\"5/6\"]],[[\"7/9\"],[\"7 / 9\",\"7/9\"]],[[\"4/5\"],[\"four/5\",\"4/5\"]],[[\"1/3\"],[\"/13\",\"1/3\"]],[[\"6/7\"],[\"67/\",\"6/7\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -131859,7 +132283,7 @@
     "title": "Rug dimensions",
     "description": "Sizes are typed like 4x6: 3 characters, a digit, an x and a digit. Ask for a size; while it isn't in this format, print [[out:1:0]] and ask again. Then print the area, for example:\n[[out:0:0]]",
     "starter": "# Write your program here",
-    "solution": "size = input(\"Size: \")\nwhile len(size) != 3 or size[1] != \"x\" or not size[0].isdigit() or not size[2].isdigit():\n    print(\"Type a size like 4x6\")\n    size = input(\"Size: \")\nprint(\"Area:\", int(size[0]) * int(size[2]))",
+    "solution": "size = input(\"Size: \")\nwhile len(size) != 3 or size[1] != \"x\" or not size[0].isdigit() or not size[2].isdigit():\n    print(\"Type a size like 4x6\")\n    size = input(\"Size: \")\nprint(\"{{[\"Area\",\"Floor area\",\"Space\",\"Squares\"][p0]}}:\", int(size[0]) * int(size[2]))",
     "tests": [
       {
         "inputs": [
@@ -131889,8 +132313,14 @@
       "format",
       "re-ask"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -131902,6 +132332,7 @@
       "TS": "[[[\"4x6\"],[\"4*6\",\"2x5\"]],[[\"3x3\"],[\"3X3\",\"3x3\"]],[[\"2x9\"],[\"2 x 9\",\"2x9\"]],[[\"5x4\"],[\"54\",\"5x4\"]],[[\"7x2\"],[\"7x\",\"7x2\"]],[[\"6x6\"],[\"six\",\"6x6\"]],[[\"8x1\"],[\"8by1\",\"8x1\"]],[[\"9x3\"],[\"x93\",\"9x3\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -132110,10 +132541,10 @@
     "derived": true,
     "level": 1,
     "type": "predict",
-    "title": "Initials",
+    "title": "{{[\"Initials\",\"Monogram\",\"Code letters\",\"Tag letters\"][p0]}}",
     "description": "A length check uses len() to count the characters typed. The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "initials = input(\"Initials: \")\nif len(initials) == 2:\n    print(\"Initials saved\")\nelse:\n    print(\"Initials must be 2 letters\")",
+    "solution": "initials = input(\"{{[\"Initials\",\"Monogram\",\"Code letters\",\"Tag letters\"][p0]}}: \")\nif len(initials) == 2:\n    print(\"{{[\"Initials\",\"Monogram\",\"Code letters\",\"Tag letters\"][p0]}} saved\")\nelse:\n    print(\"{{[\"Initials\",\"Monogram\",\"Code letters\",\"Tag letters\"][p0]}} must be 2 letters\")",
     "optionCount": 3,
     "tests": [
       {
@@ -132136,8 +132567,14 @@
     "skills": [
       "length"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -132150,6 +132587,7 @@
       "SAYS": "[\"types ABC\",\"types AB\",\"types A\",\"types JK\",\"types XYZ\",\"types MO\",\"types PQRS\",\"types TW\"]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -132165,7 +132603,7 @@
     "title": "Four-digit year",
     "description": "The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "year = input(\"Year: \")\nif len(year) == 4:\n    print(\"Year saved\")\nelse:\n    print(\"Years have 4 digits\")",
+    "solution": "year = input(\"{{[\"Year\",\"Birth year\",\"Start year\",\"Build year\"][p0]}}: \")\nif len(year) == 4:\n    print(\"{{[\"Year\",\"Birth year\",\"Start year\",\"Build year\"][p0]}} saved\")\nelse:\n    print(\"{{[\"Years\",\"Birth years\",\"Start years\",\"Build years\"][p0]}} have 4 digits\")",
     "optionCount": 3,
     "tests": [
       {
@@ -132188,8 +132626,14 @@
     "skills": [
       "length"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -132202,6 +132646,7 @@
       "SAYS": "[\"types 2031\",\"types 999\",\"types 20311\",\"types 1066\",\"types 12\",\"types 2000\",\"types 88\",\"types 1905\"]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -132214,10 +132659,10 @@
     "derived": true,
     "level": 1,
     "type": "predict",
-    "title": "{{[\"Postcode area\",\"Region code\",\"Zone code\"][p0]}}",
+    "title": "{{[\"Postcode area\",\"Region code\",\"Zone code\",\"District code\"][p0]}}",
     "description": "The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "area = input(\"{{[\"Postcode area\",\"Region code\",\"Zone code\"][p0]}}: \")\nif len(area) == 2:\n    print(\"{{[\"Area\",\"Region\",\"Zone\"][p0]}}:\", area)\nelse:\n    print(\"{{[\"Areas\",\"Regions\",\"Zones\"][p0]}} have 2 characters\")",
+    "solution": "area = input(\"{{[\"Postcode area\",\"Region code\",\"Zone code\",\"District code\"][p0]}}: \")\nif len(area) == 2:\n    print(\"{{[\"Area\",\"Region\",\"Zone\",\"District\"][p0]}}:\", area)\nelse:\n    print(\"{{[\"Areas\",\"Regions\",\"Zones\",\"Districts\"][p0]}} have 2 characters\")",
     "optionCount": 3,
     "tests": [
       {
@@ -132245,7 +132690,7 @@
       "p0": {
         "int": [
           0,
-          2
+          3
         ]
       },
       "ts": {
@@ -132276,7 +132721,7 @@
     "title": "A space counts",
     "description": "The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "name = input(\"Display name: \")\nif len(name) <= 5:\n    print(\"Name fits\")\nelse:\n    print(\"Too long\")",
+    "solution": "name = input(\"{{[\"Display name\",\"Screen name\",\"Badge name\",\"Card name\"][p0]}}: \")\nif len(name) <= 5:\n    print(\"Name fits\")\nelse:\n    print(\"Too long\")",
     "optionCount": 3,
     "tests": [
       {
@@ -132301,8 +132746,14 @@
       "least-and-most",
       "length"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -132315,6 +132766,7 @@
       "SAYS": "[\"types Jo Lee\",\"types JoLee\",\"types Jo Li\",\"types Sam\",\"types Ali B.\",\"types Ed\",\"types Kim Wu\",\"types Al Fox\"]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -132330,7 +132782,7 @@
     "title": "Right at the limit",
     "description": "The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "code = input(\"Code (3 to 6 characters): \")\nif len(code) >= 3 and len(code) <= 6:\n    print(\"Code length OK\")\nelse:\n    print(\"Codes have 3 to 6 characters\")",
+    "solution": "code = input(\"{{[\"Code\",\"Tag\",\"Key\",\"Label\"][p0]}} (3 to 6 characters): \")\nif len(code) >= 3 and len(code) <= 6:\n    print(\"{{[\"Code\",\"Tag\",\"Key\",\"Label\"][p0]}} length OK\")\nelse:\n    print(\"{{[\"Codes\",\"Tags\",\"Keys\",\"Labels\"][p0]}} have 3 to 6 characters\")",
     "optionCount": 3,
     "tests": [
       {
@@ -132353,8 +132805,14 @@
     "skills": [
       "least-and-most"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -132367,6 +132825,7 @@
       "SAYS": "[\"types abcdef\",\"types abcdefg\",\"types abc\",\"types ab\",\"types abcd\",\"types abcdefgh\",\"types a1b2c3\",\"types zz\"]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -132382,7 +132841,7 @@
     "title": "Space at the end",
     "description": "The user {{SAYS[ts]}}. What will this program print?",
     "starter": "",
-    "solution": "word = input(\"{{[\"Three-letter word\",\"3-letter word\"][p0]}}: \")\nif len(word) == 3:\n    print(\"Nice word:\", word)\nelse:\n    print(\"{{[\"Words have 3 letters\",\"Words have 3 letters\"][p0]}}\")",
+    "solution": "word = input(\"{{[\"Three-letter word\",\"3-letter word\",\"Short word\",\"Tiny word\"][p0]}}: \")\nif len(word) == 3:\n    print(\"Nice word:\", word)\nelse:\n    print(\"Words have 3 letters\")",
     "optionCount": 3,
     "tests": [
       {
@@ -132409,7 +132868,7 @@
       "p0": {
         "int": [
           0,
-          1
+          3
         ]
       },
       "ts": {
@@ -132437,9 +132896,9 @@
     "derived": true,
     "level": 3,
     "type": "fill",
-    "title": "Short post",
-    "description": "Fill in the blank so the program counts the characters in the post: posts have 20 characters at most.",
-    "starter": "post = input(\"Post: \")\nif ____(post) <= 20:\n    print(\"Posted\")\nelse:\n    print(\"Posts have 20 characters at most\")",
+    "title": "Short {{[\"post\",\"reply\",\"caption\",\"comment\"][p0]}}",
+    "description": "Fill in the blank so the program counts the characters in the {{[\"post\",\"reply\",\"caption\",\"comment\"][p0]}}: {{[\"posts\",\"replies\",\"captions\",\"comments\"][p0]}} have 20 characters at most.",
+    "starter": "{{[\"post\",\"reply\",\"caption\",\"comment\"][p0]}} = input(\"{{[\"Post\",\"Reply\",\"Caption\",\"Comment\"][p0]}}: \")\nif ____({{[\"post\",\"reply\",\"caption\",\"comment\"][p0]}}) <= 20:\n    print(\"Posted\")\nelse:\n    print(\"{{[\"Posts\",\"Replies\",\"Captions\",\"Comments\"][p0]}} have 20 characters at most\")",
     "answers": [
       "len"
     ],
@@ -132471,8 +132930,14 @@
     "skills": [
       "length"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -132484,6 +132949,7 @@
       "TS": "[[[\"Great match today\"],[\"What a brilliant game today!\"]],[[\"Hello!\"],[\"Has anyone seen my blue scarf?\"]],[[\"Who wants pizza?\"],[\"See you all at the park later\"]],[[\"Back soon\"],[\"This post is far too long\"]],[[\"Rainy again\"],[\"I can't wait for the weekend!\"]],[[\"Done\"],[\"What a brilliant game today!\"]],[[\"Best day ever\"],[\"Has anyone seen my blue scarf?\"]],[[\"Twenty characters ok\"],[\"See you all at the park later\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -132497,8 +132963,8 @@
     "level": 3,
     "type": "fill",
     "title": "Five letters",
-    "description": "Fill in the blank so the crossword answer must have exactly 5 letters.",
-    "starter": "answer = input(\"Answer: \")\nif len(answer) ____ 5:\n    print(\"Fits the crossword\")\nelse:\n    print(\"The answer has 5 letters\")",
+    "description": "Fill in the blank so the {{[\"crossword\",\"puzzle\",\"word grid\",\"word game\"][p0]}} answer must have exactly 5 letters.",
+    "starter": "answer = input(\"Answer: \")\nif len(answer) ____ 5:\n    print(\"Fits the {{[\"crossword\",\"puzzle\",\"word grid\",\"word game\"][p0]}}\")\nelse:\n    print(\"The answer has 5 letters\")",
     "answers": [
       "=="
     ],
@@ -132530,8 +132996,14 @@
     "skills": [
       "length"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -132543,6 +133015,7 @@
       "TS": "[[[\"PLANT\"],[\"PLANET\"]],[[\"OCEAN\"],[\"SEA\"]],[[\"TIGER\"],[\"TIGERS\"]],[[\"BREAD\"],[\"BUN\"]],[[\"CLOUD\"],[\"CLOUDY\"]],[[\"LEMON\"],[\"LIME\"]],[[\"STORM\"],[\"STORMS\"]],[[\"MAPLE\"],[\"OAK\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -132556,8 +133029,8 @@
     "level": 3,
     "type": "fill",
     "title": "Count first",
-    "description": "Fill in the blank so count holds the number of characters in the message.",
-    "starter": "msg = input(\"Message: \")\ncount = ____(msg)\nif count > 10:\n    print(count, \"characters: too long\")\nelse:\n    print(count, \"characters: fine\")",
+    "description": "Fill in the blank so count holds the number of characters in the {{[\"message\",\"reply\",\"note\",\"caption\"][p0]}}.",
+    "starter": "msg = input(\"{{[\"Message\",\"Reply\",\"Note\",\"Caption\"][p0]}}: \")\ncount = ____(msg)\nif count > 10:\n    print(count, \"characters: too long\")\nelse:\n    print(count, \"characters: fine\")",
     "answers": [
       "len"
     ],
@@ -132589,8 +133062,14 @@
     "skills": [
       "length"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -132602,6 +133081,7 @@
       "TS": "[[[\"hello\"],[\"hello world!\"]],[[\"hi there\"],[\"running late today\"]],[[\"on my way\"],[\"where are you now?\"]],[[\"ok\"],[\"call me later\"]],[[\"lunch?\"],[\"hello world!\"]],[[\"thanks!\"],[\"running late today\"]],[[\"see you\"],[\"where are you now?\"]],[[\"yes\"],[\"call me later\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -132614,9 +133094,9 @@
     "derived": true,
     "level": 4,
     "type": "fill",
-    "title": "Pet name",
-    "description": "Fill in both blanks so a pet name has 2 to 10 characters, including 2 and 10.",
-    "starter": "pet = input(\"Pet name: \")\nif len(pet) >= ____ and len(pet) <= ____:\n    print(\"Pet name saved\")\nelse:\n    print(\"Pet names have 2 to 10 characters\")",
+    "title": "{{[\"Pet name\",\"Dog name\",\"Cat name\",\"Fish name\"][p0]}}",
+    "description": "Fill in both blanks so a {{[\"pet name\",\"dog name\",\"cat name\",\"fish name\"][p0]}} has 2 to 10 characters, including 2 and 10.",
+    "starter": "pet = input(\"{{[\"Pet name\",\"Dog name\",\"Cat name\",\"Fish name\"][p0]}}: \")\nif len(pet) >= ____ and len(pet) <= ____:\n    print(\"{{[\"Pet name\",\"Dog name\",\"Cat name\",\"Fish name\"][p0]}} saved\")\nelse:\n    print(\"{{[\"Pet names\",\"Dog names\",\"Cat names\",\"Fish names\"][p0]}} have 2 to 10 characters\")",
     "answers": [
       "2",
       "10"
@@ -132649,8 +133129,14 @@
     "skills": [
       "least-and-most"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -132662,6 +133148,7 @@
       "TS": "[[[\"Bo\"],[\"B\"]],[[\"Biscuit\"],[\"Mr Whiskers\"]],[[\"Rex\"],[\"Z\"]],[[\"Pumpkin\"],[\"Sir Barksalot\"]],[[\"Al\"],[\"Q\"]],[[\"Snowflake\"],[\"B\"]],[[\"Mr Fluffy\"],[\"Mr Whiskers\"]],[[\"Coco\"],[\"Z\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -132674,9 +133161,9 @@
     "derived": true,
     "level": 4,
     "type": "fill",
-    "title": "Club name",
-    "description": "Fill in both blanks so club names with fewer than 3 or more than 12 characters are refused.",
-    "starter": "club = input(\"Club name: \")\nif len(club) ____ 3 ____ len(club) > 12:\n    print(\"Club names have 3 to 12 characters\")\nelse:\n    print(\"Club saved:\", club)",
+    "title": "{{[\"Club\",\"Society\",\"Group\",\"Team\"][p0]}} name",
+    "description": "Fill in both blanks so {{[\"club\",\"society\",\"group\",\"team\"][p0]}} names with fewer than 3 or more than 12 characters are refused.",
+    "starter": "{{[\"club\",\"society\",\"group\",\"team\"][p0]}} = input(\"{{[\"Club\",\"Society\",\"Group\",\"Team\"][p0]}} name: \")\nif len({{[\"club\",\"society\",\"group\",\"team\"][p0]}}) ____ 3 ____ len({{[\"club\",\"society\",\"group\",\"team\"][p0]}}) > 12:\n    print(\"{{[\"Club\",\"Society\",\"Group\",\"Team\"][p0]}} names have 3 to 12 characters\")\nelse:\n    print(\"{{[\"Club\",\"Society\",\"Group\",\"Team\"][p0]}} saved:\", {{[\"club\",\"society\",\"group\",\"team\"][p0]}})",
     "answers": [
       "<",
       "or"
@@ -132714,11 +133201,17 @@
     "buggy_variants": [
       {
         "misconception": "AND_OR_CONFUSED",
-        "code": "club = input(\"Club name: \")\nif len(club) < 3 and len(club) > 12:\n    print(\"Club names have 3 to 12 characters\")\nelse:\n    print(\"Club saved:\", club)"
+        "code": "{{[\"club\",\"society\",\"group\",\"team\"][p0]}} = input(\"{{[\"Club\",\"Society\",\"Group\",\"Team\"][p0]}} name: \")\nif len({{[\"club\",\"society\",\"group\",\"team\"][p0]}}) < 3 and len({{[\"club\",\"society\",\"group\",\"team\"][p0]}}) > 12:\n    print(\"{{[\"Club\",\"Society\",\"Group\",\"Team\"][p0]}} names have 3 to 12 characters\")\nelse:\n    print(\"{{[\"Club\",\"Society\",\"Group\",\"Team\"][p0]}} saved:\", {{[\"club\",\"society\",\"group\",\"team\"][p0]}})"
       }
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -132730,6 +133223,7 @@
       "TS": "[[[\"Chess Club\"],[\"Go\"]],[[\"Art\"],[\"Photography Club\"]],[[\"Coding Club\"],[\"Fx\"]],[[\"Drama\"],[\"Model Railways\"]],[[\"Film Night\"],[\"A\"]],[[\"Lego\"],[\"Go\"]],[[\"Book Worms\"],[\"Photography Club\"]],[[\"Choir\"],[\"Fx\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -132742,9 +133236,9 @@
     "derived": true,
     "level": 4,
     "type": "fill",
-    "title": "Spelling word",
-    "description": "Fill in both blanks so spelling words have 3 to 8 letters, including 3 and 8.",
-    "starter": "word = input(\"Spelling word: \")\nif len(word) ____ 3 and len(word) ____ 8:\n    print(\"Word added\")\nelse:\n    print(\"Words have 3 to 8 letters\")",
+    "title": "{{[\"Spelling word\",\"Reading word\",\"Topic word\",\"Science word\"][p0]}}",
+    "description": "Fill in both blanks so {{[\"spelling words\",\"reading words\",\"topic words\",\"science words\"][p0]}} have 3 to 8 letters, including 3 and 8.",
+    "starter": "word = input(\"{{[\"Spelling word\",\"Reading word\",\"Topic word\",\"Science word\"][p0]}}: \")\nif len(word) ____ 3 and len(word) ____ 8:\n    print(\"Word added\")\nelse:\n    print(\"Words have 3 to 8 letters\")",
     "answers": [
       ">=",
       "<="
@@ -132780,11 +133274,17 @@
     "buggy_variants": [
       {
         "misconception": "BOUNDARY_LT_VS_LTE",
-        "code": "word = input(\"Spelling word: \")\nif len(word) > 3 and len(word) < 8:\n    print(\"Word added\")\nelse:\n    print(\"Words have 3 to 8 letters\")"
+        "code": "word = input(\"{{[\"Spelling word\",\"Reading word\",\"Topic word\",\"Science word\"][p0]}}: \")\nif len(word) > 3 and len(word) < 8:\n    print(\"Word added\")\nelse:\n    print(\"Words have 3 to 8 letters\")"
       }
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -132796,6 +133296,7 @@
       "TS": "[[[\"elephant\"],[\"ox\"]],[[\"cat\"],[\"crocodile\"]],[[\"dinosaur\"],[\"hippopotamus\"]],[[\"owl\"],[\"a\"]],[[\"kangaroo\"],[\"kangaroos\"]],[[\"emu\"],[\"ox\"]],[[\"flamingo\"],[\"crocodile\"]],[[\"yak\"],[\"hippopotamus\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -132808,12 +133309,12 @@
     "derived": true,
     "level": 5,
     "type": "parsons",
-    "title": "Book title",
+    "title": "{{[\"Book title\",\"Film title\",\"Song title\",\"Game title\"][p0]}}",
     "description": "Arrange the lines so the spaces are stripped, then the title must have 1 to 40 characters.\nOne line is not needed.",
     "starter": "",
-    "solution": "title = input(\"Book title: \").strip()\nif len(title) >= 1 and len(title) <= 40:\n    print(\"Title saved:\", title)\nelse:\n    print(\"Titles have 1 to 40 characters\")",
+    "solution": "title = input(\"{{[\"Book title\",\"Film title\",\"Song title\",\"Game title\"][p0]}}: \").strip()\nif len(title) >= 1 and len(title) <= 40:\n    print(\"Title saved:\", title)\nelse:\n    print(\"Titles have 1 to 40 characters\")",
     "distractors": [
-      "title = input(\"Book title: \")"
+      "title = input(\"{{[\"Book title\",\"Film title\",\"Song title\",\"Game title\"][p0]}}: \")"
     ],
     "tests": [
       {
@@ -132844,8 +133345,14 @@
       "least-and-most",
       "length"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -132857,6 +133364,7 @@
       "TS": "[[[\"  Holes \"],[\"   \"]],[[\"Wonder\"],[\" \"]],[[\" The Hobbit\"],[\"  \"]],[[\"Matilda  \"],[\"    \"]],[[\" Kensuke's Kingdom \"],[\"   \"]],[[\"Goodnight Mister Tom\"],[\" \"]],[[\" Clockwork\"],[\"  \"]],[[\"Skellig \"],[\"    \"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -132869,10 +133377,10 @@
     "derived": true,
     "level": 5,
     "type": "parsons",
-    "title": "Name tag",
+    "title": "{{[\"Name tag\",\"Door sign\",\"Desk label\",\"Locker label\"][p0]}}",
     "description": "Arrange the lines so the spaces are stripped, then the name must have 3 to 10 characters.\nOne line is not needed.",
     "starter": "",
-    "solution": "tag = input(\"Name tag: \").strip()\nif len(tag) >= 3 and len(tag) <= 10:\n    print(\"Printing tag:\", tag)\nelse:\n    print(\"Tags have 3 to 10 characters\")",
+    "solution": "tag = input(\"{{[\"Name tag\",\"Door sign\",\"Desk label\",\"Locker label\"][p0]}}: \").strip()\nif len(tag) >= 3 and len(tag) <= 10:\n    print(\"Printing tag:\", tag)\nelse:\n    print(\"Tags have 3 to 10 characters\")",
     "distractors": [
       "if len(tag) > 3 and len(tag) < 10:"
     ],
@@ -132905,8 +133413,14 @@
     "skills": [
       "least-and-most"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -132918,6 +133432,7 @@
       "TS": "[[[\" Herbie \"],[\"  Al  \"]],[[\"Max\"],[\" Bo \"]],[[\"  Priya\"],[\"Christopher\"]],[[\"Dev \"],[\"  Ed\"]],[[\" Isabella \"],[\"Maximiliano\"]],[[\"Theo\"],[\"  Al  \"]],[[\"  Sam  \"],[\" Bo \"]],[[\"Jasmine\"],[\"Christopher\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -132930,10 +133445,10 @@
     "derived": true,
     "level": 5,
     "type": "parsons",
-    "title": "Shout-out",
-    "description": "Arrange the lines so the spaces are stripped, then the shout-out must have 25 characters at most.\nOne line is not needed.",
+    "title": "{{[\"Shout-out\",\"Thank-you\",\"Message\",\"Cheer\"][p0]}}",
+    "description": "Arrange the lines so the spaces are stripped, then the {{[\"shout-out\",\"thank-you\",\"message\",\"cheer\"][p0]}} must have 25 characters at most.\nOne line is not needed.",
     "starter": "",
-    "solution": "shout = input(\"Shout-out: \").strip()\nif len(shout) <= 25:\n    print(\"Shout-out sent\")\nelse:\n    print(\"Shout-outs have 25 characters at most\")",
+    "solution": "shout = input(\"{{[\"Shout-out\",\"Thank-you\",\"Message\",\"Cheer\"][p0]}}: \").strip()\nif len(shout) <= 25:\n    print(\"{{[\"Shout-out\",\"Thank-you\",\"Message\",\"Cheer\"][p0]}} sent\")\nelse:\n    print(\"{{[\"Shout-outs\",\"Thank-yous\",\"Messages\",\"Cheers\"][p0]}} have 25 characters at most\")",
     "distractors": [
       "if len(shout) >= 25:"
     ],
@@ -132965,8 +133480,14 @@
     "skills": [
       "length"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -132978,6 +133499,7 @@
       "TS": "[[[\"  Well done, Sam!  \"],[\"Happy birthday to my best friend\"]],[[\"Go team!\"],[\"Congratulations on winning the race\"]],[[\" Happy birthday, Mo \"],[\"Thank you for all of your help today\"]],[[\"Thanks, Miss!\"],[\"Good luck in the big final tonight\"]],[[\"You rock\"],[\"Happy birthday to my best friend\"]],[[\"  Great goal  \"],[\"Congratulations on winning the race\"]],[[\"Best of luck!\"],[\"Thank you for all of your help today\"]],[[\"Nice one\"],[\"Good luck in the big final tonight\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -132990,10 +133512,10 @@
     "derived": true,
     "level": 6,
     "type": "parsons",
-    "title": "Security answer",
+    "title": "{{[\"Security answer\",\"Memory answer\",\"Secret answer\",\"Clue answer\"][p0]}}",
     "description": "Arrange the lines so the program keeps asking while the answer has fewer than 4 characters: 4 is enough.\nTwo lines are not needed.",
     "starter": "",
-    "solution": "answer = input(\"Security answer: \")\nwhile len(answer) < 4:\n    print(\"Answers need at least 4 characters\")\n    answer = input(\"Security answer: \")\nprint(\"Answer saved\")",
+    "solution": "answer = input(\"{{[\"Security answer\",\"Memory answer\",\"Secret answer\",\"Clue answer\"][p0]}}: \")\nwhile len(answer) < 4:\n    print(\"Answers need at least 4 characters\")\n    answer = input(\"{{[\"Security answer\",\"Memory answer\",\"Secret answer\",\"Clue answer\"][p0]}}: \")\nprint(\"Answer saved\")",
     "distractors": [
       "while len(answer) <= 4:",
       "while len(answer) > 4:"
@@ -133030,11 +133552,17 @@
     "buggy_variants": [
       {
         "misconception": "BOUNDARY_LT_VS_LTE",
-        "code": "answer = input(\"Security answer: \")\nwhile len(answer) <= 4:\n    print(\"Answers need at least 4 characters\")\n    answer = input(\"Security answer: \")\nprint(\"Answer saved\")"
+        "code": "answer = input(\"{{[\"Security answer\",\"Memory answer\",\"Secret answer\",\"Clue answer\"][p0]}}: \")\nwhile len(answer) <= 4:\n    print(\"Answers need at least 4 characters\")\n    answer = input(\"{{[\"Security answer\",\"Memory answer\",\"Secret answer\",\"Clue answer\"][p0]}}: \")\nprint(\"Answer saved\")"
       }
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -133046,6 +133574,7 @@
       "TS": "[[[\"Fido\"],[\"Bo\",\"Fido\"]],[[\"Rome\"],[\"Rio\",\"Rome\"]],[[\"blue\"],[\"red\",\"blue\"]],[[\"Hull\"],[\"Ely\",\"Hull\"]],[[\"Toby\"],[\"Al\",\"Toby\"]],[[\"cake\"],[\"\",\"cake\"]],[[\"Kent\"],[\"Kim\",\"Kent\"]],[[\"tea!\"],[\"tea\",\"tea!\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -133058,13 +133587,13 @@
     "derived": true,
     "level": 6,
     "type": "parsons",
-    "title": "Team chant",
-    "description": "Arrange the lines so the program keeps asking while the chant has more than 30 characters.\nTwo lines are not needed.",
+    "title": "Team {{[\"chant\",\"song\",\"cheer\",\"slogan\"][p0]}}",
+    "description": "Arrange the lines so the program keeps asking while the {{[\"chant\",\"song\",\"cheer\",\"slogan\"][p0]}} has more than 30 characters.\nTwo lines are not needed.",
     "starter": "",
-    "solution": "chant = input(\"Chant: \")\nwhile len(chant) > 30:\n    print(\"Chants have 30 characters at most\")\n    chant = input(\"Chant: \")\nprint(\"Chant:\", chant)",
+    "solution": "{{[\"chant\",\"song\",\"cheer\",\"slogan\"][p0]}} = input(\"{{[\"Chant\",\"Song\",\"Cheer\",\"Slogan\"][p0]}}: \")\nwhile len({{[\"chant\",\"song\",\"cheer\",\"slogan\"][p0]}}) > 30:\n    print(\"{{[\"Chants\",\"Songs\",\"Cheers\",\"Slogans\"][p0]}} have 30 characters at most\")\n    {{[\"chant\",\"song\",\"cheer\",\"slogan\"][p0]}} = input(\"{{[\"Chant\",\"Song\",\"Cheer\",\"Slogan\"][p0]}}: \")\nprint(\"{{[\"Chant\",\"Song\",\"Cheer\",\"Slogan\"][p0]}}:\", {{[\"chant\",\"song\",\"cheer\",\"slogan\"][p0]}})",
     "distractors": [
-      "while len(chant) >= 30:",
-      "if len(chant) > 30:"
+      "while len({{[\"chant\",\"song\",\"cheer\",\"slogan\"][p0]}}) >= 30:",
+      "if len({{[\"chant\",\"song\",\"cheer\",\"slogan\"][p0]}}) > 30:"
     ],
     "tests": [
       {
@@ -133083,7 +133612,7 @@
       }
     ],
     "hints": [
-      "The loop runs while the chant is too long.",
+      "The loop runs while the {{[\"chant\",\"song\",\"cheer\",\"slogan\"][p0]}} is too long.",
       "30 characters is allowed, so use >, not >=."
     ],
     "tags": [
@@ -133096,8 +133625,14 @@
       "least-and-most",
       "re-ask"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -133109,6 +133644,7 @@
       "TS": "[[[\"We are the champions, my frie\"],[\"We are the champions, my friends!\",\"Go team\"]],[[\"Blue army!\"],[\"Come on you blues, come on you blues\",\"Blue army!\"]],[[\"Here we go, here we go!\"],[\"Here we go, here we go, here we go!\",\"Here we go!\"]],[[\"Up the reds, up the reds!!!\"],[\"Ole, ole, ole, ole, ole, ole, ole!\",\"Ole!\"]],[[\"Score a goal for us today!\"],[\"Stand up if you love the Tigers, oh yes!\",\"Go Tigers\"]],[[\"Who are ya?\"],[\"Who are ya, who are ya, who are ya now?\",\"Who?\"]],[[\"One more goal, one more goal!!\"],[\"One more goal, one more goal, just one!\",\"One more!\"]],[[\"Allez allez allez\"],[\"Allez allez allez, allez allez allez!\",\"Allez\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -133121,10 +133657,10 @@
     "derived": true,
     "level": 6,
     "type": "parsons",
-    "title": "Plant label",
+    "title": "{{[\"Plant label\",\"Herb label\",\"Seed label\",\"Pot label\"][p0]}}",
     "description": "Arrange the lines so the program keeps asking while the label has fewer than 3 or more than 12 characters.\nTwo lines are not needed.",
     "starter": "",
-    "solution": "label = input(\"Plant label: \")\nwhile len(label) < 3 or len(label) > 12:\n    print(\"Labels have 3 to 12 characters\")\n    label = input(\"Plant label: \")\nprint(\"Label:\", label)",
+    "solution": "label = input(\"{{[\"Plant label\",\"Herb label\",\"Seed label\",\"Pot label\"][p0]}}: \")\nwhile len(label) < 3 or len(label) > 12:\n    print(\"Labels have 3 to 12 characters\")\n    label = input(\"{{[\"Plant label\",\"Herb label\",\"Seed label\",\"Pot label\"][p0]}}: \")\nprint(\"Label:\", label)",
     "distractors": [
       "while len(label) < 3 and len(label) > 12:",
       "while len(label) <= 3 or len(label) >= 12:"
@@ -133162,11 +133698,17 @@
     "buggy_variants": [
       {
         "misconception": "AND_OR_CONFUSED",
-        "code": "label = input(\"Plant label: \")\nwhile len(label) < 3 and len(label) > 12:\n    print(\"Labels have 3 to 12 characters\")\n    label = input(\"Plant label: \")\nprint(\"Label:\", label)"
+        "code": "label = input(\"{{[\"Plant label\",\"Herb label\",\"Seed label\",\"Pot label\"][p0]}}: \")\nwhile len(label) < 3 and len(label) > 12:\n    print(\"Labels have 3 to 12 characters\")\n    label = input(\"{{[\"Plant label\",\"Herb label\",\"Seed label\",\"Pot label\"][p0]}}: \")\nprint(\"Label:\", label)"
       }
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -133178,6 +133720,7 @@
       "TS": "[[[\"Tomatoes\"],[\"Yo\",\"Tomatoes\"]],[[\"Mint\"],[\"Sweet peppermint\",\"Mint\"]],[[\"Sunflowers\"],[\"\",\"Sunflowers\"]],[[\"Bay\"],[\"Ox\",\"Bay\"]],[[\"Strawberries\"],[\"Wild strawberries\",\"Strawberries\"]],[[\"Basil\"],[\"B\",\"Basil\"]],[[\"Runner beans\"],[\"Climbing runner beans\",\"Runner beans\"]],[[\"Kale\"],[\"K\",\"Kale\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -133190,10 +133733,10 @@
     "derived": true,
     "level": 7,
     "type": "write",
-    "title": "Car registration",
-    "description": "Add a length check: a registration typed without spaces has exactly 7 characters. Print Registration accepted if it has 7, otherwise print [[out:1:0]].",
-    "starter": "reg = input(\"Registration: \")\n# Add a length check here",
-    "solution": "reg = input(\"Registration: \")\nif len(reg) == 7:\n    print(\"Registration accepted\")\nelse:\n    print(\"Registrations have 7 characters\")",
+    "title": "Car {{[\"registration\",\"number plate\",\"plate\",\"reg plate\"][p0]}}",
+    "description": "Add a length check: a {{[\"registration\",\"number plate\",\"plate\",\"reg plate\"][p0]}} typed without spaces has exactly 7 characters. Print {{[\"Registration\",\"Number plate\",\"Plate\",\"Reg plate\"][p0]}} accepted if it has 7, otherwise print [[out:1:0]].",
+    "starter": "reg = input(\"{{[\"Registration\",\"Number plate\",\"Plate\",\"Reg plate\"][p0]}}: \")\n# Add a length check here",
+    "solution": "reg = input(\"{{[\"Registration\",\"Number plate\",\"Plate\",\"Reg plate\"][p0]}}: \")\nif len(reg) == 7:\n    print(\"{{[\"Registration\",\"Number plate\",\"Plate\",\"Reg plate\"][p0]}} accepted\")\nelse:\n    print(\"{{[\"Registrations\",\"Number plates\",\"Plates\",\"Reg plates\"][p0]}} have 7 characters\")",
     "tests": [
       {
         "inputs": [
@@ -133221,8 +133764,14 @@
     "skills": [
       "length"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -133234,6 +133783,7 @@
       "TS": "[[[\"AB12CDE\"],[\"AB12 CDE\"]],[[\"LR69XYZ\"],[\"LR69XY\"]],[[\"MK21ABC\"],[\"MK21ABCD\"]],[[\"SN70QRS\"],[\"SN7\"]],[[\"YT15FFG\"],[\"YT 15FFG\"]],[[\"BD51SMR\"],[\"AB12 CDE\"]],[[\"PL22OKA\"],[\"LR69XY\"]],[[\"WX19ZZB\"],[\"MK21ABCD\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -133246,10 +133796,10 @@
     "derived": true,
     "level": 7,
     "type": "write",
-    "title": "Text message",
-    "description": "Add a length check: a text can have 20 characters at most. Print Sent if it fits, otherwise print [[out:1:0]].",
-    "starter": "text = input(\"Text: \")\n# Add a length check here",
-    "solution": "text = input(\"Text: \")\nif len(text) <= 20:\n    print(\"Sent\")\nelse:\n    print(\"Texts have 20 characters at most\")",
+    "title": "{{[\"Text message\",\"Chat message\",\"Pager message\",\"Group message\"][p0]}}",
+    "description": "Add a length check: a {{[\"text\",\"message\",\"note\",\"reply\"][p0]}} can have 20 characters at most. Print Sent if it fits, otherwise print [[out:1:0]].",
+    "starter": "{{[\"text\",\"message\",\"note\",\"reply\"][p0]}} = input(\"{{[\"Text\",\"Message\",\"Note\",\"Reply\"][p0]}}: \")\n# Add a length check here",
+    "solution": "{{[\"text\",\"message\",\"note\",\"reply\"][p0]}} = input(\"{{[\"Text\",\"Message\",\"Note\",\"Reply\"][p0]}}: \")\nif len({{[\"text\",\"message\",\"note\",\"reply\"][p0]}}) <= 20:\n    print(\"Sent\")\nelse:\n    print(\"{{[\"Texts\",\"Messages\",\"Notes\",\"Replies\"][p0]}} have 20 characters at most\")",
     "tests": [
       {
         "inputs": [
@@ -133279,8 +133829,14 @@
       "least-and-most",
       "length"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -133292,6 +133848,7 @@
       "TS": "[[[\"On my way home now!!\"],[\"On my way home now!!!\"]],[[\"Hi\"],[\"Can you pick me up from school?\"]],[[\"See you at 4\"],[\"Don't forget your PE kit today\"]],[[\"Running late, sorry\"],[\"I'll be there in ten minutes or so\"]],[[\"Dinner is ready\"],[\"On my way home now!!!\"]],[[\"Love you\"],[\"Can you pick me up from school?\"]],[[\"Bring an umbrella\"],[\"Don't forget your PE kit today\"]],[[\"OK\"],[\"I'll be there in ten minutes or so\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -133304,10 +133861,10 @@
     "derived": true,
     "level": 7,
     "type": "write",
-    "title": "Gift card",
-    "description": "Add a length check: gift card numbers have exactly 12 digits. Print Card accepted if the number has 12 characters, otherwise print [[out:1:0]].",
-    "starter": "card = input(\"Card number: \")\n# Add a length check here",
-    "solution": "card = input(\"Card number: \")\nif len(card) == 12:\n    print(\"Card accepted\")\nelse:\n    print(\"Card numbers have 12 digits\")",
+    "title": "Gift {{[\"card\",\"voucher\",\"ticket\",\"account\"][p0]}}",
+    "description": "Add a length check: gift {{[\"card\",\"voucher\",\"ticket\",\"account\"][p0]}} numbers have exactly 12 digits. Print {{[\"Card\",\"Voucher\",\"Ticket\",\"Account\"][p0]}} accepted if the number has 12 characters, otherwise print [[out:1:0]].",
+    "starter": "{{[\"card\",\"voucher\",\"ticket\",\"account\"][p0]}} = input(\"{{[\"Card\",\"Voucher\",\"Ticket\",\"Account\"][p0]}} number: \")\n# Add a length check here",
+    "solution": "{{[\"card\",\"voucher\",\"ticket\",\"account\"][p0]}} = input(\"{{[\"Card\",\"Voucher\",\"Ticket\",\"Account\"][p0]}} number: \")\nif len({{[\"card\",\"voucher\",\"ticket\",\"account\"][p0]}}) == 12:\n    print(\"{{[\"Card\",\"Voucher\",\"Ticket\",\"Account\"][p0]}} accepted\")\nelse:\n    print(\"{{[\"Card\",\"Voucher\",\"Ticket\",\"Account\"][p0]}} numbers have 12 digits\")",
     "tests": [
       {
         "inputs": [
@@ -133335,8 +133892,14 @@
     "skills": [
       "length"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -133348,6 +133911,7 @@
       "TS": "[[[\"123456789012\"],[\"12345678901\"]],[[\"998877665544\"],[\"1234567890123\"]],[[\"102030405060\"],[\"99887766554\"]],[[\"555512340987\"],[\"5555\"]],[[\"314159265358\"],[\"31415926535\"]],[[\"271828182845\"],[\"12345678901\"]],[[\"100000000001\"],[\"1234567890123\"]],[[\"424242424242\"],[\"99887766554\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -133360,10 +133924,10 @@
     "derived": true,
     "level": 8,
     "type": "write",
-    "title": "Gamer tag",
-    "description": "Ask for a gamer tag. While it has fewer than 4 or more than 16 characters, print [[out:1:0]] and ask again. Then print, for example:\n[[out:0:0]]",
+    "title": "{{[\"Gamer tag\",\"Player tag\",\"Team tag\",\"Guild tag\"][p0]}}",
+    "description": "Ask for a {{[\"gamer tag\",\"player tag\",\"team tag\",\"guild tag\"][p0]}}. While it has fewer than 4 or more than 16 characters, print [[out:1:0]] and ask again. Then print, for example:\n[[out:0:0]]",
     "starter": "# Write your program here",
-    "solution": "tag = input(\"Gamer tag: \")\nwhile len(tag) < 4 or len(tag) > 16:\n    print(\"Tags have 4 to 16 characters\")\n    tag = input(\"Gamer tag: \")\nprint(\"Welcome,\", tag)",
+    "solution": "tag = input(\"{{[\"Gamer tag\",\"Player tag\",\"Team tag\",\"Guild tag\"][p0]}}: \")\nwhile len(tag) < 4 or len(tag) > 16:\n    print(\"Tags have 4 to 16 characters\")\n    tag = input(\"{{[\"Gamer tag\",\"Player tag\",\"Team tag\",\"Guild tag\"][p0]}}: \")\nprint(\"Welcome,\", tag)",
     "tests": [
       {
         "inputs": [
@@ -133397,11 +133961,17 @@
     "buggy_variants": [
       {
         "misconception": "REASK_CONDITION_UNCHANGED",
-        "code": "tag = input(\"Gamer tag: \")\nwhile len(tag) < 4 or len(tag) > 16:\n    print(\"Tags have 4 to 16 characters\")\n    new_tag = input(\"Gamer tag: \")\nprint(\"Welcome,\", tag)"
+        "code": "tag = input(\"{{[\"Gamer tag\",\"Player tag\",\"Team tag\",\"Guild tag\"][p0]}}: \")\nwhile len(tag) < 4 or len(tag) > 16:\n    print(\"Tags have 4 to 16 characters\")\n    new_tag = input(\"{{[\"Gamer tag\",\"Player tag\",\"Team tag\",\"Guild tag\"][p0]}}: \")\nprint(\"Welcome,\", tag)"
       }
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -133413,6 +133983,7 @@
       "TS": "[[[\"Zed99\"],[\"Zed\",\"Zed99\"]],[[\"NinjaCat\"],[\"SuperMegaNinjaCat\",\"NinjaCat\"]],[[\"Blaze\"],[\"Bz\",\"Blaze\"]],[[\"Pixel_Pro\"],[\"\",\"Pixel_Pro\"]],[[\"StarHunter2\"],[\"TheUltimateStarHunter\",\"StarHunter2\"]],[[\"Kiwi\"],[\"Kiw\",\"Kiwi\"]],[[\"Mo_Gamer\"],[\"M\",\"Mo_Gamer\"]],[[\"Turbo\"],[\"Tu\",\"Turbo\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -133425,8 +133996,8 @@
     "derived": true,
     "level": 8,
     "type": "write",
-    "title": "Club motto",
-    "description": "Ask for a club motto. While it has fewer than 10 or more than 40 characters, print [[out:1:0]] and ask again. Then print, for example:\nMotto: Never give up!",
+    "title": "{{[\"Club\",\"School\",\"Team\",\"Choir\"][p0]}} motto",
+    "description": "Ask for a {{[\"club\",\"school\",\"team\",\"choir\"][p0]}} motto. While it has fewer than 10 or more than 40 characters, print [[out:1:0]] and ask again. Then print, for example:\nMotto: Never give up!",
     "starter": "# Write your program here",
     "solution": "motto = input(\"Motto: \")\nwhile len(motto) < 10 or len(motto) > 40:\n    print(\"Mottos have 10 to 40 characters\")\n    motto = input(\"Motto: \")\nprint(\"Motto:\", motto)",
     "tests": [
@@ -133458,8 +134029,14 @@
       "least-and-most",
       "re-ask"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -133471,6 +134048,7 @@
       "TS": "[[[\"Never give up!\"],[\"Win!\",\"Never give up!\"]],[[\"Teamwork wins\"],[\"Try\",\"Teamwork wins\"]],[[\"Be kind, be brave\"],[\"Kind\",\"Be kind, be brave\"]],[[\"Work hard, play fair\"],[\"We always work hard and we always play fair\",\"Work hard, play fair\"]],[[\"Reach for the stars\"],[\"Stars\",\"Reach for the stars\"]],[[\"Together we are strong\"],[\"Strong\",\"Together we are strong\"]],[[\"Learn, play, grow\"],[\"Grow\",\"Learn, play, grow\"]],[[\"Always do your best\"],[\"Best\",\"Always do your best\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -133483,10 +134061,10 @@
     "derived": true,
     "level": 8,
     "type": "write",
-    "title": "Recipe name",
-    "description": "Ask for a recipe name. Keep asking while it has fewer than 3 or more than 20 characters, printing [[out:1:0]] each time. Then print, for example:\nSaved recipe: Flapjacks",
+    "title": "{{[\"Recipe\",\"Dish\",\"Snack\",\"Bake\"][p0]}} name",
+    "description": "Ask for a {{[\"recipe\",\"dish\",\"snack\",\"bake\"][p0]}} name. Keep asking while it has fewer than 3 or more than 20 characters, printing [[out:1:0]] each time. Then print, for example:\nSaved {{[\"recipe\",\"dish\",\"snack\",\"bake\"][p0]}}: Flapjacks",
     "starter": "# Write your program here",
-    "solution": "recipe = input(\"Recipe name: \")\nwhile len(recipe) < 3 or len(recipe) > 20:\n    print(\"Recipe names have 3 to 20 characters\")\n    recipe = input(\"Recipe name: \")\nprint(\"Saved recipe:\", recipe)",
+    "solution": "{{[\"recipe\",\"dish\",\"snack\",\"bake\"][p0]}} = input(\"{{[\"Recipe\",\"Dish\",\"Snack\",\"Bake\"][p0]}} name: \")\nwhile len({{[\"recipe\",\"dish\",\"snack\",\"bake\"][p0]}}) < 3 or len({{[\"recipe\",\"dish\",\"snack\",\"bake\"][p0]}}) > 20:\n    print(\"{{[\"Recipe\",\"Dish\",\"Snack\",\"Bake\"][p0]}} names have 3 to 20 characters\")\n    {{[\"recipe\",\"dish\",\"snack\",\"bake\"][p0]}} = input(\"{{[\"Recipe\",\"Dish\",\"Snack\",\"Bake\"][p0]}} name: \")\nprint(\"Saved {{[\"recipe\",\"dish\",\"snack\",\"bake\"][p0]}}:\", {{[\"recipe\",\"dish\",\"snack\",\"bake\"][p0]}})",
     "tests": [
       {
         "inputs": [
@@ -133516,8 +134094,14 @@
       "length",
       "re-ask"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -133529,6 +134113,7 @@
       "TS": "[[[\"Flapjacks\"],[\"Pi\",\"Flapjacks\"]],[[\"Stew\"],[\"Granny's famous beef stew\",\"Stew\"]],[[\"Fruit salad\"],[\"\",\"Fruit salad\"]],[[\"Pie\"],[\"Pi\",\"Pie\"]],[[\"Banana bread\"],[\"Best ever banana bread!!\",\"Banana bread\"]],[[\"Tacos\"],[\"T\",\"Tacos\"]],[[\"Lemon drizzle cake\"],[\"My lemon drizzle cake!\",\"Lemon drizzle cake\"]],[[\"Soup\"],[\"So\",\"Soup\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -133542,9 +134127,9 @@
     "level": 9,
     "type": "write",
     "title": "Characters left",
-    "description": "Ask for a message. While it has more than 30 characters, print [[out:1:0]] and ask again. Then print how many characters are left, for example:\n[[out:0:0]]",
+    "description": "Ask for a {{[\"message\",\"reply\",\"note\",\"caption\"][p0]}}. While it has more than 30 characters, print [[out:1:0]] and ask again. Then print how many characters are left, for example:\n[[out:0:0]]",
     "starter": "# Write your program here",
-    "solution": "msg = input(\"Message: \")\nwhile len(msg) > 30:\n    print(\"Messages have 30 characters at most\")\n    msg = input(\"Message: \")\nprint(\"Characters left:\", 30 - len(msg))",
+    "solution": "msg = input(\"{{[\"Message\",\"Reply\",\"Note\",\"Caption\"][p0]}}: \")\nwhile len(msg) > 30:\n    print(\"{{[\"Messages\",\"Replies\",\"Notes\",\"Captions\"][p0]}} have 30 characters at most\")\n    msg = input(\"{{[\"Message\",\"Reply\",\"Note\",\"Caption\"][p0]}}: \")\nprint(\"Characters left:\", 30 - len(msg))",
     "tests": [
       {
         "inputs": [
@@ -133574,8 +134159,14 @@
       "least-and-most",
       "re-ask"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -133587,6 +134178,7 @@
       "TS": "[[[\"See you in a bit!!\"],[\"This message is far too long to send\",\"On my way\"]],[[\"Happy birthday!\"],[\"Happy birthday to the best brother ever\",\"Happy birthday!\"]],[[\"Running late\"],[\"I am running late because the bus broke down\",\"Running late\"]],[[\"Bring snacks\"],[\"Remember to bring snacks for everyone please\",\"Snacks\"]],[[\"Meet at noon by the clock\"],[\"Let's meet at noon by the clock tower in town\",\"Noon\"]],[[\"Thanks for the card\"],[\"Thank you so much for the lovely birthday card\",\"Thanks!\"]],[[\"Good luck today\"],[\"Good luck in your exam today, you will be great\",\"Good luck\"]],[[\"Back in five\"],[\"I'll be back in five minutes, wait for me here\",\"Back soon\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -133599,10 +134191,10 @@
     "derived": true,
     "level": 9,
     "type": "write",
-    "title": "Poem line",
-    "description": "Ask for a line of a poem. While it has fewer than 10 or more than 40 characters, print [[out:1:0]] and ask again. Then print its length, for example:\n[[out:0:0]]",
+    "title": "{{[\"Poem\",\"Song\",\"Story\",\"Play\"][p0]}} line",
+    "description": "Ask for a line of a {{[\"poem\",\"song\",\"story\",\"play\"][p0]}}. While it has fewer than 10 or more than 40 characters, print [[out:1:0]] and ask again. Then print its length, for example:\n[[out:0:0]]",
     "starter": "# Write your program here",
-    "solution": "line = input(\"Poem line: \")\nwhile len(line) < 10 or len(line) > 40:\n    print(\"Lines have 10 to 40 characters\")\n    line = input(\"Poem line: \")\nprint(\"Length:\", len(line), \"characters\")",
+    "solution": "line = input(\"{{[\"Poem\",\"Song\",\"Story\",\"Play\"][p0]}} line: \")\nwhile len(line) < 10 or len(line) > 40:\n    print(\"Lines have 10 to 40 characters\")\n    line = input(\"{{[\"Poem\",\"Song\",\"Story\",\"Play\"][p0]}} line: \")\nprint(\"Length:\", len(line), \"characters\")",
     "tests": [
       {
         "inputs": [
@@ -133632,8 +134224,14 @@
       "least-and-most",
       "length"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -133642,9 +134240,10 @@
       }
     },
     "values": {
-      "TS": "[[[\"The moon is a silver boat\"],[\"Moon\",\"The moon is a silver boat\"]],[[\"Waves crash on the shore\"],[\"Waves\",\"Waves crash on the shore\"]],[[\"Leaves fall like rain\"],[\"Leaves fall\",\"Leaves fall like rain\"]],[[\"The fox ran through the snow\"],[\"Fox\",\"The fox ran through the snow\"]],[[\"Stars blink in the dark\"],[\"\",\"Stars blink in the dark\"]],[[\"Rain taps on my window\"],[\"Rain\",\"Rain taps on my window\"]],[[\"A river sings all night\"],[\"The river sings and sings and sings all night long\",\"A river sings all night\"]],[[\"Snow sleeps on the hills\"],[\"Snow\",\"Snow sleeps on the hills\"]]]"
+      "TS": "[[[\"The moon is a silver boat\"],[\"Moon\",\"The moon is a silver boat\"]],[[\"Waves crash on the shore\"],[\"Waves\",\"Waves crash on the shore\"]],[[\"Leaves fall like rain\"],[\"Leaves\",\"Leaves fall like rain\"]],[[\"The fox ran through the snow\"],[\"Fox\",\"The fox ran through the snow\"]],[[\"Stars blink in the dark\"],[\"\",\"Stars blink in the dark\"]],[[\"Rain taps on my window\"],[\"Rain\",\"Rain taps on my window\"]],[[\"A river sings all night\"],[\"The river sings and sings and sings all night long\",\"A river sings all night\"]],[[\"Snow sleeps on the hills\"],[\"Snow\",\"Snow sleeps on the hills\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
@@ -133657,10 +134256,10 @@
     "derived": true,
     "level": 9,
     "type": "write",
-    "title": "Underlined name",
-    "description": "Ask for a name. While it has fewer than 3 or more than 12 characters, print [[out:1:0]] and ask again. Then print the name, and under it one - for each character, for example:\n[[out:0]]",
+    "title": "Underlined {{[\"name\",\"word\",\"title\",\"label\"][p0]}}",
+    "description": "Ask for a {{[\"name\",\"word\",\"title\",\"label\"][p0]}}. While it has fewer than 3 or more than 12 characters, print [[out:1:0]] and ask again. Then print the {{[\"name\",\"word\",\"title\",\"label\"][p0]}}, and under it one - for each character, for example:\n[[out:0]]",
     "starter": "# Write your program here",
-    "solution": "name = input(\"Name: \")\nwhile len(name) < 3 or len(name) > 12:\n    print(\"Names have 3 to 12 characters\")\n    name = input(\"Name: \")\nprint(name)\nprint(\"-\" * len(name))",
+    "solution": "{{[\"name\",\"word\",\"title\",\"label\"][p0]}} = input(\"{{[\"Name\",\"Word\",\"Title\",\"Label\"][p0]}}: \")\nwhile len({{[\"name\",\"word\",\"title\",\"label\"][p0]}}) < 3 or len({{[\"name\",\"word\",\"title\",\"label\"][p0]}}) > 12:\n    print(\"{{[\"Names\",\"Words\",\"Titles\",\"Labels\"][p0]}} have 3 to 12 characters\")\n    {{[\"name\",\"word\",\"title\",\"label\"][p0]}} = input(\"{{[\"Name\",\"Word\",\"Title\",\"Label\"][p0]}}: \")\nprint({{[\"name\",\"word\",\"title\",\"label\"][p0]}})\nprint(\"-\" * len({{[\"name\",\"word\",\"title\",\"label\"][p0]}}))",
     "tests": [
       {
         "inputs": [
@@ -133678,8 +134277,8 @@
       }
     ],
     "hints": [
-      "Ask again while the name is too short or too long.",
-      "\"-\" * len(name) repeats - once for each character."
+      "Ask again while the {{[\"name\",\"word\",\"title\",\"label\"][p0]}} is too short or too long.",
+      "\"-\" * len({{[\"name\",\"word\",\"title\",\"label\"][p0]}}) repeats - once for each character."
     ],
     "tags": [
       "length check",
@@ -133690,8 +134289,14 @@
       "re-ask",
       "length"
     ],
-    "where": "(ts !== 0)",
+    "where": "(p0 !== 0 || ts !== 0)",
     "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
       "ts": {
         "int": [
           0,
@@ -133703,6 +134308,7 @@
       "TS": "[[[\"Ava\"],[\"Al\",\"Ava\"]],[[\"Kwame\"],[\"K\",\"Kwame\"]],[[\"Isabella\"],[\"Isabella-Rose Smith\",\"Isabella\"]],[[\"Leo\"],[\"Lo\",\"Leo\"]],[[\"Priyanka\"],[\"\",\"Priyanka\"]],[[\"Oscar\"],[\"Os\",\"Oscar\"]],[[\"Jun\"],[\"J\",\"Jun\"]],[[\"Matthew\"],[\"Matthew Johnson\",\"Matthew\"]]]"
     },
     "fingerprintVars": [
+      "p0",
       "ts"
     ]
   },
