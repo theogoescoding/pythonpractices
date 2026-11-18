@@ -1,5 +1,10 @@
 // teacher-api: POST { action, ... } with the teacher's Supabase Auth token in the Authorization header.
-// Every action checks that the class or student belongs to the signed-in teacher.
+// Every action checks that the signed-in teacher is on the class (its owner or a co-teacher, migration 0016), or on
+// the student's class. A co-teacher has the same rights here as the owner, except adding and removing co-teachers.
+//   list_co_teachers { class_id }           -> { teachers: [{ teacher_id, name, email, owner, added_at }], you_own, you }
+//   add_co_teacher { class_id, email }      -> { added, teachers }  owner only; the email of an existing teacher account
+//                                              (404, problem "unknown": "No teacher account with that email.")
+//   remove_co_teacher { class_id, teacher_id } -> { removed, teachers }  owner only; the owner can't be removed
 //   reveal_codes { class_id }               -> { codes: [{ student_id, nickname, code }] }  (each reveal is logged)
 //   reset_pin { student_id }                -> { pin }  (shown once; also clears a PIN lock)
 //   reset_placement { student_id, unit }    -> { reset }  (false: the student hasn't started that unit)
@@ -7,7 +12,7 @@
 //                                              refused if another student in the class has that nickname)
 //   leaderboards { class_id }               -> { boards: { overall, improving }, max }  one class, ranked by points;
 //                                              each row { rank, nickname, points, percent }
-//   leaderboards_all                        -> { boards: { overall, improving }, classes }  every class of this teacher,
+//   leaderboards_all                        -> { boards: { overall, improving }, classes }  every class this teacher is on (own and shared),
 //                                              ranked by the percentage; each row { rank, nickname, class_name, points, percent }
 // Importing a full export (section 8) takes three steps, so a big class fits the Edge Function time limit:
 //   import_check { class_id, students: [{ file_id, nickname }] }
@@ -26,8 +31,12 @@ import { NICKNAME_RULES, nicknameBlocked, validNickname } from "../_shared/nickn
 import { boards, classPoints, POINT_UNITS } from "../_shared/points.ts";
 import { checkAttempts, checkEvents, insertRows, MAX_ROWS_PER_BATCH, PROGRESS_UNITS, Rejected, UNITS } from "../_shared/rows.ts";
 import { createStudent } from "../_shared/students.ts";
+import "../_shared/class-sharing.js";
 
-const NOT_FOUND = "That class or student wasn't found.";
+// class-sharing.js is a plain script (tests/backend-client.js runs the same file in Node): it sets globalThis.ClassSharing.
+// deno-lint-ignore no-explicit-any
+const Sharing = (globalThis as any).ClassSharing;
+
 const bad = () => new HttpError(400, "Something went wrong. Please try again.");
 const MAX_IMPORT_STUDENTS_PER_CALL = 10;
 const CODE_KEPT_DAYS = 30;
@@ -40,19 +49,14 @@ async function teacherId(req: Request): Promise<string> {
   return data.user.id;
 }
 
-async function ownClass(tid: string, classId: unknown) {
-  if (typeof classId !== "string" || !/^[0-9a-f-]{36}$/.test(classId)) throw new HttpError(404, NOT_FOUND);
-  const c = check(await db().from("classes").select("id").eq("id", classId).eq("teacher_id", tid).maybeSingle(), "class");
-  if (!c) throw new HttpError(404, NOT_FOUND);
-  return classId;
+// A class or student this teacher is on: as its owner (classes.teacher_id) or as a co-teacher (class_teachers,
+// migration 0016). Both have the same rights here. Otherwise 404 ("That class or student wasn't found."), so a stranger can't tell it exists.
+async function ownClass(tid: string, classId: unknown): Promise<string> {
+  return (await Sharing.requireClass(db(), tid, classId, false)).id;
 }
 
-async function ownStudent(tid: string, studentId: unknown) {
-  if (typeof studentId !== "string" || !/^[0-9a-f-]{36}$/.test(studentId)) throw new HttpError(404, NOT_FOUND);
-  const s = check(await db().from("students").select("id, class_id, classes!inner(teacher_id)").eq("id", studentId)
-    .eq("classes.teacher_id", tid).maybeSingle(), "student");
-  if (!s) throw new HttpError(404, NOT_FOUND);
-  return s as { id: string; class_id: string };
+async function ownStudent(tid: string, studentId: unknown): Promise<{ id: string; class_id: string }> {
+  return await Sharing.requireStudent(db(), tid, studentId);
 }
 
 // ---------- Import names ----------
@@ -153,13 +157,27 @@ const actions: Record<string, (tid: string, body: Record<string, unknown>) => Pr
     return { boards: boards(all.map((s) => ({ nickname: s.nickname, total: s.total, gain: s.gain, unitCount: s.unitCount })), false), max: 300 * POINT_UNITS.length };
   },
 
-  // Every class of this teacher (classes.teacher_id: a class has one teacher; there is no sharing), ranked by the
-  // percentage: points / (300 x units) x 100.
+  // Every class this teacher is on (their own and the ones shared with them), ranked by the percentage:
+  // points / (300 x units) x 100.
   async leaderboards_all(tid) {
-    const classes = check(await db().from("classes").select("id, name").eq("teacher_id", tid).order("name"), "classes") as unknown as { id: string; name: string }[];
+    const classes = await Sharing.myClasses(db(), tid) as { id: string; name: string }[];
     const rows = [];
     for (const c of classes) for (const s of await classPoints(c.id)) rows.push({ nickname: s.nickname, class_name: c.name, total: s.total, gain: s.gain, unitCount: s.unitCount });
     return { boards: boards(rows, true), classes: classes.length, max: 300 * POINT_UNITS.length };
+  },
+
+  // Sharing a class (class-sharing.js). Any teacher on the class can list its teachers; only its owner can add one
+  // (by the email of an existing teacher account) or remove one, and the owner can't be removed.
+  async list_co_teachers(tid, body) {
+    return await Sharing.listCoTeachers(db(), tid, body.class_id);
+  },
+
+  async add_co_teacher(tid, body) {
+    return await Sharing.addCoTeacher(db(), tid, body.class_id, body.email);
+  },
+
+  async remove_co_teacher(tid, body) {
+    return await Sharing.removeCoTeacher(db(), tid, body.class_id, body.teacher_id);
   },
 
   async rename_student(tid, body) {
@@ -250,5 +268,11 @@ serve(async (body, req) => {
   const tid = await teacherId(req);
   const action = body.action as string;
   if (!Object.hasOwn(actions, action)) throw bad();
-  return await actions[action](tid, body);
+  try {
+    return await actions[action](tid, body);
+  } catch (e) {
+    // class-sharing.js's problems (not on the class, owner only, unknown email...) become the usual error replies.
+    if (e instanceof Sharing.Problem) throw new HttpError(e.status, e.message, e.problem ? { problem: e.problem } : {});
+    throw e;
+  }
 });

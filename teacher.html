@@ -92,6 +92,22 @@
             <button type="button" class="secondary" data-copy-code>Copy code</button>
           </div>
           <p>Ends: <strong id="tb-end"></strong> <span class="small">(then the class, its students and all their data are deleted)</span></p>
+          <!-- A class another teacher shared with you: who owns it, and what you can't do -->
+          <p id="tb-shared-note" class="notice" hidden></p>
+
+          <!-- Backend mode only (sharing needs teacher accounts): the owner and co-teachers of this class -->
+          <section class="teacher-section" data-collapse="class-teachers" id="tb-teachers-section" data-backend>
+          <h3>Teachers</h3>
+          <p class="small" id="tb-teachers-help">Every teacher on this class can do everything with it: see and export all student data, reset PINs, rename and remove students, set assignments, and change its name and stage.
+            Only the teacher who made the class can add or remove teachers, or delete the class.</p>
+          <ul id="tb-teachers" class="teacher-list"></ul>
+          <form id="tb-add-teacher" class="teacher-controls" novalidate hidden>
+            <label>Add a teacher <input type="email" id="tb-add-teacher-email" class="text-input" autocomplete="off" spellcheck="false" maxlength="320" aria-describedby="tb-add-teacher-help"></label>
+            <button type="submit" class="secondary" id="tb-add-teacher-save">Add a teacher</button>
+          </form>
+          <p id="tb-add-teacher-help" class="small" hidden>Type their school email. They need a teacher account already. The class then appears in their own class list.</p>
+          <p id="tb-teachers-status" role="status"></p>
+          </section>
 
           <section class="teacher-section" data-collapse="class-settings">
           <h3>Name and stage</h3>
@@ -127,7 +143,7 @@
           <div id="tb-import"></div>
           </section>
 
-          <section class="teacher-section" data-collapse="class-delete">
+          <section class="teacher-section" data-collapse="class-delete" id="tb-delete-section">
           <h3>Delete this class</h3>
           <p class="small">Deletes the class, its students and all their progress and attempts for good.</p>
           <p><button type="button" id="tb-delete-class" class="danger">Delete class</button>

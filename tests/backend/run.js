@@ -397,6 +397,47 @@ function attemptRow(extra) {
       eq((await fn("student-api", { token: s1.token, action: "get_progress" })).body.assignments, [], "closed assignments aren't sent");
     });
 
+    await test("class sharing (0016): the owner adds a co-teacher by email, who then has the owner's access; a stranger has none", async () => {
+      const k = await makeTeacher("k"); cleanup.push(k);
+      const x = await makeTeacher("x"); cleanup.push(x);
+      const shared = await makeClass(a, "Shared C");
+      await join(shared, "Cleo");
+      const as = await rest("/rest/v1/assignments", a, { body: { class_id: shared.id, title: "Shared homework", task_ids: ["var-L9c"] } });
+      eq(as.status, 201, "the owner sets an assignment");
+      const api = (who, body) => fn("teacher-api", body, { bearer: who.jwt });
+      // Before sharing, K sees nothing of it.
+      eq((await rest("/rest/v1/students?select=nickname&class_id=eq." + shared.id, k, { method: "GET" })).body, [], "K before sharing");
+      // Adding: an unknown email, then K's email (any capitals); only the owner may.
+      const unknown = await api(a, { action: "add_co_teacher", class_id: shared.id, email: "nobody-" + Date.now() + "@example.test" });
+      eq([unknown.status, unknown.body.error, unknown.body.problem], [404, "No teacher account with that email.", "unknown"], "unknown email");
+      eq((await api(x, { action: "add_co_teacher", class_id: shared.id, email: k.email })).status, 404, "a stranger can't add to the class");
+      const added = await api(a, { action: "add_co_teacher", class_id: shared.id, email: "  " + k.email.toUpperCase() + " " });
+      eq(added.status, 200, "the owner adds K");
+      eq(added.body.teachers.map((t) => [t.teacher_id, t.owner]), [[a.id, true], [k.id, false]], "the list: owner first");
+      // K now reads the class, its students and assignments, and its teacher list; and has the owner's rights.
+      eq((await rest("/rest/v1/classes?select=name,owner:teachers!classes_teacher_id_fkey(name)&id=eq." + shared.id, k, { method: "GET" })).body,
+        [{ name: "Shared C", owner: { name: "Teacher a" } }], "K sees the class and its owner's name");
+      eq((await rest("/rest/v1/students?select=nickname&class_id=eq." + shared.id, k, { method: "GET" })).body.map((s) => s.nickname), ["Cleo"], "K reads its students");
+      eq((await rest("/rest/v1/assignments?select=title&class_id=eq." + shared.id, k, { method: "GET" })).body.map((s) => s.title), ["Shared homework"], "K reads its assignments");
+      eq((await api(k, { action: "list_co_teachers", class_id: shared.id })).body.teachers.length, 2, "K lists the teachers");
+      eq((await api(k, { action: "reveal_codes", class_id: shared.id })).status, 200, "K shows the codes");
+      eq((await rest("/rest/v1/classes?id=eq." + shared.id, k, { method: "PATCH", body: { stage: "a-level" } })).body.length, 1, "K changes the stage");
+      const all = await api(k, { action: "leaderboards_all" });
+      eq([all.status, all.body.classes], [200, 1], "All my classes includes the shared class");
+      // The stranger sees nothing.
+      eq((await rest("/rest/v1/students?select=nickname&class_id=eq." + shared.id, x, { method: "GET" })).body, [], "X reads no students");
+      eq((await rest("/rest/v1/assignments?select=title&class_id=eq." + shared.id, x, { method: "GET" })).body, [], "X reads no assignments");
+      eq((await api(x, { action: "list_co_teachers", class_id: shared.id })).status, 404, "X can't list the teachers");
+      // Owner only: removing teachers and deleting the class. The owner can't be removed.
+      eq((await api(k, { action: "remove_co_teacher", class_id: shared.id, teacher_id: a.id })).status, 403, "K can't remove the owner");
+      eq((await api(a, { action: "remove_co_teacher", class_id: shared.id, teacher_id: a.id })).body.problem, "owner", "the owner can't be removed");
+      eq((await rest("/rest/v1/classes?id=eq." + shared.id, k, { method: "DELETE" })).body, [], "K can't delete the class");
+      const direct = await rest("/rest/v1/class_teachers?teacher_id=eq." + a.id, k, { method: "DELETE" });
+      assert(direct.status === 401 || direct.status === 403, "K deleted a class_teachers row directly: " + direct.status);
+      eq((await api(a, { action: "remove_co_teacher", class_id: shared.id, teacher_id: k.id })).status, 200, "the owner removes K");
+      eq((await rest("/rest/v1/students?select=nickname&class_id=eq." + shared.id, k, { method: "GET" })).body, [], "K after removal");
+    });
+
     await test("the data-types unit: student-api saves its progress, attempts, events and passed tasks (unknown units are refused)", async () => {
       const state = { level: 3, placement: { status: "done", used: [] } };
       eq((await fn("student-api", { token: s1.token, action: "save_progress", unit: "data-types", state })).status, 200, "save_progress");

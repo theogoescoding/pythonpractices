@@ -82,7 +82,17 @@ The pages stay static files (GitHub Pages). With `config.js` setting `BACKEND_EN
   - PINs are stored as PBKDF2-SHA256 hashes (50,000 iterations, built into the function runtime). They used to be bcrypt (bcryptjs), but that was pure JavaScript and about 6 times slower: a class of 30 signing in at once on the test project made some requests hit the function's limit (status 546). A PIN hashed the old way still works and is re-hashed at the student's next correct sign-in. A 4-digit PIN has only 10,000 values, so the real protection is that the hash is never readable and the 5-try lock.
   - If the server answers a sign-in with a 5xx (for example 546 when it is briefly overloaded), the app tries again up to twice, after a short random pause. Joining a class is never retried, because a join that failed after the student was made would come back as a taken nickname.
 - **Saving:** `Store` (store.js) keeps its synchronous API. Its localStorage keys become a cache of the signed-in student's data, filled when a page opens. Every write also goes into an outbox, which `backend.js` sends 1.5 seconds after it changes and then retries until it arrives. Work done offline is kept and sent later. On a shared computer, the next student signing in removes the last student's cached data, but anything they hadn't sent yet is still sent, with their own token.
-- **Teacher view:** sign-in, classes, the class code and end date, classes ending within 30 days, "Show codes" (logged), "Reset PIN", "Reset placement", deleting a student or a class, "Import full export", and a note on what is kept and for how long. The class's data is turned into the same object local mode uses, so the Students page, Reports and every export are the same.
+- **Teacher view:** sign-in, classes, the class code and end date, classes ending within 30 days, "Show codes" (logged), "Reset PIN", "Reset placement", deleting a student or a class, "Import full export", sharing a class with other teachers, and a note on what is kept and for how long. The class's data is turned into the same object local mode uses, so the Students page, Reports and every export are the same.
+
+### Sharing a class (migration 0016)
+
+A class can have more than one teacher. Its owner (the teacher who made it, `classes.teacher_id`) adds a co-teacher on the Classes page, in the **Teachers** panel, by typing that teacher's email. The other teacher must already have a teacher account; if not, the panel says "No teacher account with that email." The class then appears in the co-teacher's own class list as "Shared with you by" the owner.
+
+- **Every teacher on the class** can do everything with it: see and export all student data, reset PINs, rename and remove students, set and delete assignments, see the leaderboards (All my classes includes shared classes), reset placements, and change the class's name and stage.
+- **The owner only** adds and removes co-teachers, and deletes the class. The owner can't be removed. A co-teacher sees the list of teachers, without Add or Remove, and no Delete class section.
+- A class can have any number of teachers, and a teacher can be on any number of classes. Students are not affected: the class code and joining stay the same.
+- **How:** `class_teachers` has one row per teacher on a class (the owner too: existing classes were backfilled, and a trigger adds the owner of every new class). Every row-level security policy that checked `classes.teacher_id = auth.uid()` now also accepts a `class_teachers` row (through `private.is_class_teacher`, `private.my_class_ids` and `private.my_student_ids`), except creating and deleting a class. Teachers can only read `class_teachers`; adding and removing go through teacher-api (`add_co_teacher`, `remove_co_teacher`, `list_co_teachers`), whose rules are in `supabase/functions/_shared/class-sharing.js`.
+- Local mode has no accounts, so there is no Teachers panel.
 - **Retention:** program code and output are cleared after 30 days (the hash, category, details and matches stay); classes are deleted after their end date. Both run nightly with pg_cron.
 
 ### How it fits together
@@ -101,8 +111,9 @@ The pages stay static files (GitHub Pages). With `config.js` setting `BACKEND_EN
 | A class's stage (`classes.stage`: `ks3`, `gcse` or `a-level`; existing classes become `gcse`) | `supabase/migrations/0013_class_stage.sql` |
 | `join-class`, `resume` (no sign-in, 300 requests per IP per 10 minutes) | `supabase/functions/join-class/`, `resume/` |
 | `student-api` (student session token): get/save progress (with the class's open assignments), get assignments, add attempts and events, mark passed, change my nickname, the class leaderboard, delete my progress | `supabase/functions/student-api/` |
-| `teacher-api` (teacher's Supabase sign-in): reveal codes, reset PIN, reset placement, rename a student, the class's leaderboards and All my classes, import | `supabase/functions/teacher-api/` |
-| Shared function code: CORS, crypto, nickname filter, row checks, points and leaderboards (`points.ts`, which loads `curriculum.js` and `secured.js` themselves) | `supabase/functions/_shared/` |
+| Sharing a class: `class_teachers`, the policies that let a co-teacher use a class as its owner does, and two service-role functions (`teacher_by_email`, `class_teacher_list`) | `supabase/migrations/0016_class_sharing.sql` |
+| `teacher-api` (teacher's Supabase sign-in): reveal codes, reset PIN, reset placement, rename a student, the class's leaderboards and All my classes, add, remove and list a class's teachers, import | `supabase/functions/teacher-api/` |
+| Shared function code: CORS, crypto, nickname filter, row checks, points and leaderboards (`points.ts`, which loads `curriculum.js` and `secured.js` themselves), class sharing (`class-sharing.js`, a plain script the Node tests run too) | `supabase/functions/_shared/` |
 | Student side | `backend.js`, with `backend-rows.js` (local records ⇄ table rows) |
 | Teacher side | `teacher-backend.js`, with `backend-import.js` (reading a full export) |
 
@@ -1079,7 +1090,7 @@ The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, n
 | `progress.html`, `progress.js` | Progress summary and skill drill-down |
 | `leaderboard.html`, `leaderboard.js` | The student's class leaderboards (backend mode; see [Points and leaderboards](#points-and-leaderboards)) |
 | `endless.html`, `endless.js` | Endless mode set-up: choosing units |
-| `teacher.html`, `teacher.js` | Teacher view: a side menu of Classes, Students, Leaderboards, one student, Assignments, Reports (exports, compare classes), Misconceptions (the workshop), Task browser (with teacher practice) and Settings |
+| `teacher.html`, `teacher.js` | Teacher view: a side menu of Classes (with the class's Teachers panel), Students, Leaderboards, one student, Assignments, Reports (exports, compare classes), Misconceptions (the workshop), Task browser (with teacher practice) and Settings |
 | `secured.js` | The secured score of a unit and its colour bands, and the points and leaderboard rule (shared by the teacher view, the student view and the server) |
 | `tour.js` | The student app's tutorial: the walkthrough, the reminders and Help (see [Tutorial](#tutorial-tourjs)) |
 | `collapse.js` | Collapsible sections, shared by the student view's unit groups and the teacher view's sections (each remembered under its own localStorage key) |
@@ -1099,6 +1110,7 @@ The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, n
 | `tools/add-records-tuples-unit.js`, `tools/add-stacks-queues-unit.js`, `tools/add-linked-lists-unit.js`, `tools/add-hash-tables-unit.js`, `tools/add-arrays-3d-unit.js` | One-off: the five A-level data structures units' tasks, explainers and coverage maps (built with `unit-tasks.js`) |
 | `tools/add-a-level-data-structures-misconceptions.js`, `tools/add-a-level-data-structures-templates.js` | One-off: the data structures units' fifteen misconceptions, and their combined and from-scratch templates |
 | `tests/sql/a-level-data-structures-units.sql` | SQL test for migration 0012 (the five data structures units in every unit check) |
+| `tests/sql/class-sharing.sql` | SQL test for migration 0016: what a co-teacher, a removed co-teacher and a teacher with no membership can see and do |
 | `tools/archive/print-commas.js`, `tools/archive/print-commas-templates.js`, `tools/archive/casting-words.js`, `tools/archive/replace-sep-end.js`, `tools/archive/replace-types-round-if.js` | Archived: one-off rewrites that were each run once (the printing rule's commas and casting, `sep=`/`end=`, and the Data types tasks that used `round()` or `if`), kept as a record. Nothing needs them to rebuild anything |
 | `teacher-data.js` | Teacher view sums, filters, the secured score table and flags, the student page, the exports and data dictionary (no DOM, so it's tested in Node) |
 | `misconceptions.json` | The fixed list of misconception ids, names and descriptions |

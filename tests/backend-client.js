@@ -86,6 +86,48 @@ function fakeServer() {
   return s;
 }
 
+// An in-memory stand-in for the service-role database client, with just what class-sharing.js uses: the tables it
+// reads and writes, and the two server functions of migration 0016 (written to match their SQL).
+function fakeDb() {
+  const t = { users: [], teachers: [], classes: [], class_teachers: [], students: [], assignments: [] };
+  class Query {
+    constructor(name) { this.name = name; this.filters = []; this.op = "select"; this.one = false; this.returning = false; }
+    select() { if (this.op !== "select") this.returning = true; return this; }
+    eq(col, v) { this.filters.push((r) => r[col] === v); return this; }
+    in(col, vs) { this.filters.push((r) => vs.includes(r[col])); return this; }
+    order() { return this; }
+    maybeSingle() { this.one = true; return this; }
+    insert(row) { this.op = "insert"; this.row = row; return this; }
+    delete() { this.op = "delete"; return this; }
+    then(resolve, reject) { return Promise.resolve().then(() => this.run()).then(resolve, reject); }
+    run() {
+      const rows = t[this.name];
+      if (this.op === "insert") {
+        if (this.name === "class_teachers" && rows.some((r) => r.class_id === this.row.class_id && r.teacher_id === this.row.teacher_id))
+          return { data: null, error: { code: "23505", message: "duplicate key value violates unique constraint" } };
+        rows.push(Object.assign({ added_at: new Date().toISOString() }, this.row));
+        return { data: null, error: null };
+      }
+      const hit = rows.filter((r) => this.filters.every((f) => f(r)));
+      if (this.op === "delete") { t[this.name] = rows.filter((r) => !hit.includes(r)); return { data: this.returning ? hit : null, error: null }; }
+      return { data: this.one ? hit[0] || null : hit.slice(), error: null };
+    }
+  }
+  const rpcs = {
+    // public.teacher_by_email: a teachers row whose auth.users email matches, ignoring capitals and spaces at the ends.
+    teacher_by_email: ({ p_email }) => t.teachers.filter((x) => t.users.some((u) => u.id === x.id && u.email.toLowerCase() === p_email.trim().toLowerCase()))
+      .slice(0, 1).map((x) => ({ id: x.id, name: x.name })),
+    // public.class_teacher_list: the class's teachers, owner first, then by name.
+    class_teacher_list: ({ p_class }) => {
+      const cls = t.classes.find((c) => c.id === p_class);
+      return t.class_teachers.filter((r) => r.class_id === p_class).map((r) => ({ teacher_id: r.teacher_id, name: t.teachers.find((x) => x.id === r.teacher_id).name,
+        email: (t.users.find((u) => u.id === r.teacher_id) || {}).email, is_owner: r.teacher_id === cls.teacher_id, added_at: r.added_at }))
+        .sort((a, b) => b.is_owner - a.is_owner || a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+    },
+  };
+  return { t, from: (name) => new Query(name), rpc: async (name, args) => ({ data: rpcs[name](args), error: null }) };
+}
+
 // Opens a page: a fresh store.js and backend.js over the given localStorage (a new one is a different computer).
 function openPage(server, storage) {
   storage = storage || memoryStorage();
@@ -271,6 +313,66 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
     const j = await p.Backend.join("ABC234", "Ivo");
     check(j.status === 546 && count("join-class") - before === 1, "Joining a class is never retried (a retry could find its own new nickname taken)");
     server.failNext = {};
+  }
+
+  // ---------- Sharing a class (teacher-api: supabase/functions/_shared/class-sharing.js, migration 0016) ----------
+  // The real module teacher-api runs, against an in-memory database. Teachers' own reads go through row-level security,
+  // whose rule (private.my_class_ids: the classes they own, plus their class_teachers rows) is myClasses here;
+  // tests/sql/class-sharing.sql checks the real policies.
+  {
+    const Sharing = require(path.join(ROOT, "supabase", "functions", "_shared", "class-sharing.js"));
+    const sb = fakeDb();
+    const T = sb.t;
+    const id = (n) => "0000000" + n + "-0000-0000-0000-000000000001";
+    const [O, K, X] = [id("a"), id("b"), id("c")];
+    const CLS = "0000000a-0000-0000-0000-00000000c1a5", CLX = "0000000c-0000-0000-0000-00000000c1a5";
+    T.users.push({ id: O, email: "owner.o@school.example" }, { id: K, email: "K.Teacher@School.example" }, { id: X, email: "x@school.example" },
+      { id: "0000000d-0000-0000-0000-000000000001", email: "not-a-teacher@school.example" }); // signed up, never signed in: no teachers row
+    T.teachers.push({ id: O, name: "Owner O" }, { id: K, name: "Co-teacher K" }, { id: X, name: "Stranger X" });
+    T.classes.push({ id: CLS, name: "7A", teacher_id: O }, { id: CLX, name: "8X", teacher_id: X });
+    T.class_teachers.push({ class_id: CLS, teacher_id: O, added_by: O, added_at: "2026-09-01T00:00:00Z" }, { class_id: CLX, teacher_id: X, added_by: X, added_at: "2026-09-01T00:00:00Z" });
+    T.students.push({ id: "0000000a-0000-0000-0000-0000000057d1", class_id: CLS, nickname: "Ada" }, { id: "0000000c-0000-0000-0000-0000000057d1", class_id: CLX, nickname: "Xavi" });
+    T.assignments.push({ id: "as-1", class_id: CLS, title: "Homework 1" }, { id: "as-2", class_id: CLX, title: "X's homework" });
+    const problem = async (f) => { try { await f(); return null; } catch (e) { return e instanceof Sharing.Problem ? { status: e.status, problem: e.problem, message: e.message } : { thrown: String(e) }; } };
+    const reads = async (tid, table) => { const ids = (await Sharing.myClasses(sb, tid)).map((c) => c.id); return T[table].filter((r) => ids.includes(r.class_id)); };
+
+    const unknown = await problem(() => Sharing.addCoTeacher(sb, O, CLS, "nobody@school.example"));
+    const noTeacherRow = await problem(() => Sharing.addCoTeacher(sb, O, CLS, "not-a-teacher@school.example"));
+    const badEmail = await problem(() => Sharing.addCoTeacher(sb, O, CLS, "not an email"));
+    check(unknown && unknown.status === 404 && unknown.problem === "unknown" && unknown.message === "No teacher account with that email." &&
+      noTeacherRow && noTeacherRow.message === "No teacher account with that email." && badEmail && badEmail.problem === "email" && T.class_teachers.length === 2,
+      "Sharing: adding an email with no teacher account says \"No teacher account with that email.\" and adds no one (a badly typed email is refused too)");
+    check((await reads(K, "students")).length === 0 && (await problem(() => Sharing.requireClass(sb, K, CLS))).status === 404,
+      "Sharing: before the class is shared, the other teacher can't see it (the same 404 as a class that doesn't exist)");
+    const added = await Sharing.addCoTeacher(sb, O, CLS, "  k.teacher@school.EXAMPLE ");
+    check(added.added.name === "Co-teacher K" && added.teachers.map((t) => t.name + (t.owner ? "*" : "")).join() === "Owner O*,Co-teacher K" &&
+      T.class_teachers.some((r) => r.class_id === CLS && r.teacher_id === K && r.added_by === O),
+      "Sharing: the owner adds a co-teacher by their email (any capitals, spaces trimmed); the list shows the owner first, marked");
+    check((await reads(K, "students")).map((s) => s.nickname).join() === "Ada" && (await reads(K, "assignments")).map((a) => a.title).join() === "Homework 1" &&
+      (await Sharing.requireStudent(sb, K, "0000000a-0000-0000-0000-0000000057d1")).class_id === CLS,
+      "Sharing: the co-teacher can read the class's students and assignments, and use its students (PINs, renaming, placement)");
+    check((await reads(X, "students")).map((s) => s.nickname).join() === "Xavi" && (await reads(X, "assignments")).map((a) => a.title).join() === "X's homework" &&
+      (await problem(() => Sharing.requireStudent(sb, X, "0000000a-0000-0000-0000-0000000057d1"))).status === 404 &&
+      (await problem(() => Sharing.listCoTeachers(sb, X, CLS))).status === 404,
+      "Sharing: a teacher who isn't on the class can't read its students, assignments or teachers");
+    const mine = await Sharing.myClasses(sb, K);
+    const list = await Sharing.listCoTeachers(sb, K, CLS);
+    check(mine.map((c) => c.name + ":" + c.owner).join() === "7A:false" && list.teachers.length === 2 && list.you_own === false,
+      "Sharing: the shared class is in the co-teacher's class list (not as theirs), and they can see its teachers");
+    const again = await problem(() => Sharing.addCoTeacher(sb, O, CLS, "k.teacher@school.example"));
+    const self = await problem(() => Sharing.addCoTeacher(sb, O, CLS, "owner.o@school.example"));
+    const byCo = await problem(() => Sharing.addCoTeacher(sb, K, CLS, "x@school.example"));
+    check(again.problem === "already" && self.problem === "self" && byCo.status === 403 && byCo.problem === "owner-only" && T.class_teachers.length === 3,
+      "Sharing: only the owner adds teachers; adding someone already on the class, or yourself, is refused");
+    const coRemovesOwner = await problem(() => Sharing.removeCoTeacher(sb, K, CLS, O));
+    const ownerRemovesOwner = await problem(() => Sharing.removeCoTeacher(sb, O, CLS, O));
+    const strangerRemoves = await problem(() => Sharing.removeCoTeacher(sb, X, CLS, K));
+    check(coRemovesOwner.status === 403 && ownerRemovesOwner.problem === "owner" && strangerRemoves.status === 404 && T.class_teachers.length === 3,
+      "Sharing: a co-teacher can't remove anyone (not even the owner), the owner can't be removed, and a stranger can't remove anyone");
+    const removed = await Sharing.removeCoTeacher(sb, O, CLS, K);
+    check(removed.teachers.map((t) => t.name).join() === "Owner O" && (await reads(K, "students")).length === 0 &&
+      (await problem(() => Sharing.requireClass(sb, K, CLS))).status === 404 && (await Sharing.myClasses(sb, O)).map((c) => c.name).join() === "7A",
+      "Sharing: the owner removes a co-teacher, who then can't see the class; the owner keeps it");
   }
 
   const failed = out.filter((ok) => !ok).length;

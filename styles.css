@@ -601,6 +601,16 @@ tr.row-alert td:first-child { box-shadow: inset 6px 0 0 var(--fail); }
 .teacher-controls { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; margin-bottom: 1rem; }
 .teacher-controls select { font: inherit; padding: .35rem; max-width: 100%; }
 .teacher-controls label { max-width: 100%; }
+/* display: flex above would otherwise show a hidden row of controls (the Add a teacher form for a co-teacher) */
+.teacher-controls[hidden] { display: none; }
+/* The Teachers panel on the Classes page (class sharing): one row per teacher, owner first */
+.teacher-list { list-style: none; padding: 0; margin: .5rem 0 1rem; display: grid; gap: .4rem; }
+.teacher-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .4rem 1rem;
+  background: var(--card); border: 2px solid var(--border); border-radius: 8px; padding: .5rem .75rem; }
+.teacher-who { min-width: 0; overflow-wrap: anywhere; }
+.teacher-email { display: block; }
+.teacher-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+#tb-add-teacher input[type=email] { width: min(20rem, 100%); max-width: 100%; box-sizing: border-box; }
 .table-wrap { overflow-x: auto; background: var(--card); border: 2px solid var(--border); border-radius: 8px; }
 table { border-collapse: collapse; width: 100%; font-size: .95rem; }
 th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--border); }

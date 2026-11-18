@@ -1,5 +1,7 @@
 // Backend mode for the teacher view (config.js BACKEND_ENABLED = true): sign-in, classes, students, codes and PINs.
-// Teachers read their classes directly through Supabase (row-level security lets them see only their own), and use
+// Teachers read their classes directly through Supabase (row-level security lets them see only their own and the ones
+// shared with them, migration 0016; a shared class shows its owner, and only the owner can delete it or change its
+// teachers), and use
 // the teacher-api Edge Function for codes, PINs, placement resets and import. The class's data is turned into the same
 // data object teacher-data.js uses in local mode (BackendRows.teacherData), so every page and export is unchanged.
 // In local mode this file does nothing.
@@ -164,12 +166,21 @@
   // A server without migration 0013 has no classes.stage column: classes then load without it (every class is GCSE).
   const noStage = (e) => e && (e.code === "42703" || e.code === "PGRST204" || /stage/.test(e.message || ""));
   let stageOnServer = true;
+  // Row-level security returns the teacher's own classes and the ones shared with them (migration 0016), each with its
+  // owner's name (the "teacher reads co-teachers' names" policy; a server without 0016 has only the teacher's own).
+  const OWNER = ", owner:teachers!classes_teacher_id_fkey(name)";
+  const classQuery = (stage, owner) => sb.from("classes")
+    .select("id, name, class_code, end_of_year, created_at, teacher_id" + (stage ? ", stage" : "") + (owner ? OWNER : "")).order("name");
+  // A class shared with this teacher, rather than one they made.
+  const sharedLabel = (c) => "Shared with you by " + (c.ownerName || "another teacher");
   async function loadClasses(chooseId) {
-    let r = await sb.from("classes").select("id, name, class_code, end_of_year, created_at, stage").order("name");
-    if (r.error && noStage(r.error)) { stageOnServer = false; r = await sb.from("classes").select("id, name, class_code, end_of_year, created_at").order("name"); }
+    let r = await classQuery(true, true);
+    if (r.error && !noStage(r.error)) r = await classQuery(true, false);
+    if (r.error && noStage(r.error)) { stageOnServer = false; r = await classQuery(false, true); if (r.error) r = await classQuery(false, false); }
     if (r.error) return say("tb-status", "Couldn't load your classes. Please try again.", true);
-    classes = r.data.map((c) => Object.assign({ stage: self.Curriculum.DEFAULT_STAGE }, c, { stage: c.stage || self.Curriculum.DEFAULT_STAGE }));
-    $("tb-class").innerHTML = classes.map((c) => '<option value="' + c.id + '">' + esc(c.name) + "</option>").join("");
+    classes = r.data.map((c) => Object.assign({ stage: self.Curriculum.DEFAULT_STAGE }, c, { stage: c.stage || self.Curriculum.DEFAULT_STAGE,
+      owned: c.teacher_id === user.id, ownerName: (c.owner && c.owner.name) || "" }));
+    $("tb-class").innerHTML = classes.map((c) => '<option value="' + c.id + '">' + esc(c.name) + (c.owned ? "" : " (" + esc(sharedLabel(c)) + ")") + "</option>").join("");
     const soon = classes.filter((c) => (new Date(c.end_of_year + "T00:00:00") - Date.now()) / 86400000 <= ENDING_SOON_DAYS);
     $("tb-ending").hidden = !soon.length;
     $("tb-ending").innerHTML = "<strong>Ending within " + ENDING_SOON_DAYS + " days:</strong> " +
@@ -204,8 +215,74 @@
     $("tb-class-name").value = current.name;
     $("tb-stage").value = current.stage;
     say("tb-status", "");
+    // A shared class: who owns it. Deleting it, and adding or removing teachers, are for its owner only.
+    $("tb-shared-note").hidden = current.owned;
+    $("tb-shared-note").textContent = current.owned ? "" : sharedLabel(current) + ". You can do everything with it except delete it or change its teachers.";
+    $("tb-delete-section").hidden = !current.owned;
+    $("tb-add-teacher").hidden = !current.owned;
+    $("tb-add-teacher-help").hidden = !current.owned;
     renderImportArea();
+    loadTeachers(); // the Teachers panel (teacher-api list_co_teachers), alongside the class's data
     await loadClassData();
+  }
+
+  // ---------- Teachers on the class (sharing, migration 0016) ----------
+  // Everyone on the class sees the list, owner first and marked. The owner also gets "Add a teacher" and a Remove
+  // button next to each co-teacher.
+  let teachers = [];
+  const OLD_SERVER_SHARING = "Sharing a class needs the newest version of the server. It will work once it has been updated.";
+  const sharingError = (r, fallback) => (r.status === 400 && !r.body.problem && /Something went wrong/.test(r.body.error || "") ? OLD_SERVER_SHARING : r.body.error || fallback);
+  async function loadTeachers() {
+    const cls = current;
+    teachers = [];
+    $("tb-teachers").innerHTML = '<li class="small">Loading…</li>';
+    say("tb-teachers-status", "");
+    const r = await teacherApi("list_co_teachers", { class_id: cls.id });
+    if (current !== cls) return; // another class was chosen meanwhile
+    if (r.status !== 200) { $("tb-teachers").innerHTML = ""; return say("tb-teachers-status", sharingError(r, "Couldn't load this class's teachers."), true); }
+    teachers = r.body.teachers || [];
+    renderTeachers();
+  }
+  function renderTeachers() {
+    const mine = current && current.owned;
+    $("tb-teachers").innerHTML = teachers.map((t) => '<li class="teacher-row"><span class="teacher-who"><strong>' + esc(t.name) + "</strong>" +
+      (t.owner ? ' <span class="flag">Owner</span>' : "") + (user && t.teacher_id === user.id ? ' <span class="small">(you)</span>' : "") +
+      (t.email ? ' <span class="small teacher-email">' + esc(t.email) + "</span>" : "") + "</span>" +
+      (mine && !t.owner ? '<span class="teacher-actions"><button type="button" class="secondary" data-remove-teacher="' + esc(t.teacher_id) + '">Remove</button>' +
+        '<span data-remove-confirm="' + esc(t.teacher_id) + '" hidden> Remove ' + esc(t.name) + " from this class? " +
+        '<button type="button" class="danger" data-remove-yes="' + esc(t.teacher_id) + '">Yes, remove</button> ' +
+        '<button type="button" class="secondary" data-remove-no="' + esc(t.teacher_id) + '">Cancel</button></span></span>' : "") + "</li>").join("") ||
+      '<li class="small">No teachers listed.</li>';
+  }
+  function wireTeachers() {
+    $("tb-add-teacher").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = $("tb-add-teacher-email").value.trim();
+      if (!email) return say("tb-teachers-status", "Type the other teacher's email address.", true);
+      $("tb-add-teacher-save").disabled = true;
+      const r = await teacherApi("add_co_teacher", { class_id: current.id, email });
+      $("tb-add-teacher-save").disabled = false;
+      if (r.status !== 200) return say("tb-teachers-status", sharingError(r, "Couldn't add that teacher. Please try again."), true);
+      $("tb-add-teacher-email").value = "";
+      teachers = r.body.teachers || teachers;
+      renderTeachers();
+      say("tb-teachers-status", r.body.added.name + " can now use this class. It appears in their class list the next time they open the teacher view.");
+    });
+    $("tb-teachers").addEventListener("click", async (e) => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      const confirmEl = (id) => $("tb-teachers").querySelector('[data-remove-confirm="' + id + '"]');
+      if (b.dataset.removeTeacher) { confirmEl(b.dataset.removeTeacher).hidden = false; return; }
+      if (b.dataset.removeNo) { confirmEl(b.dataset.removeNo).hidden = true; return; }
+      if (!b.dataset.removeYes) return;
+      const t = teachers.find((x) => x.teacher_id === b.dataset.removeYes);
+      b.disabled = true;
+      const r = await teacherApi("remove_co_teacher", { class_id: current.id, teacher_id: b.dataset.removeYes });
+      if (r.status !== 200) { b.disabled = false; return say("tb-teachers-status", sharingError(r, "Couldn't remove that teacher. Please try again."), true); }
+      teachers = r.body.teachers || teachers.filter((x) => x.teacher_id !== b.dataset.removeYes);
+      renderTeachers();
+      say("tb-teachers-status", (t ? t.name : "That teacher") + " has been removed from this class. Their own classes are not changed.");
+    });
   }
 
   // Reads the class's students and all their data, and hands the teacher view the same data object as local mode.
@@ -331,8 +408,11 @@
     $("tb-delete-yes").addEventListener("click", async () => {
       if ($("tb-delete-name").value.trim() !== current.name) return say("tb-status", "Type the class name exactly as it is shown to delete it.", true);
       const name = current.name;
-      const r = await sb.from("classes").delete().eq("id", current.id);
+      if (!current.owned) return say("tb-status", "Only the teacher who made this class can delete it.", true);
+      // Row-level security lets only the owner delete a class: a shared class deletes nothing (no rows come back).
+      const r = await sb.from("classes").delete().eq("id", current.id).select("id");
       if (r.error) return say("tb-status", "Couldn't delete the class.", true);
+      if (!r.data || !r.data.length) return say("tb-status", "Only the teacher who made this class can delete it.", true);
       $("tb-delete-confirm").hidden = true;
       $("tb-delete-name").value = "";
       await loadClasses();
@@ -553,6 +633,7 @@
       catch (e) { $("tb-auth").hidden = false; return say("tb-auth-status", e.message, true); }
       wireAuth();
       wireClasses();
+      wireTeachers();
       const { data } = await sb.auth.getSession();
       if (data.session) await afterSignIn(); else showAuth();
     },
@@ -590,6 +671,8 @@
       return {};
     },
     currentClass: () => current,
+    // Whether the signed-in teacher made the chosen class (false: it was shared with them).
+    ownsCurrentClass: () => !!(current && current.owned),
     copy, resetPin, removeStudent, renameStudent, changePassword, compareClasses, leaderboards, leaderboardsAll,
   };
 })();

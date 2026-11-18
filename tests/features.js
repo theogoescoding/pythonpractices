@@ -890,9 +890,9 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     // The teacher view's sections use the same component, with their own storage key, all starting expanded.
     const teacher = read("teacher.html");
     const teacherSrc = read("teacher.js");
-    const sections = [...teacher.matchAll(/<section class="[^"]*teacher-section[^"]*" data-collapse="([^"]+)"(?: data-collapse-default="closed")?>\s*<h3[^>]*>([^<]+)<\/h3>/g)].map((m) => m[2]);
-    check(sections.join() === "Name and stage,Student logins,Delete this class,Secured score per unit,This class,All my classes,Exports,Compare classes,Misconception table,Failed attempts with no match, by task,Not matched yet",
-      "Teacher view: every section (class name and stage, student logins, delete class, the score table, the two leaderboard sections, exports, compare classes, and the Misconceptions page's table, unmatched attempts and not-matched-yet list) is collapsible");
+    const sections = [...teacher.matchAll(/<section class="[^"]*teacher-section[^"]*" data-collapse="([^"]+)"[^>]*>\s*<h3[^>]*>([^<]+)<\/h3>/g)].map((m) => m[2]);
+    check(sections.join() === "Teachers,Name and stage,Student logins,Delete this class,Secured score per unit,This class,All my classes,Exports,Compare classes,Misconception table,Failed attempts with no match, by task,Not matched yet",
+      "Teacher view: every section (the class's teachers, class name and stage, student logins, delete class, the score table, the two leaderboard sections, exports, compare classes, and the Misconceptions page's table, unmatched attempts and not-matched-yet list) is collapsible");
     const key = (teacherSrc.match(/Collapse\.enhance\(document\.querySelector\("main"\), "([^"]+)"\)/) || [])[1];
     check(key && key !== "pythonPractice.collapsedGroups" && /<script src="collapse\.js"><\/script>\s*<script src="teacher\.js">/.test(teacher) && !/localStorage\./.test(teacherSrc),
       "Teacher view: sections open and close with collapse.js, remembered under their own key (not the student view's)");
@@ -2882,11 +2882,11 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const tlb = tapi2.slice(tapi2.indexOf("async leaderboards(tid, body)"), tapi2.indexOf("async rename_student"));
     check(/classPoints\(await classOf\(sid\)\)/.test(lbSrc) && !/body\./.test(lbSrc) && /\(\{ nickname: s\.nickname, total: s\.total, gain: s\.gain, unitCount: s\.unitCount, me: s\.id === sid \}\)/.test(lbSrc) &&
       /me: me \? \{ secured: me\.secured, level: me\.level, total: me\.total, gain: me\.gain \} : null/.test(lbSrc) &&
-      /ownClass\(tid, body\.class_id\)/.test(tlb) && /\.eq\("teacher_id", tid\)/.test(tlb) && /\(\{ nickname: s\.nickname, total: s\.total, gain: s\.gain, unitCount: s\.unitCount \}\)/.test(tlb) &&
+      /ownClass\(tid, body\.class_id\)/.test(tlb) && /Sharing\.myClasses\(db\(\), tid\)/.test(tlb) && /\(\{ nickname: s\.nickname, total: s\.total, gain: s\.gain, unitCount: s\.unitCount \}\)/.test(tlb) &&
       /class_name: c\.name, total: s\.total, gain: s\.gain, unitCount: s\.unitCount \}/.test(tlb) &&
       !/pin_hash|code_hash|student_code|encrypted|login_code/.test(pts) && /import "\.\.\/\.\.\/\.\.\/secured\.js";/.test(pts) && /Secured\.studentPoints\(/.test(pts) &&
       /import \{ boards, classPoints \} from "\.\.\/_shared\/points\.ts";/.test(sapi2) && /import \{ boards, classPoints, POINT_UNITS \} from "\.\.\/_shared\/points\.ts";/.test(tapi2),
-      "Leaderboards on the server: student-api leaderboard is always the student's own class, rows with nickname and points only; teacher-api checks the class is the teacher's, and All my classes reads only their classes; the rule is secured.js itself, and no PIN or code is read");
+      "Leaderboards on the server: student-api leaderboard is always the student's own class, rows with nickname and points only; teacher-api checks the teacher is on the class, and All my classes reads only the classes they are on (own and shared); the rule is secured.js itself, and no PIN or code is read");
     // Pages: the student's Leaderboard button sits next to My progress (backend mode only); the teacher has a
     // Leaderboards page (this class and All my classes) and the points per unit on a student's page.
     const app = read("app.html"), th = read("teacher.html"), tj = read("teacher.js");
@@ -2896,6 +2896,70 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       /data-page="leaderboards">Leaderboards</.test(th) && ["page-leaderboards", "lb-class", "lb-all", "lb-all-load", "sd-points"].every((id) => th.includes('id="' + id + '"')) &&
       /"leaderboards", "student"/.test(tj) && /tb\.leaderboards\(\)/.test(tj) && /tb\.leaderboardsAll\(\)/.test(tj) && /TD\.pointsByStudent\(/.test(tj),
       "Leaderboard pages: a Leaderboard button next to My progress (backend mode only) shows the class's two boards with the student's own row highlighted; teachers have a Leaderboards page (this class, and All my classes) and points per unit on each student's page");
+  }
+
+  // ===================== Prompt 3 (2026-11): sharing a class with another teacher =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const mig = read("supabase/migrations/0016_class_sharing.sql");
+    const rls = read("supabase/migrations/0002_rls.sql");
+    const flat = (s) => s.replace(/\s+/g, " ");
+    // The table, the backfill, the owner trigger and the helper, in one transaction.
+    check(/^begin;$/m.test(mig) && /^commit;\s*$/m.test(mig.slice(mig.lastIndexOf("commit;"))) && mig.indexOf("begin;") < mig.indexOf("create table public.class_teachers") &&
+      /create table public\.class_teachers \(\s*class_id uuid not null references public\.classes \(id\) on delete cascade,\s*teacher_id uuid not null references public\.teachers \(id\) on delete cascade,\s*added_by uuid references public\.teachers \(id\) on delete set null,\s*added_at timestamptz not null default now\(\),\s*primary key \(class_id, teacher_id\)/.test(mig) &&
+      /insert into public\.class_teachers \(class_id, teacher_id, added_by, added_at\)\s*select c\.id, c\.teacher_id, c\.teacher_id, c\.created_at from public\.classes c/.test(mig) &&
+      /create trigger classes_add_owner after insert on public\.classes/.test(mig) &&
+      /create function private\.is_class_teacher\(p_class uuid\) returns boolean\s*language sql stable security definer set search_path = '' as/.test(mig),
+      "Class sharing (0016): a class_teachers table (class, teacher, added by, added at), with a row for every existing class's owner and every new one's, and a security-definer helper with a fixed search_path, all in one transaction");
+    // Every policy of 0002/0005 that checked classes.teacher_id = auth.uid() (directly, or through my_class_ids and
+    // my_student_ids) now also accepts membership; deleting a class and adding one stay the owner's.
+    const ownerPolicies = [...rls.matchAll(/create policy "([^"]+)" on public\.(\w+) for (\w+) to authenticated\s*(?:using|with check) \(teacher_id = \(select auth\.uid\(\)\)\)/g)].map((m) => m[2] + ":" + m[1]);
+    const altered = [...mig.matchAll(/alter policy "([^"]+)" on public\.(\w+)/g)].map((m) => m[2] + ":" + m[1]);
+    check(ownerPolicies.sort().join() === "classes:teacher adds own classes,classes:teacher deletes own classes,classes:teacher reads own classes,classes:teacher updates own classes,code_reveals:teacher reads own code reveals" &&
+      altered.sort().join() === "classes:teacher reads own classes,classes:teacher updates own classes,code_reveals:teacher reads own code reveals" &&
+      /create or replace function private\.my_class_ids\(\) returns setof uuid[\s\S]*?where c\.teacher_id = auth\.uid\(\)\s*union\s*select ct\.class_id from public\.class_teachers ct where ct\.teacher_id = auth\.uid\(\)/.test(mig) &&
+      /create or replace function private\.my_student_ids\(\)[\s\S]*?where s\.class_id in \(select private\.my_class_ids\(\)\)/.test(mig) &&
+      /create or replace function public\.reset_placement\(p_teacher uuid, p_student uuid, p_unit text\)[\s\S]*?c\.teacher_id = p_teacher or exists \(\s*select 1 from public\.class_teachers ct where ct\.class_id = c\.id and ct\.teacher_id = p_teacher\)/.test(mig) &&
+      !/alter policy "teacher deletes own classes"|alter policy "teacher adds own classes"/.test(mig),
+      "Class sharing (0016): every check of classes.teacher_id = auth.uid() accepts a co-teacher (reading and changing classes, code reveals, the my_class_ids and my_student_ids helpers behind the students, progress, passed tasks, attempts, events and assignments policies, and reset_placement); creating and deleting a class stay the owner's");
+    check(/revoke all on table public\.class_teachers from anon, authenticated;\s*grant select on public\.class_teachers to authenticated;/.test(mig) &&
+      !/grant (insert|update|delete)[^;]*class_teachers/.test(mig) &&
+      flat(mig).includes('create policy "teacher reads own classes\' teachers" on public.class_teachers for select to authenticated using (class_id in (select private.my_class_ids()))') &&
+      /grant execute on function public\.teacher_by_email\(text\), public\.class_teacher_list\(uuid\) to service_role;/.test(mig) &&
+      /revoke execute on function public\.teacher_by_email\(text\), public\.class_teacher_list\(uuid\) from public, anon, authenticated;/.test(mig) &&
+      (mig.match(/security definer set search_path = ''/g) || []).length === 8,
+      "Class sharing (0016): teachers may only read class_teachers (for their own classes); adding and removing go through teacher-api; the email lookup and teacher list are for the service role only; every new function has a fixed search_path");
+    // teacher-api: every owner check is now a membership check (class-sharing.js); the three new actions.
+    const tapi = read("supabase/functions/teacher-api/index.ts");
+    const sh = read("supabase/functions/_shared/class-sharing.js");
+    const S3 = require(path.join(ROOT, "supabase", "functions", "_shared", "class-sharing.js"));
+    check(!/\.eq\("teacher_id", tid\)|"classes\.teacher_id"|classes!inner\(teacher_id\)/.test(tapi) && /return \(await Sharing\.requireClass\(db\(\), tid, classId, false\)\)\.id;/.test(tapi) &&
+      /return await Sharing\.requireStudent\(db\(\), tid, studentId\);/.test(tapi) && /import "\.\.\/_shared\/class-sharing\.js";/.test(tapi) &&
+      ["list_co_teachers", "add_co_teacher", "remove_co_teacher"].every((a) => new RegExp("async " + a + "\\(tid, body\\)").test(tapi)) &&
+      /async function addCoTeacher\(sb, tid, classId, email\) \{\s*const c = await requireClass\(sb, tid, classId, true\);/.test(sh) &&
+      /async function removeCoTeacher\(sb, tid, classId, teacherId\) \{\s*const c = await requireClass\(sb, tid, classId, true\);/.test(sh) &&
+      /if \(teacherId === c\.ownerId\) throw new Problem\(400, MESSAGES\.owner, "owner"\);/.test(sh) &&
+      /async function listCoTeachers\(sb, tid, classId\) \{\s*const c = await requireClass\(sb, tid, classId, false\);/.test(sh) &&
+      S3.MESSAGES.unknownEmail === "No teacher account with that email." && /e instanceof Sharing\.Problem/.test(tapi),
+      "teacher-api: every class and student check accepts a co-teacher; add_co_teacher and remove_co_teacher are for the owner only (the owner can't be removed), list_co_teachers for anyone on the class; an unknown email says \"No teacher account with that email.\"");
+    // The Teachers panel: on the class page, backend mode only; the owner sees Add and Remove, a co-teacher the list
+    // only; a shared class hides Delete class and says whose it is.
+    const th = read("teacher.html"), tb = read("teacher-backend.js"), tj = read("teacher.js");
+    const clMain = th.slice(th.indexOf('<div id="cl-main">'), th.indexOf("<!-- ===== Students"));
+    check(/<section class="teacher-section" data-collapse="class-teachers" id="tb-teachers-section" data-backend>\s*<h3>Teachers<\/h3>/.test(clMain) &&
+      ["tb-teachers", "tb-add-teacher", "tb-add-teacher-email", "tb-teachers-status", "tb-shared-note", "tb-delete-section"].every((id) => clMain.includes('id="' + id + '"')) &&
+      /<form id="tb-add-teacher" class="teacher-controls" novalidate hidden>/.test(th) && /\$\("cl-main"\)\.hidden = !tb;/.test(tj) &&
+      /\.teacher-controls\[hidden\] \{ display: none; \}/.test(read("styles.css")) &&
+      /document\.querySelectorAll\("\[data-backend\]"\)\.forEach\(\(b\) => \{ b\.hidden = !tb; \}\);/.test(tj),
+      "Teachers panel: on the class page (Classes), in backend mode only (in local mode the whole class area and the panel are hidden, as sharing needs accounts); the Add a teacher form starts hidden");
+    check(/\$\("tb-delete-section"\)\.hidden = !current\.owned;/.test(tb) && /\$\("tb-add-teacher"\)\.hidden = !current\.owned;/.test(tb) &&
+      /\$\("tb-shared-note"\)\.hidden = current\.owned;/.test(tb) && /\(mine && !t\.owner \? '<span class="teacher-actions"><button type="button" class="secondary" data-remove-teacher=/.test(tb) &&
+      /\(t\.owner \? ' <span class="flag">Owner<\/span>' : ""\)/.test(tb) && /owned: c\.teacher_id === user\.id/.test(tb) &&
+      /\(c\.owned \? "" : " \(" \+ esc\(sharedLabel\(c\)\) \+ "\)"\)/.test(tb) && /const sharedLabel = \(c\) => "Shared with you by " \+ \(c\.ownerName \|\| "another teacher"\);/.test(tb) &&
+      /if \(!current\.owned\) return say\("tb-status", "Only the teacher who made this class can delete it\.", true\);/.test(tb) &&
+      /teacherApi\("list_co_teachers", \{ class_id: cls\.id \}\)/.test(tb) && /teacherApi\("add_co_teacher", \{ class_id: current\.id, email \}\)/.test(tb) &&
+      /teacherApi\("remove_co_teacher", \{ class_id: current\.id, teacher_id: b\.dataset\.removeYes \}\)/.test(tb),
+      "Teachers panel: the owner is marked; only the owner sees Add a teacher and Remove; a shared class says \"Shared with you by\" its owner in the class list and hides Delete class, which also refuses for a co-teacher");
   }
 
   // ===================== Selection, trimmed =====================
