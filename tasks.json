@@ -22099,6 +22099,7 @@
       "litres = float(paint) is the casting step.",
       "litres > 0.5 gives a Boolean: True or False. Print each label and value with a comma."
     ],
+    "explainer": "The output must be a Boolean value, not the text \"True\" printed with print(\"True\").",
     "tags": [
       "art room",
       "INT_OF_DECIMAL_STRING"
@@ -22381,6 +22382,7 @@
       "A temperature can have a decimal part.",
       "Casting with float() first; then temp < 0 gives a Boolean."
     ],
+    "explainer": "The output must be a Boolean value, not the text \"True\" printed with print(\"True\").",
     "tags": [
       "weather",
       "INT_OF_DECIMAL_STRING"
@@ -22449,6 +22451,7 @@
       "A yes/no fact suits a Boolean.",
       "Casting with bool(answer) would be True even for no: compare the text with == instead."
     ],
+    "explainer": "The output must be a Boolean value, not the text \"True\" printed with print(\"True\").",
     "tags": [
       "school trip",
       "BOOL_CAST_TRAP"
@@ -22528,6 +22531,7 @@
       "Casting with bool() would make every answer True: compare the answer with == \"yes\".",
       "type() shows each value's type: print it after the value, with a comma."
     ],
+    "explainer": "The output must be a Boolean value, not the text \"True\" printed with print(\"True\").",
     "tags": [
       "school trip",
       "INT_OF_DECIMAL_STRING",
@@ -22628,6 +22632,7 @@
       "Adding real numbers gives a real number: Python calls this type float.",
       "total < 40 gives True or False."
     ],
+    "explainer": "The output must be a Boolean value, not the text \"True\" printed with print(\"True\").",
     "tags": [
       "sports day",
       "INT_OF_DECIMAL_STRING"
@@ -22708,6 +22713,7 @@
       "Casting with bool() would give True even for no: compare the answer with == \"yes\".",
       "A whole number times a real number gives a real number."
     ],
+    "explainer": "The output must be a Boolean value, not the text \"True\" printed with print(\"True\").",
     "tags": [
       "book fair",
       "BOOL_CAST_TRAP",
@@ -23120,6 +23126,7 @@
       "Casting with float(), because the weight can have a decimal part.",
       "kg > 2 gives True or False."
     ],
+    "explainer": "The output must be a Boolean value, not the text \"True\" printed with print(\"True\").",
     "tags": [
       "placement",
       "weights",
@@ -24669,6 +24676,7 @@
       "in gives True or False.",
       "find() gives the index where it starts, or -1 if it isn't there."
     ],
+    "explainer": "The output must be a Boolean value, not the text \"True\" printed with print(\"True\").",
     "tags": [
       "in",
       "find()",
@@ -24940,6 +24948,7 @@
       "\"the\" in sentence.lower() ignores capitals.",
       "find(\" \") gives the index of the first space, or -1."
     ],
+    "explainer": "The output must be a Boolean value, not the text \"True\" printed with print(\"True\").",
     "tags": [
       "in",
       "find()",
@@ -32941,6 +32950,7 @@
       "A comparison gives True or False, so the function can return it straight away.",
       "The age is cast for you; return age >= 13 and age <= 19, using the parameter age."
     ],
+    "explainer": "The output must be a Boolean value, not the text \"True\" printed with print(\"True\").",
     "tags": [
       "return",
       "ages"

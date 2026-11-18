@@ -423,21 +423,22 @@
   const NOT_PLACED_HTML = '<span class="rag rag-none">Not placed yet</span>';
   const NOT_STARTED_HTML = '<span class="small">Not started</span>';
 
-  // [{ id, title, units }]: unitIds (the stage's units) in the curriculum's groups, in order; units in no group last.
-  // A group with more than OVERVIEW_MAX_UNITS units is split evenly (7 units: 4, then 3 "(continued)").
+  // [{ id, title, units, block }]: unitIds in the curriculum's groups, in order; units in no group last.
+  // A group with more than OVERVIEW_MAX_UNITS units is split evenly (7 units: 4, then 3 "(continued)"). block: the
+  // heading of the collapsible block the table belongs to (a subsection's is "A-level: Programming techniques").
   function overviewGroups(unitIds, unitGroups) {
     const out = [];
-    const add = (id, title, units) => {
+    const add = (id, title, units, block) => {
       const parts = Math.ceil(units.length / OVERVIEW_MAX_UNITS);
       for (let p = 0, from = 0; p < parts; p++) {
         const size = Math.ceil((units.length - from) / (parts - p));
-        out.push({ id, title: title + (p ? " (continued)" : ""), units: units.slice(from, from + size) });
+        out.push({ id, title: title + (p ? " (continued)" : ""), units: units.slice(from, from + size), block });
         from += size;
       }
     };
-    for (const g of unitGroups || []) for (const part of g.subsections || [g]) add(part.id, part.title, part.units.filter((u) => unitIds.includes(u)));
+    for (const g of unitGroups || []) for (const part of g.subsections || [g]) add(part.id, part.title, part.units.filter((u) => unitIds.includes(u)), part === g ? g.title : g.title + ": " + part.title);
     const listed = out.reduce((all, g) => all.concat(g.units), []);
-    add("other", "Other units", unitIds.filter((u) => !listed.includes(u)));
+    add("other", "Other units", unitIds.filter((u) => !listed.includes(u)), "Other units");
     return out;
   }
 
@@ -464,14 +465,36 @@
   }
 
   // o = { rows (scoreTable rows, sorted and filtered), unitIds, unitGroups (Curriculum.UNIT_GROUPS), unitTitle, sortKey,
-  // sortDir, when (a time as the page shows it), flagsHtml }. Every table has the same first three columns (Name,
-  // Shows, Average) with fixed widths, and its unit columns share the rest of the width.
+  // sortDir, when (a time as the page shows it), flagsHtml, buttonHtml, collapsed }. Every table has the same first three
+  // columns (Name, Shows, Average) with fixed widths, and its unit columns share the rest of the width.
+  // buttonHtml (Collapse.buttonHtml) and collapsed (the collapsed ids, Collapse.collapsedIds): each group of units, with its
+  // "(continued)" tables, is one collapsible block, open unless its id ("ov-" and the group's id) is collapsed.
   function overviewTablesHtml(o) {
     if (!o.rows.length) return '<p class="small">No students to show yet.</p>';
+    const groups = overviewGroups(o.unitIds, o.unitGroups);
+    const tables = overviewTables(o, groups);
+    if (!o.buttonHtml) return tables.join("");
+    const blocks = [];
+    groups.forEach((g, i) => {
+      const last = blocks[blocks.length - 1];
+      if (last && last.id === g.id) { last.tables.push(tables[i]); last.units += g.units.length; return; }
+      blocks.push({ id: g.id, title: g.block, tables: [tables[i]], units: g.units.length });
+    });
+    return blocks.map((b) => {
+      const id = "ov-" + b.id, bodyId = "ov-body-" + b.id;
+      const open = !(o.collapsed || []).includes(id);
+      const count = '<span class="group-count">' + b.units + " unit" + (b.units === 1 ? "" : "s") + "</span>";
+      return '<section class="overview-block" aria-labelledby="' + id + '-h"><h4 class="group-heading" id="' + id + '-h">' + o.buttonHtml(id, bodyId, htmlEsc(b.title), open, count) + "</h4>" +
+        '<div class="group-body" id="' + bodyId + '"' + (open ? "" : " hidden") + ">" + b.tables.join("") + "</div></section>";
+    }).join("");
+  }
+
+  // One table's HTML for each of groups (overviewGroups).
+  function overviewTables(o, groups) {
     const sorted = (key) => (key === o.sortKey ? ' aria-sort="' + (o.sortDir === 1 ? "ascending" : "descending") + '"' : "");
     const head = (key, label) => '<th scope="col"' + sorted(key) + '><button type="button" data-sort="' + htmlEsc(key) + '">' + htmlEsc(label) + "</button></th>";
     const td = (html, label) => '<td class="unit-cell" data-label="' + htmlEsc(label) + '">' + html + "</td>";
-    return overviewGroups(o.unitIds, o.unitGroups).map((g) => {
+    return groups.map((g) => {
       const titles = g.units.map((u) => o.unitTitle(u));
       const body = o.rows.map((r) => {
         const avg = overviewAverage(r);
@@ -488,7 +511,7 @@
         '<colgroup><col class="ov-col-name"><col class="ov-col-shows"><col class="ov-col-avg">' + g.units.map(() => '<col class="ov-col-unit">').join("") + "</colgroup>" +
         "<thead><tr>" + head("name", "Name") + '<th scope="col" class="ov-shows">Shows</th>' + head("average", "Average") + g.units.map((u, i) => head(u, titles[i])).join("") + "</tr></thead>" +
         body + "</table></div>";
-    }).join("");
+    });
   }
 
   // The class scores export: per student, the average and each unit's secured score, its label and the level.
@@ -648,7 +671,34 @@
     return toCsv([{ key: "kind" }, { key: "name" }, { key: "meaning" }], rows);
   }
 
+  // ---------- Points and leaderboards (secured.js studentPoints and boards) ----------
+  // Each student's points now and 14 days ago, from the same records the server reads (supabase/functions/_shared/
+  // points.ts): the saved level and placement of each unit, the attempts, and the level and placement logs.
+  // units: [{ id, placement (the unit has a placement test) }]. -> { studentId: Secured.studentPoints result }
+  function pointsByStudent(data, units, now) {
+    const out = {};
+    for (const id of Object.keys(data.students)) {
+      const mine = (list) => (list || []).filter((e) => e.studentId === id);
+      const attempts = mine(data.attempts);
+      const levels = mine(data.levelLog);
+      // A unit with no placement test is placed from the student's first record in it.
+      const started = {};
+      for (const e of attempts.concat(levels)) {
+        if (units.some((u) => u.id === e.unit && !u.placement) && (!started[e.unit] || Date.parse(e.at) < Date.parse(started[e.unit]))) started[e.unit] = e.at;
+      }
+      out[id] = Secured.studentPoints({ units, current: ((data.progress || {})[id] || {}).units || {}, attempts,
+        history: { levels, placements: mine(data.placementLog), started }, now });
+    }
+    return out;
+  }
+  // The rows Secured.boards ranks: [{ nickname, total, gain, unitCount }] (and extra fields, such as className).
+  function leaderboardStudents(data, units, now, extra) {
+    const points = pointsByStudent(data, units, now);
+    return Object.entries(data.students).map(([id, s]) => Object.assign({ nickname: s.name, total: points[id].total, gain: points[id].gain, unitCount: units.length }, extra || {}));
+  }
+
   return {
+    pointsByStudent, leaderboardStudents,
     FAILS_IN_A_ROW_ALERT, TOP_FAILED_TASKS, BUTTON_NAMES, PLACEMENT_STATUS, FULL_COLUMNS,
     collect, overviewRows, sortOverview, filterByName, taskStats, misconceptionStats, quickLook,
     detailRows, filterDetail, mostFailedTasks, workshop, BUILDER_MAX_TASKS, spreadLevels, buildSpread, swapOptions, addOptions, toCsv, fullExportRows, fullExportCsv, dataDictionaryCsv, assignmentStats,

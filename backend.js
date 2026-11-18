@@ -107,6 +107,29 @@
     try { storage().removeItem(Store.CURRENT_KEY); } catch (e) { /* ignore */ }
   }
 
+  // The student changes their own nickname. student-api rename_me checks the PIN (as signing in does) and the nickname
+  // (the rules and word filter used at join, and the class's other nicknames). The new one is saved in this browser too.
+  async function renameMe(pin, nickname) {
+    const s = session();
+    if (!s) return { status: 401, body: { error: "You've been signed out. Please sign in again with your code and PIN." } };
+    const r = await api("student-api", { token: s.token, action: "rename_me", pin, nickname });
+    if (r.status === 200 && r.body.nickname) {
+      write(SESSION_KEY, Object.assign({}, s, { nickname: r.body.nickname }));
+      const known = read(Store.STUDENTS_KEY) || {};
+      if (known[s.sid]) { known[s.sid].name = r.body.nickname; write(Store.STUDENTS_KEY, known); }
+    }
+    return r;
+  }
+
+  // The student's own class's two leaderboards (student-api leaderboard: worked out on the server, nicknames and
+  // points only). Unsent work is sent first, so the last task counts.
+  async function leaderboard() {
+    const s = session();
+    if (!s) return { status: 401, body: { error: "You've been signed out. Please sign in again with your code and PIN." } };
+    try { await flush(); } catch (e) { /* the board still loads; the work is sent later */ }
+    return api("student-api", { token: s.token, action: "leaderboard" });
+  }
+
   async function deleteMyProgress() {
     const s = session();
     if (!s) return { status: 401, body: {} };
@@ -313,7 +336,7 @@
   }
 
   return {
-    enabled: true, session, join, resume, signOut, deleteMyProgress, flush, pending, ready,
+    enabled: true, session, join, resume, signOut, renameMe, leaderboard, deleteMyProgress, flush, pending, ready,
     onStatus: (f) => listeners.push(f), isSignedOut: () => signedOut,
   };
 });

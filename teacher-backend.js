@@ -521,6 +521,19 @@
     }
   }
 
+  // The leaderboards, worked out on the server (teacher-api leaderboards and leaderboards_all, with the points rule in
+  // secured.js). Each returns { boards: { overall, improving } } or { error } (a message).
+  // A server without these actions answers with its general "Something went wrong" (no problem field).
+  const OLD_SERVER = "The leaderboards need the newest version of the server (teacher-api). Please try again once it has been updated.";
+  async function boardsCall(action, body) {
+    const r = await teacherApi(action, body);
+    if (r.status === 400 && /Something went wrong/.test(r.body.error || "")) return { error: OLD_SERVER };
+    if (r.status !== 200) return { error: r.body.error || "Couldn't load the leaderboards. Please try again." };
+    return r.body;
+  }
+  const leaderboards = () => (current ? boardsCall("leaderboards", { class_id: current.id }) : Promise.resolve({ error: "Choose a class first." }));
+  const leaderboardsAll = () => boardsCall("leaderboards_all", {});
+
   async function copy(text, statusId) {
     try { await navigator.clipboard.writeText(text); say(statusId, "Copied."); }
     catch (e) { say(statusId, "Couldn't copy. Select the table and copy it instead.", true); }
@@ -577,6 +590,6 @@
       return {};
     },
     currentClass: () => current,
-    copy, resetPin, removeStudent, renameStudent, changePassword, compareClasses,
+    copy, resetPin, removeStudent, renameStudent, changePassword, compareClasses, leaderboards, leaderboardsAll,
   };
 })();

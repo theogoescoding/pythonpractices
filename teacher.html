@@ -66,6 +66,7 @@
     <nav class="side-nav" aria-label="Teacher view pages">
       <a href="#classes" data-page="classes">Classes</a>
       <a href="#students" data-page="students">Students</a>
+      <a href="#leaderboards" data-page="leaderboards">Leaderboards</a>
       <a href="#assignments" data-page="assignments">Assignments</a>
       <a href="#reports" data-page="reports">Reports</a>
       <a href="#misconceptions" data-page="misconceptions">Misconceptions</a>
@@ -162,7 +163,7 @@
 
       <section class="teacher-section" data-collapse="students">
       <h3>Secured score per unit</h3>
-      <p class="small">Two rows per student, one column per unit for this class's stage. The Freshness row shows the secured score and its label (or Not secured yet). The Level row shows the level (in its colour while the unit isn't secured yet),
+      <p class="small">Two rows per student, one column per unit. The units are in blocks, one per group (A-level too). Select a block's heading to close or open it; this browser remembers which you closed. The Freshness row shows the secured score and its label (or Not secured yet). The Level row shows the level (in its colour while the unit isn't secured yet),
         the placement result, <span class="badge-complete">★ Complete</span> once a level 10 task is passed, and these flags, with the time of the newest press:</p>
       <ul class="small flag-key">
         <li><span class="flag flag-easy">Too easy</span> the student pressed "This is too easy" in this unit, which moved them up one level: check that their level is right</li>
@@ -185,6 +186,30 @@
         A unit is secured after two level 10 passes with no hints (a pass after "Show me how" doesn't count). It stays at 100% for a week after the last
         level 10 pass, then drops 10 points for each full week (90%, 80%, 70%, 60%), never below its floor, and one more
         level 10 pass with no hints brings it back to 100%. The floor is 50% at first and 10 points higher after each return to 100%, so after five returns it is 100% and the unit stays secured.</p>
+      </section>
+    </section>
+
+    <!-- ===== Leaderboards (this class, and all my classes) ===== -->
+    <section id="page-leaderboards" aria-labelledby="leaderboards-title" hidden>
+      <h2 id="leaderboards-title" tabindex="-1">Leaderboards</h2>
+      <p class="small">Each unit gives up to 300 points, and every unit counts, whatever the class's stage.
+        Secured points: up to 200, 2 for each percent of a secured unit's score (100% gives 200, 50% gives 100; a unit that isn't secured gives 0).
+        Level points: up to 100, 10 for each level of a placed unit (level 10 gives 100; not started or not placed yet gives 0).
+        <strong>Most improved</strong> is the points gained in the last 14 days: today's total minus the total 14 days ago, worked out from the saved attempts and level changes.
+        Students with the same points share a place. Students see their own class's boards, with nicknames only.</p>
+      <section class="teacher-section" data-collapse="lb-class">
+        <h3>This class</h3>
+        <p id="lb-class-name"></p>
+        <p id="lb-class-status" class="small" role="status"></p>
+        <div id="lb-class" class="boards"></div>
+      </section>
+      <section class="teacher-section" data-collapse="lb-all">
+        <h3>All my classes</h3>
+        <p class="small">Every student in all your classes, with their class. Ranked by percentage: points ÷ (300 × units) × 100, so classes can be compared fairly.
+          Most improved uses the points gained the same way.</p>
+        <p><button type="button" id="lb-all-load" class="secondary">Show all my classes</button></p>
+        <p id="lb-all-status" class="small" role="status"></p>
+        <div id="lb-all" class="boards"></div>
       </section>
     </section>
 
@@ -216,6 +241,9 @@
       <div id="sd-result" role="status"></div>
       <h3>Secured score per unit</h3>
       <div id="sd-scores" class="score-bars"></div>
+      <h3>Points per unit</h3>
+      <p class="small">The points used on the Leaderboards page: secured points (up to 200) and level points (up to 100) for each unit, up to 300 a unit.</p>
+      <div id="sd-points" class="unit-points"></div>
       <h3>Recent attempts</h3>
       <p class="small">The newest checks, skips and uses of "Show me how". The full log of every attempt is in the export (Reports).</p>
       <div id="sd-recent"></div>
@@ -286,7 +314,17 @@
         <strong>Full attempt log</strong>: every attempt, level change, button use and placement result for the whole class (with the data dictionary, which explains
         every column in plain English; your browser may ask whether to allow two downloads). <strong>Levels table</strong>: each student's level, placement,
         level 10 and button flags in every unit. <strong>Detail log</strong>: one row per attempt and button use, including code and output.
-        <strong>Workshop tables</strong>: the misconception table and the per-task unmatched table from the Misconceptions page.</p>
+        <strong>Workshop tables</strong>: the misconception table and the per-task unmatched table from the Misconceptions page.
+        Each button shows what is in the file, with a sample row, before you download it.</p>
+      <dialog id="export-dialog" class="export-dialog" aria-labelledby="export-dialog-h">
+        <h3 id="export-dialog-h"></h3>
+        <p id="export-dialog-text"></p>
+        <p class="small"><strong>Sample row</strong> (the file's first row, shortened):</p>
+        <div class="table-wrap"><table id="export-dialog-sample" class="export-sample"></table></div>
+        <p id="export-dialog-more" class="small"></p>
+        <p class="teacher-controls"><button type="button" id="export-dialog-download" class="primary">Download</button>
+          <button type="button" id="export-dialog-close" class="secondary">Cancel</button></p>
+      </dialog>
       <details style="margin-top:1rem">
         <summary>All level changes</summary>
         <div class="table-wrap" style="margin-top:.5rem">

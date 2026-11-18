@@ -77,7 +77,29 @@ Store.whenReady(function () {
     });
 
     $("delete-area").hidden = false;
+    $("leaderboard-link").hidden = false; // the class's leaderboards (leaderboard.html): backend mode only
     $("change-name").textContent = "Not you? Sign out";
+    // Changing my nickname: the PIN, then the same nickname rules and word filter as joining (student-api rename_me).
+    const closeRename = () => { $("rename-form").hidden = true; $("rename-pin").value = ""; showError("rename-error", ""); $("rename-mine").focus(); };
+    $("rename-mine").addEventListener("click", () => {
+      $("rename-form").hidden = false;
+      $("rename-nickname").value = (Store.currentStudent() || { name: "" }).name;
+      $("rename-nickname").focus();
+    });
+    $("rename-cancel").addEventListener("click", closeRename);
+    $("rename-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const nickname = $("rename-nickname").value.trim();
+      const pin = $("rename-pin").value.trim();
+      if (!nickname) return showError("rename-error", "Type your new nickname.");
+      if (!/^\d{4}$/.test(pin)) return showError("rename-error", "Type your 4-digit PIN.");
+      $("rename-save").disabled = true;
+      const r = await backend.renameMe(pin, nickname);
+      $("rename-save").disabled = false;
+      $("rename-pin").value = "";
+      if (r.status !== 200) return showError("rename-error", r.body.error || "Couldn't change your nickname. Please try again.");
+      location.reload(); // shows the new nickname everywhere on the page
+    });
     $("delete-mine").addEventListener("click", () => { $("delete-confirm").hidden = false; $("delete-no").focus(); });
     $("delete-no").addEventListener("click", () => { $("delete-confirm").hidden = true; $("delete-mine").focus(); });
     $("delete-yes").addEventListener("click", async () => {

@@ -100,9 +100,9 @@ The pages stay static files (GitHub Pages). With `config.js` setting `BACKEND_EN
 | The five A-level data structures units (`records-tuples`, `stacks-queues`, `linked-lists`, `hash-tables`, `arrays-3d`) in every table's unit check | `supabase/migrations/0012_a_level_data_structures_units.sql` |
 | A class's stage (`classes.stage`: `ks3`, `gcse` or `a-level`; existing classes become `gcse`) | `supabase/migrations/0013_class_stage.sql` |
 | `join-class`, `resume` (no sign-in, 300 requests per IP per 10 minutes) | `supabase/functions/join-class/`, `resume/` |
-| `student-api` (student session token): get/save progress (with the class's open assignments), get assignments, add attempts and events, mark passed, delete my progress | `supabase/functions/student-api/` |
-| `teacher-api` (teacher's Supabase sign-in): reveal codes, reset PIN, reset placement, import | `supabase/functions/teacher-api/` |
-| Shared function code: CORS, crypto, nickname filter, row checks | `supabase/functions/_shared/` |
+| `student-api` (student session token): get/save progress (with the class's open assignments), get assignments, add attempts and events, mark passed, change my nickname, the class leaderboard, delete my progress | `supabase/functions/student-api/` |
+| `teacher-api` (teacher's Supabase sign-in): reveal codes, reset PIN, reset placement, rename a student, the class's leaderboards and All my classes, import | `supabase/functions/teacher-api/` |
+| Shared function code: CORS, crypto, nickname filter, row checks, points and leaderboards (`points.ts`, which loads `curriculum.js` and `secured.js` themselves) | `supabase/functions/_shared/` |
 | Student side | `backend.js`, with `backend-rows.js` (local records ⇄ table rows) |
 | Teacher side | `teacher-backend.js`, with `backend-import.js` (reading a full export) |
 
@@ -792,12 +792,16 @@ A walkthrough over the real screen, one step at a time, on the student pages onl
 
 `teacher.html` starts with the note "Data is stored in this browser only. Results from other devices won't appear here." (local mode). It warns when the browser's storage is nearly full (about 4 of the 5 MB a site may use). A **side menu** opens its pages: Classes, Students, Assignments, Reports, Misconceptions, Task browser and Settings. Each page has its own address (`#classes`, `#students`, `#misconceptions`, …), and the old addresses still work (`#overview` opens Students; `#log` opens Reports; `#workshop` opens Misconceptions). In backend mode the class being looked at is chosen at the top, with who is signed in and Sign out.
 
+**Export popups.** Each export button on the Reports page (Class scores, Full attempt log, Data dictionary, Levels table, Detail log, Workshop tables) first opens a popup: what the file contains, the file's first row as column and value pairs (the first 12 columns, shortened), and a Download button that makes exactly the same file(s) as before (`EXPORTS` in `teacher.js`). Esc or Cancel closes it.
+
+**Boolean output.** The write tasks that print a Boolean they work out (`types-L8d`, `types-L9e`, `types-L9f`, `types-L10d`, `types-L10e`, `types-L10f`, `types-P9c`, `str-L8c`, `str-L10a`, `fr-L8c`) have an explainer, shown after a pass or the second wrong check: the output must be a Boolean value, not the text "True" printed with `print("True")`.
+
 **Collapsible sections.** Each section heading (Name and stage, Student logins, Delete this class, Secured score per unit, Exports, Compare classes, and on the Misconceptions page the misconception table, the unmatched attempts and the not-matched-yet list) is a button that collapses or expands that section, like the unit groups in the student view (`collapse.js`). Every section starts expanded, except the three on the Misconceptions page, which start collapsed until they are opened (then remembered as `open:<id>`). The collapsed ones are remembered in this browser under `pythonPractice.teacherCollapsedSections`, separate from the student view's key. If storage is blocked, the sections still open and close but start expanded each time.
 
 **Classes (`#classes`, backend mode)**
 
 - **Create a class** with a name and a **stage**: KS3, GCSE or A-level (`classes.stage`, migration `0013_class_stage.sql`; classes made before it are GCSE).
-- The chosen class's **class code** (with Copy code) and end date; **Rename** and **Save stage**. The stage decides which units the Students page shows and which sections of the students' unit menu open by default (see [Class stage](#class-stage)).
+- The chosen class's **class code** (with Copy code) and end date; **Rename** and **Save stage**. The stage decides which sections of the students' unit menu open by default (see [Class stage](#class-stage)). The Students page shows every unit, whatever the stage.
 - **Student logins**: Show codes (logged), Copy codes, Reset PIN, Delete, Refresh, and **Import full export** (see Importing a full export).
 - **Delete this class**, and what is kept and for how long.
 
@@ -809,7 +813,8 @@ A walkthrough over the real screen, one step at a time, on the student pages onl
   - grey **Not placed yet**: no placed unit.
 
   A unit that isn't secured never counts as 0% or red for that reason. (The class scores export keeps its RAG column: green, amber or red by the same averages.)
-- **The tables**: two rows per student, one column per unit of the class's stage (local mode: GCSE), plus the student's average (of their secured units; with none secured, their average level in its colour). The **Freshness** row shows the [secured score](#secured-score) and its label in its colour (or Not secured yet, or grey Not placed yet). The **Level** row shows the level, the placement result, **★ Complete** once a level 10 task is passed, and the flags. The student's name is one cell across both rows.
+- **The blocks**: every unit is shown, for every class, in one collapsible block per group of units: Programming fundamentals, Advanced programming, Validation, Searching and sorting, A-level: Programming techniques and A-level: Data structures. A block holds its "(continued)" tables too and closes as one. All start open; each teacher's closed blocks are remembered in this browser under `pythonPractice.teacherCollapsedSections` (the same key and `collapse.js` as the page's sections; ids `ov-<group>`), and sorting doesn't reopen them.
+- **The tables**: two rows per student, one column per unit, plus the student's average (of their secured units; with none secured, their average level in its colour). The **Freshness** row shows the [secured score](#secured-score) and its label in its colour (or Not secured yet, or grey Not placed yet). The **Level** row shows the level, the placement result, **★ Complete** once a level 10 task is passed, and the flags. The student's name is one cell across both rows.
   - **One table per group of units** (the curriculum's groups, with A-level split into its two parts; a group of more than 5 units is split evenly, e.g. 4 and 3 "(continued)"). Each table is the full width: Name, Shows and Average have fixed widths and the unit columns share the rest, so long unit names wrap instead of making the table scroll sideways. Where the tables are narrower than 850px (a phone or tablet), each student's rows become tiles, each named by its unit. Sorting by any table's column heading sorts every table. Built in `teacher-data.js` (`overviewTablesHtml`).
   - **Not secured yet**: a placed unit that isn't secured shows its level in the level's colour, "Level 8", never 0%: levels 1 to 3 red, 4 to 6 amber, 7 to 9 green, 10 light green. The student's page shows it the same way, with a bar for the level.
   - **Grey, "Not placed yet"**: a unit the student has started but whose placement test isn't done yet (its placement record is still pending or in progress, the same rule as the app's). It has no score or colour, and doesn't count in the student's average, the summary tiles' groups or the class averages. A unit with no placement test (the searching and sorting units), or one started before placement existed, counts as placed.
@@ -819,7 +824,7 @@ A walkthrough over the real screen, one step at a time, on the student pages onl
 - Select a column heading to sort (unit columns by secured score); select it again to reverse. Filter by name. Select a name to open that student.
 - The old "2+ fails in a row" panel is gone. How many fails in a row a student has is still on their own page and in the levels export, but it is never a flag or a colour.
 
-**One student (`#student=<id>`)**: a back link, then **Reset placement** (for any unit, as before), and in backend mode **Reset PIN**, **Rename** (teacher-api `rename_student`, with the same nickname rules and word filter as joining) and **Remove student**. Then the secured score per unit as a bar with its label ("Not placed yet" until its placement is done), the button flags with the time of the newest press, the number of fails in a row (as text), and the newest 30 attempts: the task (a link to it in the Task browser), the result, the time, the hints used, which test failed, and the misconception matched. The full log of every attempt is only in the export.
+**One student (`#student=<id>`)**: a back link, then **Reset placement** (for any unit, as before), and in backend mode **Reset PIN**, **Rename** (teacher-api `rename_student`, with the same nickname rules and word filter as joining) and **Remove student**. A student can also change their own nickname on their home page (backend mode): **Change my nickname** asks for the new nickname and their PIN, and student-api `rename_me` checks the PIN as signing in does (5 wrong in a row lock the account for 15 minutes) and the nickname with the same rules and word filter as joining. Then the secured score per unit as a bar with its label ("Not placed yet" until its placement is done), the button flags with the time of the newest press, the number of fails in a row (as text), and the newest 30 attempts: the task (a link to it in the Task browser), the result, the time, the hints used, which test failed, and the misconception matched. The full log of every attempt is only in the export.
 
 **Assignments (`#assignments`, backend mode)**: see [Class assignments](#class-assignments-backend-mode). The form also has a builder, **Tasks from one unit, spread across the levels**: choose a unit, how many tasks (1 to 10, 5 at first) and a level range (from 1 to 10 at first), and **Build the list** fills in practice tasks from that unit only (never placement tasks, never one twice), spread evenly from the lowest to the highest level chosen (`teacher-data.js` `spreadLevels`: 5 across 1 to 10 gives levels 1, 3, 5, 7 and 10). A level with no task left uses the nearest level that has one, noted next to the task. It replaces the list. Each task then has **Change** (another practice task of the same unit and level that isn't in the list, or a note that there is none) and **Remove**, and **Add a task from the unit** adds one more, up to 10. The task ids box still works as before (type or paste ids, and the Task browser's "Add to the assignment"). Each assignment lists its tasks.
 
@@ -875,6 +880,20 @@ A walkthrough over the real screen, one step at a time, on the student pages onl
   - **Level ramp**, a placed unit that isn't secured yet ("Level N"): red **levels 1–3**, amber **4–6**, green **7–9**, light green **10**.
   - Before its placement is done a unit is grey, **Not placed yet**, in the teacher view, and a dashed blue outline, **Placement to do**, on the student's unit card.
 - In the student view a secured unit glows gold at 100% and shows its colour and label as the score falls; a placed unit that isn't secured shows its level in its colour. A unit with a level 10 pass that isn't secured yet keeps its "★ Level 10 passed" note. Both pages have a colour key.
+
+### Points and leaderboards
+
+One rule, in `secured.js` (`studentPoints`, `boards`), used by the student page, the teacher view and the server (`supabase/functions/_shared/points.ts` loads `secured.js` and `curriculum.js` themselves).
+
+- **Per unit, up to 300 points:**
+  - **Secured points, up to 200:** 2 for each percent of the unit's secured score. 100% gives 200, 50% gives 100. A secured score never falls below 50%, and anything under 50% would count as 50%, so a secured unit is worth at least 100. A unit that isn't secured, or isn't placed, gives 0.
+  - **Level points, up to 100:** 10 for each level of a placed unit, so level 10 gives 100. Not started, or its placement still to do: 0.
+- **A student's total** is the sum over all 39 units, whatever the class's stage (as on the Students page): at most 11,700.
+- **Most improved** is the gain over the last 14 days: today's total minus the total 14 days ago. The total 14 days ago is worked out from the saved records, with no snapshot table: the secured score at that moment (`score()` with that time, so the weekly drop is counted to then) and the level from the level changes and placement results (`levelAt`). A unit with no placement test counts as placed from the student's first record in it.
+- **Percentage** (for comparing classes): points ÷ (300 × units) × 100, one decimal place. For example 5,850 points over 39 units is 5,850 ÷ 11,700 × 100 = 50.0%, and a gain of 234 points is 2.0%.
+- **Students** (backend mode only): a **Leaderboard** button next to My progress opens `leaderboard.html`: their own points (secured, level, total and the last 14 days) and their class's two boards, **Most points** and **Most improved**, ranked by points, with nicknames only, their own row highlighted, and ties sharing a place. It comes from student-api `leaderboard`, which always uses the student's own class.
+- **Teachers:** the **Leaderboards** page has this class's two boards (teacher-api `leaderboards`, ranked by points) and **All my classes** (teacher-api `leaderboards_all`: every class they own, with the class name, ranked by percentage). A student's page shows their secured, level and total points for each unit. In local mode the same rule runs on this browser's records.
+- The server sends only nicknames, class names (teacher views), points and percentages: no unit detail, attempts, codes or PINs.
 
 ### Class stage
 
@@ -1058,9 +1077,10 @@ The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, n
 | `assets/logo/` | The logos (main, wordmark and icon, each in a light and a dark version) |
 | `practice.html`, `app.js` | Practice session for one unit, or Endless mode: task types, hints, the editor, the adaptive rules and their constants |
 | `progress.html`, `progress.js` | Progress summary and skill drill-down |
+| `leaderboard.html`, `leaderboard.js` | The student's class leaderboards (backend mode; see [Points and leaderboards](#points-and-leaderboards)) |
 | `endless.html`, `endless.js` | Endless mode set-up: choosing units |
-| `teacher.html`, `teacher.js` | Teacher view: a side menu of Classes, Students, one student, Assignments, Reports (exports, compare classes), Misconceptions (the workshop), Task browser (with teacher practice) and Settings |
-| `secured.js` | The secured score of a unit and its colour bands (shared by the teacher view and the student view) |
+| `teacher.html`, `teacher.js` | Teacher view: a side menu of Classes, Students, Leaderboards, one student, Assignments, Reports (exports, compare classes), Misconceptions (the workshop), Task browser (with teacher practice) and Settings |
+| `secured.js` | The secured score of a unit and its colour bands, and the points and leaderboard rule (shared by the teacher view, the student view and the server) |
 | `tour.js` | The student app's tutorial: the walkthrough, the reminders and Help (see [Tutorial](#tutorial-tourjs)) |
 | `collapse.js` | Collapsible sections, shared by the student view's unit groups and the teacher view's sections (each remembered under its own localStorage key) |
 | `task-view.js` | The Expected output box and example test (practice page and Task browser), and the task search |

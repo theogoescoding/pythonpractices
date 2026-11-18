@@ -100,5 +100,97 @@
     return "Your score is " + sec.score + "%. A level 10 pass with no hints brings it back to 100%.";
   }
 
-  return { DAY_MS, WEEK_MS, DROP_PER_WEEK, keepByDate, studentDate, studentNote, PASSES_TO_SECURE, FLOOR_START, FLOOR_STEP, FLOOR_CAP, BANDS, band, levelBand, unitColour, isTopPass, score };
+  // ---------- Points and leaderboards (added 2026-11; the rules above are unchanged) ----------
+  // One rule, used by the student and teacher pages and by the server (student-api and teacher-api load this file).
+  // A unit is worth up to UNIT_POINTS_MAX (300) points:
+  //   - secured points, up to 200: 2 for each percent of the unit's secured score (score() above), so 100% is 200 and
+  //     50% is 100. A secured unit never counts under 100 points (its score never falls under 50%, the first floor;
+  //     anything under 50% would count as 50%). A unit that isn't secured, or isn't placed, has no secured points.
+  //   - level points, up to 100: 10 for each level of a placed unit, so level 10 is 100. Not started, or its
+  //     placement not done yet: 0.
+  // A student's total is the sum over every unit (whatever the class's stage, as on the teacher's Students page).
+  const SECURED_POINTS_PER_PERCENT = 2;
+  const LEVEL_POINTS_PER_LEVEL = 10;
+  const UNIT_POINTS_MAX = 300;
+  const IMPROVING_DAYS = 14;
+  const securedPoints = (sec) => (sec && sec.secured && sec.score != null ? SECURED_POINTS_PER_PERCENT * Math.min(100, Math.max(FLOOR_START, sec.score)) : 0);
+  const levelPoints = (level, placed) => (placed && Number.isFinite(level) && level >= 1 ? LEVEL_POINTS_PER_LEVEL * Math.min(10, Math.round(level)) : 0);
+  const unitPoints = (sec, level, placed) => { const s = securedPoints(sec), l = levelPoints(level, placed); return { secured: s, level: l, total: s + l }; };
+  // A unit's saved state (the app's, or the server's progress row: { level, placement }) is placed unless its
+  // placement test is still to do (pending or in progress). A unit with no placement record counts as placed.
+  const placedNow = (state) => !!state && !(state.placement && ["pending", "in-progress"].includes(state.placement.status));
+
+  // A unit's placed level at time `at` (ms), from the history: placements [{ unit, at, kind: "result" | "reset",
+  // startLevel }] and level changes [{ unit, at, to }]. A unit with a placement test is placed from its last placement
+  // result (a teacher's reset undoes it), at the start level until a later level change. A unit with no placement test
+  // (hasPlacement false) is placed from history.started[unit] (its first record), at level 1 until a level change.
+  function levelAt(unit, hasPlacement, history, at) {
+    const upTo = (list) => (list || []).filter((e) => e.unit === unit && Date.parse(e.at) <= at).sort((x, y) => Date.parse(x.at) - Date.parse(y.at));
+    const changes = upTo(history.levels);
+    const lastChange = changes[changes.length - 1];
+    if (hasPlacement) {
+      const pl = upTo(history.placements);
+      const lastPl = pl[pl.length - 1];
+      if (!lastPl || lastPl.kind !== "result") return { placed: false, level: null };
+      return { placed: true, level: lastChange && Date.parse(lastChange.at) >= Date.parse(lastPl.at) ? lastChange.to : lastPl.startLevel };
+    }
+    if (lastChange) return { placed: true, level: lastChange.to };
+    const started = (history.started || {})[unit];
+    return started && Date.parse(started) <= at ? { placed: true, level: 1 } : { placed: false, level: null };
+  }
+
+  // A student's points now and IMPROVING_DAYS (14) days ago, and the gain.
+  //   now: the saved state of each unit (current[unit] = its state, or the server's { level, placement }) and the
+  //        secured score now;
+  //   14 days ago: the level from the history (levelAt) and the secured score at that moment (score() with that time,
+  //        so valueAt and fullWeeks count the weeks from the last pass to then).
+  // o = { units: [{ id, placement (has a placement test) }], current, attempts (the app's records: unit, at, kind,
+  //       result, hints, hintType, phase, taskLevel), history: { levels, placements, started }, now (ms, default now) }
+  // -> { secured, level, total, units: { id: { secured, level, total } }, before: { secured, level, total }, gain }
+  function studentPoints(o) {
+    const now = o.now == null ? Date.now() : o.now;
+    const then = now - IMPROVING_DAYS * DAY_MS;
+    const out = { secured: 0, level: 0, total: 0, units: {}, before: { secured: 0, level: 0, total: 0 }, gain: 0 };
+    for (const u of o.units) {
+      const state = (o.current || {})[u.id];
+      // A unit counts only while placed (as on the teacher's Students page: a reset placement shows no secured score).
+      const placed = placedNow(state);
+      const p = unitPoints(placed ? score(o.attempts, u.id, now) : null, state ? state.level : null, placed);
+      const past = levelAt(u.id, u.placement, o.history || {}, then);
+      const b = unitPoints(past.placed ? score(o.attempts, u.id, then) : null, past.level, past.placed);
+      out.units[u.id] = p;
+      for (const k of ["secured", "level", "total"]) { out[k] += p[k]; out.before[k] += b[k]; }
+    }
+    out.gain = out.total - out.before.total;
+    return out;
+  }
+
+  // The most a student can have over unitCount units, and points as a percentage of it (one decimal place), so
+  // students seeing different numbers of units can be compared: points / (300 x units) x 100.
+  const maxPoints = (unitCount) => UNIT_POINTS_MAX * unitCount;
+  const normalised = (points, unitCount) => (unitCount ? Math.round((1000 * points) / maxPoints(unitCount)) / 10 : 0);
+  // Rows ranked on `key`, highest first; ties share a rank (1, 1, 3) and are listed by nickname.
+  function ranked(rows, key) {
+    const sorted = rows.slice().sort((x, y) => y[key] - x[key] || String(x.nickname).localeCompare(String(y.nickname)));
+    return sorted.map((r) => Object.assign({}, r, { rank: 1 + sorted.filter((x) => x[key] > r[key]).length }));
+  }
+  // The two boards from each student's { nickname, total, gain, unitCount, ...extra } (extra: me, className):
+  //   overall:   ranked by total points; improving: ranked by the gain over the last 14 days.
+  //   by "points" within one class (byPercent false), or by the normalised percentage across classes (byPercent true).
+  // Each row: { rank, nickname, points, percent, ...extra } and nothing else.
+  function boards(students, byPercent) {
+    const board = (field) => {
+      const rows = students.map((s) => {
+        const extra = Object.assign({}, s);
+        for (const k of ["total", "gain", "unitCount", "nickname"]) delete extra[k];
+        return Object.assign({ nickname: s.nickname, points: s[field], percent: normalised(s[field], s.unitCount) }, extra);
+      });
+      return ranked(rows, byPercent ? "percent" : "points").map((r) => Object.assign({ rank: r.rank }, r));
+    };
+    return { overall: board("total"), improving: board("gain") };
+  }
+
+  return { DAY_MS, WEEK_MS, DROP_PER_WEEK, keepByDate, studentDate, studentNote, PASSES_TO_SECURE, FLOOR_START, FLOOR_STEP, FLOOR_CAP, BANDS, band, levelBand, unitColour, isTopPass, score,
+    SECURED_POINTS_PER_PERCENT, LEVEL_POINTS_PER_LEVEL, UNIT_POINTS_MAX, IMPROVING_DAYS, securedPoints, levelPoints, unitPoints, placedNow, levelAt, studentPoints,
+    maxPoints, normalised, ranked, boards };
 });

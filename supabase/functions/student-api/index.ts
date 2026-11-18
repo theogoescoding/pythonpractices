@@ -5,13 +5,21 @@
 //   add_attempts { rows }              -> { saved, rejected }  rows use the attempts table's (the export's) column names
 //   add_events { rows }                -> { saved, rejected }
 //   mark_passed { unit, fingerprint }
+//   rename_me { pin, nickname }        -> { nickname }  the student changes their own nickname, after typing their PIN
+//   leaderboard                        -> { boards: { overall, improving }, me: { secured, level, total, gain }, max }  their own class only:
+//                                           each row { rank, nickname, points, percent, me } (no unit detail, attempts or codes)
 //   delete_my_progress                 deletes the student and everything saved for them
 
-import { lookupHash, verifyToken } from "../_shared/crypto.ts";
+import { lookupHash, pinMatches, verifyToken } from "../_shared/crypto.ts";
 import { check, db, HttpError, serve } from "../_shared/http.ts";
+import { NICKNAME_RULES, nicknameBlocked, validNickname } from "../_shared/nickname.ts";
+import { boards, classPoints } from "../_shared/points.ts";
 import { checkAttempts, checkEvents, insertRows, PROGRESS_UNITS, Rejected, UNITS } from "../_shared/rows.ts";
 
 const SIGNED_OUT = "You've been signed out. Please sign in again with your code and PIN.";
+const WRONG_PIN = "That PIN isn't right. Type the 4-digit PIN you sign in with.";
+const NAME_TAKEN = "Another student in this class already has that nickname. Try another one.";
+const NAME_BLOCKED = "This nickname isn't allowed. Please choose another.";
 const MAX_STATE_CHARS = 900_000;
 const STUDENT_EVENT_TYPES = ["level_change", "button_use", "placement_result"];
 const ATTEMPT_COLUMNS = "record_id, record_type, timestamp, unit, task_units, task_id, template_id, phase, task_type, " +
@@ -113,6 +121,41 @@ const actions: Record<string, (sid: string, body: Record<string, unknown>) => Pr
     if (!UNITS.includes(unit as string) || typeof fingerprint !== "string" || !fingerprint || fingerprint.length > 500) throw bad();
     check(await db().from("passed_tasks").upsert({ student_id: sid, unit, fingerprint },
       { onConflict: "student_id,unit,fingerprint", ignoreDuplicates: true }), "mark passed");
+  },
+
+  // The PIN is checked as resume checks it (pin_try_begin counts the try first; 5 wrong in a row lock the account for
+  // 15 minutes), and the nickname as at join: the same rules and word filter (_shared/nickname.ts), and no other
+  // student in the class with it (ignoring capitals). A wrong PIN is 403, not 401, so the app doesn't sign the student out.
+  async rename_me(sid, body) {
+    const pin = typeof body.pin === "string" ? body.pin.trim() : "";
+    if (typeof body.nickname !== "string") throw bad();
+    const nickname = body.nickname.trim();
+    if (!/^\d{4}$/.test(pin)) throw new HttpError(403, WRONG_PIN, { problem: "pin" });
+    const s = check(await db().from("students").select("id, class_id, pin_hash").eq("id", sid).single(), "student");
+    const t = check(await db().rpc("pin_try_begin", { p_student: sid }).single(), "pin try") as { allowed: boolean; locked_until: string | null };
+    if (!t.allowed || !(await pinMatches(pin, s.pin_hash as string))) {
+      const minutes = t.locked_until ? Math.max(1, Math.ceil((Date.parse(t.locked_until) - Date.now()) / 60000)) : 0;
+      throw new HttpError(403, minutes ? "Too many wrong PINs. Try again in " + minutes + (minutes === 1 ? " minute." : " minutes.") : WRONG_PIN, { problem: "pin" });
+    }
+    check(await db().rpc("pin_try_succeeded", { p_student: sid }), "pin ok");
+    if (!validNickname(nickname)) throw new HttpError(400, NICKNAME_RULES, { problem: "invalid" });
+    if (nicknameBlocked(nickname)) throw new HttpError(400, NAME_BLOCKED, { problem: "blocked" });
+    const others = check(await db().from("students").select("id, nickname").eq("class_id", s.class_id), "students") as unknown as { id: string; nickname: string }[];
+    if (others.some((o) => o.id !== sid && o.nickname.toLowerCase() === nickname.toLowerCase())) throw new HttpError(400, NAME_TAKEN, { problem: "taken" });
+    const u = await db().from("students").update({ nickname }).eq("id", sid);
+    if (u.error && u.error.code === "23505") throw new HttpError(400, NAME_TAKEN, { problem: "taken" });
+    check(u, "rename me");
+    return { nickname };
+  },
+
+  // The student's own class's two boards (worked out here: a student can't read other students' rows). The class is
+  // always the student's own: nothing in the request can name another. Each row has only the nickname, the points, the
+  // percentage and whether it is the student's own; "me" adds their own secured, level and total points and gain.
+  async leaderboard(sid) {
+    const all = await classPoints(await classOf(sid));
+    const me = all.find((s) => s.id === sid);
+    const b = boards(all.map((s) => ({ nickname: s.nickname, total: s.total, gain: s.gain, unitCount: s.unitCount, me: s.id === sid })), false);
+    return { boards: b, me: me ? { secured: me.secured, level: me.level, total: me.total, gain: me.gain } : null, max: 300 * (me ? me.unitCount : 0) };
   },
 
   async delete_my_progress(sid) {

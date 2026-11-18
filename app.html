@@ -97,6 +97,8 @@
     <section id="units-screen" hidden aria-labelledby="units-h">
       <nav class="menu-links" aria-label="More">
         <a href="progress.html" class="menu-link">My progress</a>
+        <!-- Backend mode only (home.js shows it): the class's leaderboards -->
+        <a href="leaderboard.html" id="leaderboard-link" class="menu-link" hidden>Leaderboard</a>
         <a href="endless.html" class="menu-link">Endless mode</a>
         <a href="#help" id="tour-help" class="menu-link">Help</a>
       </nav>
@@ -121,6 +123,17 @@
       <div id="unit-list" class="unit-groups"><p class="loading">Loading units…</p></div>
       <p class="privacy" id="privacy-note">Your progress is saved in this browser only. Nothing is sent anywhere.</p>
       <div id="delete-area" hidden>
+        <p><button type="button" id="rename-mine" class="secondary">Change my nickname</button></p>
+        <form id="rename-form" class="task-card" hidden novalidate aria-labelledby="rename-h">
+          <h3 id="rename-h">Change your nickname</h3>
+          <label for="rename-nickname" class="editor-label">New nickname</label>
+          <input type="text" id="rename-nickname" class="text-input" autocomplete="off" maxlength="20" aria-describedby="rename-rules">
+          <p id="rename-rules" class="small">2 to 20 letters or numbers, with single spaces between words. Don't use your full name.</p>
+          <label for="rename-pin" class="editor-label">Your 4-digit PIN</label>
+          <input type="password" id="rename-pin" class="text-input" autocomplete="off" inputmode="numeric" maxlength="4">
+          <p id="rename-error" class="problem" role="alert" hidden></p>
+          <p><button type="submit" class="primary" id="rename-save">Save my new nickname</button> <button type="button" class="secondary" id="rename-cancel">Cancel</button></p>
+        </form>
         <p><button type="button" id="delete-mine" class="secondary">Delete everything saved for me</button></p>
         <div id="delete-confirm" class="problem" hidden>
           <p>This deletes your progress, attempts and nickname for good. You'll need to join your class again. Are you sure?</p>

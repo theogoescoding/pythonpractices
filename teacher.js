@@ -10,7 +10,7 @@
   const TD = self.TeacherData;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const PAGES = ["classes", "students", "student", "assignments", "reports", "misconceptions", "tasks", "settings"];
+  const PAGES = ["classes", "students", "leaderboards", "student", "assignments", "reports", "misconceptions", "tasks", "settings"];
   const OLD_PAGES = { overview: "students", log: "reports", workshop: "misconceptions" }; // the workshop was on Reports
   const RECENT_ATTEMPTS = 30;
   const REASONS = {
@@ -41,7 +41,7 @@
 
   Store.setupDisplaySettings();
   // Each section heading opens and closes its section (collapse.js, the same as the student view's unit groups).
-  Collapse.enhance(document.querySelector("main"), "pythonPractice.teacherCollapsedSections");
+  Collapse.enhance(document.querySelector("main"), "pythonPractice.teacherCollapsedSections"); // also the Students page's unit blocks
 
   let tasksById = {};
   let bankTasks = []; // tasks.json as it is (the Task browser)
@@ -105,6 +105,7 @@
     const data = collect();
     if (!data) return; // backend mode: no class loaded yet
     if (p === "students") renderStudents(data);
+    else if (p === "leaderboards") renderLeaderboards(data);
     else if (p === "student") renderStudent(data, arg);
     else if (p === "reports") renderReports(data);
     else if (p === "misconceptions") renderMisconceptions(data);
@@ -112,7 +113,11 @@
   }
 
   // ---------- Students ----------
-  const scoreRows = (data) => TD.sortScoreTable(TD.filterByName(TD.scoreTable(data, stageUnitIds()).rows, $("name-filter").value), sortKey, sortDir);
+  // The Students page shows every unit, in its groups (A-level too), whatever the class's stage: each group is a
+  // collapsible block. The stage still decides which groups open first on the students' home page.
+  const OVERVIEW_KEY = "pythonPractice.teacherCollapsedSections"; // the same key as the page's other sections (collapse.js)
+  const studentsPageUnitIds = () => UNITS.map((u) => u.id);
+  const scoreRows = (data) => TD.sortScoreTable(TD.filterByName(TD.scoreTable(data, studentsPageUnitIds()).rows, $("name-filter").value), sortKey, sortDir);
 
   function renderCodeCards() {
     const c = currentClass();
@@ -121,10 +126,10 @@
   }
 
   function renderStudents(data) {
-    const unitIds = stageUnitIds();
+    const unitIds = studentsPageUnitIds();
     const c = currentClass();
-    $("st-stage").textContent = (c ? c.name + ", " : "") + self.Curriculum.stageOf(stage()).label + ": showing the units for this stage." +
-      (c ? " Change the stage on the Classes page." : " (In this browser every student is shown, with the GCSE units.)");
+    $("st-stage").textContent = (c ? c.name + ", " : "") + self.Curriculum.stageOf(stage()).label + " class. Every unit is shown below, in groups you can close." +
+      (c ? " The stage sets which groups open first on your students' home page. Change it on the Classes page." : " (In this browser every student is shown.)");
     renderCodeCards();
     const table = TD.scoreTable(data, unitIds);
     const s = table.summary;
@@ -140,8 +145,10 @@
 
     // Two rows per student (Freshness and Level), in one table per group of units (TD.overviewTablesHtml), so the unit
     // columns share the page width with no sideways scrolling.
+    // Each group of units is a collapsible block (open unless this teacher closed it on this device), wired by
+    // Collapse.enhance's handler on <main>.
     $("overview-tables").innerHTML = TD.overviewTablesHtml({ rows: scoreRows(data), unitIds, unitGroups: self.Curriculum.UNIT_GROUPS, unitTitle,
-      sortKey, sortDir, when, flagsHtml: buttonFlagsHtml });
+      sortKey, sortDir, when, flagsHtml: buttonFlagsHtml, buttonHtml: Collapse.buttonHtml, collapsed: Collapse.collapsedIds(OVERVIEW_KEY) });
   }
 
   // Any table's column heading sorts every table; focus goes back to the same heading in the same table.
@@ -159,6 +166,58 @@
   });
   $("name-filter").addEventListener("input", render);
 
+  // ---------- Leaderboards ----------
+  // Backend mode: worked out on the server (teacher-api leaderboards and leaderboards_all). Local mode: the same rule
+  // (secured.js) on this browser's records, with "This browser" as the only class.
+  const POINT_UNITS = UNITS.map((u) => ({ id: u.id, placement: self.Curriculum.hasPlacement(u.id) }));
+  const MAX_POINTS = self.Secured.maxPoints(POINT_UNITS.length);
+  const signed = (n) => (n > 0 ? "+" + n : String(n));
+  // One board as a table. withClass: the All my classes boards (class name, ranked by percentage).
+  function boardHtml(title, note, rows, gain, withClass) {
+    const num = (r) => (gain ? signed(r.points) : String(r.points));
+    const per = (r) => (gain ? signed(r.percent) : String(r.percent)) + "%";
+    return '<section class="board"><h4>' + esc(title) + '</h4><p class="small">' + esc(note) + "</p>" + (!rows.length ? '<p class="small">No students yet.</p>' :
+      '<table class="board-table" aria-label="' + esc(title) + '"><thead><tr><th scope="col" class="num">Place</th><th scope="col">Nickname</th>' +
+      (withClass ? '<th scope="col">Class</th><th scope="col" class="num">%</th><th scope="col" class="num">Points</th>' : '<th scope="col" class="num">Points</th><th scope="col" class="num">%</th>') +
+      "</tr></thead><tbody>" + rows.map((r) => '<tr><td class="num">' + r.rank + "</td><td>" + esc(r.nickname) + "</td>" +
+        (withClass ? "<td>" + esc(r.class_name || "") + '</td><td class="num">' + per(r) + '</td><td class="num">' + num(r) + "</td>"
+          : '<td class="num">' + num(r) + '</td><td class="num">' + per(r) + "</td>") + "</tr>").join("") + "</tbody></table>") + "</section>";
+  }
+  function boardsHtml(b, withClass) {
+    return boardHtml("Most points", withClass ? "Ranked by percentage of the most possible (" + MAX_POINTS + " points)." : "Total points in all units, out of " + MAX_POINTS + ".", b.overall, false, withClass) +
+      boardHtml("Most improved", "Points gained in the last 14 days" + (withClass ? ", ranked by percentage." : "."), b.improving, true, withClass);
+  }
+  const localBoards = (data, extra, byPercent) => self.Secured.boards(TD.leaderboardStudents(data, POINT_UNITS, null, extra), byPercent);
+
+  let lbShown = null; // the class data the class boards were made from (they load again when it changes)
+  async function renderLeaderboards(data) {
+    const c = currentClass();
+    $("lb-class-name").textContent = c ? "Class: " + c.name : "Every student who has used this browser.";
+    if (lbShown === data) return;
+    lbShown = data;
+    $("lb-all").innerHTML = "";
+    $("lb-all-status").textContent = "";
+    if (!tb) { $("lb-class").innerHTML = boardsHtml(localBoards(data, {}, false), false); return; }
+    $("lb-class-status").textContent = "Loading…";
+    $("lb-class").innerHTML = "";
+    const r = await tb.leaderboards();
+    if (lbShown !== data) return; // another class was chosen meanwhile
+    $("lb-class-status").textContent = r.error || "";
+    $("lb-class").innerHTML = r.error ? "" : boardsHtml(r.boards, false);
+  }
+  $("lb-all-load").addEventListener("click", async () => {
+    if (!tb) {
+      $("lb-all").innerHTML = boardsHtml(localBoards(collect(), { class_name: "This browser" }, true), true);
+      $("lb-all-status").textContent = "In local mode there is only this browser to show. In backend mode every one of your classes is here.";
+      return;
+    }
+    $("lb-all-status").textContent = "Loading your classes…";
+    $("lb-all").innerHTML = "";
+    const r = await tb.leaderboardsAll();
+    $("lb-all-status").textContent = r.error || (r.classes === 1 ? "Your 1 class." : "Your " + r.classes + " classes.");
+    $("lb-all").innerHTML = r.error ? "" : boardsHtml(r.boards, true);
+  });
+
   // ---------- One student ----------
   let shownStudent = null;
   function renderStudent(data, studentId) {
@@ -171,6 +230,7 @@
       $("sd-meta").textContent = "This student isn't in the class (they may have been removed).";
       $("sd-actions").hidden = true;
       $("sd-scores").innerHTML = "";
+      $("sd-points").innerHTML = "";
       $("sd-recent").innerHTML = "";
       return;
     }
@@ -194,6 +254,14 @@
           : '<span class="small">Not started</span>') +
         '</div><div class="bar" aria-hidden="true"><span class="' + (barCls ? "rag-" + barCls : "") + '" style="width:' + width + '%"></span></div></div>';
     }).join("");
+    // Points per unit (secured.js, the rule the leaderboards use): every unit with points, then the totals.
+    const pts = TD.pointsByStudent({ students: { [studentId]: s }, progress: data.progress, attempts: data.attempts, levelLog: data.levelLog, placementLog: data.placementLog }, POINT_UNITS)[studentId];
+    const withPoints = POINT_UNITS.filter((u) => pts.units[u.id].total > 0);
+    $("sd-points").innerHTML = '<div class="table-wrap"><table class="board-table"><thead><tr><th scope="col">Unit</th><th scope="col" class="num">Secured</th><th scope="col" class="num">Level</th><th scope="col" class="num">Total</th></tr></thead><tbody>' +
+      (withPoints.length ? withPoints.map((u) => { const p = pts.units[u.id]; return '<tr><th scope="row">' + esc(unitTitle(u.id)) + '</th><td class="num">' + p.secured + '</td><td class="num">' + p.level + '</td><td class="num">' + p.total + "</td></tr>"; }).join("")
+        : '<tr><td colspan="4">No points yet.</td></tr>') +
+      '</tbody><tfoot><tr><th scope="row">All ' + POINT_UNITS.length + " units (out of " + MAX_POINTS + ")</th><td class=\"num\">" + pts.secured + '</td><td class="num">' + pts.level + '</td><td class="num"><strong>' + pts.total + "</strong></td></tr></tfoot></table></div>" +
+      '<p class="small">Units not listed have 0 points. In the last 14 days: ' + signed(pts.gain) + " points (" + pts.before.total + " points 14 days ago).</p>";
     $("sd-recent").innerHTML = d.recent.length ? '<div class="table-wrap"><table><thead><tr><th scope="col">Time</th><th scope="col">Task</th><th scope="col">Result</th>' +
       '<th scope="col">Hints</th><th scope="col">Test that failed</th><th scope="col">Misconception matched</th></tr></thead><tbody>' +
       d.recent.map((a) => "<tr" + (a.result === "fail" ? ' class="row-alert"' : "") + "><td>" + esc(when(a.at)) + "</td><td>" + taskLink(a.taskId) +
@@ -667,23 +735,80 @@
   }
   const today = () => new Date().toISOString().slice(0, 10);
 
-  $("export-scores").addEventListener("click", () => {
-    const data = collect();
-    if (!data) return;
-    download("python-practice-class-scores-" + today() + ".csv", TD.classScoresCsv(TD.scoreTable(data, stageUnitIds()), stageUnitIds(), unitTitle));
-  });
+  // Each export button opens a popup first (openExport): what the file contains, its first row as a sample, and a
+  // Download button that downloads exactly the file(s) the button gave before. build() returns [{ name, text }] (null
+  // with no class loaded).
+  const EXPORTS = {
+    "export-scores": { title: "Class scores (CSV)",
+      text: "One row per student. It has the student's average secured score, then for each unit of the class's stage: the secured score, its label and the student's level.",
+      build: () => { const data = collect(); if (!data) return null;
+        return [{ name: "python-practice-class-scores-" + today() + ".csv", text: TD.classScoresCsv(TD.scoreTable(data, stageUnitIds()), stageUnitIds(), unitTitle) }]; } },
+    "export-full": { title: "Full attempt log (CSV)",
+      text: "Everything recorded for the class, one row each: every check, skip and use of \"Show me how\", every level change, button press and placement result. The data dictionary comes with it, as a second file that explains every column. Your browser may ask you to allow two downloads.",
+      build: () => { const data = collect(); if (!data) return null;
+        return [{ name: "python-practice-full-data-" + today() + ".csv", text: TD.fullExportCsv(data) }, { name: "data-dictionary.csv", text: TD.dataDictionaryCsv(misconceptions) }]; } },
+    "export-dictionary": { title: "Data dictionary",
+      text: "Explains the full attempt log in plain English: what each column means, the values a column can have, and each misconception's name and description.",
+      build: () => [{ name: "data-dictionary.csv", text: TD.dataDictionaryCsv(misconceptions) }] },
+    "export-levels": { title: "Levels table (CSV)",
+      text: "One row per student (the name filter on the Students page applies). For every unit: the level, the placement result, whether a level 10 task is passed, whether \"too easy\" or \"way too hard\" was used, and the fails in a row.",
+      build: () => { const data = collect(); return data ? [{ name: "python-practice-overview-" + today() + ".csv", text: levelsCsv(data) }] : null; } },
+    "export-log": { title: "Detail log (CSV)",
+      text: "One row per check and button press, newest first: the student, unit, task, result, the kind of mistake, any misconceptions matched, the hints used, and the test, output and code of each check.",
+      build: () => { const data = collect(); return data ? [{ name: "python-practice-detail-log-" + today() + ".csv", text: detailLogCsv(data) }] : null; } },
+    "export-workshop": { title: "Workshop tables (CSV)",
+      text: "The two tables from the Misconceptions page: each misconception matched (attempts, students and tasks), then each task's failed attempts that matched no misconception.",
+      build: () => { const data = collect(); return data ? [{ name: "python-practice-workshop-" + today() + ".csv", text: workshopCsv(data) }] : null; } },
+  };
 
-  $("export-full").addEventListener("click", () => {
-    if (!collect()) return;
-    download("python-practice-full-data-" + today() + ".csv", TD.fullExportCsv(collect()));
-    setTimeout(() => download("data-dictionary.csv", TD.dataDictionaryCsv(misconceptions)), 400);
+  // The first rows of a CSV text (a quoted field can hold commas, quotes and new lines).
+  function csvRows(text, max) {
+    const rows = [];
+    let row = [], field = "", quoted = false;
+    for (let i = 0; i < text.length && rows.length < max; i++) {
+      const ch = text[i];
+      if (quoted) { if (ch !== '"') field += ch; else if (text[i + 1] === '"') { field += '"'; i++; } else quoted = false; }
+      else if (ch === '"') quoted = true;
+      else if (ch === ",") { row.push(field); field = ""; }
+      else if (ch === "\n" || ch === "\r") { if (ch === "\r" && text[i + 1] === "\n") i++; row.push(field); rows.push(row); row = []; field = ""; }
+      else field += ch;
+    }
+    if (rows.length < max && (field || row.length)) { row.push(field); rows.push(row); }
+    return rows;
+  }
+
+  // The popup: the title, what the file contains, and its first row as "column: value" pairs (the first 12 columns,
+  // each value cut to 60 characters), so it fits a phone. Esc or Cancel closes it; Download makes the file(s).
+  const SAMPLE_COLUMNS = 12;
+  let exportFiles = null;
+  function openExport(id) {
+    const e = EXPORTS[id];
+    const files = e.build();
+    if (!files) return;
+    exportFiles = files;
+    const [head, first] = csvRows(files[0].text, 2);
+    const cut = (v) => (v.length > 60 ? v.slice(0, 57) + "…" : v);
+    $("export-dialog-h").textContent = e.title;
+    $("export-dialog-text").textContent = e.text;
+    $("export-dialog-sample").innerHTML = first
+      ? '<thead><tr><th scope="col">Column</th><th scope="col">Sample value</th></tr></thead><tbody>' +
+        head.slice(0, SAMPLE_COLUMNS).map((h, i) => '<tr><th scope="row">' + esc(h) + "</th><td>" + esc(cut(first[i] || "")) + "</td></tr>").join("") + "</tbody>"
+      : '<tbody><tr><td>No rows yet. The file will have the column names only.</td></tr></tbody>';
+    $("export-dialog-more").textContent = head.length > SAMPLE_COLUMNS ? "…and " + (head.length - SAMPLE_COLUMNS) + " more columns in the file." : "";
+    $("export-dialog-download").textContent = files.length > 1 ? "Download both files" : "Download";
+    $("export-dialog").showModal();
+    $("export-dialog-download").focus();
+  }
+  Object.keys(EXPORTS).forEach((id) => $(id).addEventListener("click", () => openExport(id)));
+  $("export-dialog-download").addEventListener("click", () => {
+    const files = exportFiles || [];
+    $("export-dialog").close();
+    files.forEach((f, i) => setTimeout(() => download(f.name, f.text), i * 400)); // two files: a moment apart, as before
   });
-  $("export-dictionary").addEventListener("click", () => download("data-dictionary.csv", TD.dataDictionaryCsv(misconceptions)));
+  $("export-dialog-close").addEventListener("click", () => $("export-dialog").close());
 
   // The levels table (the old Overview's export): every unit, with the Students page's name filter applied.
-  $("export-levels").addEventListener("click", () => {
-    const data = collect();
-    if (!data) return;
+  function levelsCsv(data) {
     const cols = [{ key: "name", label: "Name" }];
     for (const u of UNITS) {
       cols.push({ key: u.id + "_level", label: u.title + ": level" }, { key: u.id + "_placement", label: u.title + ": placement" },
@@ -703,13 +828,11 @@
       }
       return out;
     });
-    download("python-practice-overview-" + today() + ".csv", TD.toCsv(cols, rows));
-  });
+    return TD.toCsv(cols, rows);
+  }
 
   // The detail log (export only): one row per attempt and button use, newest first, with code and output.
-  $("export-log").addEventListener("click", () => {
-    const data = collect();
-    if (!data) return;
+  function detailLogCsv(data) {
     const cols = ["timestamp", "student", "unit", "task_id", "task_level", "phase", "result", "failure_category", "misconception_matches", "hints_used",
       "button", "level_change", "failed_test_number", "failed_test_inputs", "expected_output", "student_output", "student_code"].map((key) => ({ key }));
     const rows = TD.detailRows(data).map((r) => ({
@@ -718,12 +841,11 @@
       level_change: r.levelChange, failed_test_number: r.failedTest, failed_test_inputs: r.inputs ? JSON.stringify(r.inputs) : "",
       expected_output: r.expected, student_output: r.output, student_code: r.code,
     }));
-    download("python-practice-detail-log-" + today() + ".csv", TD.toCsv(cols, rows));
-  });
+    return TD.toCsv(cols, rows);
+  }
 
-  $("export-workshop").addEventListener("click", () => {
-    const data = collect();
-    if (!data) return;
+  // The workshop tables: the misconception table and the per-task unmatched table (Misconceptions page).
+  function workshopCsv(data) {
     const w = TD.workshop(data, misconceptions, tasksById);
     const cols = ["section", "id", "name", "attempts_matched", "students_affected", "students", "tasks", "failure_rate_on_tasks",
       "failed_attempts", "unmatched", "unmatched_rate", "has_buggy_variants"].map((key) => ({ key }));
@@ -734,8 +856,8 @@
       section: "task", id: t.taskId, name: tasksById[t.taskId] ? tasksById[t.taskId].title : "", failed_attempts: t.fails,
       unmatched: t.unmatched, unmatched_rate: pct(t.unmatchedRate), has_buggy_variants: t.hasVariants ? "yes" : "no",
     })));
-    download("python-practice-workshop-" + today() + ".csv", TD.toCsv(cols, rows));
-  });
+    return TD.toCsv(cols, rows);
+  }
 
   // ---------- Start up ----------
   window.addEventListener("hashchange", () => {

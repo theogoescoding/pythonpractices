@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Leaderboard – Python Practice</title>
+  <link rel="icon" type="image/png" href="assets/logo/icon-light.png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="store.js"></script>
+  <script src="config.js"></script>
+  <script src="backend-rows.js"></script>
+  <script src="backend.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <h1><a href="app.html" class="home-link">Python Practice</a> <span class="unit-crumb">· Leaderboard</span></h1>
+      <div class="header-tools" role="group" aria-label="Student and display settings">
+        <span class="student-chip">Hi, <strong id="student-name"></strong></span>
+        <a href="app.html">← All units</a>
+        <span id="display-tools"></span>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="wrap home" tabindex="-1">
+    <section aria-labelledby="lb-h">
+      <h2 id="lb-h">Your class's leaderboard</h2>
+      <p id="lb-status" role="status" class="loading">Loading…</p>
+      <div id="lb-body" hidden>
+        <div class="task-card points-summary" aria-label="Your points">
+          <p class="stat"><strong id="me-total"></strong> your points</p>
+          <p class="stat"><strong id="me-secured"></strong> secured points</p>
+          <p class="stat"><strong id="me-level"></strong> level points</p>
+          <p class="stat"><strong id="me-gain"></strong> in the last 14 days</p>
+        </div>
+        <p class="small" id="points-rule">Each unit gives up to 300 points.
+          Secured points: up to 200. You get 2 points for each percent of a secured unit's score, so 100% gives 200 and 50% gives 100.
+          Level points: up to 100. You get 10 points for each level, so level 10 gives 100.
+          A unit you haven't started, or still have the quick check to do in, gives 0 level points.</p>
+        <div class="boards">
+          <section class="board" aria-labelledby="board-overall-h">
+            <h3 id="board-overall-h">Most points</h3>
+            <p class="small">Everyone's points in all units.</p>
+            <div id="board-overall"></div>
+          </section>
+          <section class="board" aria-labelledby="board-improving-h">
+            <h3 id="board-improving-h">Most improved</h3>
+            <p class="small">Points gained in the last 14 days.</p>
+            <div id="board-improving"></div>
+          </section>
+        </div>
+        <p class="small">Your row is highlighted. Students with the same points share a place. Only nicknames are shown.</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="curriculum.js"></script>
+  <script src="secured.js"></script>
+  <script src="leaderboard.js"></script>
+</body>
+</html>

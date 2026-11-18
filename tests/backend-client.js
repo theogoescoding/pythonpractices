@@ -3,6 +3,7 @@
 "use strict";
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
+const Secured = require(path.join(ROOT, "secured.js"));
 
 function memoryStorage() {
   const m = new Map();
@@ -20,7 +21,7 @@ function memoryStorage() {
 // A fake of join-class, resume and student-api, close enough to the real ones for the client.
 function fakeServer() {
   // failNext: { "resume": [546, 546] } answers the next calls to that function with those statuses (an overloaded server).
-  const s = { offline: false, signOutAll: false, students: {}, progress: {}, passed: {}, attempts: {}, events: {}, calls: [], failNext: {} };
+  const s = { offline: false, signOutAll: false, students: {}, progress: {}, passed: {}, attempts: {}, events: {}, calls: [], failNext: {}, points: {} };
   const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
   const token = (sid) => b64({ sid, exp: Math.floor(Date.now() / 1000) + 8 * 3600 }) + ".sig";
   const sidOf = (t) => { try { return JSON.parse(Buffer.from(String(t).split(".")[0], "base64url").toString()).sid; } catch (e) { return null; } };
@@ -35,7 +36,7 @@ function fakeServer() {
     if ((s.failNext[fn] || []).length) return reply(s.failNext[fn].shift(), { error: "Worker limit" });
     if (fn === "join-class") {
       const sid = "stu-" + (++n);
-      s.students[sid] = { nickname: body.nickname, code: String(10000000 + n), pin: "1234" };
+      s.students[sid] = { nickname: body.nickname, code: String(10000000 + n), pin: "1234", classCode: body.class_code };
       s.progress[sid] = {}; s.passed[sid] = []; s.attempts[sid] = []; s.events[sid] = [];
       return reply(200, Object.assign({ code: s.students[sid].code, pin: "1234" }, signedIn(sid)));
     }
@@ -61,6 +62,22 @@ function fakeServer() {
         let saved = 0;
         for (const r of body.rows) if (!list.some((x) => x.record_id === r.record_id)) { list.push(r); saved++; }
         return reply(200, { saved, rejected: [] });
+      }
+      case "rename_me": {
+        if (body.pin !== s.students[sid].pin) return reply(403, { error: "That PIN isn't right.", problem: "pin" });
+        if (Object.entries(s.students).some(([k, v]) => k !== sid && v.nickname.toLowerCase() === String(body.nickname).toLowerCase())) return reply(400, { error: "Taken.", problem: "taken" });
+        s.students[sid].nickname = body.nickname;
+        return reply(200, { nickname: body.nickname });
+      }
+      // As the real one: the student's own class only (whatever the request says), ranked with secured.js's boards;
+      // points from s.points (the server's sums, set by the test).
+      case "leaderboard": {
+        s.lastLeaderboardBody = body;
+        const mine = Object.keys(s.students).filter((k) => s.students[k].classCode === s.students[sid].classCode);
+        const pts = (k) => s.points[k] || { secured: 0, level: 0, total: 0, gain: 0 };
+        const b = Secured.boards(mine.map((k) => ({ nickname: s.students[k].nickname, total: pts(k).total, gain: pts(k).gain, unitCount: 39, me: k === sid })), false);
+        const me = pts(sid);
+        return reply(200, { boards: b, me: { secured: me.secured, level: me.level, total: me.total, gain: me.gain }, max: 300 * 39 });
       }
       case "delete_my_progress": delete s.students[sid]; return reply(200, { deleted: true, message: "Deleted." });
       default: return reply(400, { error: "bad" });
@@ -127,8 +144,39 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
   check(!page.Backend.pending() && server.attempts[sid].length === 2 && server.events[sid].length === 2 && JSON.parse(server.progress[sid].selection).level === 3 &&
     server.passed[sid].includes("selection|if-L3a"), "The outbox is sent: progress, attempts, events and the passed fingerprint all arrive");
   check(server.calls.filter((c) => c === "student-api:add_attempts").length === 1, "Attempts are sent together in one batch");
+
+  // ---------- Changing my nickname (after typing the PIN) ----------
+  const wrongPin = await page.Backend.renameMe("9999", "Ada L");
+  check(wrongPin.status === 403 && server.students[sid].nickname === "Ada" && page.Store.currentStudent().name === "Ada" && !page.Backend.isSignedOut(),
+    "A wrong PIN doesn't change the nickname, and doesn't sign the student out");
+  const renamed = await page.Backend.renameMe("1234", "Ada L");
+  check(renamed.status === 200 && server.students[sid].nickname === "Ada L" && page.Store.currentStudent().name === "Ada L" && page.Backend.session().nickname === "Ada L" &&
+    !computer.text().includes("1234"), "With the right PIN the nickname changes on the server and in this browser (and the PIN still isn't kept)");
+  await page.Backend.renameMe("1234", "Ada"); // back to the name the rest of the tests use
   page.Store.saveProgress(sid, progress);
   check(!page.Backend.pending(), "Saving progress that hasn't changed sends nothing");
+
+  // ---------- The class leaderboard ----------
+  {
+    const ben = openPage(server), cat = openPage(server);
+    await ben.Backend.join("ABCDEF", "Ben");
+    await cat.Backend.join("QWERTY", "Cat"); // another class
+    const bid = ben.Backend.session().sid, cid = cat.Backend.session().sid;
+    server.points = { [sid]: { secured: 600, level: 300, total: 900, gain: 120 }, [bid]: { secured: 500, level: 400, total: 900, gain: 30 }, [cid]: { secured: 4000, level: 1000, total: 5000, gain: 999 } };
+    const lb = await page.Backend.leaderboard();
+    const rows = lb.body.boards.overall.concat(lb.body.boards.improving);
+    check(lb.status === 200 && rows.every((r) => Object.keys(r).sort().join() === "me,nickname,percent,points,rank") &&
+      lb.body.boards.overall.map((r) => r.rank + r.nickname + r.points).join() === "1Ada900,1Ben900" && lb.body.boards.improving.map((r) => r.nickname).join() === "Ada,Ben" &&
+      lb.body.boards.overall.find((r) => r.me).nickname === "Ada" && lb.body.me.total === 900 && lb.body.me.secured === 600 && lb.body.me.level === 300,
+      "The leaderboard has nicknames and points only (no unit detail, attempts or codes); ties share a place; the student's own row is marked; their own secured, level and total points come too");
+    check(!rows.some((r) => r.nickname === "Cat") && !JSON.stringify(lb.body).includes("5000") && !JSON.stringify(lb.body).includes(cid),
+      "The leaderboard has only the student's own class: students of other classes aren't on it");
+    check(page.Backend.leaderboard.length === 0 && Object.keys(server.lastLeaderboardBody).sort().join() === "action,token" &&
+      (await cat.Backend.leaderboard()).body.boards.overall.map((r) => r.nickname).join() === "Cat",
+      "A student can't ask for another class's board: the request names no class, and each student gets their own class's");
+    server.points = {};
+    Object.defineProperty(globalThis, "localStorage", { value: computer, configurable: true, writable: true }); // back to Ada's computer
+  }
 
   // ---------- The network drops ----------
   server.offline = true;

@@ -890,9 +890,9 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     // The teacher view's sections use the same component, with their own storage key, all starting expanded.
     const teacher = read("teacher.html");
     const teacherSrc = read("teacher.js");
-    const sections = [...teacher.matchAll(/<section class="[^"]*teacher-section[^"]*" data-collapse="([^"]+)"(?: data-collapse-default="closed")?>\s*<h3>([^<]+)<\/h3>/g)].map((m) => m[2]);
-    check(sections.join() === "Name and stage,Student logins,Delete this class,Secured score per unit,Exports,Compare classes,Misconception table,Failed attempts with no match, by task,Not matched yet",
-      "Teacher view: every section (class name and stage, student logins, delete class, the score table, exports, compare classes, and the Misconceptions page's table, unmatched attempts and not-matched-yet list) is collapsible");
+    const sections = [...teacher.matchAll(/<section class="[^"]*teacher-section[^"]*" data-collapse="([^"]+)"(?: data-collapse-default="closed")?>\s*<h3[^>]*>([^<]+)<\/h3>/g)].map((m) => m[2]);
+    check(sections.join() === "Name and stage,Student logins,Delete this class,Secured score per unit,This class,All my classes,Exports,Compare classes,Misconception table,Failed attempts with no match, by task,Not matched yet",
+      "Teacher view: every section (class name and stage, student logins, delete class, the score table, the two leaderboard sections, exports, compare classes, and the Misconceptions page's table, unmatched attempts and not-matched-yet list) is collapsible");
     const key = (teacherSrc.match(/Collapse\.enhance\(document\.querySelector\("main"\), "([^"]+)"\)/) || [])[1];
     check(key && key !== "pythonPractice.collapsedGroups" && /<script src="collapse\.js"><\/script>\s*<script src="teacher\.js">/.test(teacher) && !/localStorage\./.test(teacherSrc),
       "Teacher view: sections open and close with collapse.js, remembered under their own key (not the student view's)");
@@ -1348,10 +1348,10 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
 
     // The side menu, in order, with Students as the default page; old addresses still open the right page.
     const nav = [...teacher.matchAll(/<a href="#(\w+)" data-page="\w+">([^<]+)<\/a>/g)].map((m) => m[2]);
-    check(nav.join() === "Classes,Students,Assignments,Reports,Misconceptions,Task browser,Settings" && !/tab-nav/.test(teacher) &&
-      ["classes", "students", "student", "assignments", "reports", "misconceptions", "tasks", "settings"].every((p) => teacher.includes('id="page-' + p + '"')) &&
+    check(nav.join() === "Classes,Students,Leaderboards,Assignments,Reports,Misconceptions,Task browser,Settings" && !/tab-nav/.test(teacher) &&
+      ["classes", "students", "leaderboards", "student", "assignments", "reports", "misconceptions", "tasks", "settings"].every((p) => teacher.includes('id="page-' + p + '"')) &&
       /\["students", null\]/.test(teacherSrc) && /overview: "students", log: "reports", workshop: "misconceptions"/.test(teacherSrc) && /"#students"\)/.test(backendSrc),
-      "Teacher view: a side menu (Classes, Students, Assignments, Reports, Misconceptions, Task browser, Settings) replaces the tabs; Students is the default page, and #overview, #log and #workshop still open Students, Reports or Misconceptions");
+      "Teacher view: a side menu (Classes, Students, Leaderboards, Assignments, Reports, Misconceptions, Task browser, Settings) replaces the tabs; Students is the default page, and #overview, #log and #workshop still open Students, Reports or Misconceptions");
 
     // The Misconceptions page (the workshop, moved from Reports).
     const pageOf = (id) => { const i = teacher.indexOf('<section id="page-' + id + '"'); return teacher.slice(i, teacher.indexOf("<!-- =====", i + 10)); };
@@ -1390,7 +1390,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       /data-unmatched="' \+ esc\(t\.taskId\) \+ '">View ' \+ t\.unmatched/.test(mcSrc) && /\$\("ws-tasks"\)\.addEventListener\("click"/.test(teacherSrc) &&
       /<th scope="col">Students<\/th>/.test(mcPage) && /m\.studentNames\.join\(", "\)/.test(mcSrc) && /unseen\.map\(\(m\) => "<li>" \+ esc\(m\.name\)/.test(mcSrc),
       "Misconceptions: the misconception table (with its Students column), the unmatched table with View, and the not-matched-yet list are on the new page; Reports keeps the workshop export and links to it");
-    const wsExport = teacherSrc.slice(teacherSrc.indexOf('$("export-workshop").addEventListener'), teacherSrc.indexOf('$("export-workshop").addEventListener') + 1200);
+    const wsExport = teacherSrc.slice(teacherSrc.indexOf('"export-workshop": {'), teacherSrc.indexOf('"export-workshop": {') + 600) +
+      teacherSrc.slice(teacherSrc.indexOf("function workshopCsv(data)"), teacherSrc.indexOf("function workshopCsv(data)") + 600);
     const wsOut = TD.workshop(mcData, [{ id: "M1", name: "Mistake one" }], {});
     check(/TD\.workshop\(data, misconceptions, tasksById\)/.test(wsExport) && /python-practice-workshop-/.test(wsExport) &&
       wsOut.misconceptions.length === 1 && wsOut.misconceptions[0].name === "Mistake one" && wsOut.tasks.some((t) => t.taskId === "if-L6a" && t.unmatched === 2),
@@ -2761,6 +2762,140 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       /studentUnitTitle\(unit\.id\)/.test(read("app.js")) && defines.join() === "curriculum.js" && !/studentSeesUnit/.test(read("teacher.js") + read("teacher-data.js")) &&
       C.stageUnits("gcse").includes("validation") && NEW.every((u) => C.stageUnits("gcse").includes(u)) && C.UNITS.some((u) => u.id === "validation"),
       "Old Validation unit: one rule in curriculum.js (studentSeesUnit, studentUnitTitle), used by the home page, My progress, endless mode and the practice page's title; teachers still see all six units");
+  }
+
+  // ===================== Prompt 1 (2026-11): Boolean note, Students page blocks, A-level tables, nicknames, export popups =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const TDp = require(path.join(ROOT, "teacher-data.js"));
+    const tplP = JSON.parse(read("templates.json"));
+    // Item 1: the write tasks that print a Boolean they work out say it must be the Boolean value, not the text.
+    const NOTE = "The output must be a Boolean value, not the text \"True\" printed with print(\"True\").";
+    const BOOL_TASKS = ["types-L8d", "types-L9e", "types-L9f", "types-L10d", "types-L10e", "types-L10f", "types-P9c", "str-L8c", "str-L10a", "fr-L8c"];
+    const byIdP = Object.fromEntries(tasks.map((t) => [t.id, t]));
+    const typeTrue = tasks.filter((t) => t.tests.some((x) => /Type:\s*(True|False)\b/.test(x.expected)));
+    check(BOOL_TASKS.every((id) => byIdP[id] && byIdP[id].explainer === NOTE && byIdP[id].type === "write" && byIdP[id].tests.some((x) => /\b(True|False)\b/.test(x.expected))) &&
+      tplP.filter((t) => t.derived && BOOL_TASKS.includes(t.source)).every((t) => t.explainer === NOTE) && tplP.filter((t) => t.derived && BOOL_TASKS.includes(t.source)).length === 9 &&
+      byIdP["types-L9f"].tests[0].expected === "Signed: True\nType: <class 'bool'>" && !typeTrue.length,
+      "Boolean output: the 10 write tasks that print a Boolean they work out (types-L9f and others) explain that it must be the Boolean value, not the text \"True\"; their derived templates too; no expected output shows a value where a type belongs");
+    // Items 2 and 3: every group of units is one collapsible block (its "(continued)" tables inside), open unless closed,
+    // with the A-level subsections as blocks too; without buttonHtml the tables are as before.
+    const all = Curriculum.UNITS.map((u) => u.id);
+    const ovData = { students: { a: { name: "Ann" } }, progress: { a: { units: {} } }, attempts: [], buttonLog: [], levelLog: [], placementLog: [], units: Curriculum.UNITS };
+    const rows = TDp.scoreTable(ovData, all).rows;
+    const btn = (id, bodyId, title, open, extra) => '<button type="button" class="group-toggle" data-group="' + id + '" aria-expanded="' + open + '" aria-controls="' + bodyId + '">' + title + (extra || "") + "</button>";
+    const o = { rows, unitIds: all, unitGroups: Curriculum.UNIT_GROUPS, unitTitle: Curriculum.unitTitle, sortKey: "name", sortDir: 1, when: () => "today", flagsHtml: () => "" };
+    const plain = TDp.overviewTablesHtml(o);
+    const open = TDp.overviewTablesHtml(Object.assign({}, o, { buttonHtml: btn, collapsed: [] }));
+    const closed = TDp.overviewTablesHtml(Object.assign({}, o, { buttonHtml: btn, collapsed: ["ov-fundamentals", "ov-data-structures"] }));
+    const blocks = [...open.matchAll(/<section class="overview-block"[^>]*><h4 class="group-heading" id="(ov-[a-z-]+)-h">(<button[^>]*>)([^<]*)/g)].map((m) => ({ id: m[1], open: /aria-expanded="true"/.test(m[2]), title: m[3] }));
+    const tablesIn = (html, id) => (html.slice(html.indexOf('id="ov-body-' + id.slice(3) + '"'), html.indexOf("</section>", html.indexOf('id="ov-body-' + id.slice(3) + '"'))).match(/<table class="overview-table"/g) || []).length;
+    check(blocks.map((b) => b.title).join("|") === "Programming fundamentals|Advanced programming|Validation|Searching and sorting|A-level: Programming techniques|A-level: Data structures" &&
+      blocks.every((b) => b.open) && tablesIn(open, "ov-fundamentals") === 2 && tablesIn(open, "ov-advanced") === 2 && tablesIn(open, "ov-validation") === 2 && tablesIn(open, "ov-programming-techniques") === 2 &&
+      tablesIn(open, "ov-data-structures") === 1 && (open.match(/<table class="overview-table"/g) || []).length === (plain.match(/<table class="overview-table"/g) || []).length && !/overview-block/.test(plain) &&
+      /id="ov-body-fundamentals" hidden/.test(closed) && /id="ov-body-data-structures" hidden/.test(closed) && !/id="ov-body-advanced" hidden/.test(closed) &&
+      (open.match(/button type="button" data-sort=/g) || []).length === (plain.match(/button type="button" data-sort=/g) || []).length,
+      "Students page: each group of units is one collapsible block (its \"(continued)\" tables inside), all open at first, a closed one stays closed; the A-level groups (Programming techniques, Data structures) are blocks too; the sort buttons are unchanged");
+    const tJs = read("teacher.js");
+    check(/const studentsPageUnitIds = \(\) => UNITS\.map\(\(u\) => u\.id\);/.test(tJs) && /TD\.scoreTable\(data, studentsPageUnitIds\(\)\)/.test(tJs) &&
+      /buttonHtml: Collapse\.buttonHtml, collapsed: Collapse\.collapsedIds\(OVERVIEW_KEY\)/.test(tJs) && /const OVERVIEW_KEY = "pythonPractice\.teacherCollapsedSections";/.test(tJs) &&
+      /Collapse\.enhance\(document\.querySelector\("main"\), "pythonPractice\.teacherCollapsedSections"\)/.test(tJs) && /\$\("overview-tables"\)\.addEventListener\("click"/.test(tJs),
+      "Students page: every class sees every unit (A-level too) in blocks; each teacher's closed blocks are remembered under pythonPractice.teacherCollapsedSections (collapse.js, storage in try/catch); a column heading still sorts");
+    // Item 4: a student changes their own nickname after typing their PIN (student-api rename_me), with the join rules.
+    const sapi = read("supabase/functions/student-api/index.ts");
+    const renameSrc = sapi.slice(sapi.indexOf("async rename_me(sid, body)"), sapi.indexOf("async delete_my_progress"));
+    check(/pin_try_begin/.test(renameSrc) && /pinMatches\(pin, s\.pin_hash/.test(renameSrc) && /pin_try_succeeded/.test(renameSrc) && /validNickname\(nickname\)/.test(renameSrc) &&
+      /nicknameBlocked\(nickname\)/.test(renameSrc) && /import \{ NICKNAME_RULES, nicknameBlocked, validNickname \} from "\.\.\/_shared\/nickname\.ts";/.test(sapi) && /HttpError\(403, /.test(renameSrc) &&
+      /action: "rename_me", pin, nickname/.test(read("backend.js")) && /backend\.renameMe\(pin, nickname\)/.test(read("home.js")) &&
+      ["rename-mine", "rename-form", "rename-nickname", "rename-pin", "rename-save"].every((id) => read("app.html").includes('id="' + id + '"')),
+      "Nicknames: a student can change their own after typing their PIN (student-api rename_me: the PIN checked as at sign-in, then the join's rules and word filter); a teacher still renames from the student page");
+    // Item 5: every export opens a popup first: what it contains, a sample row, and Download (the same file as before).
+    const html = read("teacher.html");
+    const ids = ["export-scores", "export-full", "export-dictionary", "export-levels", "export-log", "export-workshop"];
+    check(ids.every((id) => new RegExp('"' + id + '": \\{ title: "[^"]+",\\s*text: "(?:[^"\\\\]|\\\\.){40,}",\\s*build: ').test(tJs)) &&
+      /Object\.keys\(EXPORTS\)\.forEach\(\(id\) => \$\(id\)\.addEventListener\("click", \(\) => openExport\(id\)\)\);/.test(tJs) &&
+      /files\.forEach\(\(f, i\) => setTimeout\(\(\) => download\(f\.name, f\.text\), i \* 400\)\);/.test(tJs) && /\$\("export-dialog"\)\.showModal\(\);/.test(tJs) &&
+      ["export-dialog", "export-dialog-h", "export-dialog-text", "export-dialog-sample", "export-dialog-download", "export-dialog-close"].every((id) => html.includes('id="' + id + '"')) &&
+      /TD\.fullExportCsv\(data\) \}, \{ name: "data-dictionary\.csv", text: TD\.dataDictionaryCsv\(misconceptions\) \}/.test(tJs),
+      "Exports: each of the six export buttons opens a popup with what the file contains, a sample row and a Download button, which downloads the same file(s) as before");
+  }
+
+  // ===================== Prompt 2 (2026-11): points and leaderboards =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const S = require(path.join(ROOT, "secured.js"));
+    const TDl = require(path.join(ROOT, "teacher-data.js"));
+    const DAY = 86400000;
+    const NOW = Date.parse("2026-11-18T12:00:00Z");
+    const ago = (d) => new Date(NOW - d * DAY).toISOString();
+    const pass = (unit, d) => ({ kind: "attempt", unit, at: ago(d), result: "pass", hints: 0, phase: "practice", taskLevel: 10 });
+    // The formula's boundaries: 2 points a secured percent (100% = 200, 50% = 100, under 50% counts as 50%), not
+    // secured 0, 10 a level (level 10 = 100), not placed 0, so a unit is worth at most 300.
+    check(S.securedPoints({ secured: true, score: 100 }) === 200 && S.securedPoints({ secured: true, score: 50 }) === 100 && S.securedPoints({ secured: true, score: 40 }) === 100 &&
+      S.securedPoints({ secured: true, score: 70 }) === 140 && S.securedPoints({ secured: false, score: null }) === 0 && S.securedPoints(null) === 0 &&
+      S.levelPoints(10, true) === 100 && S.levelPoints(1, true) === 10 && S.levelPoints(10, false) === 0 && S.levelPoints(null, true) === 0 &&
+      S.unitPoints({ secured: true, score: 100 }, 10, true).total === 300 && S.UNIT_POINTS_MAX === 300 && S.unitPoints({ secured: true, score: 100 }, 10, false).total === 200,
+      "Points: secured points are 2 for each percent (100% gives 200, 50% gives 100, under 50% counts as 100), 0 if not secured; level points are 10 a level (level 10 gives 100), 0 if not placed; a unit is worth at most 300");
+    // From records: a unit secured today at level 10 is 300; the same unit with its placement still to do is 0.
+    const U = [{ id: "variables", placement: true }, { id: "linear-search", placement: false }];
+    const top = S.studentPoints({ units: U, current: { variables: { level: 10, placement: { status: "done" } } }, attempts: [pass("variables", 2), pass("variables", 1)], now: NOW });
+    const pending = S.studentPoints({ units: U, current: { variables: { level: 10, placement: { status: "pending" } } }, attempts: [pass("variables", 2), pass("variables", 1)], now: NOW });
+    check(top.units.variables.secured === 200 && top.units.variables.level === 100 && top.total === 300 && top.units["linear-search"].total === 0 && pending.total === 0 &&
+      S.maxPoints(Curriculum.UNITS.length) === 300 * Curriculum.UNITS.length && Curriculum.UNITS.length === 39,
+      "Points: a unit secured at 100% and at level 10 gives 300; with its placement still to do it gives 0; every one of the 39 units counts, so the most is 11,700");
+    // Normalised: points / (300 x units) x 100, one decimal place; the All my classes boards rank by it.
+    const mixed = S.boards([{ nickname: "Ann", total: 1500, gain: 300, unitCount: 10, class_name: "7A" }, { nickname: "Bo", total: 2000, gain: 390, unitCount: 39, class_name: "8B" }], true);
+    check(S.normalised(5850, 39) === 50 && S.normalised(234, 39) === 2 && S.normalised(1, 39) === 0 && S.normalised(100, 0) === 0 &&
+      mixed.overall.map((r) => r.nickname + ":" + r.percent).join() === "Ann:50,Bo:17.1" && mixed.improving.map((r) => r.nickname + ":" + r.percent).join() === "Ann:10,Bo:3.3" &&
+      Object.keys(mixed.overall[0]).sort().join() === "class_name,nickname,percent,points,rank",
+      "Leaderboards: the percentage is points / (300 x units) x 100 (5,850 of 39 units is 50%); across classes the boards rank by it, with the gain worked out the same way; each row has only rank, nickname, class, points and percent");
+    // Ties share a place (1, 1, 3); within a class the boards rank by points.
+    const tie = S.boards([{ nickname: "Cy", total: 50, gain: 0, unitCount: 39 }, { nickname: "Al", total: 90, gain: 5, unitCount: 39 }, { nickname: "Bea", total: 90, gain: 5, unitCount: 39 }], false);
+    check(tie.overall.map((r) => r.rank + r.nickname).join() === "1Al,1Bea,3Cy" && tie.improving.map((r) => r.rank + r.nickname).join() === "1Al,1Bea,3Cy",
+      "Leaderboards: students with the same points share a place (1, 1, 3), listed by nickname");
+    // The 14-day improvement: today's points minus the points 14 days ago, from the records. Variables: placed 20 days
+    // ago at level 3, up to level 6 ten days ago, secured by passes 30 and 29 days ago (80% 14 days ago, 60% now: the
+    // score drops each full week). Linear search (no placement test): first record 5 days ago, now level 2.
+    const history = { levels: [{ unit: "variables", at: ago(10), to: 6 }, { unit: "linear-search", at: ago(3), to: 2 }],
+      placements: [{ unit: "variables", at: ago(20), kind: "result", startLevel: 3 }], started: { "linear-search": ago(5) } };
+    const atts = [pass("variables", 30), pass("variables", 29)];
+    const cur = { variables: { level: 6, placement: { status: "done" } }, "linear-search": { level: 2 } };
+    const imp = S.studentPoints({ units: U, current: cur, attempts: atts, history, now: NOW });
+    const sNow = S.score(atts, "variables", NOW).score, sThen = S.score(atts, "variables", NOW - 14 * DAY).score;
+    check(sNow === 60 && sThen === 80 && imp.units.variables.total === 120 + 60 && imp.units["linear-search"].total === 20 && imp.total === 200 &&
+      imp.before.total === 160 + 30 && imp.gain === 10 && S.levelAt("variables", true, history, NOW - 25 * DAY).placed === false &&
+      S.levelAt("variables", true, { levels: [], placements: history.placements.concat([{ unit: "variables", at: ago(15), kind: "reset" }]) }, NOW - 14 * DAY).placed === false,
+      "Improving: the gain is today's points minus the points 14 days ago, worked out from the attempts (the secured score at that time, as valueAt/fullWeeks count it) and the level and placement history (here +30 levels, -40 secured: +10)");
+    // The teacher's local mode works it out the same way from this browser's logs.
+    const local = TDl.pointsByStudent({ students: { s1: { name: "Ann" } }, progress: { s1: { units: cur } },
+      attempts: atts.map((a) => Object.assign({ studentId: "s1" }, a)).concat([Object.assign({ studentId: "s1" }, { kind: "attempt", unit: "linear-search", at: ago(5), result: "fail", hints: 0, phase: "practice", taskLevel: 1 })]),
+      levelLog: history.levels.map((e) => Object.assign({ studentId: "s1" }, e)), placementLog: history.placements.map((e) => Object.assign({ studentId: "s1" }, e)) }, U, NOW).s1;
+    check(local.total === imp.total && local.gain === imp.gain && local.before.total === imp.before.total,
+      "Improving: the teacher view (local mode) gets the same points and gain from this browser's records as the server does from its tables");
+    // Server: the student's board is always their own class (classOf(sid), nothing in the request names one); rows have
+    // only nickname, points, percent and "me". The teacher's boards check the class is theirs; All my classes reads
+    // only classes with their teacher_id. points.ts reads no PINs, codes or attempt detail.
+    const sapi2 = read("supabase/functions/student-api/index.ts");
+    const tapi2 = read("supabase/functions/teacher-api/index.ts");
+    const pts = read("supabase/functions/_shared/points.ts");
+    const lbSrc = sapi2.slice(sapi2.indexOf("async leaderboard(sid)"), sapi2.indexOf("async delete_my_progress"));
+    const tlb = tapi2.slice(tapi2.indexOf("async leaderboards(tid, body)"), tapi2.indexOf("async rename_student"));
+    check(/classPoints\(await classOf\(sid\)\)/.test(lbSrc) && !/body\./.test(lbSrc) && /\(\{ nickname: s\.nickname, total: s\.total, gain: s\.gain, unitCount: s\.unitCount, me: s\.id === sid \}\)/.test(lbSrc) &&
+      /me: me \? \{ secured: me\.secured, level: me\.level, total: me\.total, gain: me\.gain \} : null/.test(lbSrc) &&
+      /ownClass\(tid, body\.class_id\)/.test(tlb) && /\.eq\("teacher_id", tid\)/.test(tlb) && /\(\{ nickname: s\.nickname, total: s\.total, gain: s\.gain, unitCount: s\.unitCount \}\)/.test(tlb) &&
+      /class_name: c\.name, total: s\.total, gain: s\.gain, unitCount: s\.unitCount \}/.test(tlb) &&
+      !/pin_hash|code_hash|student_code|encrypted|login_code/.test(pts) && /import "\.\.\/\.\.\/\.\.\/secured\.js";/.test(pts) && /Secured\.studentPoints\(/.test(pts) &&
+      /import \{ boards, classPoints \} from "\.\.\/_shared\/points\.ts";/.test(sapi2) && /import \{ boards, classPoints, POINT_UNITS \} from "\.\.\/_shared\/points\.ts";/.test(tapi2),
+      "Leaderboards on the server: student-api leaderboard is always the student's own class, rows with nickname and points only; teacher-api checks the class is the teacher's, and All my classes reads only their classes; the rule is secured.js itself, and no PIN or code is read");
+    // Pages: the student's Leaderboard button sits next to My progress (backend mode only); the teacher has a
+    // Leaderboards page (this class and All my classes) and the points per unit on a student's page.
+    const app = read("app.html"), th = read("teacher.html"), tj = read("teacher.js");
+    check(/href="progress\.html" class="menu-link">My progress<\/a>\s*<!--[^>]*-->\s*<a href="leaderboard\.html" id="leaderboard-link" class="menu-link" hidden>Leaderboard<\/a>/.test(app) &&
+      /\$\("leaderboard-link"\)\.hidden = false;/.test(read("home.js")) && /action: "leaderboard"/.test(read("backend.js")) && /backend\.leaderboard\(\)/.test(read("leaderboard.js")) &&
+      /<script src="leaderboard\.js"><\/script>/.test(read("leaderboard.html")) && /class="board-me"/.test(read("leaderboard.js")) &&
+      /data-page="leaderboards">Leaderboards</.test(th) && ["page-leaderboards", "lb-class", "lb-all", "lb-all-load", "sd-points"].every((id) => th.includes('id="' + id + '"')) &&
+      /"leaderboards", "student"/.test(tj) && /tb\.leaderboards\(\)/.test(tj) && /tb\.leaderboardsAll\(\)/.test(tj) && /TD\.pointsByStudent\(/.test(tj),
+      "Leaderboard pages: a Leaderboard button next to My progress (backend mode only) shows the class's two boards with the student's own row highlighted; teachers have a Leaderboards page (this class, and All my classes) and points per unit on each student's page");
   }
 
   // ===================== Selection, trimmed =====================

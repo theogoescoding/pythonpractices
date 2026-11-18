@@ -558,6 +558,21 @@ body.tour-open { padding-bottom: 55vh; }
   border: 2px solid var(--primary); border-radius: 8px; color: var(--link); background: var(--card);
 }
 .menu-link:hover { background: var(--code-bg); }
+.menu-link[hidden] { display: none; }
+/* Leaderboards (leaderboard.html, teacher.html): two boards side by side when there is room */
+.points-summary { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; margin: .5rem 0 1rem; padding: .75rem 1rem; }
+.points-summary .stat strong { font-size: 1.4rem; display: block; }
+.boards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 1rem; margin-bottom: 1rem; }
+.board { min-width: 0; }
+.board h3, .board h4 { margin: 0 0 .25rem; }
+.board .small { margin-top: 0; }
+.board-table { width: 100%; border-collapse: collapse; }
+.board-table th, .board-table td { text-align: left; padding: .35rem .5rem; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+.board-table th.num, .board-table td.num { text-align: right; white-space: nowrap; }
+.board-table tr.board-me td { background: var(--code-bg); font-weight: 700; }
+.board-table tr.board-me td:first-child { box-shadow: inset 4px 0 0 var(--primary); }
+.unit-points { margin: .5rem 0 1rem; }
+.unit-points .board-table th, .unit-points .board-table td { overflow-wrap: normal; padding: .35rem .4rem; }
 /* Progress summary */
 .unit-card .stat-row { display: flex; flex-wrap: wrap; gap: .25rem 1.25rem; margin-top: .5rem; }
 .unit-card .stat strong { font-size: 1.3rem; display: block; }
@@ -584,7 +599,8 @@ button.unit-card:hover { border-color: var(--primary); }
 tr.row-alert td, tr.row-alert th { background: var(--fail-bg); }
 tr.row-alert td:first-child { box-shadow: inset 6px 0 0 var(--fail); }
 .teacher-controls { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; margin-bottom: 1rem; }
-.teacher-controls select { font: inherit; padding: .35rem; }
+.teacher-controls select { font: inherit; padding: .35rem; max-width: 100%; }
+.teacher-controls label { max-width: 100%; }
 .table-wrap { overflow-x: auto; background: var(--card); border: 2px solid var(--border); border-radius: 8px; }
 table { border-collapse: collapse; width: 100%; font-size: .95rem; }
 th, td { text-align: left; padding: .45rem .7rem; border-bottom: 1px solid var(--border); }
@@ -685,6 +701,18 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
    table-layout: fixed with width 100%: Name, Shows and Average have fixed widths and the unit columns (at most 7 a
    table, teacher-data.js OVERVIEW_MAX_UNITS) share the rest, so nothing scrolls sideways. Text wraps in its cell. */
 .overview-tables { display: grid; gap: 1rem; container-type: inline-size; }
+/* The export popup (teacher.js openExport): what the file contains, a sample row as column/value pairs, Download. */
+.export-dialog { width: min(40rem, calc(100vw - 2rem)); max-height: calc(100vh - 2rem); box-sizing: border-box; overflow: auto;
+  background: var(--card); color: var(--text); border: 2px solid var(--border); border-radius: 12px; padding: 1rem 1.25rem; }
+.export-dialog::backdrop { background: rgba(0, 0, 0, .45); }
+.export-dialog h3 { margin-top: 0; }
+.export-sample { width: 100%; font-size: .85rem; table-layout: fixed; }
+.export-sample th, .export-sample td { overflow-wrap: anywhere; text-align: left; vertical-align: top; }
+.export-sample th[scope="row"] { width: 40%; font-weight: 600; }
+/* Each group of units (with its "(continued)" tables) is a collapsible block (collapse.js), like the student view's groups. */
+.overview-block { border: 2px solid var(--border); border-radius: 12px; background: var(--card); padding: .25rem .75rem .5rem; min-width: 0; }
+.overview-block > .group-heading { font-size: 1.1rem; }
+.overview-block > .group-body { display: grid; gap: 1rem; margin-bottom: .5rem; }
 .overview-table { table-layout: fixed; width: 100%; font-size: .85rem; }
 .overview-table caption { text-align: left; font-weight: 800; font-size: 1rem; padding: .5rem .6rem; }
 .overview-table .ov-col-name { width: 8rem; }
