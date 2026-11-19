@@ -1,9 +1,13 @@
 // student-api: POST { token, action, ... }. Every call checks the session token from resume or join-class.
 //   get_progress                       -> { student: { nickname, class_name, class_stage }, progress: [{ unit, state }], passed: [{ unit, fingerprint }], attempts: [...],
-//                                           assignments: [{ id, title, description, task_ids, updated_at }] (open ones of their class) }
+//                                           assignments: [{ id, title, description, task_ids, updated_at }] (open ones of their class),
+//                                           homework: [{ id, task_count, due_on, units, created_at, done, complete }] (their class's, migration 0018) }
+//   homework                           -> { homework: [...] }  the same list on its own
 //   save_progress { unit, state }      one unit's saved state (as the app keeps it in progress.units[unit], or progress.endless)
-//   add_attempts { rows }              -> { saved, rejected }  rows use the attempts table's (the export's) column names
-//   add_events { rows }                -> { saved, rejected }
+//   add_attempts { rows }              -> { saved, rejected, homework? }  rows use the attempts table's (the export's) column names.
+//                                           After a pass, the student's homework progress is worked out again and sent back.
+//   add_events { rows }                -> { saved, rejected, homework? }  also a flagged paste (record_type paste_flag, paste-flag.js),
+//                                           after which the homework progress is worked out again and sent back
 //   mark_passed { unit, fingerprint }
 //   rename_me { pin, nickname }        -> { nickname }  the student changes their own nickname, after typing their PIN
 //   leaderboard                        -> { boards: { overall, improving }, me: { secured, level, total, gain }, max }  their own class only:
@@ -15,13 +19,30 @@ import { check, db, HttpError, serve } from "../_shared/http.ts";
 import { NICKNAME_RULES, nicknameBlocked, validNickname } from "../_shared/nickname.ts";
 import { boards, classPoints } from "../_shared/points.ts";
 import { checkAttempts, checkEvents, insertRows, PROGRESS_UNITS, Rejected, UNITS } from "../_shared/rows.ts";
+// The homework rule is the site's own (homework.js); homework-server.js reads and saves it. Both are plain scripts
+// (tests/backend-client.js runs the same files in Node): they set globalThis.Homework and globalThis.HomeworkServer.
+import "../../../homework.js";
+import "../_shared/homework-server.js";
+
+// deno-lint-ignore no-explicit-any
+const G = globalThis as any;
+const hwDeps = () => ({ Homework: G.Homework, unitIds: UNITS });
+// The student's homework, worked out and saved. A problem here never stops their work being saved: then null.
+async function myHomework(sid: string) {
+  try {
+    return await G.HomeworkServer.forStudent(db(), hwDeps(), sid);
+  } catch (e) {
+    console.error("homework", e);
+    return null;
+  }
+}
 
 const SIGNED_OUT = "You've been signed out. Please sign in again with your code and PIN.";
 const WRONG_PIN = "That PIN isn't right. Type the 4-digit PIN you sign in with.";
 const NAME_TAKEN = "Another student in this class already has that nickname. Try another one.";
 const NAME_BLOCKED = "This nickname isn't allowed. Please choose another.";
 const MAX_STATE_CHARS = 900_000;
-const STUDENT_EVENT_TYPES = ["level_change", "button_use", "placement_result"];
+const STUDENT_EVENT_TYPES = ["level_change", "button_use", "placement_result", "paste_flag"];
 const ATTEMPT_COLUMNS = "record_id, record_type, timestamp, unit, task_units, task_id, template_id, phase, task_type, " +
   "task_level, student_level_before, student_level_after, attempt_number, result, failure_category, failure_details, " +
   "misconception_matches, hints_used, hint_type, variant_fingerprint, failed_test_number, failed_test_inputs, " +
@@ -69,11 +90,16 @@ const actions: Record<string, (sid: string, body: Record<string, unknown>) => Pr
       passed: await allRows("passed_tasks", "unit, fingerprint", sid, "created_at"),
       attempts: await allRows("attempts", ATTEMPT_COLUMNS, sid, "id"),
       assignments: await openAssignments(student.class_id as string),
+      homework: (await myHomework(sid)) ?? [],
     };
   },
 
   async get_assignments(sid) {
     return { assignments: await openAssignments(await classOf(sid)) };
+  },
+
+  async homework(sid) {
+    return { homework: (await myHomework(sid)) ?? [] };
   },
 
   async save_progress(sid, body) {
@@ -105,7 +131,13 @@ const actions: Record<string, (sid: string, body: Record<string, unknown>) => Pr
       r.student_id = sid;
       r.code_hash = typeof r.student_code === "string" && r.student_code ? await lookupHash("code", r.student_code) : null;
     }
-    return { saved: await insertRows("attempts", ok, rejected), rejected };
+    const saved = await insertRows("attempts", ok, rejected);
+    // A pass may count towards homework: work it out again (homework.js) and send the new "x of y done" back.
+    if (ok.some((r) => r.record_type === "attempt" && r.result === "pass")) {
+      const homework = await myHomework(sid);
+      if (homework) return { saved, rejected, homework };
+    }
+    return { saved, rejected };
   },
 
   async add_events(sid, body) {
@@ -113,7 +145,13 @@ const actions: Record<string, (sid: string, body: Record<string, unknown>) => Pr
     if (!checked) throw bad();
     for (const r of checked.ok) r.student_id = sid;
     const rejected: Rejected[] = checked.rejected;
-    return { saved: await insertRows("events", checked.ok, rejected), rejected };
+    const saved = await insertRows("events", checked.ok, rejected);
+    // A flagged paste: that task can no longer count towards homework.
+    if (checked.ok.some((r) => r.record_type === "paste_flag")) {
+      const homework = await myHomework(sid);
+      if (homework) return { saved, rejected, homework };
+    }
+    return { saved, rejected };
   },
 
   async mark_passed(sid, body) {

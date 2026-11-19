@@ -7,6 +7,13 @@
 //   remove_co_teacher { class_id, teacher_id } -> { removed, teachers }  owner only; the owner can't be removed
 //   certificates_for_class { class_id }     -> { class_name, certificates: [{ student_name, class_name, block_name, earned_on }] }
 //   certificate_for_student { student_id }  -> the same, for one student. Both save any newly earned certificate first.
+//   list_homework { class_id }              -> { class_name, homework: [{ id, task_count, due_on, units, created_at, created_by_name, yours,
+//                                              students, complete }] }  (migration 0018; the counting rule is homework.js's)
+//   create_homework { class_id, task_count, due_on, units } -> the same as list_homework, with the new one in it
+//                                              (400 with problem count | due | units if the form needs fixing)
+//   delete_homework { homework_id }         -> { deleted }  its creator or any other teacher on the class
+//   homework_report { homework_id }         -> { class_name, homework, students: [{ student_name, done, task_count, complete, units,
+//                                              flagged: [{ task_id, unit }] }] }  one row per student; flagged = "Possible AI use"
 //   reveal_codes { class_id }               -> { codes: [{ student_id, nickname, code }] }  (each reveal is logged)
 //   reset_pin { student_id }                -> { pin }  (shown once; also clears a PIN lock)
 //   reset_placement { student_id, unit }    -> { reset }  (false: the student hasn't started that unit)
@@ -40,14 +47,19 @@ import "../../../curriculum.js";
 import "../../../secured.js";
 import "../../../certificates.js";
 import "../_shared/certificates-server.js";
+// The homework rule is the site's own too (homework.js), read and saved by homework-server.js.
+import "../../../homework.js";
+import "../_shared/homework-server.js";
 
-// class-sharing.js and certificates-server.js are plain scripts (tests/backend-client.js runs the same files in Node):
-// they set globalThis.ClassSharing and globalThis.CertificatesServer.
+// class-sharing.js, certificates-server.js and homework-server.js are plain scripts (tests/backend-client.js runs the
+// same files in Node): they set globalThis.ClassSharing, globalThis.CertificatesServer and globalThis.HomeworkServer.
 // deno-lint-ignore no-explicit-any
 const G = globalThis as any;
 const Sharing = G.ClassSharing;
 const CertificatesServer = G.CertificatesServer;
+const HomeworkServer = G.HomeworkServer;
 const certDeps = () => ({ Sharing, Certificates: G.Certificates, Curriculum: G.Curriculum });
+const hwDeps = () => ({ Sharing, Homework: G.Homework, unitIds: UNITS });
 
 const bad = () => new HttpError(400, "Something went wrong. Please try again.");
 const MAX_IMPORT_STUDENTS_PER_CALL = 10;
@@ -186,6 +198,23 @@ const actions: Record<string, (tid: string, body: Record<string, unknown>) => Pr
 
   async certificate_for_student(tid, body) {
     return await CertificatesServer.studentCertificates(db(), certDeps(), tid, body.student_id);
+  },
+
+  // Homework (homework-server.js, migration 0018). Any teacher on the class, owner or co-teacher, for every action.
+  async list_homework(tid, body) {
+    return await HomeworkServer.listForClass(db(), hwDeps(), tid, body.class_id);
+  },
+
+  async create_homework(tid, body) {
+    return await HomeworkServer.create(db(), hwDeps(), tid, body.class_id, { task_count: body.task_count, due_on: body.due_on, units: body.units });
+  },
+
+  async delete_homework(tid, body) {
+    return await HomeworkServer.remove(db(), hwDeps(), tid, body.homework_id);
+  },
+
+  async homework_report(tid, body) {
+    return await HomeworkServer.report(db(), hwDeps(), tid, body.homework_id);
   },
 
   // Sharing a class (class-sharing.js). Any teacher on the class can list its teachers; only its owner can add one

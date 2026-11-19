@@ -959,7 +959,7 @@ if (typeof module === "object" && module.exports) {
 // replaces every Store function that writes, so no attempt, pass, progress, level change, button use, placement or
 // assignment work is saved in this browser or sent to the server (backend.js only sends what those functions queue).
 const RECORDING_FUNCTIONS = ["writeJson", "addStudent", "setCurrent", "saveProgress", "logLevelChange", "logAttempt", "logButton", "logPlacement",
-  "saveAssignments", "saveAssignmentWork", "saveClassStage", "saveCertificates", "saveCertificateTeacher"];
+  "saveAssignments", "saveAssignmentWork", "saveClassStage", "saveCertificates", "saveCertificateTeacher", "saveHomework", "logPasteFlag"];
 const PREVIEW_STUDENT = { id: "teacher-practice", name: "Teacher practice (not recorded)" };
 function stopRecording(store) {
   for (const name of RECORDING_FUNCTIONS) {
@@ -2065,6 +2065,11 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       if (!ok) ta.setRangeText(text, ta.selectionStart, ta.selectionEnd, "end");
     };
     ta.addEventListener("input", () => { c.draft.code = ta.value; save(); });
+    // A large paste is flagged (onPaste), once the pasted text is in the box.
+    ta.addEventListener("paste", (e) => {
+      const text = e.clipboardData ? e.clipboardData.getData("text") : "";
+      setTimeout(() => onPaste(text), 0);
+    });
     // The starter comment goes on the first click or focus, if nothing has been typed yet.
     ta.addEventListener("focus", () => { if (clearStarterComment(task(), c.draft)) { ta.value = ""; save(); } });
     ta.addEventListener("keydown", (e) => {
@@ -2134,6 +2139,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     });
     cm.on("keydown", (_, e) => { if (!["Escape", "Tab", "Shift"].includes(e.key)) escPressed = false; });
     cm.on("change", () => { c.draft.code = cm.getValue(); save(); });
+    // One paste is one change with origin "paste"; its text is the pasted lines. Flagged once the change is saved.
+    cm.on("change", (_, change) => { if (change.origin === "paste") { const text = change.text.join("\n"); setTimeout(() => onPaste(text), 0); } });
     // The starter comment goes on the first click or focus, if nothing has been typed yet (clearHistory: Undo can't
     // bring it back). The change handler then saves the empty draft.
     cm.on("focus", () => { if (clearStarterComment(task(), c.draft)) { cm.setValue(""); cm.clearHistory(); } });
@@ -2142,6 +2149,54 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     input.setAttribute("aria-describedby", "editor-help");
     document.querySelector('label[for="editor"]').addEventListener("click", () => cm.focus());
     activeEditor = cm;
+  }
+
+  // ---------- Large paste flag (paste-flag.js) ----------
+  // A paste of more than 8 lines into the editor (not the task's expected output) is recorded as a paste flag
+  // (Store.logPasteFlag; in backend mode it goes to the server as an event). Nothing is ever recorded in teacher practice.
+  //   - In homework (backend mode: an open homework of the class that this task's unit counts for, Homework.activeFor):
+  //     the task can't count (homework.js), so the student is told and given a new task. In unit practice and endless
+  //     mode the task is set aside, as "too easy" does, with no skip or level change. In a placement question it is
+  //     skipped, as the Skip button does, so the next question comes.
+  //   - Anywhere else (no homework, local mode, or a class assignment, which is a fixed list of tasks): the student is
+  //     told, and nothing else changes. Their progress stays as it is.
+  function onPaste(text) {
+    if (preview || !self.PasteFlag || !cur()) return;
+    const t = task();
+    if (!PasteFlag.flags(text, t)) return;
+    const units = unitsOf(t);
+    const homework = !inAssignment && self.Homework ? Homework.activeFor(Store.homework(student.id), units, Date.now()) : [];
+    Store.logPasteFlag({ studentId: student.id, unit: units[0], units, taskId: t.id, lines: PasteFlag.lineCount(text), homework: homework.length > 0 });
+    if (homework.length) { moveOnAfterPaste(); return; }
+    // The message goes straight under the editor, where the student is looking (not below the buttons).
+    const at = $("editor-help");
+    if (!at) return;
+    const old = document.querySelector("#task .paste-flag");
+    if (old) old.remove();
+    at.insertAdjacentHTML("afterend", '<p class="notice notice-down paste-flag" role="alert">' + esc(PasteFlag.MESSAGE) + "</p>");
+  }
+
+  async function moveOnAfterPaste() {
+    if (serving) return;
+    const c = cur();
+    const t = task();
+    let text = PasteFlag.HOMEWORK_MESSAGE;
+    if (c.placement) {
+      if (!c.finished) { recordAttempt(t, c, { kind: "skip", result: "skipped" }); finishPlacementStep(false); }
+      renderSide();
+      if (inPlacement()) await servePlacementTask();
+      else {
+        text += " " + placementResultText(us().placement, unitId); // the placement has just finished
+        if (!(await serveNewTask())) return;
+      }
+    } else {
+      eachLog((entry) => { if (entry.lastResult === "in progress") entry.lastResult = "set aside"; });
+      if (!(await serveNewTask())) return;
+    }
+    notice = { kind: "down", text };
+    renderSide();
+    renderTask();
+    $("task").focus();
   }
 
   // ---------- Predict ----------

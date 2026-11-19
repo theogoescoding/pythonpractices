@@ -68,6 +68,7 @@
       <a href="#students" data-page="students">Students</a>
       <a href="#leaderboards" data-page="leaderboards">Leaderboards</a>
       <a href="#certificates" data-page="certificates">Certificates</a>
+      <a href="#homework" data-page="homework" data-backend>Homework</a>
       <a href="#assignments" data-page="assignments">Assignments</a>
       <a href="#reports" data-page="reports">Reports</a>
       <a href="#misconceptions" data-page="misconceptions">Misconceptions</a>
@@ -286,6 +287,44 @@
       <div id="sd-recent"></div>
     </section>
 
+    <!-- ===== Homework (backend mode) ===== -->
+    <section id="page-homework" aria-labelledby="homework-title" hidden>
+      <h2 id="homework-title" tabindex="-1">Homework</h2>
+      <p class="small">Set a number of tasks for a class to do by a due date. Every task type counts, placement questions too.
+        A task counts the first time a student passes it, from when you set the homework to the end of the due date.
+        Each student sees a Homework card on their home page with "x of y done", then "Complete".
+        A paste of more than 8 lines of code into the editor is flagged: in homework that task doesn't count, and the student gets a new one.
+        The report is the only place you see these flags.</p>
+      <p id="hw-local" class="notice notice-down" hidden>Homework needs backend mode (the class server), because students must be able to see it on their own computers.</p>
+      <div id="hw-main">
+        <div class="teacher-controls">
+          <label>Class <select id="hw-class"></select></label>
+        </div>
+        <form id="hw-form" class="task-card" novalidate aria-labelledby="hw-form-h">
+          <h3 id="hw-form-h" tabindex="-1">Set homework</h3>
+          <div class="teacher-controls hw-fields">
+            <label>Number of tasks <input type="number" id="hw-count" class="text-input" min="1" max="200" step="1" inputmode="numeric" required></label>
+            <label>Due date <input type="date" id="hw-due" class="text-input" required></label>
+          </div>
+          <fieldset class="hw-units">
+            <legend>Units (optional)</legend>
+            <p class="small">Choose none for any unit the class can see. Open a block to choose its units, or select the whole block.</p>
+            <div id="hw-blocks"></div>
+          </fieldset>
+          <p id="hw-form-status" role="alert" hidden></p>
+          <p><button type="submit" class="primary" id="hw-save">Set homework</button></p>
+        </form>
+        <p id="hw-status" class="small" role="status"></p>
+        <div id="hw-list" aria-live="polite"></div>
+        <section id="hw-report" class="task-card" hidden aria-labelledby="hw-report-h">
+          <h3 id="hw-report-h" tabindex="-1">Homework report</h3>
+          <p id="hw-report-meta" class="small"></p>
+          <p class="small">Select a column heading to sort by it. "Possible AI use" means the student pasted more than 8 lines of code into a task; that task didn't count.</p>
+          <div id="hw-report-table"></div>
+        </section>
+      </div>
+    </section>
+
     <!-- ===== Assignments (backend mode) ===== -->
     <section id="page-assignments" aria-labelledby="assignments-title" hidden>
       <h2 id="assignments-title" tabindex="-1">Assignments</h2>
@@ -473,6 +512,7 @@
   <script src="secured.js"></script>
   <script src="certificates.js"></script>
   <script src="teacher-data.js"></script>
+  <script src="homework.js"></script>
   <script src="task-view.js"></script>
   <script src="task-browser.js"></script>
   <script src="config.js"></script>

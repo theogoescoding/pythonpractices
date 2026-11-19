@@ -626,6 +626,22 @@
   const certificatesForClass = (classId) => certificatesCall("certificates_for_class", { class_id: classId });
   const certificatesForStudent = (studentId) => certificatesCall("certificate_for_student", { student_id: studentId });
 
+  // Homework (teacher-api list_homework, create_homework, delete_homework and homework_report, migration 0018): the
+  // server works out every student's "x of y done" with the site's rule (homework.js). Each returns the reply's body,
+  // or { error, problem } (a message, and for create_homework which field needs fixing).
+  const OLD_SERVER_HOMEWORK = "Homework needs the newest version of the server. It will work once the server has been updated.";
+  async function homeworkCall(action, body) {
+    const r = await teacherApi(action, body);
+    if (r.status === 400 && /Something went wrong/.test(r.body.error || "")) return { error: OLD_SERVER_HOMEWORK };
+    if (r.status === 500 && /homework/i.test(r.body.error || "")) return { error: OLD_SERVER_HOMEWORK };
+    if (r.status !== 200) return { error: r.body.error || "Couldn't load the homework. Please try again.", problem: r.body.problem || null };
+    return r.body;
+  }
+  const listHomework = (classId) => homeworkCall("list_homework", { class_id: classId });
+  const createHomework = (classId, form) => homeworkCall("create_homework", { class_id: classId, task_count: form.task_count, due_on: form.due_on, units: form.units });
+  const deleteHomework = (homeworkId) => homeworkCall("delete_homework", { homework_id: homeworkId });
+  const homeworkReport = (homeworkId) => homeworkCall("homework_report", { homework_id: homeworkId });
+
   const leaderboards = () => (current ? boardsCall("leaderboards", { class_id: current.id }) : Promise.resolve({ error: "Choose a class first." }));
   const leaderboardsAll = () => boardsCall("leaderboards_all", {});
 
@@ -692,6 +708,7 @@
     allClasses: () => classes.map((c) => ({ id: c.id, name: c.name })),
     teacherName: () => myName,
     certificatesForClass, certificatesForStudent,
+    listHomework, createHomework, deleteHomework, homeworkReport,
     copy, resetPin, removeStudent, renameStudent, changePassword, compareClasses, leaderboards, leaderboardsAll,
   };
 })();

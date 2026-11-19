@@ -21,7 +21,8 @@ function memoryStorage() {
 // A fake of join-class, resume and student-api, close enough to the real ones for the client.
 function fakeServer() {
   // failNext: { "resume": [546, 546] } answers the next calls to that function with those statuses (an overloaded server).
-  const s = { offline: false, signOutAll: false, students: {}, progress: {}, passed: {}, attempts: {}, events: {}, calls: [], failNext: {}, points: {} };
+  // homework: { sid: [...] } what student-api sends as the student's homework (get_progress, and after a pass or a paste flag).
+  const s = { offline: false, signOutAll: false, students: {}, progress: {}, passed: {}, attempts: {}, events: {}, calls: [], failNext: {}, points: {}, homework: {} };
   const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
   const token = (sid) => b64({ sid, exp: Math.floor(Date.now() / 1000) + 8 * 3600 }) + ".sig";
   const sidOf = (t) => { try { return JSON.parse(Buffer.from(String(t).split(".")[0], "base64url").toString()).sid; } catch (e) { return null; } };
@@ -51,7 +52,8 @@ function fakeServer() {
         return reply(200, { student: { nickname: s.students[sid].nickname, class_name: "7X" },
           progress: Object.entries(s.progress[sid]).map(([unit, state]) => ({ unit, state: JSON.parse(state) })),
           passed: s.passed[sid].map((x) => ({ unit: x.split("|")[0], fingerprint: x.split("|")[1] })),
-          attempts: s.attempts[sid].map((r) => Object.assign({}, r, { timestamp: r.timestamp.replace("Z", "+00:00") })) });
+          attempts: s.attempts[sid].map((r) => Object.assign({}, r, { timestamp: r.timestamp.replace("Z", "+00:00") })),
+          homework: s.homework[sid] || [] });
       case "save_progress": s.progress[sid][body.unit] = JSON.stringify(body.state); return reply(200, { ok: true });
       case "mark_passed":
         if (!s.passed[sid].includes(body.unit + "|" + body.fingerprint)) s.passed[sid].push(body.unit + "|" + body.fingerprint);
@@ -61,7 +63,9 @@ function fakeServer() {
         const list = s[body.action === "add_attempts" ? "attempts" : "events"][sid];
         let saved = 0;
         for (const r of body.rows) if (!list.some((x) => x.record_id === r.record_id)) { list.push(r); saved++; }
-        return reply(200, { saved, rejected: [] });
+        // As the real one: after a pass or a paste flag, the student's homework comes back with the new count.
+        const counts = body.rows.some((r) => r.result === "pass" || r.record_type === "paste_flag");
+        return reply(200, counts && s.homework[sid] ? { saved, rejected: [], homework: s.homework[sid] } : { saved, rejected: [] });
       }
       case "rename_me": {
         if (body.pin !== s.students[sid].pin) return reply(403, { error: "That PIN isn't right.", problem: "pin" });
@@ -89,7 +93,8 @@ function fakeServer() {
 // An in-memory stand-in for the service-role database client, with just what class-sharing.js uses: the tables it
 // reads and writes, and the two server functions of migration 0016 (written to match their SQL).
 function fakeDb() {
-  const t = { users: [], teachers: [], classes: [], class_teachers: [], students: [], assignments: [], attempts: [], progress: [], certificates: [] };
+  const t = { users: [], teachers: [], classes: [], class_teachers: [], students: [], assignments: [], attempts: [], progress: [], certificates: [],
+    events: [], homework: [], homework_progress: [] };
   class Query {
     constructor(name) { this.name = name; this.filters = []; this.op = "select"; this.one = false; this.returning = false; this.from = 0; this.to = Infinity; }
     select() { if (this.op !== "select") this.returning = true; return this; }
@@ -107,14 +112,20 @@ function fakeDb() {
     run() {
       const rows = t[this.name];
       if (this.op === "upsert") {
+        // insert ... on conflict do nothing (ignoreDuplicates, certificates-server.js) or do update (homework-server.js).
         const keys = this.opts.onConflict.split(",");
-        for (const r of this.rows) if (!rows.some((x) => keys.every((k) => x[k] === r[k]))) rows.push(Object.assign({ created_at: new Date().toISOString() }, r));
+        for (const r of this.rows) {
+          const old = rows.find((x) => keys.every((k) => x[k] === r[k]));
+          if (!old) rows.push(Object.assign({ created_at: new Date().toISOString() }, r));
+          else if (!this.opts.ignoreDuplicates) Object.assign(old, r);
+        }
         return { data: null, error: null };
       }
       if (this.op === "insert") {
         if (this.name === "class_teachers" && rows.some((r) => r.class_id === this.row.class_id && r.teacher_id === this.row.teacher_id))
           return { data: null, error: { code: "23505", message: "duplicate key value violates unique constraint" } };
-        rows.push(Object.assign({ added_at: new Date().toISOString() }, this.row));
+        // homework: its id and created_at come from the table's defaults.
+        rows.push(Object.assign(this.name === "homework" ? { id: require("crypto").randomUUID(), created_at: new Date().toISOString() } : { added_at: new Date().toISOString() }, this.row));
         return { data: null, error: null };
       }
       const hit = rows.filter((r) => this.filters.every((f) => f(r)));
@@ -432,6 +443,97 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
     T.attempts = T.attempts.filter((a) => a.student_id !== ADA);
     const kept = await CS.classCertificates(sb, deps, O, CLA);
     check(kept.certificates.length === 1 && kept.certificates[0].earned_on === "2026-10-23", "Certificates: once earned, a certificate is kept with its first earned date");
+  }
+
+  // ---------- Homework (teacher-api and student-api: supabase/functions/_shared/homework-server.js, migration 0018) ----------
+  // The real module both functions run, with the site's rule (homework.js), against an in-memory database. Teachers'
+  // rights come from class-sharing.js (owner or co-teacher); tests/sql/homework.sql checks the real row-level security.
+  {
+    const Sharing = require(path.join(ROOT, "supabase", "functions", "_shared", "class-sharing.js"));
+    const HS = require(path.join(ROOT, "supabase", "functions", "_shared", "homework-server.js"));
+    const Homework = require(path.join(ROOT, "homework.js"));
+    const deps = { Sharing, Homework, unitIds: require(path.join(ROOT, "curriculum.js")).UNITS.map((u) => u.id) };
+    const sb = fakeDb();
+    const T = sb.t;
+    const id = (n) => "0000000" + n + "-0000-0000-0000-000000000001";
+    const [O, K, X] = [id("a"), id("b"), id("c")];
+    const CLA = "0000000a-0000-0000-0000-00000000c1a5", CLX = "0000000c-0000-0000-0000-00000000c1a5";
+    const ADA = "0000000a-0000-0000-0000-0000000057d1", BEN = "0000000a-0000-0000-0000-0000000057d2", XAVI = "0000000c-0000-0000-0000-0000000057d1";
+    T.teachers.push({ id: O, name: "Owner O" }, { id: K, name: "Co-teacher K" }, { id: X, name: "Stranger X" });
+    T.classes.push({ id: CLA, name: "7A", teacher_id: O }, { id: CLX, name: "8X", teacher_id: X });
+    T.class_teachers.push({ class_id: CLA, teacher_id: O }, { class_id: CLA, teacher_id: K }, { class_id: CLX, teacher_id: X });
+    T.students.push({ id: ADA, class_id: CLA, nickname: "Ada", pin_hash: "SECRET-PIN", login_code_enc: "SECRET-CODE" }, { id: BEN, class_id: CLA, nickname: "Ben" },
+      { id: XAVI, class_id: CLX, nickname: "Xavi" });
+    const problem = async (f) => { try { await f(); return null; } catch (e) { return e instanceof Sharing.Problem ? { status: e.status, problem: e.problem } : { thrown: String(e) }; } };
+    const today = Homework.ukDate(Date.now());
+    const due = Homework.ukDate(Date.now() + 7 * 86400000);
+
+    // Set by the owner of 7A, and by X for their own class 8X. X can't set, list, report or delete 7A's.
+    const made = await HS.create(sb, deps, O, CLA, { task_count: 2, due_on: due, units: [] }, today);
+    await HS.create(sb, deps, X, CLX, { task_count: 5, due_on: due, units: ["maths"] }, today);
+    const hwA = made.homework[0];
+    const badForm = await problem(() => HS.create(sb, deps, O, CLA, { task_count: 0, due_on: due }, today));
+    check(made.homework.length === 1 && hwA.task_count === 2 && hwA.yours && hwA.created_by_name === "Owner O" && T.homework.length === 2 &&
+      badForm.status === 400 && badForm.problem === "count",
+      "Homework: a teacher on the class sets homework (a number of tasks and a due date); a bad form is refused with what to fix");
+    const strangerTries = [await problem(() => HS.create(sb, deps, X, CLA, { task_count: 3, due_on: due }, today)), await problem(() => HS.listForClass(sb, deps, X, CLA)),
+      await problem(() => HS.report(sb, deps, X, hwA.id)), await problem(() => HS.remove(sb, deps, X, hwA.id))];
+    check(strangerTries.every((p) => p && p.status === 404) && T.homework.length === 2,
+      "Homework: a teacher who isn't on the class can't set, read, report on or delete its homework (the same 404 as homework that doesn't exist)");
+
+    // Each student sees only their own class's homework.
+    const adaSees = await HS.forStudent(sb, deps, ADA), xaviSees = await HS.forStudent(sb, deps, XAVI);
+    check(adaSees.length === 1 && adaSees[0].id === hwA.id && adaSees[0].done === 0 && !adaSees[0].complete && xaviSees.length === 1 && xaviSees[0].units.join() === "maths" &&
+      Object.keys(adaSees[0]).sort().join() === "complete,created_at,done,due_on,id,task_count,units",
+      "Homework: a student sees only their own class's homework, with the due date, the units and how many done (nothing about other students)");
+
+    // Work: Ada passes t1 (then again), pastes into t2 (flagged) and then passes it; Ben passes two new tasks.
+    const soon = (min) => new Date(Date.now() + min * 60000).toISOString();
+    let n = 0;
+    const pass = (sid, task, min, unit) => T.attempts.push({ id: ++n, student_id: sid, record_type: "attempt", result: "pass", timestamp: soon(min), unit: unit || "selection",
+      task_units: [unit || "selection"], task_id: task, student_code: "print('secret code')" });
+    pass(ADA, "if-L3a", 1); T.events.push({ id: 1, student_id: ADA, record_type: "paste_flag", timestamp: soon(2), unit: "selection", task_id: "if-L4a" });
+    pass(ADA, "if-L4a", 3); pass(ADA, "if-L3a", 4);
+    pass(BEN, "if-L5a", 1); pass(BEN, "var-L2a", 2, "variables");
+    const ownerReport = await HS.report(sb, deps, O, hwA.id);
+    const row = (r, name) => r.students.find((s) => s.student_name === name);
+    check(row(ownerReport, "Ada").done === 1 && row(ownerReport, "Ada").flagged.map((f) => f.task_id).join() === "if-L4a" && !row(ownerReport, "Ada").complete &&
+      (await HS.forStudent(sb, deps, ADA))[0].done === 1,
+      "Homework: a flagged paste doesn't count (the task passed after its paste flag isn't counted), and a repeat pass doesn't count again");
+    check(row(ownerReport, "Ben").complete && row(ownerReport, "Ben").done === 2 && row(ownerReport, "Ben").units.join() === "selection,variables" &&
+      ownerReport.students.map((s) => s.student_name).join() === "Ada,Ben" && !/SECRET|secret code|0000000a-0000-0000-0000-0000000057/.test(JSON.stringify(ownerReport)) &&
+      T.homework_progress.filter((p) => p.homework_id === hwA.id).map((p) => p.done).sort().join() === "1,2",
+      "Homework report: one row per student (done of y, complete, the units the tasks were done in); only names, numbers, units and task ids; the server saves each student's progress");
+    const coReport = await HS.report(sb, deps, K, hwA.id);
+    const coList = await HS.listForClass(sb, deps, K, CLA);
+    check(JSON.stringify(coReport) === JSON.stringify(ownerReport) && coList.homework.length === 1 && coList.homework[0].complete === 1 && !coList.homework[0].yours,
+      "Homework: a co-teacher sees the same report and list as the owner");
+    // A co-teacher can delete it too; the other class's homework stays.
+    const del = await HS.remove(sb, deps, K, hwA.id);
+    check(del.deleted && (await HS.listForClass(sb, deps, O, CLA)).homework.length === 0 && (await HS.forStudent(sb, deps, ADA)).length === 0 &&
+      (await HS.forStudent(sb, deps, XAVI)).length === 1,
+      "Homework: its creator or a co-teacher can delete it; then the students no longer see it, and other classes' homework stays");
+  }
+
+  // ---------- Homework and paste flags in the student's browser (backend.js) ----------
+  {
+    const server = fakeServer();
+    let p = openPage(server);
+    await p.Backend.join("ABCDEF", "Hana");
+    const hid = p.Backend.session().sid;
+    const hwList = [{ id: "hw-1", task_count: 3, due_on: "2026-12-01", units: ["selection"], created_at: "2026-11-18T09:00:00.000Z", done: 0, complete: false }];
+    server.homework[hid] = hwList;
+    p = openPage(server, p.storage);
+    await p.Backend.ready();
+    check(JSON.stringify(p.Store.homework(hid)) === JSON.stringify(hwList), "Homework: the student's page gets their class's homework with the rest of their data");
+    p.Store.logPasteFlag({ studentId: hid, unit: "selection", units: ["selection"], taskId: "if-L9a", lines: 12, homework: true });
+    server.homework[hid] = [Object.assign({}, hwList[0], { done: 1 })];
+    attempt(p.Store, hid, { taskId: "if-L8a" });
+    await p.Backend.flush();
+    const flag = server.events[hid].find((r) => r.record_type === "paste_flag");
+    check(flag && flag.task_id === "if-L9a" && flag.unit === "selection" && /^f-/.test(flag.record_id) && Object.keys(flag).sort().join() === "record_id,record_type,task_id,timestamp,unit",
+      "Paste flag: sent to student-api as an event with the task id (and nothing else: no code, no line count)");
+    check(p.Store.homework(hid)[0].done === 1, "Homework: after a pass is sent, the new \"x of y done\" from the server is kept for the home page");
   }
 
   const failed = out.filter((ok) => !ok).length;

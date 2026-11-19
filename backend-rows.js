@@ -71,6 +71,11 @@
     : { record_id: p.id, record_type: "placement_result", timestamp: p.at, unit: p.unit,
         placement_start_level: orNull(p.startLevel), placement_results: orNull(p.results) };
 
+  // A large paste flag (Store.logPasteFlag, paste-flag.js; record_type paste_flag, migration 0018): the task and when.
+  // It is only ever sent: the teacher sees it in the homework report (teacher-api), not in the export, so rowToEvent
+  // below leaves it out.
+  const pasteFlagToRow = (f) => ({ record_id: f.id, record_type: "paste_flag", timestamp: f.at, unit: f.unit, task_id: f.taskId });
+
   // -> { log: "level" | "button" | "placement", entry } with the entry as store.js keeps it.
   function rowToEvent(r, studentId) {
     const at = iso(r.timestamp);
@@ -137,6 +142,6 @@
     return { students, progress, attempts, levelLog, buttonLog, placementLog, units };
   }
 
-  return { attemptToRow, rowToAttempt, levelToRow, buttonToRow, placementToRow, rowToEvent, progressToRows, rowsToProgress,
+  return { attemptToRow, rowToAttempt, levelToRow, buttonToRow, placementToRow, pasteFlagToRow, rowToEvent, progressToRows, rowsToProgress,
     teacherData, newRecordId };
 });

@@ -10,7 +10,7 @@
   const TD = self.TeacherData;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const PAGES = ["classes", "students", "leaderboards", "certificates", "student", "assignments", "reports", "misconceptions", "tasks", "settings"];
+  const PAGES = ["classes", "students", "leaderboards", "certificates", "student", "homework", "assignments", "reports", "misconceptions", "tasks", "settings"];
   const OLD_PAGES = { overview: "students", log: "reports", workshop: "misconceptions" }; // the workshop was on Reports
   const RECENT_ATTEMPTS = 30;
   const REASONS = {
@@ -102,6 +102,7 @@
     $("pw-form").hidden = !tb;
     document.querySelectorAll("[data-backend]").forEach((b) => { b.hidden = !tb; });
     if (p === "tasks") renderTaskBrowser(arg); // needs no class
+    renderHomework(); // its own class list; does nothing unless the page is showing
     const data = collect();
     if (!data) return; // backend mode: no class loaded yet
     if (p === "students") renderStudents(data);
@@ -288,6 +289,197 @@
     if (r.error) { $("sd-certs").innerHTML = '<p class="problem">' + esc(r.error) + "</p>"; return; }
     fill(r.certificates);
   }
+
+  // ---------- Homework (backend mode) ----------
+  // teacher-api works out each student's "x of y done" with the site's rule (homework.js) and keeps the homework. Any
+  // teacher on the class (owner or co-teacher) sees and does the same: set, delete, and open the report. Local mode has
+  // no homework: its menu link is hidden (data-backend) and the page says why.
+  const HW = self.Homework;
+  const HW_BLOCKS = self.Certificates.BLOCKS; // the six blocks of the Students page, with their units
+  let hwClassId = null;      // the class on the Homework page (its own choice, starting with the class chosen above)
+  let hwLoadedFor = null;    // the class its list was loaded for
+  let hwList = [];
+  let hwOnPage = false;      // the page was showing at the last render (coming back to it loads the list again)
+  let hwReport = null;       // { id, data } the report on show
+  let hwSort = { key: "name", dir: 1 };
+  let templateTitles = null; // template id -> title (templates.json), loaded when a report names a template variant
+
+  const unitNames = (units) => (units && units.length ? units.map((u) => unitTitle(u)).join(", ") : "Any unit");
+  const plural = (n, word) => n + " " + word + (n === 1 ? "" : "s");
+  // A task's name: its title, then its id. A template variant ("template#seed") is named by its template.
+  function taskName(id) {
+    const tpl = String(id).split("#")[0];
+    const title = (tasksById[id] && tasksById[id].title) || (templateTitles && templateTitles[tpl]) || (tasksById[tpl.replace(/^d-/, "")] || {}).title;
+    return title ? title + " (" + id + ")" : id;
+  }
+
+  function buildUnitPicker() {
+    $("hw-blocks").innerHTML = HW_BLOCKS.map((b) => '<details class="hw-block"><summary>' + esc(b.name) + ' <span class="small" data-hw-count="' + b.id + '"></span></summary>' +
+      '<label class="hw-all"><input type="checkbox" data-hw-block="' + b.id + '"> Select all of ' + esc(b.name) + "</label>" +
+      '<div class="hw-unit-grid">' + b.units.map((u) => '<label><input type="checkbox" data-hw-unit="' + esc(u) + '" data-block="' + b.id + '"> ' +
+        esc(self.Curriculum.studentUnitTitle(u)) + "</label>").join("") + "</div></details>").join("");
+    hwBlockStates();
+  }
+  // Each block's "Select all" box: ticked when every unit is, part-ticked when some are; the count in its heading.
+  function hwBlockStates() {
+    for (const b of HW_BLOCKS) {
+      const boxes = [...$("hw-blocks").querySelectorAll('input[data-block="' + b.id + '"]')];
+      const n = boxes.filter((x) => x.checked).length;
+      const all = $("hw-blocks").querySelector('input[data-hw-block="' + b.id + '"]');
+      all.checked = n === boxes.length;
+      all.indeterminate = n > 0 && n < boxes.length;
+      $("hw-blocks").querySelector('[data-hw-count="' + b.id + '"]').textContent = n ? "(" + n + " of " + boxes.length + " chosen)" : "";
+    }
+  }
+  $("hw-blocks").addEventListener("change", (e) => {
+    const block = e.target.dataset && e.target.dataset.hwBlock;
+    if (block) $("hw-blocks").querySelectorAll('input[data-block="' + block + '"]').forEach((x) => { x.checked = e.target.checked; });
+    hwBlockStates();
+  });
+
+  function renderHomework() {
+    const on = page() === "homework";
+    const fresh = on && !hwOnPage;
+    hwOnPage = on;
+    $("hw-local").hidden = !!tb;
+    $("hw-main").hidden = !tb;
+    if (!tb || !on) return;
+    if (!$("hw-blocks").children.length) buildUnitPicker();
+    const classes = tb.allClasses();
+    if (!classes.some((c) => c.id === hwClassId)) hwClassId = (currentClass() || classes[0] || {}).id || null;
+    const options = classes.map((c) => '<option value="' + esc(c.id) + '">' + esc(c.name) + "</option>").join("");
+    if ($("hw-class").innerHTML !== options) $("hw-class").innerHTML = options;
+    $("hw-class").value = hwClassId || "";
+    $("hw-form").hidden = !hwClassId;
+    $("hw-due").min = HW.ukDate(Date.now());
+    if (!hwClassId) { $("hw-status").textContent = "Make a class first (Classes page)."; $("hw-list").innerHTML = ""; return; }
+    if (fresh || hwLoadedFor !== hwClassId) loadHomework();
+  }
+  $("hw-class").addEventListener("change", () => { hwClassId = $("hw-class").value; closeHomeworkReport(); loadHomework(); });
+
+  async function loadHomework() {
+    const id = hwClassId;
+    hwLoadedFor = id;
+    $("hw-status").textContent = "Loading…";
+    const r = await tb.listHomework(id);
+    if (hwClassId !== id) return; // another class was chosen meanwhile
+    $("hw-status").textContent = r.error || "";
+    hwList = r.error ? [] : r.homework;
+    renderHomeworkList();
+    if (hwReport && !hwList.some((h) => h.id === hwReport.id)) closeHomeworkReport();
+  }
+
+  function renderHomeworkList() {
+    const cls = (tb.allClasses().find((c) => c.id === hwClassId) || { name: "" }).name;
+    $("hw-list").innerHTML = '<h3 class="hw-list-h">Homework for ' + esc(cls) + "</h3>" + (!hwList.length ? '<p class="small">No homework for this class yet.</p>' :
+      '<ul class="hw-list">' + hwList.map((h) => '<li class="task-card hw-item">' +
+        "<h4>" + esc(plural(h.task_count, "task")) + ", due " + esc(HW.longDate(h.due_on)) + (HW.pastDue(h) ? ' <span class="flag">Due date passed</span>' : "") + "</h4>" +
+        '<p class="small">Units: ' + esc(unitNames(h.units)) + "</p>" +
+        '<p class="small">Set by ' + esc(h.yours ? "you" : h.created_by_name || "another teacher") + " on " + esc(when(h.created_at)) + ". " +
+          h.complete + " of " + esc(plural(h.students, "student")) + " complete.</p>" +
+        '<p class="teacher-controls"><button type="button" class="secondary" data-hw-report="' + esc(h.id) + '">Report</button>' +
+          '<button type="button" class="secondary" data-hw-delete="' + esc(h.id) + '">Delete</button>' +
+          '<span data-hw-confirm="' + esc(h.id) + '" hidden>Delete this homework? Students will no longer see it. ' +
+          '<button type="button" class="danger" data-hw-delete-yes="' + esc(h.id) + '">Yes, delete</button> ' +
+          '<button type="button" class="secondary" data-hw-delete-no="' + esc(h.id) + '">Cancel</button></span></p></li>').join("") + "</ul>");
+  }
+
+  $("hw-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const status = $("hw-form-status");
+    const fail = (msg, field) => {
+      status.hidden = false; status.className = "problem"; status.textContent = msg;
+      if (field) $(field).focus();
+    };
+    const fields = { count: "hw-count", due: "hw-due", units: null };
+    const units = [...$("hw-blocks").querySelectorAll("input[data-hw-unit]:checked")].map((x) => x.dataset.hwUnit);
+    const raw = $("hw-count").value.trim();
+    const c = HW.checkNew({ task_count: raw === "" ? NaN : Number(raw), due_on: $("hw-due").value, units }, UNITS.map((u) => u.id), HW.ukDate(Date.now()));
+    if (!c.ok) return fail(c.message, fields[c.problem]);
+    $("hw-save").disabled = true;
+    const r = await tb.createHomework(hwClassId, c.homework);
+    $("hw-save").disabled = false;
+    if (r.error) return fail(r.error, fields[r.problem]);
+    status.hidden = true;
+    $("hw-form").reset();
+    hwBlockStates();
+    hwList = r.homework;
+    hwLoadedFor = hwClassId;
+    renderHomeworkList();
+    $("hw-status").textContent = "Homework set: " + plural(c.homework.task_count, "task") + ", due " + HW.longDate(c.homework.due_on) + ".";
+  });
+
+  $("hw-list").addEventListener("click", async (e) => {
+    const sel = (attr, id) => $("hw-list").querySelector("[" + attr + '="' + CSS.escape(id) + '"]');
+    const report = e.target.closest("button[data-hw-report]");
+    const del = e.target.closest("button[data-hw-delete]");
+    const no = e.target.closest("button[data-hw-delete-no]");
+    const yes = e.target.closest("button[data-hw-delete-yes]");
+    if (report) openHomeworkReport(report.dataset.hwReport);
+    // Delete asks first, on the page: Delete shows "Yes, delete / Cancel"; Cancel changes nothing.
+    if (del) { sel("data-hw-confirm", del.dataset.hwDelete).hidden = false; sel("data-hw-delete-no", del.dataset.hwDelete).focus(); }
+    if (no) { sel("data-hw-confirm", no.dataset.hwDeleteNo).hidden = true; sel("data-hw-delete", no.dataset.hwDeleteNo).focus(); }
+    if (yes) {
+      yes.disabled = true;
+      const r = await tb.deleteHomework(yes.dataset.hwDeleteYes);
+      if (r.error) { yes.disabled = false; $("hw-status").textContent = r.error; return; }
+      await loadHomework();
+      $("hw-status").textContent = "The homework has been deleted.";
+      $("hw-status").setAttribute("tabindex", "-1");
+      $("hw-status").focus(); // the deleted card (and its buttons) are gone
+    }
+  });
+
+  function closeHomeworkReport() { hwReport = null; $("hw-report").hidden = true; }
+  async function openHomeworkReport(id) {
+    hwReport = { id, data: null };
+    $("hw-report").hidden = false;
+    $("hw-report-meta").textContent = "Loading…";
+    $("hw-report-table").innerHTML = "";
+    $("hw-report-h").focus();
+    const r = await tb.homeworkReport(id);
+    if (!hwReport || hwReport.id !== id) return; // another report was opened meanwhile
+    if (r.error) { $("hw-report-meta").textContent = r.error; return; }
+    if (!templateTitles && r.students.some((s) => s.flagged.some((f) => String(f.task_id).includes("#")))) {
+      templateTitles = await fetch("templates.json").then((x) => x.json()).then((list) => Object.fromEntries(list.map((t) => [t.id, t.title]))).catch(() => ({}));
+      if (!hwReport || hwReport.id !== id) return;
+    }
+    hwReport.data = r;
+    drawHomeworkReport();
+  }
+
+  // The report's columns, each sortable: Student, Done, Units, Possible AI use.
+  const HW_COLUMNS = [
+    { key: "name", label: "Student", cmp: (a, b) => a.student_name.localeCompare(b.student_name) },
+    { key: "done", label: "Done", cmp: (a, b) => a.done - b.done },
+    { key: "units", label: "Units", cmp: (a, b) => a.units.length - b.units.length || unitNames(a.units).localeCompare(unitNames(b.units)) },
+    { key: "flagged", label: "Possible AI use", cmp: (a, b) => a.flagged.length - b.flagged.length },
+  ];
+  function drawHomeworkReport() {
+    const r = hwReport.data;
+    const h = r.homework;
+    $("hw-report-meta").textContent = r.class_name + ": " + plural(h.task_count, "task") + ", due " + HW.longDate(h.due_on) + ". Units: " + unitNames(h.units) + ". " +
+      r.students.filter((s) => s.complete).length + " of " + plural(r.students.length, "student") + " complete.";
+    const col = HW_COLUMNS.find((c) => c.key === hwSort.key) || HW_COLUMNS[0];
+    const rows = r.students.slice().sort((a, b) => hwSort.dir * col.cmp(a, b) || a.student_name.localeCompare(b.student_name));
+    const head = HW_COLUMNS.map((c) => '<th scope="col"' + (c.key === hwSort.key ? ' aria-sort="' + (hwSort.dir === 1 ? "ascending" : "descending") + '"' : "") +
+      (c.key === "done" ? ' class="num"' : "") + '><button type="button" data-hw-sort="' + c.key + '">' + esc(c.label) + "</button></th>").join("");
+    $("hw-report-table").innerHTML = !rows.length ? '<p class="small">No students in this class yet.</p>' :
+      '<div class="table-wrap"><table class="hw-report-table"><thead><tr>' + head + "</tr></thead><tbody>" + rows.map((s) =>
+        '<tr><th scope="row">' + esc(s.student_name) + "</th>" +
+        '<td class="num" data-label="Done">' + (s.complete ? '<span class="badge-complete">Complete</span> ' : "") + s.done + " of " + s.task_count + "</td>" +
+        '<td data-label="Units">' + (s.units.length ? esc(unitNames(s.units)) : '<span class="small">None yet</span>') + "</td>" +
+        '<td data-label="Possible AI use">' + (s.flagged.length ? '<ul class="hw-flags">' + s.flagged.map((f) => '<li><span class="flag flag-alert">Possible AI use</span> ' + esc(taskName(f.task_id)) + "</li>").join("") + "</ul>"
+          : '<span class="small">None</span>') + "</td></tr>").join("") + "</tbody></table></div>";
+  }
+  $("hw-report-table").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-hw-sort]");
+    if (!b || !hwReport || !hwReport.data) return;
+    hwSort = hwSort.key === b.dataset.hwSort ? { key: hwSort.key, dir: -hwSort.dir } : { key: b.dataset.hwSort, dir: 1 };
+    drawHomeworkReport();
+    const again = $("hw-report-table").querySelector('button[data-hw-sort="' + CSS.escape(hwSort.key) + '"]');
+    if (again) again.focus();
+  });
 
   // ---------- One student ----------
   let shownStudent = null;

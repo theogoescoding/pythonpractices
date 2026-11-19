@@ -74,7 +74,8 @@
     remove(SYNCED_PREFIX + sid);
     remove(Store.ASSIGNMENTS_PREFIX + sid);
     remove(Store.ASSIGNMENT_WORK_PREFIX + sid);
-    for (const k of [Store.LEVEL_LOG_KEY, Store.BUTTON_LOG_KEY, Store.PLACEMENT_LOG_KEY]) {
+    remove(Store.HOMEWORK_PREFIX + sid);
+    for (const k of [Store.LEVEL_LOG_KEY, Store.BUTTON_LOG_KEY, Store.PLACEMENT_LOG_KEY, Store.PASTE_LOG_KEY]) {
       const log = read(k);
       if (Array.isArray(log)) write(k, log.filter((e) => e.studentId !== sid));
     }
@@ -216,6 +217,8 @@
       if (r.status === 0 || r.status === 429 || r.status >= 500) return "retry";
       if (r.status !== 200) console.warn("Not saved (the server refused it):", body.action, r.body.error);
       if (r.body && r.body.rejected && r.body.rejected.length) console.warn("Some rows weren't saved:", r.body.rejected);
+      // After a pass or a paste flag the server sends the student's homework back, with the new "x of y done".
+      if (r.status === 200 && r.body && Array.isArray(r.body.homework) && (session() || {}).sid === sid) Store.saveHomework(sid, r.body.homework);
       // Sent (or refused for good): take those ops off the front, keeping anything queued meanwhile.
       const now = read(OUTBOX_PREFIX + sid) || { ops: [] };
       now.ops = now.ops.slice(n);
@@ -228,7 +231,7 @@
   // ---------- Store writes also go to the outbox ----------
   const orig = {
     saveProgress: Store.saveProgress, logAttempt: Store.logAttempt, logLevelChange: Store.logLevelChange,
-    logButton: Store.logButton, logPlacement: Store.logPlacement,
+    logButton: Store.logButton, logPlacement: Store.logPlacement, logPasteFlag: Store.logPasteFlag,
   };
   const mine = (sid) => (session() || {}).sid === sid;
   const now = () => new Date().toISOString();
@@ -275,6 +278,12 @@
     if (mine(e.studentId) && e.kind !== "reset") enqueue(e.studentId, { type: "event", row: Rows.placementToRow(e) });
     return ok;
   };
+  Store.logPasteFlag = function (entry) {
+    const e = Object.assign({ id: Rows.newRecordId("f"), at: now() }, entry);
+    const ok = orig.logPasteFlag(e);
+    if (mine(e.studentId)) enqueue(e.studentId, { type: "event", row: Rows.pasteFlagToRow(e) });
+    return ok;
+  };
 
   // ---------- Opening a page ----------
   // Sends anything waiting, then fills the cache from the server. If something is still waiting (offline), the
@@ -292,6 +301,7 @@
     orig.saveProgress(s.sid, progress);
     write(Store.ATTEMPTS_PREFIX + s.sid, r.body.attempts.map((a) => Rows.rowToAttempt(a, s.sid)));
     Store.saveAssignments(s.sid, r.body.assignments || []); // only the open ones of the student's class
+    Store.saveHomework(s.sid, r.body.homework || []);       // their class's homework (none before migration 0018)
     Store.saveClassStage(s.sid, r.body.student.class_stage || null); // null until the server stores stages (migration 0013)
     const synced = { units: {}, passed: {} };
     for (const row of r.body.progress) synced.units[row.unit] = JSON.stringify(row.state);

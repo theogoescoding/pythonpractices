@@ -1347,11 +1347,11 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const backendSrc = read("teacher-backend.js");
 
     // The side menu, in order, with Students as the default page; old addresses still open the right page.
-    const nav = [...teacher.matchAll(/<a href="#(\w+)" data-page="\w+">([^<]+)<\/a>/g)].map((m) => m[2]);
-    check(nav.join() === "Classes,Students,Leaderboards,Certificates,Assignments,Reports,Misconceptions,Task browser,Settings" && !/tab-nav/.test(teacher) &&
-      ["classes", "students", "leaderboards", "certificates", "student", "assignments", "reports", "misconceptions", "tasks", "settings"].every((p) => teacher.includes('id="page-' + p + '"')) &&
+    const nav = [...teacher.matchAll(/<a href="#(\w+)" data-page="\w+"( data-backend)?>([^<]+)<\/a>/g)].map((m) => m[3]);
+    check(nav.join() === "Classes,Students,Leaderboards,Certificates,Homework,Assignments,Reports,Misconceptions,Task browser,Settings" && !/tab-nav/.test(teacher) &&
+      ["classes", "students", "leaderboards", "certificates", "homework", "student", "assignments", "reports", "misconceptions", "tasks", "settings"].every((p) => teacher.includes('id="page-' + p + '"')) &&
       /\["students", null\]/.test(teacherSrc) && /overview: "students", log: "reports", workshop: "misconceptions"/.test(teacherSrc) && /"#students"\)/.test(backendSrc),
-      "Teacher view: a side menu (Classes, Students, Leaderboards, Certificates, Assignments, Reports, Misconceptions, Task browser, Settings) replaces the tabs; Students is the default page, and #overview, #log and #workshop still open Students, Reports or Misconceptions");
+      "Teacher view: a side menu (Classes, Students, Leaderboards, Certificates, Homework, Assignments, Reports, Misconceptions, Task browser, Settings) replaces the tabs; Students is the default page, and #overview, #log and #workshop still open Students, Reports or Misconceptions");
 
     // The Misconceptions page (the workshop, moved from Reports).
     const pageOf = (id) => { const i = teacher.indexOf('<section id="page-' + id + '"'); return teacher.slice(i, teacher.indexOf("<!-- =====", i + 10)); };
@@ -3045,6 +3045,128 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       /window\.open\(certificateUrl\(/.test(tj) && /">Print<\/button>'/.test(tj) &&
       !/Store\.certificates|CERTIFICATES_KEY|certificateTeacher/.test(read("backend.js") + read("teacher-backend.js") + read("backend-rows.js")),
       "Certificates in the teacher view: a Certificates page (every class, own and shared) and a panel on each student's page, each with Print; local mode works them out in teacher-data.js and keeps them in this browser only");
+  }
+
+  // ===================== Prompt 5 (2026-11): homework and the large paste flag =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const HW = require(path.join(ROOT, "homework.js"));
+    const PF = require(path.join(ROOT, "paste-flag.js"));
+    const H = 3600000, T0 = Date.parse("2026-11-16T09:00:00Z"); // set on Monday 16 November, due Friday 20 November
+    const hw = (o) => Object.assign({ id: "h1", created_at: new Date(T0).toISOString(), due_on: "2026-11-20", units: [], task_count: 3 }, o);
+    const at = (h) => new Date(T0 + h * H).toISOString();
+    const rec = (taskId, h, o) => Object.assign({ kind: "attempt", at: at(h), unit: "selection", units: ["selection"], taskId, result: "pass", phase: "practice", taskType: "write" }, o);
+
+    // First pass only; placement counts; every task type counts; fails, skips and hints don't.
+    const a1 = [rec("t1", 1), rec("t1", 2), rec("t2", 3, { phase: "placement", taskType: "parsons" }), rec("t3", 4, { result: "fail" }),
+      rec("t4", 5, { kind: "skip", result: "skipped" }), rec("t5", 6, { taskType: "trace", phase: "endless" })];
+    const p1 = HW.progress(hw(), a1, []);
+    check(p1.done === 3 && p1.taskIds.join() === "t1,t2,t5" && p1.complete && HW.doneText(Object.assign(hw(), p1)) === "Complete" &&
+      HW.progress(hw({ task_count: 5 }), a1, []).done === 3 && HW.doneText(Object.assign(hw({ task_count: 5 }), HW.progress(hw({ task_count: 5 }), a1, []))) === "3 of 5 done",
+      "Homework: a task counts the first time it is passed (a repeat pass doesn't count again); placement, endless, trace and Parsons passes count; fails and skips don't");
+    // A task passed before the homework was set never counts, even if it is passed again during it.
+    const before = [rec("old", -48), rec("old", 2), rec("new", 3)];
+    check(HW.progress(hw(), before, []).taskIds.join() === "new",
+      "Homework: a task the student had passed before the homework was set doesn't count (a later pass is a repeat)");
+    // Due date cut-off: the end of the due date in the UK. 23:30 on Friday 20 November (GMT) counts; 00:30 on the 21st doesn't.
+    const cut = [rec("in", 0), rec("late-evening", Date.parse("2026-11-20T23:30:00Z") / H - T0 / H), rec("after", Date.parse("2026-11-21T00:30:00Z") / H - T0 / H)];
+    const pc = HW.progress(hw({ task_count: 10 }), cut, []);
+    check(pc.taskIds.join() === "in,late-evening" && HW.pastDue(hw(), Date.parse("2026-11-21T00:30:00Z")) && !HW.pastDue(hw(), Date.parse("2026-11-20T23:59:00Z")) &&
+      HW.inTime(hw({ due_on: "2026-06-20", created_at: "2026-06-01T00:00:00Z" }), "2026-06-20T22:30:00Z") === true &&
+      HW.inTime(hw({ due_on: "2026-06-20", created_at: "2026-06-01T00:00:00Z" }), "2026-06-20T23:30:00Z") === false,
+      "Homework: only passes on or before the due date count (the day in the UK: 23:30 GMT on the due date counts, 00:30 BST the next day doesn't); after it the homework still shows");
+    // Stops at y.
+    const many = ["a", "b", "c", "d", "e", "f"].map((id, i) => rec(id, i));
+    const pm = HW.progress(hw({ task_count: 4 }), many, []);
+    check(pm.done === 4 && pm.taskIds.join() === "a,b,c,d" && pm.complete && HW.doneText({ task_count: 4, done: 9, complete: false }) === "4 of 4 done",
+      "Homework: \"x of y done\" stops at y, and the homework is complete when x reaches y");
+    // Units: only the homework's units (either unit of a two-unit endless task); none means any unit.
+    const mixed = [rec("s1", 1), rec("m1", 2, { unit: "maths", units: ["maths"] }), rec("both", 3, { unit: "maths", units: ["maths", "selection"] })];
+    const pu = HW.progress(hw({ units: ["selection"], task_count: 10 }), mixed, []);
+    check(pu.taskIds.join() === "s1,both" && pu.units.join() === "selection" && HW.progress(hw({ task_count: 10 }), mixed, []).units.join() === "selection,maths",
+      "Homework: only tasks in the homework's units count (a two-unit endless task counts if either unit is chosen); no units means any unit; the report lists the units the counted tasks were done in");
+    // A flagged task doesn't count (a pass after its paste flag); a flag after a pass doesn't undo it.
+    const flags = [{ at: at(1), unit: "selection", units: ["selection"], taskId: "pasted" }, { at: at(6), unit: "selection", units: ["selection"], taskId: "late-flag" },
+      { at: at(2), unit: "selection", units: ["selection"], taskId: "pasted" }];
+    const pf = HW.progress(hw({ task_count: 10 }), [rec("pasted", 2), rec("late-flag", 5), rec("clean", 3)], flags);
+    check(pf.taskIds.join() === "clean,late-flag" && pf.flagged.map((f) => f.taskId).join() === "pasted,late-flag" &&
+      HW.progress(hw({ task_count: 10, units: ["maths"] }), [], flags).flagged.length === 0,
+      "Homework: a flagged paste stops that task counting (a pass after the flag); a flag after the pass doesn't undo it; the report lists each flagged task once, in the homework's units");
+    // Which homework a paste is in: open, not complete, not past due, covering the task's unit.
+    const list = [hw({ id: "open", done: 1 }), hw({ id: "done", complete: true }), hw({ id: "late", due_on: "2026-11-17" }), hw({ id: "maths", units: ["maths"] })];
+    check(HW.activeFor(list, ["selection"], Date.parse("2026-11-18T10:00:00Z")).map((h) => h.id).join() === "open" &&
+      HW.activeFor(list, ["maths"], Date.parse("2026-11-18T10:00:00Z")).map((h) => h.id).join() === "open,maths" && HW.activeFor([], ["maths"]).length === 0,
+      "Homework: a task is in homework when an open homework (not complete, not past its due date) covers its unit");
+    // The teacher's form.
+    const U = Curriculum.UNITS.map((u) => u.id);
+    const ok = HW.checkNew({ task_count: 5, due_on: "2026-11-20", units: ["maths", "output"] }, U, "2026-11-19");
+    check(ok.ok && ok.homework.units.join() === "output,maths" && HW.checkNew({ task_count: 1, due_on: "2026-11-19" }, U, "2026-11-19").ok &&
+      ["count", "count", "count", "due", "due", "due", "units"].join() === [
+        { task_count: 0, due_on: "2026-11-20" }, { task_count: 2.5, due_on: "2026-11-20" }, { task_count: 201, due_on: "2026-11-20" },
+        { task_count: 3 }, { task_count: 3, due_on: "2026-02-30" }, { task_count: 3, due_on: "2026-11-18" }, { task_count: 3, due_on: "2026-11-20", units: ["nope"] },
+      ].map((x) => HW.checkNew(x, U, "2026-11-19").problem).join(),
+      "Homework form: a whole number of tasks (1 to 200) and a due date (today or later) are needed; units are optional, from the list only");
+
+    // The paste threshold: more than 8 lines flags, 8 doesn't; expected output never flags; only the editor's tasks.
+    const code = (n) => Array.from({ length: n }, (_, i) => "x" + i + " = " + i).join("\n");
+    const outLines = Array.from({ length: 12 }, (_, i) => "Line " + (i + 1) + ": " + "*".repeat(i));
+    const wt = { type: "write", tests: [{ inputs: [], expected: outLines.join("\n") + "\n" }, { inputs: ["5"], expected: "Total: 5\n" }] };
+    check(PF.MAX_LINES === 8 && PF.flags(code(9), wt) && !PF.flags(code(8), wt) && !PF.flags("\n\n" + code(8) + "\n\n", wt) && PF.lineCount(code(9) + "\n") === 9 &&
+      PF.flags(code(9), { type: "scratch", tests: [] }) && !PF.flags(code(30), { type: "fill", tests: [] }) && !PF.flags(code(30), { type: "predict", tests: [] }),
+      "Paste flag: a single paste of more than 8 lines into the editor (write or write-from-scratch tasks) is flagged; 8 lines is not; blank lines at the ends don't count");
+    check(!PF.flags(outLines.join("\n"), wt) && !PF.flags(outLines.slice(2, 12).map((l) => "  " + l + "  ").join("\r\n"), wt) && PF.isExpectedOutput(outLines.slice(0, 9).join("\n"), wt) &&
+      PF.flags(outLines.slice(0, 9).join("\n") + "\nprint('done')", wt) && PF.flags(outLines.slice(0, 5).concat(outLines.slice(6, 10)).join("\n"), wt),
+      "Paste flag: pasting the expected output (all of it, or lines of it in order, spaces at the ends ignored) is never flagged; anything else of 9+ lines is");
+    check(PF.MESSAGE === "Your teacher has been told this code was pasted in. Try writing it yourself." &&
+      PF.HOMEWORK_MESSAGE === "Your teacher has been told. This task doesn't count towards your homework. Here is a new task.",
+      "Paste flag: the student is told exactly what happened, in short sentences (in homework, that the task doesn't count and a new one is given)");
+
+    // The practice page: both editors report a paste; a flag is recorded (an event in backend mode); in homework the
+    // student gets a new task; elsewhere nothing changes; never in teacher practice.
+    const appS = read("app.js"), on = appS.slice(appS.indexOf("  function onPaste("), appS.indexOf("  // ---------- Predict ----------"));
+    check(/ta\.addEventListener\("paste"/.test(appS) && /change\.origin === "paste"/.test(appS) && /if \(preview \|\| !self\.PasteFlag/.test(on) &&
+      /Store\.logPasteFlag\(\{ studentId: student\.id, unit: units\[0\], units, taskId: t\.id/.test(on) && /Homework\.activeFor\(Store\.homework\(student\.id\), units, Date\.now\(\)\)/.test(on) &&
+      /if \(homework\.length\) \{ moveOnAfterPaste\(\); return; \}/.test(on) && /PasteFlag\.MESSAGE/.test(on) && /notice = \{ kind: "down", text \};/.test(on) &&
+      !/applyOutcome|finishTask\(/.test(on) && ["logPasteFlag", "saveHomework"].every((f) => App.RECORDING_FUNCTIONS.includes(f)) &&
+      /<script src="homework\.js"><\/script>\s*<script src="paste-flag\.js"><\/script>/.test(read("practice.html")),
+      "Paste flag on the practice page: both editors (CodeMirror and the plain box) report a paste; it is recorded, then in homework the task is set aside for a new one, and outside homework only the message shows (no level or progress change); teacher practice records nothing");
+    const Rows = require(path.join(ROOT, "backend-rows.js"));
+    const row = Rows.pasteFlagToRow({ id: "f-abc-123", at: "2026-11-18T10:00:00.000Z", unit: "maths", taskId: "maths-L9b", studentId: "s1", lines: 12 });
+    check(JSON.stringify(row) === JSON.stringify({ record_id: "f-abc-123", record_type: "paste_flag", timestamp: "2026-11-18T10:00:00.000Z", unit: "maths", task_id: "maths-L9b" }) &&
+      Rows.rowToEvent(row, "s1") === null && /logPasteFlag: Store\.logPasteFlag/.test(read("backend.js")),
+      "Paste flag: sent to the server as an event (record_type paste_flag, an f- id, the task id); it isn't part of the teacher's export (the homework report shows it)");
+
+    // The student's card and the teacher's page.
+    const home = read("home.js"), appH = read("app.html");
+    check(/const list = backend \? Store\.homework\(student\.id\) : \[\];/.test(home) && /"Any unit"/.test(home) && /self\.Homework\.doneText\(hw\)/.test(home) &&
+      /<section id="homework" class="assignments homework" hidden aria-labelledby="homework-h">/.test(appH) && /<h2 id="homework-h">Homework<\/h2>/.test(appH),
+      "Homework card: on the student's home page in backend mode only, one card per homework with the due date, the units (or \"Any unit\") and \"x of y done\", then \"Complete\"");
+    const th = read("teacher.html"), tj = read("teacher.js");
+    const cols = [...tj.slice(tj.indexOf("const HW_COLUMNS = ["), tj.indexOf("function drawHomeworkReport")).matchAll(/key: "(\w+)", label: "([^"]+)"/g)].map((m) => m[2]);
+    check(cols.join() === "Student,Done,Units,Possible AI use" && /data-hw-sort="' \+ c\.key \+ '"/.test(tj) && /aria-sort="' \+ \(hwSort\.dir === 1 \? "ascending" : "descending"\)/.test(tj) &&
+      /<span class="flag flag-alert">Possible AI use<\/span> ' \+ esc\(taskName\(f\.task_id\)\)/.test(tj) && /hwSort = hwSort\.key === b\.dataset\.hwSort \? \{ key: hwSort\.key, dir: -hwSort\.dir \}/.test(tj),
+      "Homework report: one row per student with the columns Student, Done (x of y), Units and Possible AI use (each flagged task by name); every column sorts, both ways");
+    check(/<a href="#homework" data-page="homework" data-backend>Homework<\/a>/.test(th) && ["page-homework", "hw-local", "hw-main", "hw-class", "hw-count", "hw-due", "hw-blocks", "hw-list", "hw-report"].every((id) => th.includes('id="' + id + '"')) &&
+      /\$\("hw-local"\)\.hidden = !!tb;/.test(tj) && /\$\("hw-main"\)\.hidden = !tb;/.test(tj) && /data-hw-block=/.test(tj) && /for \(const b of HW_BLOCKS\)/.test(tj) &&
+      /const HW_BLOCKS = self\.Certificates\.BLOCKS;/.test(tj) && /tb\.createHomework\(hwClassId, c\.homework\)/.test(tj) && /tb\.deleteHomework\(/.test(tj) && /tb\.homeworkReport\(id\)/.test(tj) &&
+      /tb\.allClasses\(\)/.test(tj.slice(tj.indexOf("function renderHomework"))),
+      "Homework page: backend mode only (hidden in local mode); any of the teacher's classes (own and shared); number of tasks, due date and units from the six blocks with Select all; delete and a report");
+
+    // The server: one rule (homework.js) for both functions; only the server writes progress; 0018 as asked.
+    const hs = read("supabase/functions/_shared/homework-server.js"), sapi = read("supabase/functions/student-api/index.ts"), tapi = read("supabase/functions/teacher-api/index.ts");
+    const mig = read("supabase/migrations/0018_homework.sql");
+    check(/import "\.\.\/\.\.\/\.\.\/homework\.js";/.test(sapi) && /import "\.\.\/\.\.\/\.\.\/homework\.js";/.test(tapi) && /deps\.Homework\.progress\(/.test(hs) &&
+      /"paste_flag"\]/.test(sapi) && /async homework\(sid\)/.test(sapi) && /homework: \(await myHomework\(sid\)\) \?\? \[\]/.test(sapi) &&
+      ["list_homework", "create_homework", "delete_homework", "homework_report"].every((a) => new RegExp("async " + a + "\\(tid, body\\)").test(tapi)) &&
+      /deps\.Sharing\.requireClass\(sb, tid, classId, false\)/.test(hs) && /deps\.Sharing\.onClass\(sb, tid, h\.class_id\)/.test(hs) &&
+      !/pin_hash|login_code|student_code|code_hash/.test(hs),
+      "Homework on the server: student-api and teacher-api use the site's rule (homework.js); teacher actions need a teacher on the class (owner or co-teacher); no PIN, code or attempt text is read");
+    check(/^begin;$/m.test(mig) && /^commit;$/m.test(mig) && /'placement_reset', 'paste_flag'\)/.test(mig) && /\^\[lbpf\]-/.test(mig) &&
+      /create table public\.homework \(/.test(mig) && /create table public\.homework_progress \(/.test(mig) && /primary key \(homework_id, student_id\)/.test(mig) &&
+      /revoke all on table public\.homework, public\.homework_progress from anon, authenticated;/.test(mig) && /grant select on public\.homework_progress to authenticated;/.test(mig) &&
+      !/grant[^;]*(insert|update|delete)[^;]*homework_progress to authenticated/.test(mig) && /using \(class_id in \(select private\.my_class_ids\(\)\)\)/.test(mig) &&
+      /using \(student_id in \(select private\.my_student_ids\(\)\)\)/.test(mig) && !/^grant[^;]*\banon\b/m.test(mig) && !/for \w+ to anon/.test(mig),
+      "0018: in one transaction; the paste_flag event type (f- ids); homework and homework_progress, read by teachers on the class (owner or co-teacher), homework added by them, progress written only by the server, nothing for anon (students)");
   }
 
   // ===================== Selection, trimmed =====================

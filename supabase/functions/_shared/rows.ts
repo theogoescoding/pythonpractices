@@ -136,10 +136,12 @@ export async function insertRows(table: "attempts" | "events", rows: Record<stri
 }
 
 // Events: students may send every record type except placement_reset, which only a teacher makes.
+// A paste flag (record_type paste_flag, migration 0018) must name its task.
 export function checkEvents(rows: unknown, allowedTypes: string[]) {
   return checkRows(EVENT, rows, (r) => {
     if (!UNITS.includes(r.unit as string)) return "bad unit";
     if (!allowedTypes.includes(r.record_type as string)) return "bad record_type";
+    if (r.record_type === "paste_flag" && (typeof r.task_id !== "string" || !r.task_id)) return "bad task_id";
     return null;
   });
 }

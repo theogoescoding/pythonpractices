@@ -807,6 +807,41 @@ td pre { white-space: pre-wrap; margin: .25rem 0; font-size: .85rem; }
 .assignment-task.current { border-width: 3px; font-weight: 700; }
 .assignment-card h3 .flag { font-size: .8rem; vertical-align: middle; }
 
+/* ---------- Homework (student home page and teacher view) ---------- */
+.homework-card { border-top-color: var(--write); }
+.homework-card.homework-complete { border-top-color: var(--pass); }
+.homework-label { font-weight: 700; }
+.hw-fields label { display: flex; flex-direction: column; gap: .2rem; font-weight: 700; }
+.hw-fields .text-input { width: auto; min-width: 10rem; max-width: 100%; }
+.hw-units { border: 2px solid var(--border); border-radius: 8px; padding: .5rem .9rem .75rem; margin: 0 0 1rem; min-width: 0; }
+.hw-units legend { font-weight: 700; padding: 0 .3rem; }
+.hw-block { border-bottom: 1px solid var(--border); padding: .35rem 0; }
+.hw-block:last-child { border-bottom: 0; }
+.hw-block summary { cursor: pointer; font-weight: 700; padding: .25rem 0; }
+.hw-all { display: block; margin: .35rem 0; font-weight: 700; }
+.hw-unit-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); gap: .25rem 1rem; padding-left: 1.4rem; }
+.hw-unit-grid label { overflow-wrap: anywhere; }
+.hw-list { list-style: none; padding: 0; margin: .5rem 0 1rem; display: grid; gap: .6rem; }
+.hw-item h4 { margin: 0 0 .25rem; }
+.hw-item p { margin: .25rem 0; }
+.hw-item .teacher-controls { margin: .5rem 0 0; }
+.hw-list-h { margin-top: 1.25rem; }
+.hw-report-table td, .hw-report-table th { vertical-align: top; }
+.hw-report-table td:nth-child(3) { min-width: 9rem; }
+.hw-flags { list-style: none; padding: 0; margin: 0; display: grid; gap: .3rem; }
+.hw-flags .flag { margin-left: 0; margin-right: .3rem; }
+/* On a phone each student's row is a block (name, then Done, Units and Possible AI use, labelled), so nothing is off
+   to the side; the column headings stay as a row of sort buttons. */
+@media (max-width: 600px) {
+  .hw-report-table, .hw-report-table thead, .hw-report-table tbody, .hw-report-table tbody tr, .hw-report-table tbody th, .hw-report-table td { display: block; width: auto; }
+  .hw-report-table thead tr { display: flex; flex-wrap: wrap; gap: 0 .9rem; padding: .3rem .7rem; }
+  .hw-report-table thead th { border: 0; padding: .25rem 0; }
+  .hw-report-table tbody tr { border-top: 1px solid var(--border); padding: .35rem 0 .5rem; }
+  .hw-report-table tbody th, .hw-report-table td { border: 0; padding: .15rem .7rem; text-align: left; min-width: 0; }
+  .hw-report-table td::before { content: attr(data-label) ": "; font-weight: 700; }
+}
+.paste-flag { margin-top: 0; }
+
 /* ---------- Task browser (teacher view) ---------- */
 .tb-results { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem; }
 .tb-task { border-top: 1px solid var(--border); margin-top: 1rem; padding-top: .5rem; }

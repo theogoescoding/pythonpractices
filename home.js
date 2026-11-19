@@ -183,6 +183,25 @@ Store.whenReady(function () {
     }).join("");
   }
 
+  // ---------- Homework (backend mode) ----------
+  // A card for each homework of the student's class (as student-api last sent it): the due date, the units (or "Any
+  // unit") and "x of y done", or "Complete" once done. Not a link: any task in those units counts (homework.js).
+  // Local mode has no homework, so the section stays hidden.
+  function renderHomework(student) {
+    const list = backend ? Store.homework(student.id) : [];
+    $("homework").hidden = !list.length;
+    $("homework-list").innerHTML = list.map((hw) => {
+      const units = hw.units && hw.units.length ? hw.units.map((u) => self.Curriculum.studentUnitTitle(u)).join(", ") : "Any unit";
+      const late = !hw.complete && self.Homework.pastDue(hw);
+      return '<li><div class="unit-card homework-card' + (hw.complete ? " homework-complete" : "") + '">' +
+        "<h3>Due " + esc(self.Homework.longDate(hw.due_on)) + "</h3>" +
+        '<p><span class="homework-label">Units:</span> ' + esc(units) + "</p>" +
+        (late ? '<p class="small">The due date has passed. New tasks no longer count.</p>' : "") +
+        '<p class="unit-meta"><span>' + hw.task_count + " task" + (hw.task_count === 1 ? "" : "s") + "</span><span><strong>" +
+        (hw.complete ? "✓ " : "") + esc(self.Homework.doneText(hw)) + "</strong></span></p></div></li>";
+    }).join("");
+  }
+
   // ---------- Unit groups ----------
   // Groups a student has collapsed, remembered on this device only (collapse.js, shared with the teacher view).
   const COLLAPSED_KEY = "pythonPractice.collapsedGroups";
@@ -205,6 +224,7 @@ Store.whenReady(function () {
   function renderUnits() {
     const student = Store.currentStudent();
     if (!tasks || !student) return; // still loading, or waiting for a name
+    renderHomework(student);
     renderAssignments(student);
     const progress = Store.loadProgress(student.id);
     studentAttempts = Store.attempts(student.id);

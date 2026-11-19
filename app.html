@@ -104,6 +104,12 @@
       </nav>
       <!-- Short reminders of anything new since the last visit (tour.js) -->
       <div id="tour-reminders" class="tour-reminders" hidden></div>
+      <!-- Backend mode: the class's homework (home.js), above the assignments and the unit cards -->
+      <section id="homework" class="assignments homework" hidden aria-labelledby="homework-h">
+        <h2 id="homework-h">Homework</h2>
+        <p class="small">Pass tasks in the units shown. Each task you pass for the first time counts once.</p>
+        <ul id="homework-list" class="unit-list"></ul>
+      </section>
       <!-- Backend mode: the class's open assignments, above the unit cards -->
       <section id="assignments" class="assignments" hidden aria-labelledby="assignments-h">
         <h2 id="assignments-h">From your teacher</h2>
@@ -145,6 +151,7 @@
   </main>
 
   <script src="curriculum.js"></script>
+  <script src="homework.js"></script>
   <script src="app.js"></script>
   <script src="secured.js"></script>
   <script src="tour.js"></script>

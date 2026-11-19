@@ -246,6 +246,22 @@
     apply();
   }
 
+  // ---------- Homework (backend mode) ----------
+  // The homework of the student's class, as student-api sent it (get_progress, and after each pass or paste flag):
+  // [{ id, task_count, due_on, units, created_at, done, complete }]. Always empty in local mode (no homework there).
+  const HOMEWORK_PREFIX = "pyPractice.homework.v1."; // + student id
+  const homework = (studentId) => readJson(HOMEWORK_PREFIX + studentId) || [];
+  const saveHomework = (studentId, list) => writeJson(HOMEWORK_PREFIX + studentId, Array.isArray(list) ? list : []);
+
+  // ---------- Large paste flags (paste-flag.js) ----------
+  // entry = { studentId, unit, units, taskId, lines, homework (true when it was in homework) }. In backend mode it is
+  // also sent to the server as an event (record_type paste_flag), where homework and the teacher's report use it.
+  const PASTE_LOG_KEY = "pyPractice.pasteLog.v1";
+  function logPasteFlag(entry) {
+    return appendLog(PASTE_LOG_KEY, Object.assign({ id: newRecordId("f"), at: new Date().toISOString() }, entry), MAX_LOG_ENTRIES);
+  }
+  const pasteLog = () => readJson(PASTE_LOG_KEY) || [];
+
   // ---------- Certificates (teacher view, local mode only) ----------
   // In backend mode the server keeps certificates; in local mode they are kept here, in this browser only, and never
   // sent anywhere. { studentId: [{ block_id, block_name, earned_on }] }, and the name for "Issued by".
@@ -268,6 +284,7 @@
     logAttempt, attempts, logButton, buttonLog, logPlacement, placementLog, storageUsed,
     ASSIGNMENTS_PREFIX, ASSIGNMENT_WORK_PREFIX, assignments, saveAssignments, loadAssignmentWork, saveAssignmentWork,
     CLASS_STAGE_PREFIX, classStage, saveClassStage,
+    HOMEWORK_PREFIX, homework, saveHomework, PASTE_LOG_KEY, logPasteFlag, pasteLog,
     CERTIFICATES_KEY, CERTIFICATE_TEACHER_KEY, certificates, saveCertificates, certificateTeacher, saveCertificateTeacher,
   };
 });

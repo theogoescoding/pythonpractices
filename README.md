@@ -110,11 +110,12 @@ A class can have more than one teacher. Its owner (the teacher who made it, `cla
 | The five A-level data structures units (`records-tuples`, `stacks-queues`, `linked-lists`, `hash-tables`, `arrays-3d`) in every table's unit check | `supabase/migrations/0012_a_level_data_structures_units.sql` |
 | A class's stage (`classes.stage`: `ks3`, `gcse` or `a-level`; existing classes become `gcse`) | `supabase/migrations/0013_class_stage.sql` |
 | `join-class`, `resume` (no sign-in, 300 requests per IP per 10 minutes) | `supabase/functions/join-class/`, `resume/` |
-| `student-api` (student session token): get/save progress (with the class's open assignments), get assignments, add attempts and events, mark passed, change my nickname, the class leaderboard, delete my progress | `supabase/functions/student-api/` |
+| `student-api` (student session token): get/save progress (with the class's open assignments and homework), get assignments, the student's homework, add attempts and events (paste flags too; after a pass or a flag the homework count comes back), mark passed, change my nickname, the class leaderboard, delete my progress | `supabase/functions/student-api/` |
 | Sharing a class: `class_teachers`, the policies that let a co-teacher use a class as its owner does, and two service-role functions (`teacher_by_email`, `class_teacher_list`) | `supabase/migrations/0016_class_sharing.sql` |
 | Certificates: one row per student per block, read by the student's teachers, written only by teacher-api | `supabase/migrations/0017_certificates.sql` |
-| `teacher-api` (teacher's Supabase sign-in): reveal codes, reset PIN, reset placement, rename a student, the class's leaderboards and All my classes, add, remove and list a class's teachers, certificates, import | `supabase/functions/teacher-api/` |
-| Shared function code: CORS, crypto, nickname filter, row checks, points and leaderboards (`points.ts`, which loads `curriculum.js` and `secured.js` themselves), class sharing (`class-sharing.js`) and certificates (`certificates-server.js`), plain scripts the Node tests run too | `supabase/functions/_shared/` |
+| Homework: `homework` (read, added and deleted by teachers on the class) and `homework_progress` (read by them, written only by the server), and the `paste_flag` event type (`f-` ids, a task id) | `supabase/migrations/0018_homework.sql` |
+| `teacher-api` (teacher's Supabase sign-in): reveal codes, reset PIN, reset placement, rename a student, the class's leaderboards and All my classes, add, remove and list a class's teachers, certificates, homework (list, create, delete, report), import | `supabase/functions/teacher-api/` |
+| Shared function code: CORS, crypto, nickname filter, row checks, points and leaderboards (`points.ts`, which loads `curriculum.js` and `secured.js` themselves), class sharing (`class-sharing.js`), certificates (`certificates-server.js`) and homework (`homework-server.js`, with `homework.js`), plain scripts the Node tests run too | `supabase/functions/_shared/` |
 | Student side | `backend.js`, with `backend-rows.js` (local records ⇄ table rows) |
 | Teacher side | `teacher-backend.js`, with `backend-import.js` (reading a full export) |
 
@@ -919,6 +920,27 @@ A student earns a certificate for a block of units once every unit in the block 
 - **Backend mode:** teacher-api `certificates_for_class` and `certificate_for_student` work them out, save new ones in the `certificates` table (migration 0017; only the server writes it, and teachers read their own classes') and return only the student's name, the class name, the block name and the date. Students see no change.
 - **Local mode:** the same rule (`teacher-data.js` `certificatesFor`), kept in this browser only (`Store.certificates`), never sent anywhere. The name for "Issued by" is typed on the Certificates page.
 
+### Homework
+
+A teacher sets a **number of tasks** for a class to do by a **due date**, from some **units** or any unit. A class can have several at once. The counting rule is in `homework.js`; the student's pages, student-api and teacher-api all use it (teacher-api and student-api through `supabase/functions/_shared/homework-server.js`). Backend mode only.
+
+- **What counts:** a task passed for the **first time ever** (a repeat pass doesn't count, nor a task passed before the homework was set), of **any type** (write, predict, trace, Parsons...) in **any phase** (practice, placement, endless, assignment), in the homework's units (no units: any unit; a two-unit endless task counts if either unit is chosen), between when the homework was set and the **end of the due date** (the day in the UK). After the due date the homework still shows, but no new pass counts.
+- **Flagged tasks don't count:** a pass of a task that had a large paste flagged (below) at or before it.
+- **"x of y done"** stops at y; the homework is **Complete** when x reaches y.
+- **Students:** a **Homework** card for each homework of their class on the home page, above the assignments: the due date, the units (or "Any unit") and "x of y done", or "✓ Complete". Past the due date the card also says "The due date has passed. New tasks no longer count." Nothing else changes.
+- **Teachers:** the **Homework** page (side menu, hidden in local mode). Choose any class you are on (own or shared); set the number of tasks (1 to 200), the due date (today or later) and units (optional; open a block to tick its units, or Select all of the block). Each homework shows who set it and how many students have completed it, with **Report** and **Delete** (its creator or any other teacher on the class). The **report** has one row per student: Done (x of y), the units the counted tasks were done in, and every flagged task, labelled **Possible AI use** with the task's name. Every column sorts. The report is the only place a teacher sees homework paste flags; nothing is emailed.
+- **Server:** teacher-api `list_homework`, `create_homework`, `delete_homework` and `homework_report`, and student-api's `homework` list (also in `get_progress`). Each works out the students' progress and saves it in `homework_progress` (migration 0018; only the server writes it). student-api works it out again after a pass or a paste flag arrives, and sends the new count back, so the home page is up to date. Only names, numbers, units and task ids are returned: no ids, PINs, codes or attempt text.
+
+### Large paste flag
+
+A **single paste of more than 8 lines** into the code editor of a write or write-from-scratch task is flagged (`paste-flag.js`, everywhere on the site). It isn't compared with earlier attempts.
+
+- **Expected output is never flagged.** A paste whose lines appear, in order and together, in one of the task's tests' expected output (the text the Expected output box and a failed test show, as `Checker.normalise` compares it; blank lines at the ends and spaces at each end of a line ignored) counts as expected output. That match is exact, so code can't pass as output by accident.
+- **Recorded** as an event (`record_type` `paste_flag`, an `f-` id, the unit and the task id; migration 0018), sent through student-api `add_events` in backend mode, and kept in this browser in local mode (`Store.pasteLog`). It isn't in the full export.
+- **In homework** (an open homework of the class, not complete or past due, covers the task's unit): the student sees "Your teacher has been told. This task doesn't count towards your homework. Here is a new task." and gets a new task. In practice and endless mode the old task is set aside (no skip, fail or level change); in a placement question it is skipped, as the Skip button does.
+- **Anywhere else** (no homework, local mode, a class assignment, which is a fixed list): the student sees "Your teacher has been told this code was pasted in. Try writing it yourself." under the editor. Nothing else changes: their progress is as it was.
+- Teacher practice never flags anything (nothing is recorded there).
+
 ### Class stage
 
 A class's stage (`classes.stage`: `ks3`, `gcse` or `a-level`) decides which units the Students page shows and which sections of its students' unit menu open by default: KS3 opens Programming fundamentals and Advanced programming; GCSE adds Validation, and Searching and sorting; A-level opens every section. Students can still open any section. The stage reaches the student app through student-api `get_progress` (`student.class_stage`) and is kept with the student's other cached data (`Store.classStage`). The first time a stage is seen on a computer, or when the teacher changes it, the open and closed sections start again from the stage (`Collapse.resetForStage`); after that the student's own opening and closing is kept. Local mode has no class, so every section starts open, as before. A server without migration 0013 sends no stage, and everything works as before (the teacher view shows every class as GCSE).
@@ -1103,10 +1125,12 @@ The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, n
 | `progress.html`, `progress.js` | Progress summary and skill drill-down |
 | `leaderboard.html`, `leaderboard.js` | The student's class leaderboards (backend mode; see [Points and leaderboards](#points-and-leaderboards)) |
 | `endless.html`, `endless.js` | Endless mode set-up: choosing units |
-| `teacher.html`, `teacher.js` | Teacher view: a side menu of Classes (with the class's Teachers panel), Students, Leaderboards, Certificates, one student, Assignments, Reports (exports, compare classes), Misconceptions (the workshop), Task browser (with teacher practice) and Settings |
+| `teacher.html`, `teacher.js` | Teacher view: a side menu of Classes (with the class's Teachers panel), Students, Leaderboards, Certificates, Homework (backend mode), one student, Assignments, Reports (exports, compare classes), Misconceptions (the workshop), Task browser (with teacher practice) and Settings |
 | `secured.js` | The secured score of a unit and its colour bands, and the points and leaderboard rule (shared by the teacher view, the student view and the server) |
 | `certificates.js` | The certificate rule: the six blocks, when a unit's floor reached 100%, and when a block is earned (shared by the teacher view and the server; see [Certificates](#certificates)) |
 | `certificate.html`, `certificate.js` | One printable certificate (A4 landscape, no buttons), opened by the teacher view's Print button |
+| `homework.js` | The homework counting rule, the teacher's form check and the dates (shared by the student pages, the teacher view and the server; see [Homework](#homework)) |
+| `paste-flag.js` | The large paste flag: more than 8 lines into the editor, never the expected output (see [Large paste flag](#large-paste-flag)) |
 | `tour.js` | The student app's tutorial: the walkthrough, the reminders and Help (see [Tutorial](#tutorial-tourjs)) |
 | `collapse.js` | Collapsible sections, shared by the student view's unit groups and the teacher view's sections (each remembered under its own localStorage key) |
 | `task-view.js` | The Expected output box and example test (practice page and Task browser), and the task search |
@@ -1127,6 +1151,7 @@ The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, n
 | `tests/sql/a-level-data-structures-units.sql` | SQL test for migration 0012 (the five data structures units in every unit check) |
 | `tests/sql/class-sharing.sql` | SQL test for migration 0016: what a co-teacher, a removed co-teacher and a teacher with no membership can see and do |
 | `tests/sql/certificates.sql` | SQL test for migration 0017: a teacher (owner or co-teacher) reads their class's certificates, a teacher outside the class reads none, and no teacher or anon can write them |
+| `tests/sql/homework.sql` | SQL test for migration 0018: teachers on the class (owner or co-teacher) read its homework and progress and add or delete its homework; a teacher outside the class sees none; no teacher writes progress; anon can't read or write either; the paste_flag event |
 | `tools/archive/print-commas.js`, `tools/archive/print-commas-templates.js`, `tools/archive/casting-words.js`, `tools/archive/replace-sep-end.js`, `tools/archive/replace-types-round-if.js` | Archived: one-off rewrites that were each run once (the printing rule's commas and casting, `sep=`/`end=`, and the Data types tasks that used `round()` or `if`), kept as a record. Nothing needs them to rebuild anything |
 | `teacher-data.js` | Teacher view sums, filters, the secured score table and flags, the student page, the exports and data dictionary (no DOM, so it's tested in Node) |
 | `misconceptions.json` | The fixed list of misconception ids, names and descriptions |
