@@ -31,6 +31,7 @@
 
   let sb = null;
   let user = null;
+  let myName = "";      // the signed-in teacher's name (teachers.name): "Issued by" on a certificate
   let classes = [];
   let current = null;   // the chosen class row
   let students = [];    // its students
@@ -158,6 +159,7 @@
     $("tb-classes").hidden = false;
     $("teacher-main").hidden = false;
     $("tb-who").textContent = (mine.data && mine.data.name) || user.email;
+    myName = (mine.data && mine.data.name) || (user.user_metadata && user.user_metadata.name) || user.email;
     if (["#signin", "#signup"].includes(location.hash)) history.replaceState(null, "", location.pathname + "#students");
     await loadClasses(store.get(CLASS_KEY));
   }
@@ -611,6 +613,19 @@
     if (r.status !== 200) return { error: r.body.error || "Couldn't load the leaderboards. Please try again." };
     return r.body;
   }
+  // Certificates (teacher-api certificates_for_class and certificate_for_student, migration 0017): the server works out
+  // what each student has earned, saves new ones, and returns { class_name, certificates: [{ student_name,
+  // class_name, block_name, earned_on }] }, or here { error }.
+  const OLD_SERVER_CERTS = "Certificates need the newest version of the server. They will appear once it has been updated.";
+  async function certificatesCall(action, body) {
+    const r = await teacherApi(action, body);
+    if (r.status === 400 && /Something went wrong/.test(r.body.error || "")) return { error: OLD_SERVER_CERTS };
+    if (r.status !== 200) return { error: r.body.error || "Couldn't load the certificates. Please try again." };
+    return r.body;
+  }
+  const certificatesForClass = (classId) => certificatesCall("certificates_for_class", { class_id: classId });
+  const certificatesForStudent = (studentId) => certificatesCall("certificate_for_student", { student_id: studentId });
+
   const leaderboards = () => (current ? boardsCall("leaderboards", { class_id: current.id }) : Promise.resolve({ error: "Choose a class first." }));
   const leaderboardsAll = () => boardsCall("leaderboards_all", {});
 
@@ -673,6 +688,10 @@
     currentClass: () => current,
     // Whether the signed-in teacher made the chosen class (false: it was shared with them).
     ownsCurrentClass: () => !!(current && current.owned),
+    // Every class this teacher is on (own and shared), and their name for "Issued by" on certificates.
+    allClasses: () => classes.map((c) => ({ id: c.id, name: c.name })),
+    teacherName: () => myName,
+    certificatesForClass, certificatesForStudent,
     copy, resetPin, removeStudent, renameStudent, changePassword, compareClasses, leaderboards, leaderboardsAll,
   };
 })();

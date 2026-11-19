@@ -2,9 +2,9 @@
 // No DOM here, so tests/features.js can check it. Works in the browser (window.TeacherData) and in Node.
 
 (function (root, factory) {
-  if (typeof module === "object" && module.exports) module.exports = factory(require("./secured.js"));
-  else root.TeacherData = factory(root.Secured); // teacher.html loads secured.js first
-})(typeof self !== "undefined" ? self : this, function (Secured) {
+  if (typeof module === "object" && module.exports) module.exports = factory(require("./secured.js"), require("./certificates.js"));
+  else root.TeacherData = factory(root.Secured, root.Certificates); // teacher.html loads secured.js and certificates.js first
+})(typeof self !== "undefined" ? self : this, function (Secured, Certificates) {
 
   const FAILS_IN_A_ROW_ALERT = 2;
   const TOP_FAILED_TASKS = 10;
@@ -697,7 +697,31 @@
     return Object.entries(data.students).map(([id, s]) => Object.assign({ nickname: s.name, total: points[id].total, gain: points[id].gain, unitCount: units.length }, extra || {}));
   }
 
+  // ---------- Certificates (local mode; certificates.js holds the rule, the server uses the same) ----------
+  // Each student's certificates: what this browser's attempts earn now, added to those kept before (stored:
+  // { studentId: [{ block_id, block_name, earned_on }] }, kept in this browser only). A kept one is never dropped,
+  // and its first earned date stays. -> { studentId: [{ block_id, block_name, earned_on }] }, in the blocks' order.
+  function certificatesFor(data, stored) {
+    const out = {};
+    for (const id of Object.keys(data.students)) {
+      const mine = data.attempts.filter((a) => a.studentId === id);
+      const earned = Certificates.earnedBlocks(mine, Certificates.startedFrom((data.progress || {})[id], mine));
+      out[id] = Certificates.merge((stored || {})[id], earned);
+    }
+    return out;
+  }
+  // The Certificates page's rows: every student with at least one, by name, then the blocks' order.
+  // -> [{ studentId, student_name, block_id, block_name, earned_on }]
+  function certificateRows(data, certs) {
+    const rows = [];
+    for (const [id, s] of Object.entries(data.students).sort((a, b) => a[1].name.localeCompare(b[1].name))) {
+      for (const c of (certs || {})[id] || []) rows.push({ studentId: id, student_name: s.name, block_id: c.block_id, block_name: c.block_name, earned_on: c.earned_on });
+    }
+    return rows;
+  }
+
   return {
+    certificatesFor, certificateRows,
     pointsByStudent, leaderboardStudents,
     FAILS_IN_A_ROW_ALERT, TOP_FAILED_TASKS, BUTTON_NAMES, PLACEMENT_STATUS, FULL_COLUMNS,
     collect, overviewRows, sortOverview, filterByName, taskStats, misconceptionStats, quickLook,

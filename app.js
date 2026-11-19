@@ -959,7 +959,7 @@ if (typeof module === "object" && module.exports) {
 // replaces every Store function that writes, so no attempt, pass, progress, level change, button use, placement or
 // assignment work is saved in this browser or sent to the server (backend.js only sends what those functions queue).
 const RECORDING_FUNCTIONS = ["writeJson", "addStudent", "setCurrent", "saveProgress", "logLevelChange", "logAttempt", "logButton", "logPlacement",
-  "saveAssignments", "saveAssignmentWork", "saveClassStage"];
+  "saveAssignments", "saveAssignmentWork", "saveClassStage", "saveCertificates", "saveCertificateTeacher"];
 const PREVIEW_STUDENT = { id: "teacher-practice", name: "Teacher practice (not recorded)" };
 function stopRecording(store) {
   for (const name of RECORDING_FUNCTIONS) {

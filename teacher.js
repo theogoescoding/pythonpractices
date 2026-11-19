@@ -10,7 +10,7 @@
   const TD = self.TeacherData;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const PAGES = ["classes", "students", "leaderboards", "student", "assignments", "reports", "misconceptions", "tasks", "settings"];
+  const PAGES = ["classes", "students", "leaderboards", "certificates", "student", "assignments", "reports", "misconceptions", "tasks", "settings"];
   const OLD_PAGES = { overview: "students", log: "reports", workshop: "misconceptions" }; // the workshop was on Reports
   const RECENT_ATTEMPTS = 30;
   const REASONS = {
@@ -106,6 +106,7 @@
     if (!data) return; // backend mode: no class loaded yet
     if (p === "students") renderStudents(data);
     else if (p === "leaderboards") renderLeaderboards(data);
+    else if (p === "certificates") renderCertificates(data);
     else if (p === "student") renderStudent(data, arg);
     else if (p === "reports") renderReports(data);
     else if (p === "misconceptions") renderMisconceptions(data);
@@ -218,6 +219,76 @@
     $("lb-all").innerHTML = r.error ? "" : boardsHtml(r.boards, true);
   });
 
+  // ---------- Certificates ----------
+  // A certificate for each block of units where every unit has its floor at 100% (certificates.js). Backend mode: the
+  // server works them out and keeps them (teacher-api, migration 0017). Local mode: the same rule (teacher-data.js) on
+  // this browser's records, kept in this browser only (never sent anywhere).
+  const Certs = self.Certificates;
+  // Local mode: works them out and keeps them in this browser (Store.certificates), so one earned is never lost.
+  function localCertificates(data) {
+    const stored = Store.certificates();
+    const now = TD.certificatesFor(data, stored);
+    Store.saveCertificates(Object.assign(stored, now));
+    return now;
+  }
+  const issuer = () => (tb ? tb.teacherName() : Store.certificateTeacher()) || "your teacher";
+  // The certificate page (certificate.html) gets its text in the address's # part, which never goes to a server.
+  const certificateUrl = (c) => "certificate.html#" + new URLSearchParams({ s: c.student_name, c: c.class_name || "", b: c.block_name, d: c.earned_on, t: issuer(), print: "1" }).toString();
+  const printButton = (c) => '<button type="button" class="secondary" data-cert="' + esc(JSON.stringify({ student_name: c.student_name, class_name: c.class_name || "", block_name: c.block_name, earned_on: c.earned_on })) +
+    '" aria-label="' + esc("Print " + c.student_name + "'s " + c.block_name + " certificate") + '">Print</button>';
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-cert]");
+    if (b) window.open(certificateUrl(JSON.parse(b.dataset.cert)), "_blank");
+  });
+  const certDate = (ymd) => Certs.longDate(ymd);
+  // One class's certificates: a row each (student, block, date, Print), which wraps cleanly on a phone.
+  function certTableHtml(title, rows) {
+    return '<section class="cert-class"><h3>' + esc(title) + "</h3>" + (!rows.length ? '<p class="small">No certificates yet.</p>' :
+      '<ul class="cert-list">' + rows.map((r) => '<li class="cert-row"><span class="cert-who"><strong>' + esc(r.student_name) + "</strong> " + esc(r.block_name) +
+        ' <span class="small">earned on ' + esc(certDate(r.earned_on)) + "</span></span> " + printButton(r) + "</li>").join("") + "</ul>") + "</section>";
+  }
+  let certShown = null; // the data the Certificates page was made from
+  async function renderCertificates(data) {
+    $("cert-local").hidden = !!tb;
+    $("cert-name-row").hidden = !!tb;
+    if (!tb && document.activeElement !== $("cert-teacher-name")) $("cert-teacher-name").value = Store.certificateTeacher();
+    if (certShown === data) return;
+    certShown = data;
+    if (!tb) {
+      $("cert-list").innerHTML = certTableHtml("This browser", TD.certificateRows(data, localCertificates(data)));
+      return;
+    }
+    // Every class this teacher is on (own and shared), one table each.
+    $("cert-status").textContent = "Loading…";
+    $("cert-list").innerHTML = "";
+    const parts = [];
+    for (const c of tb.allClasses()) {
+      const r = await tb.certificatesForClass(c.id);
+      if (certShown !== data) return; // the page changed meanwhile
+      parts.push(r.error ? '<section class="cert-class"><h3>' + esc(c.name) + '</h3><p class="problem">' + esc(r.error) + "</p></section>" : certTableHtml(c.name, r.certificates));
+    }
+    $("cert-status").textContent = "";
+    $("cert-list").innerHTML = parts.join("") || '<p class="small">You have no classes yet.</p>';
+  }
+  $("cert-teacher-name").addEventListener("input", () => Store.saveCertificateTeacher($("cert-teacher-name").value.trim()));
+
+  // The student page's Certificates panel.
+  let sdCertsFor = null;
+  async function renderStudentCertificates(data, studentId, name) {
+    if (sdCertsFor && sdCertsFor.data === data && sdCertsFor.id === studentId) return;
+    const mine = (sdCertsFor = { data, id: studentId });
+    const fill = (list) => {
+      $("sd-certs").innerHTML = !list.length ? '<p class="small">No certificates yet.</p>' : '<ul class="cert-list">' + list.map((c) =>
+        '<li class="cert-row"><span><strong>' + esc(c.block_name) + '</strong> <span class="small">earned on ' + esc(certDate(c.earned_on)) + "</span></span> " + printButton(c) + "</li>").join("") + "</ul>";
+    };
+    if (!tb) { fill((localCertificates(data)[studentId] || []).map((c) => ({ student_name: name, class_name: "", block_name: c.block_name, earned_on: c.earned_on }))); return; }
+    $("sd-certs").innerHTML = '<p class="small">Loading…</p>';
+    const r = await tb.certificatesForStudent(studentId);
+    if (sdCertsFor !== mine) return; // another student was opened meanwhile
+    if (r.error) { $("sd-certs").innerHTML = '<p class="problem">' + esc(r.error) + "</p>"; return; }
+    fill(r.certificates);
+  }
+
   // ---------- One student ----------
   let shownStudent = null;
   function renderStudent(data, studentId) {
@@ -231,6 +302,8 @@
       $("sd-actions").hidden = true;
       $("sd-scores").innerHTML = "";
       $("sd-points").innerHTML = "";
+      $("sd-certs").innerHTML = "";
+      sdCertsFor = null;
       $("sd-recent").innerHTML = "";
       return;
     }
@@ -262,6 +335,7 @@
         : '<tr><td colspan="4">No points yet.</td></tr>') +
       '</tbody><tfoot><tr><th scope="row">All ' + POINT_UNITS.length + " units (out of " + MAX_POINTS + ")</th><td class=\"num\">" + pts.secured + '</td><td class="num">' + pts.level + '</td><td class="num"><strong>' + pts.total + "</strong></td></tr></tfoot></table></div>" +
       '<p class="small">Units not listed have 0 points. In the last 14 days: ' + signed(pts.gain) + " points (" + pts.before.total + " points 14 days ago).</p>";
+    renderStudentCertificates(data, studentId, s.name);
     $("sd-recent").innerHTML = d.recent.length ? '<div class="table-wrap"><table><thead><tr><th scope="col">Time</th><th scope="col">Task</th><th scope="col">Result</th>' +
       '<th scope="col">Hints</th><th scope="col">Test that failed</th><th scope="col">Misconception matched</th></tr></thead><tbody>' +
       d.recent.map((a) => "<tr" + (a.result === "fail" ? ' class="row-alert"' : "") + "><td>" + esc(when(a.at)) + "</td><td>" + taskLink(a.taskId) +

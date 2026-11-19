@@ -246,6 +246,16 @@
     apply();
   }
 
+  // ---------- Certificates (teacher view, local mode only) ----------
+  // In backend mode the server keeps certificates; in local mode they are kept here, in this browser only, and never
+  // sent anywhere. { studentId: [{ block_id, block_name, earned_on }] }, and the name for "Issued by".
+  const CERTIFICATES_KEY = "pyPractice.certificates.v1";
+  const CERTIFICATE_TEACHER_KEY = "pyPractice.certificateTeacher.v1";
+  const certificates = () => readJson(CERTIFICATES_KEY) || {};
+  const saveCertificates = (all) => writeJson(CERTIFICATES_KEY, all);
+  const certificateTeacher = () => { const n = readJson(CERTIFICATE_TEACHER_KEY); return typeof n === "string" ? n : ""; };
+  const saveCertificateTeacher = (name) => writeJson(CERTIFICATE_TEACHER_KEY, String(name || "").slice(0, 100));
+
   // Runs a page's start-up once saved data is available. In local mode that's straight away; backend.js replaces
   // this so the page waits until the signed-in student's data has been fetched.
   const whenReady = (fn) => fn();
@@ -258,5 +268,6 @@
     logAttempt, attempts, logButton, buttonLog, logPlacement, placementLog, storageUsed,
     ASSIGNMENTS_PREFIX, ASSIGNMENT_WORK_PREFIX, assignments, saveAssignments, loadAssignmentWork, saveAssignmentWork,
     CLASS_STAGE_PREFIX, classStage, saveClassStage,
+    CERTIFICATES_KEY, CERTIFICATE_TEACHER_KEY, certificates, saveCertificates, certificateTeacher, saveCertificateTeacher,
   };
 });

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Certificate – Pythons and Ladders</title>
+  <link rel="icon" type="image/png" href="assets/logo/icon-light.png">
+  <!-- One certificate, opened from the teacher view's Print button (teacher.js). Its text comes in the address's #
+       part (never sent to a server). No site menu, no buttons: it prints on one A4 landscape page. -->
+  <style>
+    :root { --ink: #1b1f24; --muted: #4a5360; --accent: #1f5f3a; --paper: #ffffff; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { margin: 0; background: #e9ece9; color: var(--ink); }
+    body { font-family: Georgia, "Times New Roman", serif; padding: 16px; }
+    .certificate {
+      background: var(--paper); margin: 0 auto; width: 100%; max-width: 1050px; aspect-ratio: 297 / 210;
+      border: 3px solid var(--accent); outline: 1px solid var(--accent); outline-offset: -12px;
+      padding: 6% 7%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+    }
+    .cert-title { font-size: clamp(1.3rem, 4.6vw, 3rem); font-weight: 700; color: var(--accent); margin: 0; letter-spacing: .02em; }
+    .cert-kicker { font-size: clamp(.8rem, 1.9vw, 1.25rem); text-transform: uppercase; letter-spacing: .18em; color: var(--muted); margin: .4em 0 1.4em; }
+    .cert-line { font-size: clamp(.85rem, 1.9vw, 1.25rem); margin: .3em 0; }
+    .cert-name { font-size: clamp(1.4rem, 4.4vw, 2.8rem); font-weight: 700; margin: .15em 0; overflow-wrap: anywhere; }
+    .cert-class { font-size: clamp(.85rem, 1.9vw, 1.25rem); color: var(--muted); margin: 0 0 .8em; overflow-wrap: anywhere; }
+    .cert-block { font-size: clamp(1.1rem, 3.3vw, 2.1rem); font-weight: 700; color: var(--accent); margin: .2em 0 .9em; }
+    .cert-date { font-size: clamp(.85rem, 1.9vw, 1.25rem); margin: 0; }
+    .cert-footer { font-size: clamp(.8rem, 1.7vw, 1.1rem); color: var(--muted); margin: 1.8em 0 0; padding-top: .5em; border-top: 1px solid var(--muted); min-width: 40%; }
+    .cert-screen-note { font-family: system-ui, sans-serif; font-size: .9rem; color: var(--muted); text-align: center; max-width: 1050px; margin: 12px auto 0; }
+    .cert-missing { font-family: system-ui, sans-serif; text-align: center; padding: 2rem 1rem; }
+
+    /* Printing: one A4 landscape page, the certificate only. */
+    @page { size: A4 landscape; margin: 10mm; }
+    @media print {
+      html, body { background: #fff; padding: 0; }
+      .cert-screen-note { display: none; }
+      .certificate { width: 277mm; height: 188mm; max-width: none; aspect-ratio: auto; padding: 16mm 22mm; break-inside: avoid; page-break-inside: avoid;
+        -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .cert-title { font-size: 34pt; } .cert-kicker { font-size: 13pt; } .cert-line, .cert-class, .cert-date { font-size: 14pt; }
+      .cert-name { font-size: 32pt; } .cert-block { font-size: 24pt; } .cert-footer { font-size: 12pt; }
+    }
+  </style>
+</head>
+<body>
+  <main id="main">
+    <div class="certificate" id="certificate" hidden>
+      <p class="cert-title" id="cert-title">Pythons and Ladders</p>
+      <p class="cert-kicker">Certificate</p>
+      <p class="cert-line">This is to certify that</p>
+      <p class="cert-name" id="cert-name"></p>
+      <p class="cert-class" id="cert-class"></p>
+      <p class="cert-line">has secured every unit in</p>
+      <p class="cert-block" id="cert-block"></p>
+      <p class="cert-date">Earned on <span id="cert-date"></span></p>
+      <p class="cert-footer">Issued by <span id="cert-teacher"></span></p>
+    </div>
+    <p class="cert-screen-note" id="cert-note" hidden>This page prints on one A4 landscape sheet. If the print window didn't open, use your browser's Print (Ctrl+P, or Cmd+P on a Mac).</p>
+    <p class="cert-missing" id="cert-missing" hidden>This certificate couldn't be shown. Open it again from the teacher view's Print button.</p>
+  </main>
+  <script src="curriculum.js"></script>
+  <script src="secured.js"></script>
+  <script src="certificates.js"></script>
+  <script src="certificate.js"></script>
+</body>
+</html>

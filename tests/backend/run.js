@@ -13,7 +13,7 @@ const crypto = require("crypto");
 const L = require("./lib.js");
 const { T, call, fn, service, rest, makeTeacher, makeClass, join, deleteTeacher, clearRateLimits, test, assert, eq, results } = L;
 
-const TABLES = ["teachers", "classes", "students", "progress", "passed_tasks", "attempts", "events", "code_reveals", "assignments"];
+const TABLES = ["teachers", "classes", "students", "progress", "passed_tasks", "attempts", "events", "code_reveals", "assignments", "class_teachers", "certificates"];
 const iso = (msAgo = 0) => new Date(Date.now() - msAgo).toISOString();
 const DAY = 86400000;
 let n = 0;
@@ -436,6 +436,29 @@ function attemptRow(extra) {
       assert(direct.status === 401 || direct.status === 403, "K deleted a class_teachers row directly: " + direct.status);
       eq((await api(a, { action: "remove_co_teacher", class_id: shared.id, teacher_id: k.id })).status, 200, "the owner removes K");
       eq((await rest("/rest/v1/students?select=nickname&class_id=eq." + shared.id, k, { method: "GET" })).body, [], "K after removal");
+    });
+
+    await test("certificates (0017): teacher-api earns and returns a class's certificates, to teachers on the class only", async () => {
+      const cls = await makeClass(a, "Cert class");
+      const st = await join(cls, "Cleo");
+      // Every Programming fundamentals unit: secured, then back to 100% five times, 8 days apart (floor 100% on day 40).
+      const units = ["output", "variables", "data-types", "maths", "selection", "loops-condition", "loops-count"];
+      const T0 = Date.parse("2026-01-05T10:00:00Z");
+      const rows = [];
+      units.forEach((u, i) => [0, 0, 8, 16, 24, 32, 40].forEach((d) => rows.push(attemptRow({ unit: u, task_units: [u], task_id: u + "-x", task_level: 10,
+        student_level_before: 10, student_level_after: 10, timestamp: new Date(T0 + (i + d) * DAY).toISOString() }))));
+      const sent = await fn("student-api", { token: st.token, action: "add_attempts", rows });
+      eq(sent.body.saved, rows.length, "the history is saved");
+      const r = await fn("teacher-api", { action: "certificates_for_class", class_id: cls.id }, { bearer: a.jwt });
+      eq(r.status, 200, "certificates_for_class");
+      eq(r.body.certificates, [{ student_name: "Cleo", class_name: "Cert class", block_name: "Programming fundamentals", earned_on: "2026-02-20" }], "Cleo's certificate (the last unit's floor reached 100% on 20 February)");
+      const one = await fn("teacher-api", { action: "certificate_for_student", student_id: st.student_id || (await rest("/rest/v1/students?select=id&nickname=eq.Cleo&class_id=eq." + cls.id, a, { method: "GET" })).body[0].id }, { bearer: a.jwt });
+      eq([one.status, one.body.certificates.length], [200, 1], "certificate_for_student");
+      eq((await rest("/rest/v1/certificates?select=block_id,earned_on", a, { method: "GET" })).body.filter((c) => c.earned_on === "2026-02-20").length, 1, "saved once, readable by its teacher");
+      eq((await fn("teacher-api", { action: "certificates_for_class", class_id: cls.id }, { bearer: b.jwt })).status, 404, "another teacher gets none");
+      eq((await rest("/rest/v1/certificates?select=block_id", b, { method: "GET" })).body.filter((c) => c.block_id === "fundamentals").length, 0, "another teacher reads none");
+      const write = await rest("/rest/v1/certificates", a, { body: { student_id: "00000000-0000-0000-0000-000000000000", block_id: "advanced", block_name: "x", earned_on: "2026-01-01" } });
+      assert(write.status === 401 || write.status === 403, "a teacher wrote a certificate directly: " + write.status);
     });
 
     await test("the data-types unit: student-api saves its progress, attempts, events and passed tasks (unknown units are refused)", async () => {

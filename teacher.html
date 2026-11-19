@@ -67,6 +67,7 @@
       <a href="#classes" data-page="classes">Classes</a>
       <a href="#students" data-page="students">Students</a>
       <a href="#leaderboards" data-page="leaderboards">Leaderboards</a>
+      <a href="#certificates" data-page="certificates">Certificates</a>
       <a href="#assignments" data-page="assignments">Assignments</a>
       <a href="#reports" data-page="reports">Reports</a>
       <a href="#misconceptions" data-page="misconceptions">Misconceptions</a>
@@ -229,6 +230,21 @@
       </section>
     </section>
 
+    <!-- ===== Certificates (every class, every student with at least one) ===== -->
+    <section id="page-certificates" aria-labelledby="certificates-title" hidden>
+      <h2 id="certificates-title" tabindex="-1">Certificates</h2>
+      <p class="small">A student earns a certificate for a block of units when every unit in the block has its floor at 100%.
+        A unit's floor is the lowest its secured score can drop to. It starts at 50% and goes up by 10 each time the student brings the unit back to 100%.
+        The date on a certificate is the day the last unit in the block reached that. Once earned, a certificate is kept.
+        Select Print to open one certificate on its own page, ready to print on one A4 landscape sheet.</p>
+      <p id="cert-local" class="small" hidden>In this browser (local mode), certificates are kept in this browser only.</p>
+      <div id="cert-name-row" class="teacher-controls" hidden>
+        <label>Name for "Issued by" <input type="text" id="cert-teacher-name" class="text-input" maxlength="100" autocomplete="name"></label>
+      </div>
+      <p id="cert-status" class="small" role="status"></p>
+      <div id="cert-list"></div>
+    </section>
+
     <!-- ===== One student ===== -->
     <section id="page-student" aria-labelledby="student-title" hidden>
       <p><a href="#students" id="sd-back">← Back to the class</a></p>
@@ -260,6 +276,11 @@
       <h3>Points per unit</h3>
       <p class="small">The points used on the Leaderboards page: secured points (up to 200) and level points (up to 100) for each unit, up to 300 a unit.</p>
       <div id="sd-points" class="unit-points"></div>
+      <section class="certificates-panel" aria-labelledby="sd-certs-h">
+        <h3 id="sd-certs-h">Certificates</h3>
+        <p class="small">One for each block of units where every unit has its floor at 100%.</p>
+        <div id="sd-certs" role="status"></div>
+      </section>
       <h3>Recent attempts</h3>
       <p class="small">The newest checks, skips and uses of "Show me how". The full log of every attempt is in the export (Reports).</p>
       <div id="sd-recent"></div>
@@ -450,6 +471,7 @@
   <script src="checker.js"></script>
   <script src="app.js"></script>
   <script src="secured.js"></script>
+  <script src="certificates.js"></script>
   <script src="teacher-data.js"></script>
   <script src="task-view.js"></script>
   <script src="task-browser.js"></script>

@@ -571,6 +571,13 @@ body.tour-open { padding-bottom: 55vh; }
 .board-table th.num, .board-table td.num { text-align: right; white-space: nowrap; }
 .board-table tr.board-me td { background: var(--code-bg); font-weight: 700; }
 .board-table tr.board-me td:first-child { box-shadow: inset 4px 0 0 var(--primary); }
+/* Certificates (teacher view): the student page's panel and the Certificates page */
+.cert-list { list-style: none; padding: 0; margin: .5rem 0 1rem; display: grid; gap: .4rem; }
+.cert-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .4rem 1rem;
+  background: var(--card); border: 2px solid var(--border); border-radius: 8px; padding: .5rem .75rem; }
+.cert-class { margin-bottom: 1.25rem; }
+.cert-who { min-width: 0; overflow-wrap: break-word; }
+.cert-who strong { display: block; }
 .unit-points { margin: .5rem 0 1rem; }
 .unit-points .board-table th, .unit-points .board-table td { overflow-wrap: normal; padding: .35rem .4rem; }
 /* Progress summary */

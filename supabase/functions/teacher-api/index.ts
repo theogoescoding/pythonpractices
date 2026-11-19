@@ -5,6 +5,8 @@
 //   add_co_teacher { class_id, email }      -> { added, teachers }  owner only; the email of an existing teacher account
 //                                              (404, problem "unknown": "No teacher account with that email.")
 //   remove_co_teacher { class_id, teacher_id } -> { removed, teachers }  owner only; the owner can't be removed
+//   certificates_for_class { class_id }     -> { class_name, certificates: [{ student_name, class_name, block_name, earned_on }] }
+//   certificate_for_student { student_id }  -> the same, for one student. Both save any newly earned certificate first.
 //   reveal_codes { class_id }               -> { codes: [{ student_id, nickname, code }] }  (each reveal is logged)
 //   reset_pin { student_id }                -> { pin }  (shown once; also clears a PIN lock)
 //   reset_placement { student_id, unit }    -> { reset }  (false: the student hasn't started that unit)
@@ -32,10 +34,20 @@ import { boards, classPoints, POINT_UNITS } from "../_shared/points.ts";
 import { checkAttempts, checkEvents, insertRows, MAX_ROWS_PER_BATCH, PROGRESS_UNITS, Rejected, UNITS } from "../_shared/rows.ts";
 import { createStudent } from "../_shared/students.ts";
 import "../_shared/class-sharing.js";
+// The certificate rule is the site's own (certificates.js, which uses secured.js and curriculum.js; points.ts above
+// has loaded those two already, and they are imported again here so the order is plain).
+import "../../../curriculum.js";
+import "../../../secured.js";
+import "../../../certificates.js";
+import "../_shared/certificates-server.js";
 
-// class-sharing.js is a plain script (tests/backend-client.js runs the same file in Node): it sets globalThis.ClassSharing.
+// class-sharing.js and certificates-server.js are plain scripts (tests/backend-client.js runs the same files in Node):
+// they set globalThis.ClassSharing and globalThis.CertificatesServer.
 // deno-lint-ignore no-explicit-any
-const Sharing = (globalThis as any).ClassSharing;
+const G = globalThis as any;
+const Sharing = G.ClassSharing;
+const CertificatesServer = G.CertificatesServer;
+const certDeps = () => ({ Sharing, Certificates: G.Certificates, Curriculum: G.Curriculum });
 
 const bad = () => new HttpError(400, "Something went wrong. Please try again.");
 const MAX_IMPORT_STUDENTS_PER_CALL = 10;
@@ -164,6 +176,16 @@ const actions: Record<string, (tid: string, body: Record<string, unknown>) => Pr
     const rows = [];
     for (const c of classes) for (const s of await classPoints(c.id)) rows.push({ nickname: s.nickname, class_name: c.name, total: s.total, gain: s.gain, unitCount: s.unitCount });
     return { boards: boards(rows, true), classes: classes.length, max: 300 * POINT_UNITS.length };
+  },
+
+  // Certificates (certificates-server.js, migration 0017): works out what each student has earned, saves any new
+  // certificate (one per student per block, kept once earned) and returns the saved ones. Any teacher on the class.
+  async certificates_for_class(tid, body) {
+    return await CertificatesServer.classCertificates(db(), certDeps(), tid, body.class_id);
+  },
+
+  async certificate_for_student(tid, body) {
+    return await CertificatesServer.studentCertificates(db(), certDeps(), tid, body.student_id);
   },
 
   // Sharing a class (class-sharing.js). Any teacher on the class can list its teachers; only its owner can add one

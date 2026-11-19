@@ -112,8 +112,9 @@ A class can have more than one teacher. Its owner (the teacher who made it, `cla
 | `join-class`, `resume` (no sign-in, 300 requests per IP per 10 minutes) | `supabase/functions/join-class/`, `resume/` |
 | `student-api` (student session token): get/save progress (with the class's open assignments), get assignments, add attempts and events, mark passed, change my nickname, the class leaderboard, delete my progress | `supabase/functions/student-api/` |
 | Sharing a class: `class_teachers`, the policies that let a co-teacher use a class as its owner does, and two service-role functions (`teacher_by_email`, `class_teacher_list`) | `supabase/migrations/0016_class_sharing.sql` |
-| `teacher-api` (teacher's Supabase sign-in): reveal codes, reset PIN, reset placement, rename a student, the class's leaderboards and All my classes, add, remove and list a class's teachers, import | `supabase/functions/teacher-api/` |
-| Shared function code: CORS, crypto, nickname filter, row checks, points and leaderboards (`points.ts`, which loads `curriculum.js` and `secured.js` themselves), class sharing (`class-sharing.js`, a plain script the Node tests run too) | `supabase/functions/_shared/` |
+| Certificates: one row per student per block, read by the student's teachers, written only by teacher-api | `supabase/migrations/0017_certificates.sql` |
+| `teacher-api` (teacher's Supabase sign-in): reveal codes, reset PIN, reset placement, rename a student, the class's leaderboards and All my classes, add, remove and list a class's teachers, certificates, import | `supabase/functions/teacher-api/` |
+| Shared function code: CORS, crypto, nickname filter, row checks, points and leaderboards (`points.ts`, which loads `curriculum.js` and `secured.js` themselves), class sharing (`class-sharing.js`) and certificates (`certificates-server.js`), plain scripts the Node tests run too | `supabase/functions/_shared/` |
 | Student side | `backend.js`, with `backend-rows.js` (local records ⇄ table rows) |
 | Teacher side | `teacher-backend.js`, with `backend-import.js` (reading a full export) |
 
@@ -906,6 +907,18 @@ One rule, in `secured.js` (`studentPoints`, `boards`), used by the student page,
 - **Teachers:** the **Leaderboards** page has this class's two boards (teacher-api `leaderboards`, ranked by points) and **All my classes** (teacher-api `leaderboards_all`: every class they own, with the class name, ranked by percentage). A student's page shows their secured, level and total points for each unit. In local mode the same rule runs on this browser's records.
 - The server sends only nicknames, class names (teacher views), points and percentages: no unit detail, attempts, codes or PINs.
 
+### Certificates
+
+A student earns a certificate for a block of units once every unit in the block has its **floor at 100%**. The rule is in `certificates.js`, which uses `secured.js` as it is. The server and the teacher view's local mode both use it.
+
+- **Blocks:** the six on the Students page: Programming fundamentals, Advanced programming, Validation, Searching and sorting, A-level: Programming techniques, A-level: Data structures. The old Validation unit counts only for a student who has started it, because the others never see it.
+- **Floor:** secured.js's floor. It is 50% when a unit is first secured, and goes up 10 each time the unit comes back to 100% after dropping, up to 100% (so after the fifth return). A unit never secured has no floor at 100%.
+- **Earned date:** the day (in the UK) the last unit in the block reached a floor of 100%. For each unit, `certificates.js` asks secured.js's `score()` for the floor at each level 10 pass with no hints, and takes the first pass where it is 100%. Example: a unit secured on 7 September, then brought back to 100% on 15 and 23 September and 1, 9 and 17 October, has floors of 50, 60, 70, 80, 90 and 100%, so it reached 100% on 17 October. If the block's other units got there earlier, the certificate is dated 17 October.
+- **One per student per block**, kept once earned with its first date.
+- **Teachers:** the **Certificates** page lists every student with a certificate, in every class the teacher is on (own and shared), and each student's page has a **Certificates** panel. **Print** opens `certificate.html`: "Pythons and Ladders", the student, the class, the block, the date earned and "Issued by" the teacher. It has no buttons or menu and prints on one A4 landscape page. Its text travels in the address's `#` part, which is never sent to a server.
+- **Backend mode:** teacher-api `certificates_for_class` and `certificate_for_student` work them out, save new ones in the `certificates` table (migration 0017; only the server writes it, and teachers read their own classes') and return only the student's name, the class name, the block name and the date. Students see no change.
+- **Local mode:** the same rule (`teacher-data.js` `certificatesFor`), kept in this browser only (`Store.certificates`), never sent anywhere. The name for "Issued by" is typed on the Certificates page.
+
 ### Class stage
 
 A class's stage (`classes.stage`: `ks3`, `gcse` or `a-level`) decides which units the Students page shows and which sections of its students' unit menu open by default: KS3 opens Programming fundamentals and Advanced programming; GCSE adds Validation, and Searching and sorting; A-level opens every section. Students can still open any section. The stage reaches the student app through student-api `get_progress` (`student.class_stage`) and is kept with the student's other cached data (`Store.classStage`). The first time a stage is seen on a computer, or when the teacher changes it, the open and closed sections start again from the stage (`Collapse.resetForStage`); after that the student's own opening and closing is kept. Local mode has no class, so every section starts open, as before. A server without migration 0013 sends no stage, and everything works as before (the teacher view shows every class as GCSE).
@@ -1090,8 +1103,10 @@ The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, n
 | `progress.html`, `progress.js` | Progress summary and skill drill-down |
 | `leaderboard.html`, `leaderboard.js` | The student's class leaderboards (backend mode; see [Points and leaderboards](#points-and-leaderboards)) |
 | `endless.html`, `endless.js` | Endless mode set-up: choosing units |
-| `teacher.html`, `teacher.js` | Teacher view: a side menu of Classes (with the class's Teachers panel), Students, Leaderboards, one student, Assignments, Reports (exports, compare classes), Misconceptions (the workshop), Task browser (with teacher practice) and Settings |
+| `teacher.html`, `teacher.js` | Teacher view: a side menu of Classes (with the class's Teachers panel), Students, Leaderboards, Certificates, one student, Assignments, Reports (exports, compare classes), Misconceptions (the workshop), Task browser (with teacher practice) and Settings |
 | `secured.js` | The secured score of a unit and its colour bands, and the points and leaderboard rule (shared by the teacher view, the student view and the server) |
+| `certificates.js` | The certificate rule: the six blocks, when a unit's floor reached 100%, and when a block is earned (shared by the teacher view and the server; see [Certificates](#certificates)) |
+| `certificate.html`, `certificate.js` | One printable certificate (A4 landscape, no buttons), opened by the teacher view's Print button |
 | `tour.js` | The student app's tutorial: the walkthrough, the reminders and Help (see [Tutorial](#tutorial-tourjs)) |
 | `collapse.js` | Collapsible sections, shared by the student view's unit groups and the teacher view's sections (each remembered under its own localStorage key) |
 | `task-view.js` | The Expected output box and example test (practice page and Task browser), and the task search |
@@ -1111,6 +1126,7 @@ The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, n
 | `tools/add-a-level-data-structures-misconceptions.js`, `tools/add-a-level-data-structures-templates.js` | One-off: the data structures units' fifteen misconceptions, and their combined and from-scratch templates |
 | `tests/sql/a-level-data-structures-units.sql` | SQL test for migration 0012 (the five data structures units in every unit check) |
 | `tests/sql/class-sharing.sql` | SQL test for migration 0016: what a co-teacher, a removed co-teacher and a teacher with no membership can see and do |
+| `tests/sql/certificates.sql` | SQL test for migration 0017: a teacher (owner or co-teacher) reads their class's certificates, a teacher outside the class reads none, and no teacher or anon can write them |
 | `tools/archive/print-commas.js`, `tools/archive/print-commas-templates.js`, `tools/archive/casting-words.js`, `tools/archive/replace-sep-end.js`, `tools/archive/replace-types-round-if.js` | Archived: one-off rewrites that were each run once (the printing rule's commas and casting, `sep=`/`end=`, and the Data types tasks that used `round()` or `if`), kept as a record. Nothing needs them to rebuild anything |
 | `teacher-data.js` | Teacher view sums, filters, the secured score table and flags, the student page, the exports and data dictionary (no DOM, so it's tested in Node) |
 | `misconceptions.json` | The fixed list of misconception ids, names and descriptions |

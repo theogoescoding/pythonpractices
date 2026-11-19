@@ -1348,10 +1348,10 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
 
     // The side menu, in order, with Students as the default page; old addresses still open the right page.
     const nav = [...teacher.matchAll(/<a href="#(\w+)" data-page="\w+">([^<]+)<\/a>/g)].map((m) => m[2]);
-    check(nav.join() === "Classes,Students,Leaderboards,Assignments,Reports,Misconceptions,Task browser,Settings" && !/tab-nav/.test(teacher) &&
-      ["classes", "students", "leaderboards", "student", "assignments", "reports", "misconceptions", "tasks", "settings"].every((p) => teacher.includes('id="page-' + p + '"')) &&
+    check(nav.join() === "Classes,Students,Leaderboards,Certificates,Assignments,Reports,Misconceptions,Task browser,Settings" && !/tab-nav/.test(teacher) &&
+      ["classes", "students", "leaderboards", "certificates", "student", "assignments", "reports", "misconceptions", "tasks", "settings"].every((p) => teacher.includes('id="page-' + p + '"')) &&
       /\["students", null\]/.test(teacherSrc) && /overview: "students", log: "reports", workshop: "misconceptions"/.test(teacherSrc) && /"#students"\)/.test(backendSrc),
-      "Teacher view: a side menu (Classes, Students, Leaderboards, Assignments, Reports, Misconceptions, Task browser, Settings) replaces the tabs; Students is the default page, and #overview, #log and #workshop still open Students, Reports or Misconceptions");
+      "Teacher view: a side menu (Classes, Students, Leaderboards, Certificates, Assignments, Reports, Misconceptions, Task browser, Settings) replaces the tabs; Students is the default page, and #overview, #log and #workshop still open Students, Reports or Misconceptions");
 
     // The Misconceptions page (the workshop, moved from Reports).
     const pageOf = (id) => { const i = teacher.indexOf('<section id="page-' + id + '"'); return teacher.slice(i, teacher.indexOf("<!-- =====", i + 10)); };
@@ -1539,7 +1539,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     // One calculation, used by both views.
     const others = ["teacher.js", "teacher-data.js", "home.js", "app.js", "teacher-backend.js"].filter((f) => /DROP_PER_WEEK|WEEK_MS|FLOOR_START|\b5 \* Math\.floor/.test(read(f)));
     check(!others.length && /Secured\.score\(/.test(read("teacher-data.js")) && /self\.Secured\.score\(/.test(read("home.js")) &&
-      /<script src="secured\.js"><\/script>\s*<script src="teacher-data\.js">/.test(teacher) && /<script src="secured\.js"><\/script>/.test(read("app.html")),
+      /<script src="secured\.js"><\/script>\s*(<script src="certificates\.js"><\/script>\s*)?<script src="teacher-data\.js">/.test(teacher) && /<script src="secured\.js"><\/script>/.test(read("app.html")),
       "Secured score: worked out in secured.js only, which the teacher view (teacher-data.js) and the student view (home.js) both use");
     // The attempts table records hints: the score can be worked out from it.
     const rec = App.attemptRecord({ task: byId["if-L5a"], unit: "selection", phase: "practice", kind: "attempt", hints: 2, result: "pass" });
@@ -2894,7 +2894,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       /\$\("leaderboard-link"\)\.hidden = false;/.test(read("home.js")) && /action: "leaderboard"/.test(read("backend.js")) && /backend\.leaderboard\(\)/.test(read("leaderboard.js")) &&
       /<script src="leaderboard\.js"><\/script>/.test(read("leaderboard.html")) && /class="board-me"/.test(read("leaderboard.js")) &&
       /data-page="leaderboards">Leaderboards</.test(th) && ["page-leaderboards", "lb-class", "lb-all", "lb-all-load", "sd-points"].every((id) => th.includes('id="' + id + '"')) &&
-      /"leaderboards", "student"/.test(tj) && /tb\.leaderboards\(\)/.test(tj) && /tb\.leaderboardsAll\(\)/.test(tj) && /TD\.pointsByStudent\(/.test(tj),
+      /"leaderboards", ("certificates", )?"student"/.test(tj) && /tb\.leaderboards\(\)/.test(tj) && /tb\.leaderboardsAll\(\)/.test(tj) && /TD\.pointsByStudent\(/.test(tj),
       "Leaderboard pages: a Leaderboard button next to My progress (backend mode only) shows the class's two boards with the student's own row highlighted; teachers have a Leaderboards page (this class, and All my classes) and points per unit on each student's page");
   }
 
@@ -2960,6 +2960,91 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       /teacherApi\("list_co_teachers", \{ class_id: cls\.id \}\)/.test(tb) && /teacherApi\("add_co_teacher", \{ class_id: current\.id, email \}\)/.test(tb) &&
       /teacherApi\("remove_co_teacher", \{ class_id: current\.id, teacher_id: b\.dataset\.removeYes \}\)/.test(tb),
       "Teachers panel: the owner is marked; only the owner sees Add a teacher and Remove; a shared class says \"Shared with you by\" its owner in the class list and hides Delete class, which also refuses for a co-teacher");
+  }
+
+  // ===================== Prompt 4 (2026-11): certificates =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const Cert = require(path.join(ROOT, "certificates.js"));
+    const Sec = require(path.join(ROOT, "secured.js"));
+    const TDc = require(path.join(ROOT, "teacher-data.js"));
+    const DAY = 86400000, T0 = Date.parse("2026-09-07T10:00:00Z");
+    const pass = (unit, day, extra) => Object.assign({ kind: "attempt", unit, at: new Date(T0 + day * DAY).toISOString(), result: "pass", hints: 0, phase: "practice", taskLevel: 10 }, extra);
+    // A unit secured on day `from`, then brought back to 100% five times, 8 days apart: its floor is 100% on day from + 40.
+    const toFull = (unit, from) => [0, 0, 8, 16, 24, 32, 40].map((d) => pass(unit, from + d));
+    const fund = Cert.BLOCKS.find((b) => b.id === "fundamentals");
+    // The blocks are the Students page's six (teacher-data.js overviewGroups' block headings), with their units.
+    const pageBlocks = [...new Set(TDc.overviewGroups(Curriculum.UNITS.map((u) => u.id), Curriculum.UNIT_GROUPS).map((g) => g.block))].filter((b) => b !== "Other units");
+    check(Cert.BLOCKS.map((b) => b.name).join("|") === pageBlocks.join("|") && pageBlocks.length === 6 &&
+      Cert.BLOCKS.map((b) => b.id).join() === "fundamentals,advanced,validation,searching-sorting,programming-techniques,data-structures" &&
+      Cert.BLOCKS.reduce((n, b) => n + b.units.length, 0) === Curriculum.UNITS.length && Sec.FLOOR_START === 50 && Sec.FLOOR_STEP === 10 && Sec.FLOOR_CAP === 100,
+      "Certificates: the six blocks are the Students page's (Programming fundamentals ... A-level: Data structures), covering all 39 units; secured.js's floor rules are unchanged (50%, +10, up to 100%)");
+    // Floor at 100%: secured.js's own score() at each pass. Secured, then five returns to 100%: 50, 60, 70, 80, 90, 100.
+    const floors = [0, 8, 16, 24, 32, 40].map((d) => Sec.score(toFull("output", 0), "output", T0 + d * DAY + 1000).floor);
+    check(floors.join() === "50,60,70,80,90,100" && Cert.floorFullAt(toFull("output", 0), "output") === T0 + 40 * DAY &&
+      Cert.floorFullAt(toFull("output", 0).slice(0, 6), "output") === null && Cert.floorFullAt([], "output") === null &&
+      Cert.floorFullAt(toFull("output", 0).map((a) => Object.assign({}, a, { hints: 1 })), "output") === null,
+      "Certificates: a unit's floor reaches 100% at the pass that brings it back to 100% for the fifth time (secured.js's score()); never secured, or passes with hints, is never 100%");
+    // All units at 100% = earned, on the date the last unit got there; one unit short = not earned.
+    const all = fund.units.reduce((a, u, i) => a.concat(toFull(u, i)), []);
+    const earned = Cert.earnedBlocks(all);
+    const short = Cert.earnedBlocks(all.filter((a) => !(a.unit === "maths" && a.at === new Date(T0 + 43 * DAY).toISOString())));
+    const neverSecured = Cert.earnedBlocks(all.filter((a) => a.unit !== "loops-count"));
+    check(earned.length === 1 && earned[0].block_id === "fundamentals" && earned[0].block_name === "Programming fundamentals" &&
+      earned[0].earned_on === "2026-10-23" && Cert.blockStatus(fund, all).at === T0 + 46 * DAY && !short.length && !neverSecured.length,
+      "Certificates: a block is earned when every unit in it has its floor at 100%, dated the day the last unit reached it (here 23 October 2026); one unit below 100%, or one never secured, and it isn't earned");
+    // The date is the day in the UK: a pass at 00:30 BST on 24 October (23:30 UTC on the 23rd) counts for the 24th.
+    check(Cert.ukDate(Date.parse("2026-10-23T23:30:00Z")) === "2026-10-24" && Cert.ukDate(Date.parse("2026-12-01T23:30:00Z")) === "2026-12-01" &&
+      Cert.longDate("2026-10-23") === "23 October 2026",
+      "Certificates: the earned date is the day in the UK (British Summer Time too), printed as \"23 October 2026\"");
+    // The old Validation unit counts only for a student who has started it.
+    const valBlock = Cert.BLOCKS.find((b) => b.id === "validation");
+    const newUnits = valBlock.units.filter((u) => u !== "validation");
+    const valAll = newUnits.reduce((a, u, i) => a.concat(toFull(u, i)), []);
+    check(Cert.earnedBlocks(valAll, () => false).map((c) => c.block_id).join() === "validation" &&
+      Cert.earnedBlocks(valAll, (u) => u === "validation").length === 0 &&
+      Cert.earnedBlocks(valAll.concat(toFull("validation", 20)), (u) => u === "validation")[0].earned_on === Cert.ukDate(T0 + 60 * DAY),
+      "Certificates: the old Validation unit counts only for a student who has started it (the others never see it)");
+    // One certificate per block, kept once earned: the first earned date stays, and nothing is listed twice.
+    const stored = { s1: [{ block_id: "fundamentals", block_name: "Programming fundamentals", earned_on: "2026-10-01" }] };
+    const data = { students: { s1: { name: "Ada" }, s2: { name: "Bo" } }, progress: {}, attempts: all.map((a) => Object.assign({ studentId: "s1" }, a)), levelLog: [], placementLog: [] };
+    const local = TDc.certificatesFor(data, stored);
+    const lostAttempts = TDc.certificatesFor(Object.assign({}, data, { attempts: [] }), stored);
+    check(local.s1.length === 1 && local.s1[0].earned_on === "2026-10-01" && local.s2.length === 0 &&
+      TDc.certificatesFor(data, {}).s1[0].earned_on === "2026-10-23" && lostAttempts.s1.length === 1 &&
+      Cert.merge([{ block_id: "advanced", block_name: "A", earned_on: "2026-01-01" }], [{ block_id: "fundamentals", block_name: "F", earned_on: "2026-02-01" }, { block_id: "advanced", block_name: "A", earned_on: "2026-03-01" }]).map((c) => c.block_id + c.earned_on).join() === "fundamentals2026-02-01,advanced2026-01-01" &&
+      TDc.certificateRows(data, local).map((r) => r.student_name + ":" + r.block_name).join() === "Ada:Programming fundamentals",
+      "Certificates: one per student per block, kept once earned with its first date (even if the records change later); the Certificates page lists only students who have one");
+    // The print page: one certificate, no buttons or site menu, one A4 landscape page; the text is put in as text only.
+    const ch = read("certificate.html"), cj = read("certificate.js");
+    const body = ch.slice(ch.indexOf("<body>"));
+    check(!/<button|<nav|class="side-nav"|<a /i.test(body) && /@page \{ size: A4 landscape; margin: 10mm; \}/.test(ch) && /@media print \{/.test(ch) &&
+      /\.certificate \{ width: 277mm; height: 188mm;/.test(ch) && /break-inside: avoid/.test(ch) && /\.cert-screen-note \{ display: none; \}/.test(ch) &&
+      ["cert-title", "cert-name", "cert-class", "cert-block", "cert-date", "cert-teacher"].every((id) => ch.includes('id="' + id + '"')) &&
+      />Issued by <span id="cert-teacher"><\/span><\/p>/.test(ch) && !/%|floor/i.test(body.replace(/<script[\s\S]*$/, "")) && Cert.TITLE === "Pythons and Ladders" &&
+      !/innerHTML/.test(cj) && /textContent = name;/.test(cj) && /new URLSearchParams\(location\.hash\.slice\(1\)\)/.test(cj),
+      "Certificate print page: Pythons and Ladders, the student, class, block and date, and \"Issued by\" the teacher; no buttons, menu, percentage or floor; one A4 landscape page; its text is put in as text, from the # part of the address");
+    // The server: the same rule; only the four fields come back; any teacher on the class; the table only it writes.
+    const cs = read("supabase/functions/_shared/certificates-server.js"), tapi = read("supabase/functions/teacher-api/index.ts");
+    const mig = read("supabase/migrations/0017_certificates.sql");
+    check(/Certificates\.earnedBlocks\(attempts,/.test(cs) && /\.map\(\(c\) => \(\{ student_name: name\(c\.student_id\), class_name: cls\.name, block_name: c\.block_name, earned_on: c\.earned_on \}\)\)/.test(cs) &&
+      /deps\.Sharing\.requireClass\(sb, tid, classId, false\)/.test(cs) && /deps\.Sharing\.requireStudent\(sb, tid, studentId\)/.test(cs) &&
+      /ignoreDuplicates: true/.test(cs) && /async certificates_for_class\(tid, body\)/.test(tapi) && /async certificate_for_student\(tid, body\)/.test(tapi) &&
+      /import "\.\.\/\.\.\/\.\.\/certificates\.js";/.test(tapi) &&
+      /^begin;$/m.test(mig) && /^commit;$/m.test(mig) && /unique \(student_id, block_id\)/.test(mig) && /earned_on date not null/.test(mig) &&
+      /revoke all on table public\.certificates from anon, authenticated;\s*grant select on public\.certificates to authenticated;/.test(mig) &&
+      !/grant (insert|update|delete)[^;]*to authenticated/.test(mig) &&
+      /create policy "teacher reads own students' certificates" on public\.certificates for select to authenticated\s*using \(student_id in \(select private\.my_student_ids\(\)\)\);/.test(mig),
+      "Certificates on the server: teacher-api works them out with the same rule (certificates.js), for any teacher on the class, and returns only the student, class, block and date; 0017 lets teachers read their classes' certificates and only the server write them");
+    // The teacher screens: the Certificates page and the student page's panel, each with Print; local mode keeps them
+    // in this browser (store.js) and never sends them.
+    const th = read("teacher.html"), tj = read("teacher.js");
+    check(/data-page="certificates">Certificates</.test(th) && ["page-certificates", "cert-list", "sd-certs", "cert-teacher-name"].every((id) => th.includes('id="' + id + '"')) &&
+      /<h3 id="sd-certs-h">Certificates<\/h3>/.test(th) && /tb\.certificatesForClass\(c\.id\)/.test(tj) && /tb\.certificatesForStudent\(studentId\)/.test(tj) &&
+      /for \(const c of tb\.allClasses\(\)\)/.test(tj) && /TD\.certificatesFor\(data, stored\)/.test(tj) && /Store\.saveCertificates\(/.test(tj) &&
+      /window\.open\(certificateUrl\(/.test(tj) && /">Print<\/button>'/.test(tj) &&
+      !/Store\.certificates|CERTIFICATES_KEY|certificateTeacher/.test(read("backend.js") + read("teacher-backend.js") + read("backend-rows.js")),
+      "Certificates in the teacher view: a Certificates page (every class, own and shared) and a panel on each student's page, each with Print; local mode works them out in teacher-data.js and keeps them in this browser only");
   }
 
   // ===================== Selection, trimmed =====================

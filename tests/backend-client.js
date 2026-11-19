@@ -89,19 +89,28 @@ function fakeServer() {
 // An in-memory stand-in for the service-role database client, with just what class-sharing.js uses: the tables it
 // reads and writes, and the two server functions of migration 0016 (written to match their SQL).
 function fakeDb() {
-  const t = { users: [], teachers: [], classes: [], class_teachers: [], students: [], assignments: [] };
+  const t = { users: [], teachers: [], classes: [], class_teachers: [], students: [], assignments: [], attempts: [], progress: [], certificates: [] };
   class Query {
-    constructor(name) { this.name = name; this.filters = []; this.op = "select"; this.one = false; this.returning = false; }
+    constructor(name) { this.name = name; this.filters = []; this.op = "select"; this.one = false; this.returning = false; this.from = 0; this.to = Infinity; }
     select() { if (this.op !== "select") this.returning = true; return this; }
     eq(col, v) { this.filters.push((r) => r[col] === v); return this; }
     in(col, vs) { this.filters.push((r) => vs.includes(r[col])); return this; }
+    is(col, v) { this.filters.push((r) => (r[col] === undefined ? null : r[col]) === v); return this; }
     order() { return this; }
+    range(from, to) { this.from = from; this.to = to; return this; }
     maybeSingle() { this.one = true; return this; }
     insert(row) { this.op = "insert"; this.row = row; return this; }
+    // As certificates-server.js uses it: insert ... on conflict (student_id, block_id) do nothing.
+    upsert(rows, opts) { this.op = "upsert"; this.rows = rows; this.opts = opts; return this; }
     delete() { this.op = "delete"; return this; }
     then(resolve, reject) { return Promise.resolve().then(() => this.run()).then(resolve, reject); }
     run() {
       const rows = t[this.name];
+      if (this.op === "upsert") {
+        const keys = this.opts.onConflict.split(",");
+        for (const r of this.rows) if (!rows.some((x) => keys.every((k) => x[k] === r[k]))) rows.push(Object.assign({ created_at: new Date().toISOString() }, r));
+        return { data: null, error: null };
+      }
       if (this.op === "insert") {
         if (this.name === "class_teachers" && rows.some((r) => r.class_id === this.row.class_id && r.teacher_id === this.row.teacher_id))
           return { data: null, error: { code: "23505", message: "duplicate key value violates unique constraint" } };
@@ -110,7 +119,7 @@ function fakeDb() {
       }
       const hit = rows.filter((r) => this.filters.every((f) => f(r)));
       if (this.op === "delete") { t[this.name] = rows.filter((r) => !hit.includes(r)); return { data: this.returning ? hit : null, error: null }; }
-      return { data: this.one ? hit[0] || null : hit.slice(), error: null };
+      return { data: this.one ? hit[0] || null : hit.slice(this.from, this.to + 1), error: null };
     }
   }
   const rpcs = {
@@ -373,6 +382,56 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
     check(removed.teachers.map((t) => t.name).join() === "Owner O" && (await reads(K, "students")).length === 0 &&
       (await problem(() => Sharing.requireClass(sb, K, CLS))).status === 404 && (await Sharing.myClasses(sb, O)).map((c) => c.name).join() === "7A",
       "Sharing: the owner removes a co-teacher, who then can't see the class; the owner keeps it");
+  }
+
+  // ---------- Certificates (teacher-api: supabase/functions/_shared/certificates-server.js, migration 0017) ----------
+  // The real module teacher-api runs, with the site's rule (certificates.js), against an in-memory database.
+  {
+    const Sharing = require(path.join(ROOT, "supabase", "functions", "_shared", "class-sharing.js"));
+    const CS = require(path.join(ROOT, "supabase", "functions", "_shared", "certificates-server.js"));
+    const deps = { Sharing, Certificates: require(path.join(ROOT, "certificates.js")), Curriculum: require(path.join(ROOT, "curriculum.js")) };
+    const sb = fakeDb();
+    const T = sb.t;
+    const id = (n) => "0000000" + n + "-0000-0000-0000-000000000001";
+    const [O, K, X] = [id("a"), id("b"), id("c")];
+    const CLA = "0000000a-0000-0000-0000-00000000c1a5", CLX = "0000000c-0000-0000-0000-00000000c1a5";
+    const ADA = "0000000a-0000-0000-0000-0000000057d1", BEN = "0000000a-0000-0000-0000-0000000057d2", XAVI = "0000000c-0000-0000-0000-0000000057d1";
+    T.teachers.push({ id: O, name: "Owner O" }, { id: K, name: "Co-teacher K" }, { id: X, name: "Stranger X" });
+    T.classes.push({ id: CLA, name: "7A", teacher_id: O }, { id: CLX, name: "8X", teacher_id: X });
+    T.class_teachers.push({ class_id: CLA, teacher_id: O }, { class_id: CLA, teacher_id: K }, { class_id: CLX, teacher_id: X });
+    T.students.push({ id: ADA, class_id: CLA, nickname: "Ada", pin_hash: "SECRET-PIN", login_code_enc: "SECRET-CODE" }, { id: BEN, class_id: CLA, nickname: "Ben" },
+      { id: XAVI, class_id: CLX, nickname: "Xavi" });
+    // Each unit of a block brought to a floor of 100%: secured, then back to 100% five times, 8 days apart.
+    const DAY = 86400000, T0 = Date.parse("2026-09-07T10:00:00Z");
+    let n = 0;
+    const full = (sid, unit, from) => [0, 0, 8, 16, 24, 32, 40].map((d) => ({ id: ++n, student_id: sid, unit, timestamp: new Date(T0 + (from + d) * DAY).toISOString(),
+      record_type: "attempt", result: "pass", hints_used: 0, hint_type: null, phase: "practice", task_level: 10, student_code: "print('secret code')" }));
+    const blockOf = (bid) => deps.Certificates.BLOCKS.find((b) => b.id === bid).units;
+    blockOf("fundamentals").forEach((u, i) => T.attempts.push(...full(ADA, u, i)));      // Ada: Programming fundamentals, last unit on day 46
+    blockOf("advanced").forEach((u, i) => T.attempts.push(...full(XAVI, u, i + 3)));     // Xavi (another class): Advanced programming
+    blockOf("searching-sorting").slice(1).forEach((u, i) => T.attempts.push(...full(BEN, u, i))); // Ben: one unit short
+    const problem = async (f) => { try { await f(); return null; } catch (e) { return e instanceof Sharing.Problem ? { status: e.status } : { thrown: String(e) }; } };
+
+    const owner = await CS.classCertificates(sb, deps, O, CLA);
+    check(owner.class_name === "7A" && owner.certificates.length === 1 &&
+      JSON.stringify(owner.certificates[0]) === JSON.stringify({ student_name: "Ada", class_name: "7A", block_name: "Programming fundamentals", earned_on: "2026-10-23" }) &&
+      !/SECRET|secret code|0000000a/.test(JSON.stringify(owner)),
+      "Certificates: a teacher on the class sees each earned certificate (student, class, block, date) and nothing else (no ids, PINs, codes or attempt text); one unit short earns nothing");
+    const co = await CS.classCertificates(sb, deps, K, CLA);
+    check(JSON.stringify(co) === JSON.stringify(owner) && T.certificates.length === 1 &&
+      (await CS.studentCertificates(sb, deps, K, ADA)).certificates.map((c) => c.block_name).join() === "Programming fundamentals",
+      "Certificates: a co-teacher sees the same as the owner, for the class and for one student; asking again saves nothing twice");
+    check((await problem(() => CS.classCertificates(sb, deps, X, CLA))).status === 404 && (await problem(() => CS.studentCertificates(sb, deps, X, ADA))).status === 404,
+      "Certificates: a teacher who isn't on the class gets none (the same 404 as a class that doesn't exist)");
+    const other = await CS.classCertificates(sb, deps, X, CLX);
+    check(other.certificates.map((c) => c.student_name + ":" + c.block_name).join() === "Xavi:Advanced programming" &&
+      !owner.certificates.some((c) => c.student_name === "Xavi") && !(await CS.classCertificates(sb, deps, O, CLA)).certificates.some((c) => c.student_name === "Xavi") &&
+      (await problem(() => CS.studentCertificates(sb, deps, O, XAVI))).status === 404,
+      "Certificates: a student's certificate is returned only for their own class, never to another class's teachers");
+    // Kept once earned: the attempts going (or a later different result) doesn't remove it or change its date.
+    T.attempts = T.attempts.filter((a) => a.student_id !== ADA);
+    const kept = await CS.classCertificates(sb, deps, O, CLA);
+    check(kept.certificates.length === 1 && kept.certificates[0].earned_on === "2026-10-23", "Certificates: once earned, a certificate is kept with its first earned date");
   }
 
   const failed = out.filter((ok) => !ok).length;
