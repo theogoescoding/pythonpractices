@@ -145,14 +145,19 @@
       ? started.map((u) => '<span class="rag rag-' + u.band.cls + '">' + esc(unitTitle(u.unit)) + ": " + u.average + "% · " + esc(u.band.label) + "</span>").join(" ")
       : '<span class="small">No student has secured a unit yet.</span>');
 
-    // Two rows per student (Freshness and Level), in one table per group of units (TD.overviewTablesHtml), so the unit
-    // columns share the page width with no sideways scrolling.
+    // Two rows per student (Freshness and Level), in one table per group of units (TD.overviewTablesHtml) with every
+    // unit of the group. A table scrolls sideways inside its own wrapper, with the Name and Shows columns fixed.
     // Each group of units is a collapsible block (open unless this teacher closed it on this device), wired by
-    // Collapse.enhance's handler on <main>.
+    // Collapse.enhance's handler on <main>. Redrawing (a sort, the name filter, new data) keeps a closed block closed:
+    // the remembered ones, and those closed on the page now (in case this browser can't remember them).
     loadPasteFlags(data);
+    const closedNow = [...$("overview-tables").querySelectorAll('button.group-toggle[aria-expanded="false"]')].map((b) => b.dataset.group);
+    // Each table keeps how far it was scrolled sideways, so a sort doesn't jump back to the first unit.
+    const scrolled = Object.fromEntries([...$("overview-tables").querySelectorAll(".overview-wrap")].map((w) => [w.firstElementChild.dataset.group, w.scrollLeft]));
     $("overview-tables").innerHTML = TD.overviewTablesHtml({ rows: scoreRows(data), unitIds, unitGroups: self.Curriculum.UNIT_GROUPS, unitTitle,
-      sortKey, sortDir, when, flagsHtml: buttonFlagsHtml, buttonHtml: Collapse.buttonHtml, collapsed: Collapse.collapsedIds(OVERVIEW_KEY),
+      sortKey, sortDir, when, flagsHtml: buttonFlagsHtml, buttonHtml: Collapse.buttonHtml, collapsed: Collapse.collapsedIds(OVERVIEW_KEY).concat(closedNow),
       pasteHtml: (sid, u) => TD.pasteFlagHtml(sid, u, (pasteFlags[sid] || {})[u]) });
+    $("overview-tables").querySelectorAll(".overview-wrap").forEach((w) => { const x = scrolled[w.firstElementChild.dataset.group]; if (x) w.scrollLeft = x; });
   }
 
   // ---------- Large paste flags (the Students page's Level cells) ----------
@@ -681,6 +686,42 @@
     renderLevelLog(data);
   }
 
+  // ---------- "Needs review" (review-rules.js) ----------
+  // Failed attempts from the last 30 days that match a newer rule (rules-review.json, added each term once Theo has
+  // approved it), worked out each time the page is drawn: nothing is stored, so a new rule covers this month at once.
+  // Local mode: this browser's records. Backend mode: teacher-api review_candidates_for_class gives the class's failed
+  // checks on the rules' tasks (any teacher on the class, owner or co-teacher), and they are matched here.
+  const RR = self.ReviewRules;
+  let reviewRules = [];   // rules-review.json, loaded with the tasks
+  let reviewCache = null; // backend mode: { data, rules, list, error, loading } for the class on show
+  function reviewState(data) {
+    if (!tb) return { list: RR.matches(reviewRules, RR.candidatesFromRecords(data), Date.now()), error: "", loading: false };
+    if (reviewCache && reviewCache.data === data && reviewCache.rules === reviewRules) return reviewCache;
+    const mine = (reviewCache = { data, rules: reviewRules, list: [], error: "", loading: true });
+    const c = currentClass();
+    const ids = RR.taskIds(reviewRules);
+    if (!c || !ids.length) { mine.loading = false; return mine; }
+    tb.reviewCandidates(c.id, ids).then((r) => {
+      if (reviewCache !== mine) return; // another class (or rules) meanwhile
+      mine.loading = false;
+      mine.error = r.error || "";
+      mine.list = r.error ? [] : RR.matches(reviewRules, r.candidates, Date.now());
+      if (page() === "misconceptions") render();
+    });
+    return mine;
+  }
+  // Each entry: the rule's name, the task, the student's nickname, the date, and the code only as the attempt stored it.
+  function renderReview(st) {
+    $("mc-review-status").textContent = st.loading ? "Loading…" : st.error ||
+      (!reviewRules.length ? "No newer rules have been added yet." : !st.list.length ? "No attempts from the last 30 days match the newer rules." :
+        st.list.length + (st.list.length === 1 ? " attempt" : " attempts") + " to review, newest first.");
+    $("mc-review").innerHTML = st.list.map((m) => '<article class="review-item">' +
+      "<h4>" + esc(m.rule_name) + ' <span class="flag">Needs review</span></h4>' +
+      '<dl class="review-facts"><dt>Task</dt><dd>' + taskLink(m.task_id) + "</dd><dt>Student</dt><dd>" + esc(m.student_name) + "</dd><dt>Date</dt><dd>" + esc(when(m.at)) + "</dd></dl>" +
+      (m.code != null ? '<pre class="review-code" tabindex="0" aria-label="' + esc(m.student_name + "'s code") + '">' + esc(m.code) + "</pre>"
+        : '<p class="small">The code is no longer stored.</p>') + "</article>").join("");
+  }
+
   // ---------- Misconceptions (the workshop) ----------
   // The unit picker lists the class's stage's units (curriculum.js stageUnits), first unit by default, then "All units".
   function renderMisconceptions(data) {
@@ -698,7 +739,9 @@
         "</td><td>" + esc(t.topCategory || "–") + "</td><td>" + esc(t.topMisconception ? mName(t.topMisconception) : "none matched") + "</td></tr>").join("") +
       "</tbody></table></div>";
 
-    const w = TD.workshop(data, misconceptions, tasksById);
+    const review = reviewState(data);
+    renderReview(review);
+    const w = TD.workshop(data, misconceptions, tasksById, RR.countsByTask(review.list));
     $("ws-misconceptions").innerHTML = w.misconceptions.length ? w.misconceptions.map((m) =>
       "<tr><th scope=\"row\">" + esc(m.name) + '<br><span class="small">' + esc(m.id) + '</span></th><td class="num">' + m.attempts +
       '</td><td class="num">' + m.studentCount + "</td><td>" + m.taskList.map((t) => taskLink(t.taskId) + " (" + t.matches + ")").join("<br>") +
@@ -711,9 +754,9 @@
 
     $("ws-tasks").innerHTML = w.tasks.length ? w.tasks.map((t) =>
       "<tr><th scope=\"row\">" + taskLink(t.taskId) + '</th><td class="num">' + t.fails + '</td><td class="num">' + t.unmatched +
-      '</td><td class="num">' + pct(t.unmatchedRate) + "</td><td>" + (t.hasVariants ? "Yes" : "No") + "</td><td>" +
+      '</td><td class="num">' + pct(t.unmatchedRate) + "</td><td>" + (t.hasVariants ? "Yes" : "No") + '</td><td class="num">' + (t.needsReview || "–") + "</td><td>" +
       (t.unmatched ? '<button type="button" class="secondary" data-unmatched="' + esc(t.taskId) + '">View ' + t.unmatched + "</button>" : "–") + "</td></tr>").join("")
-      : '<tr><td colspan="6">No failed attempts yet.</td></tr>';
+      : '<tr><td colspan="7">No failed attempts yet.</td></tr>';
 
     const open = w.tasks.find((t) => t.taskId === unmatchedTask);
     $("ws-unmatched").innerHTML = !open ? "" :
@@ -1194,16 +1237,17 @@
   }
 
   // The workshop tables: the misconception table and the per-task unmatched table (Misconceptions page).
+  // needs_review: how many of the task's unmatched attempts from the last 30 days a newer rule matches (rules-review.json).
   function workshopCsv(data) {
-    const w = TD.workshop(data, misconceptions, tasksById);
+    const w = TD.workshop(data, misconceptions, tasksById, RR.countsByTask(reviewState(data).list));
     const cols = ["section", "id", "name", "attempts_matched", "students_affected", "students", "tasks", "failure_rate_on_tasks",
-      "failed_attempts", "unmatched", "unmatched_rate", "has_buggy_variants"].map((key) => ({ key }));
+      "failed_attempts", "unmatched", "unmatched_rate", "has_buggy_variants", "needs_review"].map((key) => ({ key }));
     const rows = w.misconceptions.map((m) => ({
       section: "misconception", id: m.id, name: m.name, attempts_matched: m.attempts, students_affected: m.studentCount,
       students: m.studentNames.join("; "), tasks: m.taskList.map((t) => t.taskId + " (" + t.matches + ")").join("; "), failure_rate_on_tasks: pct(m.failRate),
     })).concat(w.tasks.map((t) => ({
       section: "task", id: t.taskId, name: tasksById[t.taskId] ? tasksById[t.taskId].title : "", failed_attempts: t.fails,
-      unmatched: t.unmatched, unmatched_rate: pct(t.unmatchedRate), has_buggy_variants: t.hasVariants ? "yes" : "no",
+      unmatched: t.unmatched, unmatched_rate: pct(t.unmatchedRate), has_buggy_variants: t.hasVariants ? "yes" : "no", needs_review: t.needsReview,
     })));
     return TD.toCsv(cols, rows);
   }
@@ -1216,7 +1260,8 @@
   if (tb) tb.start((data) => { classData = data; render(); }, () => render());
   else window.addEventListener("storage", render); // refresh if a student page in another tab saves progress
   const loadJson = (file) => fetch(file).then((r) => { if (!r.ok) throw new Error(file); return r.json(); });
-  Promise.all([loadJson("tasks.json").catch(() => []), loadJson("misconceptions.json").catch(() => [])]).then(([tasks, ms]) => {
+  Promise.all([loadJson("tasks.json").catch(() => []), loadJson("misconceptions.json").catch(() => []), loadJson("rules-review.json").catch(() => [])]).then(([tasks, ms, rr]) => {
+    reviewRules = Array.isArray(rr) ? rr : [];
     // Attempts logged before a task moved unit use its old id (former_ids).
     tasksById = Object.fromEntries(tasks.flatMap((t) => (t.former_ids || []).map((old) => [old, t])).concat(tasks.map((t) => [t.id, t])));
     bankTasks = tasks;

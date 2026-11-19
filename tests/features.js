@@ -891,8 +891,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const teacher = read("teacher.html");
     const teacherSrc = read("teacher.js");
     const sections = [...teacher.matchAll(/<section class="[^"]*teacher-section[^"]*" data-collapse="([^"]+)"[^>]*>\s*<h3[^>]*>([^<]+)<\/h3>/g)].map((m) => m[2]);
-    check(sections.join() === "Teachers,Name and stage,Student logins,Delete this class,Secured score per unit,This class,All my classes,Exports,Compare classes,Misconception table,Failed attempts with no match, by task,Not matched yet",
-      "Teacher view: every section (the class's teachers, class name and stage, student logins, delete class, the score table, the two leaderboard sections, exports, compare classes, and the Misconceptions page's table, unmatched attempts and not-matched-yet list) is collapsible");
+    check(sections.join() === "Teachers,Name and stage,Student logins,Delete this class,Secured score per unit,This class,All my classes,Exports,Compare classes,Needs review,Misconception table,Failed attempts with no match, by task,Not matched yet",
+      "Teacher view: every section (the class's teachers, class name and stage, student logins, delete class, the score table, the two leaderboard sections, exports, compare classes, and the Misconceptions page's Needs review list, table, unmatched attempts and not-matched-yet list) is collapsible");
     const key = (teacherSrc.match(/Collapse\.enhance\(document\.querySelector\("main"\), "([^"]+)"\)/) || [])[1];
     check(key && key !== "pythonPractice.collapsedGroups" && /<script src="collapse\.js"><\/script>\s*<script src="teacher\.js">/.test(teacher) && !/localStorage\./.test(teacherSrc),
       "Teacher view: sections open and close with collapse.js, remembered under their own key (not the student view's)");
@@ -921,7 +921,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       const press = () => {
         const open = /aria-expanded="true"/.test(h.innerHTML) ? "true" : "false";
         const b = { dataset: Object.assign({ group: "students" }, /data-closed-by-default="true"/.test(h.innerHTML) ? { closedByDefault: "true" } : {}), attrs: { "aria-expanded": open, "aria-controls": body.id },
-          getAttribute(n) { return this.attrs[n]; }, setAttribute(n, v) { this.attrs[n] = v; h.innerHTML = h.innerHTML.replace(/aria-expanded="\w+"/, 'aria-expanded="' + v + '"'); } };
+          querySelector: () => null, getAttribute(n) { return this.attrs[n]; }, setAttribute(n, v) { this.attrs[n] = v; h.innerHTML = h.innerHTML.replace(/aria-expanded="\w+"/, 'aria-expanded="' + v + '"'); } };
         handler({ target: { closest: () => b } });
       };
       return { h, body, press };
@@ -1393,7 +1393,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const wsExport = teacherSrc.slice(teacherSrc.indexOf('"export-workshop": {'), teacherSrc.indexOf('"export-workshop": {') + 600) +
       teacherSrc.slice(teacherSrc.indexOf("function workshopCsv(data)"), teacherSrc.indexOf("function workshopCsv(data)") + 600);
     const wsOut = TD.workshop(mcData, [{ id: "M1", name: "Mistake one" }], {});
-    check(/TD\.workshop\(data, misconceptions, tasksById\)/.test(wsExport) && /python-practice-workshop-/.test(wsExport) &&
+    check(/TD\.workshop\(data, misconceptions, tasksById[,)]/.test(wsExport) && /python-practice-workshop-/.test(wsExport) &&
       wsOut.misconceptions.length === 1 && wsOut.misconceptions[0].name === "Mistake one" && wsOut.tasks.some((t) => t.taskId === "if-L6a" && t.unmatched === 2),
       "Reports: the Workshop tables (CSV) export still builds the misconception and unmatched tables");
 
@@ -2559,17 +2559,19 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const ovTable = TD.scoreTable(ovData, gcse, D);
     const flagsFn = (c) => (c.tooEasy ? '<span class="flag flag-easy">Too easy</span>' : "") + (c.tooHard ? '<span class="flag flag-hard">Way too hard</span>' : "");
     const html = TD.overviewTablesHtml({ rows: ovTable.rows, unitIds: gcse, unitGroups: Curriculum.UNIT_GROUPS, unitTitle: Curriculum.unitTitle, sortKey: "name", sortDir: 1, when: () => "today", flagsHtml: flagsFn });
-    const tablesL = html.split('<div class="table-wrap overview-wrap">').slice(1);
+    const tablesL = html.split('<div class="table-wrap overview-wrap"').slice(1);
     const groupsL = TD.overviewGroups(gcse, Curriculum.UNIT_GROUPS);
     const everyTwo = tablesL.every((t) => {
       const bodies = t.split('<tbody class="ov-student">').slice(1);
       return bodies.length === 4 && bodies.every((b) => (b.match(/<tr /g) || []).length === 2 && /^<tr class="ov-fresh"><th scope="rowgroup" rowspan="2" class="ov-name">/.test(b) &&
         /<th scope="row" class="ov-shows">Freshness<\/th>[\s\S]*<tr class="ov-level"><th scope="row" class="ov-shows">Level<\/th>/.test(b));
     });
+    // One table per group (prompt 9, 2026-11): no "(continued)" tables and no limit on the units in a table.
+    const gcseGroups = Curriculum.UNIT_GROUPS.flatMap((g) => g.subsections || [g]).map((g) => g.units.filter((u) => gcse.includes(u))).filter((u) => u.length);
     check(tablesL.length === groupsL.length && everyTwo && groupsL.reduce((n, g) => n + g.units.length, 0) === gcse.length &&
-      groupsL.every((g) => g.units.length <= TD.OVERVIEW_MAX_UNITS) && TD.OVERVIEW_MAX_UNITS === 5 &&
-      JSON.stringify(groupsL.map((g) => g.units.length)) === "[4,3,4,3,5,4,5]" && groupsL[1].title === "Programming fundamentals (continued)",
-      "Students page: every student has two rows in every table (Freshness, then Level, the name merged across both), and every unit is in one table of at most 5 units");
+      JSON.stringify(groupsL.map((g) => g.units)) === JSON.stringify(gcseGroups) && new Set(groupsL.map((g) => g.id)).size === groupsL.length &&
+      TD.OVERVIEW_MAX_UNITS === undefined && !/\(continued\)/.test(html),
+      "Students page: every student has two rows in every table (Freshness, then Level, the name merged across both), and each group of units is one table with all its units");
     // The same text and colours as the single cell before, split between the rows: a frozen copy of the old cell code.
     const escO = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     const bandO = (c) => (c.band ? '<span class="rag rag-' + c.band.cls + '">' + c.score + "% · " + escO(c.band.label) + "</span>"
@@ -2606,19 +2608,15 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       JSON.stringify(pieces(a.fresh + a.level).filter((p) => p.startsWith("<"))) === JSON.stringify(pieces(oldAvg(r)).filter((p) => p.startsWith("<"))); });
     check(sameCells && sameAvg && Object.values(kinds).every((n) => n > 0) && ovTable.rows.some((r) => r.band) && ovTable.rows.some((r) => !r.band && r.levelBand) && ovTable.rows.some((r) => !r.band && !r.levelBand),
       "Students page: the Freshness row and the Level row together show exactly the old cell's text and colours (band chip in Freshness, level chip, placement, ★ Complete and flags in Level), for every kind of cell and average");
-    // No sideways scrolling: each table is table-layout: fixed at the full width, Name, Shows and Average have fixed
-    // widths and the (at most 5) unit columns share the rest. Below 850px of table width the rows become tiles.
-    const remOf = (sel) => +((/width: ([\d.]+)rem/.exec(rule(".overview-table " + sel)) || [])[1]);
-    const fixedPx = 16 * (remOf(".ov-col-name") + remOf(".ov-col-shows") + remOf(".ov-col-avg"));
-    const wrapPx = (vw) => Math.min(vw, 1200) - 32; // .wrap: max-width 1200px, 1rem padding each side
-    const tableAt = (vw) => wrapPx(vw) - 16 * 12 - 20 - 4; // beside the 12rem side menu (1.25rem gap), inside the 2px border
-    const unitPx = (tableAt(1280) - fixedPx) / TD.OVERVIEW_MAX_UNITS;
-    const tile = /grid-template-columns: repeat\(auto-fill, minmax\(([\d.]+)rem, 1fr\)\)/.exec(cssL.slice(cssL.indexOf("@container (max-width: 849px)")));
-    check(/table-layout: fixed; width: 100%;/.test(rule(".overview-table")) && fixedPx > 0 && unitPx >= 112 && tableAt(1280) >= 850 &&
-      /container-type: inline-size/.test(rule(".overview-tables")) && tile && 16 * +tile[1] <= wrapPx(390) - 4 && /td\[data-label\]::before \{ content: attr\(data-label\)/.test(cssL) &&
+    // Each table scrolls sideways inside its own wrapper (prompt 9); the page doesn't. The fixed columns' widths are
+    // custom properties on the wrapper, and the table is at least as wide as all its columns at their least width.
+    check(/overflow-x: auto;/.test(rule(".overview-wrap")) && /--ov-name: [\d.]+rem; --ov-shows: [\d.]+rem;/.test(rule(".overview-wrap")) &&
+      /table-layout: fixed;/.test(rule(".overview-table")) && /width: max\(100%, calc\(var\(--ov-name\) \+ var\(--ov-shows\) \+ var\(--ov-avg\) \+ var\(--ov-units, 1\) \* var\(--ov-unit\)\)\)/.test(rule(".overview-table")) &&
+      /grid-template-columns: minmax\(0, 1fr\)/.test(rule(".overview-tables")) && /container-type: inline-size/.test(rule(".overview-tables")) &&
+      !/@container \(max-width: 849px\)/.test(cssL) && !/td\[data-label\]::before/.test(cssL) &&
       /overflow-wrap: anywhere/.test(rule(".overview-table th, .overview-table td")) && !/\.unit-cell \{ white-space: nowrap; \}/.test(cssL) &&
       !/id="overview-table"|id="overview-head"|id="overview-rows"/.test(fs.readFileSync(path.join(ROOT, "teacher.html"), "utf8")),
-      "Students page: no table needs sideways scrolling: at 1280px every unit column is " + Math.floor(unitPx) + "px (fixed layout, long names wrap); at 390px each student's rows are tiles of " + tile[1] + "rem");
+      "Students page: each table scrolls sideways inside its own wrapper (no tiles any more), long names wrap in their cells, and the grid around the tables can't widen the page");
     const tJs = fs.readFileSync(path.join(ROOT, "teacher.js"), "utf8");
     check(/\$\("overview-tables"\)\.innerHTML = TD\.overviewTablesHtml\(/.test(tJs) && /\$\("overview-tables"\)\.addEventListener\("click"/.test(tJs) &&
       /\$\("st-summary"\)\.innerHTML = TD\.SUMMARY_TILES\.map/.test(tJs) && /renderCodeCards\(\);/.test(tJs) && /python-practice-overview-/.test(tJs) &&
@@ -2781,8 +2779,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       tplP.filter((t) => t.derived && BOOL_TASKS.includes(t.source)).every((t) => t.explainer === NOTE) && tplP.filter((t) => t.derived && BOOL_TASKS.includes(t.source)).length === 9 &&
       byIdP["types-L9f"].tests[0].expected === "Signed: True\nType: <class 'bool'>" && !typeTrue.length,
       "Boolean output: the 10 write tasks that print a Boolean they work out (types-L9f and others) explain that it must be the Boolean value, not the text \"True\"; their derived templates too; no expected output shows a value where a type belongs");
-    // Items 2 and 3: every group of units is one collapsible block (its "(continued)" tables inside), open unless closed,
-    // with the A-level subsections as blocks too; without buttonHtml the tables are as before.
+    // Items 2 and 3: every group of units is one collapsible block (one table inside, since prompt 9), open unless
+    // closed, with the A-level subsections as blocks too; without buttonHtml the tables are as before.
     const all = Curriculum.UNITS.map((u) => u.id);
     const ovData = { students: { a: { name: "Ann" } }, progress: { a: { units: {} } }, attempts: [], buttonLog: [], levelLog: [], placementLog: [], units: Curriculum.UNITS };
     const rows = TDp.scoreTable(ovData, all).rows;
@@ -2794,11 +2792,10 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const blocks = [...open.matchAll(/<section class="overview-block"[^>]*><h4 class="group-heading" id="(ov-[a-z-]+)-h">(<button[^>]*>)([^<]*)/g)].map((m) => ({ id: m[1], open: /aria-expanded="true"/.test(m[2]), title: m[3] }));
     const tablesIn = (html, id) => (html.slice(html.indexOf('id="ov-body-' + id.slice(3) + '"'), html.indexOf("</section>", html.indexOf('id="ov-body-' + id.slice(3) + '"'))).match(/<table class="overview-table"/g) || []).length;
     check(blocks.map((b) => b.title).join("|") === "Programming fundamentals|Advanced programming|Validation|Searching and sorting|A-level: Programming techniques|A-level: Data structures" &&
-      blocks.every((b) => b.open) && tablesIn(open, "ov-fundamentals") === 2 && tablesIn(open, "ov-advanced") === 2 && tablesIn(open, "ov-validation") === 2 && tablesIn(open, "ov-programming-techniques") === 2 &&
-      tablesIn(open, "ov-data-structures") === 1 && (open.match(/<table class="overview-table"/g) || []).length === (plain.match(/<table class="overview-table"/g) || []).length && !/overview-block/.test(plain) &&
+      blocks.every((b) => b.open) && blocks.every((b) => tablesIn(open, b.id) === 1) && (open.match(/<table class="overview-table"/g) || []).length === (plain.match(/<table class="overview-table"/g) || []).length && !/overview-block/.test(plain) &&
       /id="ov-body-fundamentals" hidden/.test(closed) && /id="ov-body-data-structures" hidden/.test(closed) && !/id="ov-body-advanced" hidden/.test(closed) &&
       (open.match(/button type="button" data-sort=/g) || []).length === (plain.match(/button type="button" data-sort=/g) || []).length,
-      "Students page: each group of units is one collapsible block (its \"(continued)\" tables inside), all open at first, a closed one stays closed; the A-level groups (Programming techniques, Data structures) are blocks too; the sort buttons are unchanged");
+      "Students page: each group of units is one collapsible block (one table each), all open at first, a closed one stays closed; the A-level groups (Programming techniques, Data structures) are blocks too; the sort buttons are unchanged");
     const tJs = read("teacher.js");
     check(/const studentsPageUnitIds = \(\) => UNITS\.map\(\(u\) => u\.id\);/.test(tJs) && /TD\.scoreTable\(data, studentsPageUnitIds\(\)\)/.test(tJs) &&
       /buttonHtml: Collapse\.buttonHtml, collapsed: Collapse\.collapsedIds\(OVERVIEW_KEY\)/.test(tJs) && /const OVERVIEW_KEY = "pythonPractice\.teacherCollapsedSections";/.test(tJs) &&
@@ -3364,6 +3361,166 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(rowUnits.includes(U) && Curriculum.UNITS.every((u) => rowUnits.includes(u.id)) && /^begin;$/m.test(mig) && /^commit;$/m.test(mig) &&
       ["progress", "passed_tasks", "attempts", "events"].every((tb) => new RegExp("alter table public\\." + tb + " add constraint " + tb + "_unit_check[\\s\\S]*?'debugging-gcse'").test(mig)),
       "Server: rows.ts accepts debugging-gcse (and every unit in the curriculum), and 0020 adds it to the unit check of progress, passed tasks, attempts and events, in one transaction");
+  }
+
+  // ===================== Prompt 8 (2026-11): "Needs review" rules (rules-review.json, review-rules.js) =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const RR = require(path.join(ROOT, "review-rules.js"));
+    const RRT = require(path.join(ROOT, "tools", "review-rules.js"));
+    const TDr = require(path.join(ROOT, "teacher-data.js"));
+    const byId = Object.fromEntries(tasks.map((t) => [t.id, t]));
+    // A sample rule (the shipped file has none yet): real buggy-variant code on three bank tasks, so its outputs are real.
+    const picks = tasks.filter((t) => !App.isPlacementTask(t) && t.type === "write" && (t.buggy_variants || []).length).slice(0, 3);
+    const failing = (t) => t.buggy_variants[0].outputs.findIndex((o, k) => o.errorKind || o.output !== t.tests[k].expected);
+    const rule = { id: "rev-sample-rule", name: "Sample rule", description: "A rule for the tests.", added: "2026-11-20", term: "Autumn 2026",
+      variants: picks.map((t) => ({ task: t.id, code: t.buggy_variants[0].code, outputs: t.buggy_variants[0].outputs })) };
+    const NOW = Date.parse("2026-11-20T12:00:00Z"), DAY = 86400000;
+    const ago = (d) => new Date(NOW - d * DAY).toISOString();
+    const t0 = picks[0], k0 = failing(t0), out0 = t0.buggy_variants[0].outputs[k0];
+    const rec = (o) => Object.assign({ kind: "attempt", result: "fail", studentId: "s1", taskId: t0.id, unit: t0.unit, at: ago(2), category: "WRONG_OUTPUT",
+      failedTest: k0 + 1, output: out0.output, errorKind: out0.errorKind, code: "print('my attempt')", misconceptions: [] }, o);
+    const data = { students: { s1: { name: "Ada" }, s2: { name: "Bo" } }, progress: {}, buttonLog: [], levelLog: [], placementLog: [], units: Curriculum.UNITS,
+      attempts: [rec({ id: "a1" }), rec({ id: "a2", studentId: "s2", at: ago(40) }), rec({ id: "a3", category: "WRONG_ERROR_KIND", at: ago(1) }),
+        rec({ id: "a4", at: ago(3), misconceptions: ["SOME_EXISTING"] }), rec({ id: "a5", at: ago(5), output: "something else" }),
+        rec({ id: "a6", at: ago(6), studentId: "s2", code: undefined })] };
+    const list = RR.matches([rule], RR.candidatesFromRecords(data), NOW);
+    check(list.length === 2 && list[0].rule_id === "rev-sample-rule" && list[0].rule_name === "Sample rule" && list[0].task_id === t0.id && list[0].student_name === "Ada" &&
+      list[0].at === ago(2) && list[1].student_name === "Bo" && picks.length === 3 && k0 >= 0,
+      "Needs review: a new rule's example shows the matching failed attempt with the rule's name, the task, the student's nickname and the date (newest first), using Checker.matchMisconceptions");
+    check(!RR.matches([rule], RR.candidatesFromRecords({ students: data.students, attempts: [data.attempts[2]] }), NOW).length &&
+      RR.matches([rule], [{ student_name: "X", task_id: t0.id, at: ago(1), category: "WRONG_ERROR_KIND", failed_test: k0 + 1, output: out0.output, error_kind: out0.errorKind, code: null, matched: false }], NOW).length === 0,
+      "Needs review: an attempt with a WRONG_ERROR_KIND category is never matched (as recheck.py), even with the same output");
+    check(!list.some((m) => m.at === ago(40)) && RR.inWindow(ago(29.9), NOW) && !RR.inWindow(ago(30.1), NOW) && RR.WINDOW_DAYS === 30,
+      "Needs review: an attempt older than 30 days is not shown (the window the server keeps code for)");
+    check(!list.some((m) => m.at === ago(3)) && !list.some((m) => m.at === ago(5)),
+      "Needs review: only attempts that matched no existing misconception, and only when the result on the failing test is the rule's (another output isn't matched)");
+    check(list[0].code === "print('my attempt')" && list[1].code === null && /m\.code != null \? '<pre class="review-code"/.test(read("teacher.js")) &&
+      /The code is no longer stored\./.test(read("teacher.js")) && !/paste/i.test(read("teacher.js").slice(read("teacher.js").indexOf("function renderReview"), read("teacher.js").indexOf("// ---------- Misconceptions (the workshop)"))),
+      "Needs review: the code shown is only the attempt's stored code (\"The code is no longer stored.\" otherwise); nothing pasted is shown");
+    // The Workshop per-task table and its CSV: a "Needs review" column.
+    const w = TDr.workshop(data, misconceptions, byId, RR.countsByTask(list));
+    const th = read("teacher.html");
+    check(w.tasks.find((t) => t.taskId === t0.id).needsReview === 2 && /<th scope="col">Has buggy variants<\/th><th scope="col">Needs review<\/th><th scope="col">Unmatched attempts<\/th>/.test(th) &&
+      /"has_buggy_variants", "needs_review"\]/.test(read("teacher.js")) && /needs_review: t\.needsReview/.test(read("teacher.js")),
+      "Workshop: the per-task table (and its CSV export) has a \"Needs review\" column: how many unmatched attempts a newer rule now matches");
+    // The rules file, its tool and the page.
+    const shipped = JSON.parse(read("rules-review.json"));
+    const fresh = RRT.withOutputs([rule], byId);
+    const twoOnly = Object.assign({}, rule, { id: "rev-two", variants: rule.variants.slice(0, 2) });
+    check(Array.isArray(shipped) && RRT.problems(shipped, RRT.withOutputs(shipped, byId), byId, misconceptions.map((m) => m.id)).length === 0 &&
+      RRT.problems([rule], fresh, byId, misconceptions.map((m) => m.id)).length === 0 && JSON.stringify(fresh) === JSON.stringify([rule]) &&
+      RR.rulesProblems([twoOnly], byId, []).some((p) => /at least 3 examples/.test(p)) && RR.rulesProblems([Object.assign({}, rule, { id: "SAMPLE" })], byId, ["SAMPLE"]).length === 2 &&
+      misconceptions.length === 79 && /\| Rule id \| Name \| Date added \| Term/.test(read("misconception-changes.md")),
+      "Rules file: rules-review.json (empty until Theo approves the first rules) is checked like misconceptions.json (rev- ids, 3+ examples on 3+ bank tasks, outputs worked out by tools/review-rules.js); the 79 misconceptions are unchanged; misconception-changes.md lists the rules");
+    const tj = read("teacher.js");
+    check(/<section class="teacher-section" data-collapse="mc-review" aria-labelledby="mc-review-h">/.test(th) && /<script src="review-rules\.js"><\/script>/.test(th) &&
+      /loadJson\("rules-review\.json"\)/.test(tj) && /tb\.reviewCandidates\(c\.id, ids\)/.test(tj) && /RR\.candidatesFromRecords\(data\)/.test(tj) &&
+      /RR\.matches\(reviewRules, r\.candidates, Date\.now\(\)\)/.test(tj) && /Adding misconception rules each term/.test(read("README.md")),
+      "Misconceptions page: a Needs review section, worked out when the page opens (local mode from this browser's records; backend mode from teacher-api's candidates), with the same rules and window; README has the termly steps");
+    const rs = read("supabase/functions/_shared/review-server.js"), tapi = read("supabase/functions/teacher-api/index.ts");
+    check(/deps\.Sharing\.requireClass\(sb, tid, classId, false\)/.test(rs) && /\.gte\("timestamp", since\)/.test(rs) && /\.in\("task_id", tasks\)/.test(rs) &&
+      /const NO_MATCH = \["NO_ANSWER", "WRONG_ERROR_KIND"\]/.test(rs) && !/pin_hash|login_code/.test(rs) && /async review_candidates_for_class\(tid, body\)/.test(tapi) &&
+      !/rules-review/.test(tapi.replace(/\/\/.*$/gm, "")) && !fs.readdirSync(path.join(ROOT, "supabase", "migrations")).some((f) => /review/.test(f)),
+      "Needs review on the server: teacher-api gives only the class's failed checks from the last 30 days on the rules' tasks; the rules stay on the website (adding one needs no deploy), and no new table or migration");
+  }
+
+  // ===================== Prompt 9 (2026-11): Students page: one table per block, side scrolling, working block buttons =====================
+  // The block buttons used to change (aria-expanded, the stored key) while the table stayed on show: the block's body
+  // has display: grid, which beats the browser's own [hidden] rule. Each block is now one table with every unit of its
+  // group, scrolling sideways inside its own wrapper, with the Name and Shows columns sticky on the left.
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const TD9 = require(path.join(ROOT, "teacher-data.js"));
+    const css9 = read("styles.css"), tj9 = read("teacher.js");
+    const rule9 = (sel) => { const i = css9.indexOf("\n" + sel + " {"); return i < 0 ? "" : css9.slice(i, css9.indexOf("}", i)); };
+    const all = Curriculum.UNITS.map((u) => u.id);
+    const data9 = { students: { s1: { name: "Ann" }, s2: { name: "Bo" }, s3: { name: "Cy" } }, progress: { s1: { units: {} }, s2: { units: {} }, s3: { units: {} } },
+      attempts: [], buttonLog: [], levelLog: [], placementLog: [], units: Curriculum.UNITS };
+    const rows9 = TD9.scoreTable(data9, all).rows;
+    // The real collapse.js, with a stand-in page and storage.
+    const KEY = "pythonPractice.teacherCollapsedSections";
+    const mem9 = {};
+    const els9 = {};
+    const ctx9 = { localStorage: { getItem: (k) => (k in mem9 ? mem9[k] : null), setItem: (k, v) => { mem9[k] = String(v); } },
+      document: { getElementById: (id) => els9[id] || (els9[id] = { id, hidden: false }) } };
+    ctx9.self = ctx9;
+    require("vm").runInNewContext(read("collapse.js"), ctx9);
+    const C9 = ctx9.Collapse;
+    let handler9 = null;
+    C9.wire({ addEventListener: (_, f) => { handler9 = f; }, contains: () => true }, KEY);
+    const render9 = (extra) => TD9.overviewTablesHtml(Object.assign({ rows: TD9.sortScoreTable(rows9, (extra || {}).sortKey || "name", (extra || {}).sortDir || 1), unitIds: all,
+      unitGroups: Curriculum.UNIT_GROUPS, unitTitle: Curriculum.unitTitle, sortKey: "name", sortDir: 1, when: () => "today", flagsHtml: () => "",
+      buttonHtml: C9.buttonHtml, collapsed: C9.collapsedIds(KEY) }, extra));
+    const html9 = render9();
+    const blocks9 = html9.split('<section class="overview-block"').slice(1).map((b) => ({
+      title: (/<span class="group-arrow" aria-hidden="true"><\/span>([^<]*)/.exec(b) || [])[1],
+      units: [...b.matchAll(/data-sort="([^"]+)"/g)].map((m) => m[1]).filter((k) => k !== "name" && k !== "average"),
+      tables: (b.match(/<table class="overview-table"/g) || []).length, cols: (b.match(/<col class="ov-col-unit">/g) || []).length,
+      students: [...b.matchAll(/<tbody class="ov-student">[\s\S]*?href="#student=(\w+)"/g)].map((m) => m[1]),
+      wrap: (b.match(/<div class="table-wrap overview-wrap" role="region" tabindex="0" aria-label="[^"]+">/g) || []).length,
+      unitsVar: +(/style="--ov-units: (\d+)"/.exec(b) || [])[1], html: b }));
+    const expected9 = Curriculum.UNIT_GROUPS.flatMap((g) => (g.subsections || [g]).map((p) => ({ title: p === g ? g.title : g.title + ": " + p.title, units: p.units })));
+    const authId = all.find((u) => Curriculum.unitTitle(u) === "Authentication");
+    const valUnits = (blocks9.find((b) => b.title === "Validation") || { units: [] }).units;
+    check(blocks9.length === 6 && blocks9.map((b) => b.title).join("|") === "Programming fundamentals|Advanced programming|Validation|Searching and sorting|A-level: Programming techniques|A-level: Data structures" &&
+      JSON.stringify(blocks9.map((b) => b.units)) === JSON.stringify(expected9.map((e) => e.units)) && blocks9.every((b) => b.tables === 1 && b.cols === b.units.length && b.unitsVar === b.units.length) &&
+      blocks9.reduce((n, b) => n + b.units.length, 0) === all.length && valUnits[valUnits.indexOf(authId) + 1] === "debugging-gcse" && !/\(continued\)/.test(html9),
+      "Students page: one table per block (the six blocks, in the curriculum's order), each with every unit of its block as a column; Debugging (GCSE) comes after Authentication in Validation");
+    check(blocks9.every((b) => b.students.join() === "s1,s2,s3" && (b.html.match(/<tr class="ov-fresh">/g) || []).length === 3 && (b.html.match(/<tr class="ov-level">/g) || []).length === 3 &&
+      /<th scope="col" class="ov-shows">Shows<\/th>/.test(b.html) && /data-sort="average"/.test(b.html)),
+      "Students page: every student in the class is a row (Freshness and Level) in every block's table, with the Shows and Average columns kept");
+    check(blocks9.every((b) => /<th scope="col" class="ov-name" aria-sort="ascending"><button type="button" data-sort="name">Name<\/button><\/th>/.test(b.html) && (b.html.match(/<th scope="rowgroup" rowspan="2" class="ov-name">/g) || []).length === 3) &&
+      /position: sticky; left: 0;/.test(rule9(".overview-table .ov-name")) && /position: sticky; left: var\(--ov-name\);/.test(rule9(".overview-table .ov-shows")) &&
+      /top: auto;/.test(rule9(".overview-table tbody th")) && /z-index: 3;/.test(rule9(".overview-table thead .ov-name, .overview-table thead .ov-shows")),
+      "Students page: the student name column (and Shows beside it) has the sticky style, so it stays on the left while the units scroll");
+    check(blocks9.every((b) => b.wrap === 1) && /overflow-x: auto;/.test(rule9(".overview-wrap")) && /scroll-padding-left: calc\(var\(--ov-name\) \+ var\(--ov-shows\)\)/.test(rule9(".overview-wrap")) &&
+      /grid-template-columns: minmax\(0, 1fr\)/.test(rule9(".overview-tables")) && /grid-template-columns: minmax\(0, 1fr\)/.test(rule9(".overview-block > .group-body")) &&
+      /min-width: 0;/.test(rule9(".overview-block")) && /grid-template-columns: minmax\(0, 1fr\)/.test(rule9("@media (max-width: 900px) { .layout")),
+      "Students page: each table scrolls sideways inside its own wrapper (a named region a keyboard can scroll), not the page");
+    // The block buttons: each one closes and opens its block (aria-expanded, hidden, Hide/Show), remembered in storage.
+    // A stand-in for each button on the page (made from the HTML once, then kept, as the page's buttons are).
+    const buttons9 = {};
+    const press9 = (html, id) => {
+      if (!buttons9[id]) {
+        const m = new RegExp('<button type="button" class="group-toggle" data-group="' + id + '" aria-expanded="(\\w+)" aria-controls="([^"]+)"').exec(html);
+        const state = { textContent: /<span class="group-state">(\w+)<\/span>/.exec(html.slice(m.index))[1] };
+        const attrs = { "aria-expanded": m[1], "aria-controls": m[2] };
+        els9[m[2]] = { id: m[2], hidden: new RegExp('id="' + m[2] + '" hidden').test(html) };
+        buttons9[id] = { state, attrs, dataset: { group: id }, getAttribute: (n) => attrs[n], setAttribute: (n, v) => { attrs[n] = v; }, querySelector: (s) => (s === ".group-state" ? state : null) };
+      }
+      const b = buttons9[id];
+      handler9({ target: { closest: () => b } });
+      return b.attrs["aria-expanded"] + ":" + b.state.textContent + ":" + els9[b.attrs["aria-controls"]].hidden;
+    };
+    const ids9 = [...html9.matchAll(/data-group="(ov-[a-z-]+)"/g)].map((m) => m[1]);
+    const toggles = ids9.map((id) => press9(html9, id) + "/" + press9(html9, id));
+    check(ids9.length === 6 && toggles.every((t) => t === "false:Show:true/true:Hide:false") && mem9[KEY] === "[]" &&
+      (html9.match(/<span class="group-state">Hide<\/span>/g) || []).length === 6 && C9.STATE_TEXT.open === "Hide" && C9.STATE_TEXT.closed === "Show",
+      "Students page: each block's button closes and opens its block; its label (Hide or Show) and aria-expanded change with it");
+    press9(html9, "ov-advanced");
+    const reloaded = render9();
+    const closedIn = (h, id) => new RegExp('data-group="' + id + '" aria-expanded="false"[^>]*>[\\s\\S]*?<span class="group-state">Show</span></button></h4><div class="group-body" id="ov-body-' + id.slice(3) + '" hidden>').test(h);
+    check(mem9[KEY] === '["ov-advanced"]' && closedIn(reloaded, "ov-advanced") && !closedIn(reloaded, "ov-fundamentals") &&
+      /\.overview-block > \.group-body\[hidden\] \{ display: none; \}/.test(css9),
+      "Students page: a closed block is remembered after a reload (pythonPractice.teacherCollapsedSections), and a hidden block really is hidden (display: none beats the block's grid)");
+    const lastFund = Curriculum.UNIT_GROUPS[0].units[Curriculum.UNIT_GROUPS[0].units.length - 1];
+    const sortedHtml = render9({ sortKey: lastFund, sortDir: -1 });
+    check(closedIn(sortedHtml, "ov-advanced") && /aria-sort="descending"><button type="button" data-sort="/.test(sortedHtml) &&
+      /const closedNow = \[\.\.\.\$\("overview-tables"\)\.querySelectorAll\('button\.group-toggle\[aria-expanded="false"\]'\)\]/.test(tj9) &&
+      /collapsed: Collapse\.collapsedIds\(OVERVIEW_KEY\)\.concat\(closedNow\)/.test(tj9) && /w\.scrollLeft = x/.test(tj9),
+      "Students page: a sort click keeps a closed block closed (remembered, or closed on the page now if storage is blocked), and each table keeps its sideways scroll");
+    check(blocks9.every((b) => ["s1", "s2", "s3"].every((s) => b.html.includes('<a href="#student=' + s + '">'))) && /else if \(p === "student"\) renderStudent\(data, arg\);/.test(tj9) &&
+      /const PAGES = \[[^\]]*"student"/.test(tj9),
+      "Students page: the student's name links to that student's page (#student=<id>) in every block's table");
+    const flagged = render9({ pasteHtml: (sid, u) => (sid === "s2" && u === lastFund ? TD9.pasteFlagHtml(sid, u, [{}, {}]) : "") });
+    const flagCells = [...flagged.matchAll(/<tr class="(ov-fresh|ov-level)">([\s\S]*?)<\/tr>/g)].flatMap((m) =>
+      [...m[2].matchAll(/<td class="unit-cell" data-label="([^"]+)">([\s\S]*?)<\/td>/g)].filter((c) => /paste-flag-btn/.test(c[2])).map((c) => m[1] + ":" + c[1]));
+    const flagBlock = flagged.split('<section class="overview-block"').slice(1).findIndex((b) => /paste-flag-btn/.test(b));
+    check(flagCells.join() === "ov-level:" + Curriculum.unitTitle(lastFund) && flagBlock === 0 &&
+      /data-paste-student="s2" data-paste-unit="[^"]+" aria-label="Large paste flagged, 2 flags\. Open the details"/.test(flagged) && />2 flags<\/span>/.test(flagged) &&
+      /e\.target\.closest\("button\[data-paste-student\]"\)/.test(tj9),
+      "Students page: the red paste flag is still in the Level cell of the unit it was raised in (the last column of its block), with its count, and opens the dialog");
   }
 
   // ===================== Selection, trimmed =====================

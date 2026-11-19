@@ -17,6 +17,10 @@
 //   paste_flags_for_class { class_id }      -> { class_name, students: [{ student_id, student_name, units: [{ unit, flags: [{ id, at,
 //                                              unit, taskId, phase, phaseFrom, lines, homework, next }] }] }] }  the large paste flags
 //                                              (migrations 0018 and 0019), each with its next check on the task (paste-details.js)
+//   review_candidates_for_class { class_id, task_ids } -> { class_name, window_days, candidates: [{ student_name, task_id, at,
+//                                              category, failed_test, output, error_kind, code, matched }] }  the class's failed
+//                                              checks in the last 30 days on those tasks; the Misconceptions page matches them
+//                                              with the review rules (review-rules.js, rules-review.json, on the website only)
 //   reveal_codes { class_id }               -> { codes: [{ student_id, nickname, code }] }  (each reveal is logged)
 //   reset_pin { student_id }                -> { pin }  (shown once; also clears a PIN lock)
 //   reset_placement { student_id, unit }    -> { reset }  (false: the student hasn't started that unit)
@@ -56,6 +60,8 @@ import "../_shared/homework-server.js";
 // The paste flag details too (paste-details.js), read by paste-flags-server.js.
 import "../../../paste-details.js";
 import "../_shared/paste-flags-server.js";
+// "Needs review" (review-server.js): only the attempts; the rules stay on the website.
+import "../_shared/review-server.js";
 
 // class-sharing.js, certificates-server.js and homework-server.js are plain scripts (tests/backend-client.js runs the
 // same files in Node): they set globalThis.ClassSharing, globalThis.CertificatesServer and globalThis.HomeworkServer.
@@ -226,6 +232,11 @@ const actions: Record<string, (tid: string, body: Record<string, unknown>) => Pr
   // Large paste flags for the Students page (paste-flags-server.js). Any teacher on the class, owner or co-teacher.
   async paste_flags_for_class(tid, body) {
     return await G.PasteFlagsServer.forClass(db(), { Sharing, PasteDetails: G.PasteDetails }, tid, body.class_id);
+  },
+
+  // "Needs review" (review-server.js). Any teacher on the class, owner or co-teacher.
+  async review_candidates_for_class(tid, body) {
+    return await G.ReviewServer.candidatesForClass(db(), { Sharing }, tid, body.class_id, body.task_ids);
   },
 
   // Sharing a class (class-sharing.js). Any teacher on the class can list its teachers; only its owner can add one

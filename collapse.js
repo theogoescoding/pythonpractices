@@ -15,10 +15,14 @@
 
   // The heading button. titleHtml and extraHtml must already be escaped. The body's id is bodyId. closedByDefault:
   // the section starts collapsed, and the ones opened are remembered instead (as "open:<id>" in the same list).
-  function buttonHtml(id, bodyId, titleHtml, open, extraHtml, closedByDefault) {
+  // withState: the button also says what pressing it does ("Hide" when open, "Show" when closed), kept up to date by wire.
+  const STATE_TEXT = { open: "Hide", closed: "Show" };
+  const stateText = (open) => (open ? STATE_TEXT.open : STATE_TEXT.closed);
+  function buttonHtml(id, bodyId, titleHtml, open, extraHtml, closedByDefault, withState) {
     return '<button type="button" class="group-toggle" data-group="' + id + '" aria-expanded="' + open + '" aria-controls="' + bodyId + '"' +
       (closedByDefault ? ' data-closed-by-default="true"' : "") + '>' +
-      '<span class="group-arrow" aria-hidden="true"></span>' + titleHtml + (extraHtml || "") + "</button>";
+      '<span class="group-arrow" aria-hidden="true"></span>' + titleHtml + (extraHtml || "") +
+      (withState ? '<span class="group-state">' + stateText(open) + "</span>" : "") + "</button>";
   }
 
   // Opens and closes a section when its heading button inside root is pressed, and remembers it under key.
@@ -28,6 +32,8 @@
       if (!b || !root.contains(b)) return;
       const open = b.getAttribute("aria-expanded") !== "true";
       b.setAttribute("aria-expanded", String(open));
+      const state = b.querySelector(".group-state");
+      if (state) state.textContent = stateText(open);
       const body = document.getElementById(b.getAttribute("aria-controls"));
       if (body) body.hidden = !open;
       if (b.dataset.closedByDefault === "true") {
@@ -74,5 +80,5 @@
     return true;
   }
 
-  self.Collapse = { collapsedIds, saveCollapsed, buttonHtml, wire, enhance, resetForStage };
+  self.Collapse = { collapsedIds, saveCollapsed, buttonHtml, wire, enhance, resetForStage, STATE_TEXT };
 })();

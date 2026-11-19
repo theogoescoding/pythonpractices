@@ -732,9 +732,12 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .unit-cell .lvl { font-weight: 800; }
 
 /* ---------- Students page: two rows per student (Freshness, Level), one table per group of units ----------
-   table-layout: fixed with width 100%: Name, Shows and Average have fixed widths and the unit columns (at most 7 a
-   table, teacher-data.js OVERVIEW_MAX_UNITS) share the rest, so nothing scrolls sideways. Text wraps in its cell. */
-.overview-tables { display: grid; gap: 1rem; container-type: inline-size; }
+   Each table has every unit of its group. It scrolls sideways inside its own wrapper (.overview-wrap); the page
+   never does (the grid tracks are minmax(0, 1fr), so a wide table can't widen them). The Name and Shows columns are
+   sticky on the left, so the name stays in view at every scroll position. Widths are custom properties on the
+   wrapper: --ov-name and --ov-shows (the sticky columns), --ov-avg and --ov-unit (each unit column's least width).
+   A table whose units fit shares the spare width between them (table-layout: fixed, width at least 100%). */
+.overview-tables { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; container-type: inline-size; }
 /* The export popup (teacher.js openExport): what the file contains, a sample row as column/value pairs, Download. */
 .export-dialog { width: min(40rem, calc(100vw - 2rem)); max-height: calc(100vh - 2rem); box-sizing: border-box; overflow: auto;
   background: var(--card); color: var(--text); border: 2px solid var(--border); border-radius: 12px; padding: 1rem 1.25rem; }
@@ -743,35 +746,45 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .export-sample { width: 100%; font-size: .85rem; table-layout: fixed; }
 .export-sample th, .export-sample td { overflow-wrap: anywhere; text-align: left; vertical-align: top; }
 .export-sample th[scope="row"] { width: 40%; font-weight: 600; }
-/* Each group of units (with its "(continued)" tables) is a collapsible block (collapse.js), like the student view's groups. */
+/* Each group of units is a collapsible block (collapse.js), like the student view's groups. The [hidden] rule is
+   needed because display: grid would otherwise beat the browser's own [hidden] { display: none }: that is why the
+   block buttons used to change but the table stayed on show. */
 .overview-block { border: 2px solid var(--border); border-radius: 12px; background: var(--card); padding: .25rem .75rem .5rem; min-width: 0; }
 .overview-block > .group-heading { font-size: 1.1rem; }
-.overview-block > .group-body { display: grid; gap: 1rem; margin-bottom: .5rem; }
-.overview-table { table-layout: fixed; width: 100%; font-size: .85rem; }
-.overview-table caption { text-align: left; font-weight: 800; font-size: 1rem; padding: .5rem .6rem; }
-.overview-table .ov-col-name { width: 8rem; }
-.overview-table .ov-col-shows { width: 5.5rem; }
-.overview-table .ov-col-avg { width: 6.5rem; }
+.overview-block > .group-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; margin-bottom: .5rem; }
+.overview-block > .group-body[hidden] { display: none; }
+.group-state { flex: none; font-size: .85rem; font-weight: 700; color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 0 .55rem; }
+.overview-wrap { --ov-name: 8.5rem; --ov-shows: 5.5rem; --ov-avg: 7rem; --ov-unit: 8.5rem;
+  position: relative; overflow-x: auto; overscroll-behavior-x: contain; scroll-padding-left: calc(var(--ov-name) + var(--ov-shows)); }
+.overview-wrap:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+.overview-table { table-layout: fixed; font-size: .85rem; border-collapse: separate; border-spacing: 0;
+  width: max(100%, calc(var(--ov-name) + var(--ov-shows) + var(--ov-avg) + var(--ov-units, 1) * var(--ov-unit))); }
+/* The block's heading already names the group: the caption is for screen readers only. */
+.overview-table caption { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.overview-table .ov-col-name { width: var(--ov-name); }
+.overview-table .ov-col-shows { width: var(--ov-shows); }
+.overview-table .ov-col-avg { width: var(--ov-avg); }
 .overview-table th, .overview-table td { padding: .35rem .4rem; vertical-align: top; overflow-wrap: anywhere; hyphens: auto; }
 .overview-table thead th { vertical-align: bottom; }
-.overview-table tbody th { position: static; }
+.overview-table tbody th { top: auto; }
+/* Sticky on the left: Name, then Shows beside it. An opaque background so the units scroll underneath, and a line on
+   the Shows column's right edge so it is clear where the fixed part ends. */
+.overview-table .ov-name { position: sticky; left: 0; z-index: 2; }
+.overview-table .ov-shows { position: sticky; left: var(--ov-name); z-index: 2; box-shadow: inset -2px 0 0 var(--border); }
+.overview-table thead .ov-name, .overview-table thead .ov-shows { z-index: 3; }
+.overview-table .ov-name a { font-weight: 700; }
 .overview-table .rag, .overview-table .badge-complete, .overview-table .flag { white-space: normal; }
 .overview-table .flag, .overview-table .badge-complete { border-radius: 8px; }
 .overview-table .ov-shows { color: var(--muted); font-weight: 700; }
 .overview-table tr.ov-fresh > td, .overview-table tr.ov-fresh > .ov-shows { border-bottom: 1px dashed var(--border); }
-.overview-table tbody.ov-student { border-top: 2px solid var(--border); }
-/* Narrower than 850px (a phone, a tablet, or a small window; a container query on the tables' own width), where 5
-   unit columns would be under about 105px: each student becomes a block, and each row a grid of unit tiles named by
-   their column (data-label). */
-@container (max-width: 849px) {
-  .overview-table, .overview-table caption, .overview-table thead, .overview-table tbody { display: block; }
-  .overview-table colgroup, .overview-table thead .ov-shows { display: none; }
-  .overview-table thead tr { display: flex; flex-wrap: wrap; gap: .3rem; padding: 0 .6rem .5rem; }
-  .overview-table thead th { position: static; border: 1px solid var(--border); border-radius: 6px; padding: .15rem .4rem; }
-  .overview-table tbody tr { display: grid; grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr)); gap: .3rem .5rem; padding: .3rem .6rem; }
-  .overview-table tbody th, .overview-table tbody td { display: block; min-width: 0; border: 0; padding: .1rem 0; }
-  .overview-table tbody .ov-name, .overview-table tbody .ov-shows { grid-column: 1 / -1; background: none; }
-  .overview-table td[data-label]::before { content: attr(data-label); display: block; font-size: .72rem; font-weight: 700; color: var(--muted); }
+.overview-table tbody.ov-student > tr:first-child > * { border-top: 2px solid var(--border); }
+/* A phone or a narrow window (the tables' own width): narrower fixed columns and less padding, so a whole unit column
+   fits beside the name at 390px. */
+@container (max-width: 599px) {
+  .overview-block { padding: .25rem .4rem .4rem; }
+  .overview-wrap { --ov-name: 6.25rem; --ov-shows: 4.75rem; --ov-avg: 6.5rem; --ov-unit: 7rem; }
+  .overview-table { font-size: .8rem; }
+  .overview-table th, .overview-table td { padding: .3rem .3rem; }
 }
 .flag { display: inline-block; font-size: .78rem; font-weight: 700; border: 1px solid var(--border); border-radius: 999px; padding: 0 .4rem; margin-left: .2rem; }
 .flag-alert { color: var(--fail); border-color: var(--fail); }
@@ -887,6 +900,22 @@ td pre { white-space: pre-wrap; margin: .25rem 0; font-size: .85rem; }
   white-space: pre-wrap; overflow-wrap: anywhere;
 }
 .paste-code:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
+
+/* ---------- "Needs review" on the Misconceptions page (review-rules.js) ---------- */
+.review-item { border: 2px solid var(--border); border-radius: 8px; background: var(--card); padding: .5rem .9rem .75rem; margin: 0 0 .75rem; min-width: 0; }
+.review-item h4 { margin: .25rem 0 .4rem; }
+.review-item h4 .flag { vertical-align: middle; }
+.review-facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .15rem .8rem; margin: 0 0 .4rem; }
+.review-facts dt { font-weight: 700; }
+.review-facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+/* The student's code, as the attempt stored it: monospace, long lines wrap (no sideways scroll on a phone), a long
+   program scrolls inside its own box. */
+.review-code {
+  margin: .25rem 0 0; padding: .5rem .7rem; box-sizing: border-box; max-width: 100%; max-height: 18rem; overflow: auto;
+  background: var(--code-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px;
+  font-family: Consolas, "Cascadia Mono", "Courier New", monospace; font-size: .9rem; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.review-code:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
 
 /* ---------- Task browser (teacher view) ---------- */
 .tb-results { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem; }

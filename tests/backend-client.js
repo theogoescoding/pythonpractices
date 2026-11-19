@@ -103,6 +103,7 @@ function fakeDb() {
     eq(col, v) { this.filters.push((r) => r[col] === v); return this; }
     in(col, vs) { this.filters.push((r) => vs.includes(r[col])); return this; }
     is(col, v) { this.filters.push((r) => (r[col] === undefined ? null : r[col]) === v); return this; }
+    gte(col, v) { this.filters.push((r) => r[col] >= v); return this; } // ISO times compare as text
     order() { return this; }
     range(from, to) { this.from = from; this.to = to; return this; }
     maybeSingle() { this.one = true; return this; }
@@ -603,6 +604,62 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
     check(p.Store.homework(hid)[0].done === 1, "Homework: after a pass is sent, the new \"x of y done\" from the server is kept for the home page");
   }
 
+  // ---------- "Needs review" (teacher-api review_candidates_for_class: _shared/review-server.js) ----------
+  // The real module teacher-api runs, against an in-memory database; the page then matches with review-rules.js.
+  {
+    const Sharing = require(path.join(ROOT, "supabase", "functions", "_shared", "class-sharing.js"));
+    const RS = require(path.join(ROOT, "supabase", "functions", "_shared", "review-server.js"));
+    const RR = require(path.join(ROOT, "review-rules.js"));
+    const bank = require(path.join(ROOT, "tasks.json"));
+    const sb = fakeDb();
+    const T = sb.t;
+    const id = (n) => "0000000" + n + "-0000-0000-0000-000000000001";
+    const [O, K, X] = [id("a"), id("b"), id("c")];
+    const CLA = "0000000a-0000-0000-0000-00000000c1a5", CLX = "0000000c-0000-0000-0000-00000000c1a5";
+    const ADA = "0000000a-0000-0000-0000-0000000057d1", BEN = "0000000a-0000-0000-0000-0000000057d2", XAVI = "0000000c-0000-0000-0000-0000000057d1";
+    T.teachers.push({ id: O, name: "Owner O" }, { id: K, name: "Co-teacher K" }, { id: X, name: "Stranger X" });
+    T.classes.push({ id: CLA, name: "7A", teacher_id: O }, { id: CLX, name: "8X", teacher_id: X });
+    T.class_teachers.push({ class_id: CLA, teacher_id: O }, { class_id: CLA, teacher_id: K }, { class_id: CLX, teacher_id: X });
+    T.students.push({ id: ADA, class_id: CLA, nickname: "Ada", pin_hash: "SECRET-PIN", login_code_enc: "SECRET-CODE" }, { id: BEN, class_id: CLA, nickname: "Ben" },
+      { id: XAVI, class_id: CLX, nickname: "Xavi" });
+    // A sample rule on three bank tasks (real buggy-variant code and outputs).
+    const picks = bank.filter((t) => !(t.tags || []).includes("placement") && t.type === "write" && (t.buggy_variants || []).length).slice(0, 3);
+    const rule = { id: "rev-sample", name: "Sample rule", description: "x", added: "2026-11-20", term: "Autumn 2026",
+      variants: picks.map((t) => ({ task: t.id, code: t.buggy_variants[0].code, outputs: t.buggy_variants[0].outputs })) };
+    const t0 = picks[0], k0 = t0.buggy_variants[0].outputs.findIndex((o, k) => o.errorKind || o.output !== t0.tests[k].expected), o0 = t0.buggy_variants[0].outputs[k0];
+    const NOW = Date.parse("2026-11-20T12:00:00Z");
+    const ago = (d) => new Date(NOW - d * 86400000).toISOString();
+    let n = 0;
+    const fail = (sid, extra) => T.attempts.push(Object.assign({ id: ++n, student_id: sid, record_type: "attempt", result: "fail", timestamp: ago(2), task_id: t0.id,
+      failure_category: "WRONG_OUTPUT", failed_test_number: k0 + 1, student_output: o0.output, student_error_kind: o0.errorKind, student_code: "print('ADA CODE')",
+      code_deleted_at: null, misconception_matches: [], hints_used: 0 }, extra));
+    fail(ADA);                                                         // a match
+    fail(BEN, { timestamp: ago(4), student_code: null });               // no code stored: a match, shown without code
+    fail(BEN, { timestamp: ago(5), student_code: null, code_deleted_at: ago(1) }); // code and output cleared: can't be matched
+    fail(ADA, { timestamp: ago(45) });                                  // older than 30 days
+    fail(ADA, { failure_category: "WRONG_ERROR_KIND" });                // never matched
+    fail(ADA, { task_id: "some-other-task", student_code: "print('OTHER TASK')" }); // a task no rule uses
+    T.attempts.push({ id: ++n, student_id: ADA, record_type: "attempt", result: "pass", timestamp: ago(1), task_id: t0.id, student_code: "print('A PASS')" });
+    fail(XAVI, { student_code: "print('XAVI CODE')" });                 // another class
+    const problem = async (f) => { try { await f(); return null; } catch (e) { return e instanceof Sharing.Problem ? { status: e.status } : { thrown: String(e) }; } };
+    const ids = RR.taskIds([rule]);
+
+    const owner = await RS.candidatesForClass(sb, { Sharing }, O, CLA, ids, NOW);
+    const list = RR.matches([rule], owner.candidates, NOW);
+    check(list.length === 2 && list.map((m) => m.student_name).join() === "Ada,Ben" && list[0].code === "print('ADA CODE')" && list[1].code === null &&
+      list.every((m) => m.task_id === t0.id && m.rule_name === "Sample rule"),
+      "Needs review: a teacher on the class gets their class's failed attempts from the last 30 days on the rules' tasks, and the page matches them (code only if still stored)");
+    const json = JSON.stringify(owner);
+    check(owner.candidates.length === 3 && owner.candidates.filter((c) => c.output === "" && c.code === null).length === 1 && !/SECRET|Xavi|XAVI|OTHER TASK|A PASS/.test(json) && !/student_id|pin|"id"/.test(json) &&
+      owner.candidates.every((c) => Object.keys(c).sort().join() === "at,category,code,error_kind,failed_test,matched,output,student_name,task_id"),
+      "Needs review: the reply has no PIN or login code, no other class's student, and no attempt log (no passes, other tasks, attempts over 30 days or WRONG_ERROR_KIND ones)");
+    check(JSON.stringify(await RS.candidatesForClass(sb, { Sharing }, K, CLA, ids, NOW)) === json, "Needs review: a co-teacher gets exactly what the owner gets");
+    check((await problem(() => RS.candidatesForClass(sb, { Sharing }, X, CLA, ids, NOW))).status === 404 &&
+      RR.matches([rule], (await RS.candidatesForClass(sb, { Sharing }, X, CLX, ids, NOW)).candidates, NOW).map((m) => m.student_name).join() === "Xavi" &&
+      (await problem(() => RS.candidatesForClass(sb, { Sharing }, O, CLA, "not a list", NOW))).status === 400,
+      "Needs review: a teacher who isn't on the class gets none (the same 404 as a class that doesn't exist); their own class shows only their own students");
+  }
+
   // ---------- Debugging (GCSE): the server accepts the new unit (2026-11) ----------
   // student-api and teacher-api check every row's unit against _shared/rows.ts UNITS (Deno code, read here as text),
   // and the database against migration 0020's unit checks. A wrong answer to the error question is an ordinary
@@ -627,6 +684,54 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
     check(sent && sent.unit === "debugging-gcse" && sent.failure_category === "WRONG_ERROR_KIND" && JSON.stringify(sent.failure_details) === '{"wrong":[0],"answers":["logic"]}' &&
       sent.failed_test_number === null && !p.Backend.pending(),
       "Debugging (GCSE): an attempt in the new unit (a wrong answer to the error question) is sent to student-api like any other");
+  }
+
+  // ---------- Students page (prompt 9): one table per block, the same data ----------
+  // The class's rows (as teacher-backend.js loads them) go through BackendRows.teacherData, TD.scoreTable and
+  // TD.overviewTablesHtml unchanged: every student of the class is in every block's table, every unit is a column
+  // once, each Level cell shows that student's level from the server, and nobody from another class appears.
+  {
+    const Curriculum = require(path.join(ROOT, "curriculum.js"));
+    const Rows = require(path.join(ROOT, "backend-rows.js"));
+    const TD = require(path.join(ROOT, "teacher-data.js"));
+    const all = Curriculum.UNITS.map((u) => u.id);
+    const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    const placed = (level) => ({ level, placement: { status: "done", startLevel: level }, buttonsUsed: {}, failsInARow: 0 });
+    const classes = {
+      A: { students: [["a1", "Ann"], ["a2", "Bo"]], progress: [["a1", "maths", 7], ["a1", "debugging-gcse", 4], ["a2", "loops-count", 9], ["a2", "recursion", 3]] },
+      B: { students: [["b1", "Cy"], ["b2", "Di"], ["b3", "Ed"]], progress: [["b1", "arrays-3d", 5], ["b2", "trace-tables", 8], ["b3", "merge-sort", 2], ["b3", "output", 6]] },
+    };
+    const results = {};
+    for (const [cls, c] of Object.entries(classes)) {
+      const rows = { students: c.students.map(([id, nickname]) => ({ id, nickname, created_at: "2026-09-02T09:00:00Z", imported: false, locked_until: null })),
+        progress: c.progress.map(([student_id, unit, level]) => ({ student_id, unit, state: placed(level) })), attempts: [], events: [] };
+      const data = Rows.teacherData(rows, Curriculum.UNITS);
+      const table = TD.scoreTable(data, all);
+      const html = TD.overviewTablesHtml({ rows: TD.sortScoreTable(table.rows, "name", 1), unitIds: all, unitGroups: Curriculum.UNIT_GROUPS, unitTitle: Curriculum.unitTitle,
+        sortKey: "name", sortDir: 1, when: () => "–", flagsHtml: () => "", buttonHtml: (id, bodyId, title, open, extra) => '<button data-group="' + id + '">' + title + (extra || "") + "</button>", collapsed: [] });
+      const blocks = html.split('<section class="overview-block"').slice(1);
+      const ids = c.students.map((s) => s[0]);
+      // The student's Level row in each block's table; the unit's cell is in one of them.
+      const levelCell = (sid, unit) => html.split('<tbody class="ov-student">').filter((b) => b.includes('href="#student=' + sid + '"')).map((body) => {
+        const level = body.slice(body.indexOf('<tr class="ov-level">'));
+        return (new RegExp('<td class="unit-cell" data-label="' + esc(Curriculum.unitTitle(unit)).replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + '">([\\s\\S]*?)</td>').exec(level) || [])[1] || "";
+      }).join("");
+      results[cls] = {
+        students: Object.keys(data.students).sort().join() === ids.slice().sort().join() && table.rows.length === ids.length,
+        everyBlock: blocks.length === 6 && blocks.every((b) => ids.every((sid) => (b.match(new RegExp('href="#student=' + sid + '"', "g")) || []).length === 1)),
+        units: JSON.stringify([...html.matchAll(/data-sort="([^"]+)"/g)].map((m) => m[1]).filter((k) => k !== "name" && k !== "average")) === JSON.stringify(TD.overviewGroups(all, Curriculum.UNIT_GROUPS).flatMap((g) => g.units)) &&
+          all.every((u) => (html.match(new RegExp('data-sort="' + u + '"', "g")) || []).length === 1),
+        levels: c.progress.every(([sid, unit, level]) => new RegExp("Level " + level + "\\b").test(levelCell(sid, unit))) &&
+          table.rows.every((r) => all.every((u) => r.cells[u] && (r.cells[u].started === c.progress.some(([sid, unit]) => sid === r.studentId && unit === u)))),
+        html,
+      };
+    }
+    check(results.A.students && results.B.students && results.A.everyBlock && results.B.everyBlock,
+      "Students page: each class's students are all there, in every block's table (2 in class A, 3 in class B), from the rows teacher-backend.js loads");
+    check(results.A.units && results.B.units && results.A.levels && results.B.levels,
+      "Students page: every unit is a column exactly once (in curriculum order, Debugging (GCSE) and the A-level units too), and each Level cell shows that student's level from the server");
+    check(!/#student=b\d/.test(results.A.html) && !/#student=a\d/.test(results.B.html),
+      "Students page: a class's tables never show another class's students");
   }
 
   const failed = out.filter((ok) => !ok).length;

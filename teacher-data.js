@@ -188,11 +188,14 @@
   }
 
   // ---------- Workshop ----------
-  function workshop(data, misconceptions, tasksById) {
+  // reviewCounts (optional): { taskId: how many of its unmatched attempts a "Needs review" rule matched, in the last 30
+  // days } (review-rules.js countsByTask), shown as the per-task table's "Needs review" column.
+  function workshop(data, misconceptions, tasksById, reviewCounts) {
     const failedRows = detailRows(data).filter((r) => r.result === "fail");
     const tasks = taskStats(data).filter((s) => s.fails > 0).map((s) => Object.assign(s, {
       hasVariants: !!(tasksById && tasksById[s.taskId] && (tasksById[s.taskId].buggy_variants || []).length),
       unmatchedAttempts: failedRows.filter((r) => r.taskId === s.taskId && !r.misconceptions.length),
+      needsReview: (reviewCounts || {})[s.taskId] || 0,
     })).sort((a, b) => b.unmatched - a.unmatched || b.fails - a.fails || a.taskId.localeCompare(b.taskId));
     const ms = misconceptionStats(data, misconceptions).map((m) => Object.assign(m, { studentNames: m.studentIds.map((id) => nameOf(data, id)).sort() }));
     return { misconceptions: ms, tasks };
@@ -416,26 +419,19 @@
   // Two rows per student: Freshness (a secured unit's score and band, Secured.BANDS) and Level (the current level, in
   // its colour while the unit isn't secured yet, Secured.levelBand). The text and colours are the ones the single cell
   // showed before, split between the two rows; the rules are unchanged. The unit columns come in groups (the
-  // curriculum's unit groups, with A-level split into its two subsections), one table each and at most
-  // OVERVIEW_MAX_UNITS units, so the columns share the page width and stay readable, with no sideways scrolling.
-  const OVERVIEW_MAX_UNITS = 5;
+  // curriculum's unit groups, with A-level split into its two subsections), one table per group with every unit of
+  // the group. A table wider than its block scrolls sideways inside its own wrapper (styles.css .overview-wrap), with
+  // the Name and Shows columns fixed on the left; the page itself never scrolls sideways.
   const htmlEsc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   const NOT_PLACED_HTML = '<span class="rag rag-none">Not placed yet</span>';
   const NOT_STARTED_HTML = '<span class="small">Not started</span>';
 
-  // [{ id, title, units, block }]: unitIds in the curriculum's groups, in order; units in no group last.
-  // A group with more than OVERVIEW_MAX_UNITS units is split evenly (7 units: 4, then 3 "(continued)"). block: the
-  // heading of the collapsible block the table belongs to (a subsection's is "A-level: Programming techniques").
+  // [{ id, title, units, block }]: unitIds in the curriculum's groups, in order (the order of UNITS); units in no
+  // group last. One entry per group with all its units; a group with none of unitIds is left out. block: the heading
+  // of the collapsible block the table is in (a subsection's is "A-level: Programming techniques").
   function overviewGroups(unitIds, unitGroups) {
     const out = [];
-    const add = (id, title, units, block) => {
-      const parts = Math.ceil(units.length / OVERVIEW_MAX_UNITS);
-      for (let p = 0, from = 0; p < parts; p++) {
-        const size = Math.ceil((units.length - from) / (parts - p));
-        out.push({ id, title: title + (p ? " (continued)" : ""), units: units.slice(from, from + size), block });
-        from += size;
-      }
-    };
+    const add = (id, title, units, block) => { if (units.length) out.push({ id, title, units, block }); };
     for (const g of unitGroups || []) for (const part of g.subsections || [g]) add(part.id, part.title, part.units.filter((u) => unitIds.includes(u)), part === g ? g.title : g.title + ": " + part.title);
     const listed = out.reduce((all, g) => all.concat(g.units), []);
     add("other", "Other units", unitIds.filter((u) => !listed.includes(u)), "Other units");
@@ -479,34 +475,29 @@
   }
 
   // o = { rows (scoreTable rows, sorted and filtered), unitIds, unitGroups (Curriculum.UNIT_GROUPS), unitTitle, sortKey,
-  // sortDir, when (a time as the page shows it), flagsHtml, pasteHtml (studentId, unit) -> the paste flag button, buttonHtml, collapsed }. Every table has the same first three
-  // columns (Name, Shows, Average) with fixed widths, and its unit columns share the rest of the width.
-  // buttonHtml (Collapse.buttonHtml) and collapsed (the collapsed ids, Collapse.collapsedIds): each group of units, with its
-  // "(continued)" tables, is one collapsible block, open unless its id ("ov-" and the group's id) is collapsed.
+  // sortDir, when (a time as the page shows it), flagsHtml, pasteHtml (studentId, unit) -> the paste flag button, buttonHtml, collapsed }.
+  // Every table has the same first three columns (Name, Shows, Average), then one column per unit of its group.
+  // buttonHtml (Collapse.buttonHtml) and collapsed (the collapsed ids, Collapse.collapsedIds): each group's table is
+  // in a collapsible block, open unless its id ("ov-" and the group's id) is collapsed; its button says Hide or Show.
   function overviewTablesHtml(o) {
     if (!o.rows.length) return '<p class="small">No students to show yet.</p>';
     const groups = overviewGroups(o.unitIds, o.unitGroups);
     const tables = overviewTables(o, groups);
     if (!o.buttonHtml) return tables.join("");
-    const blocks = [];
-    groups.forEach((g, i) => {
-      const last = blocks[blocks.length - 1];
-      if (last && last.id === g.id) { last.tables.push(tables[i]); last.units += g.units.length; return; }
-      blocks.push({ id: g.id, title: g.block, tables: [tables[i]], units: g.units.length });
-    });
-    return blocks.map((b) => {
-      const id = "ov-" + b.id, bodyId = "ov-body-" + b.id;
+    return groups.map((g, i) => {
+      const id = "ov-" + g.id, bodyId = "ov-body-" + g.id;
       const open = !(o.collapsed || []).includes(id);
-      const count = '<span class="group-count">' + b.units + " unit" + (b.units === 1 ? "" : "s") + "</span>";
-      return '<section class="overview-block" aria-labelledby="' + id + '-h"><h4 class="group-heading" id="' + id + '-h">' + o.buttonHtml(id, bodyId, htmlEsc(b.title), open, count) + "</h4>" +
-        '<div class="group-body" id="' + bodyId + '"' + (open ? "" : " hidden") + ">" + b.tables.join("") + "</div></section>";
+      const count = '<span class="group-count">' + g.units.length + " unit" + (g.units.length === 1 ? "" : "s") + "</span>";
+      return '<section class="overview-block" aria-labelledby="' + id + '-h"><h4 class="group-heading" id="' + id + '-h">' + o.buttonHtml(id, bodyId, htmlEsc(g.block), open, count, false, true) + "</h4>" +
+        '<div class="group-body" id="' + bodyId + '"' + (open ? "" : " hidden") + ">" + tables[i] + "</div></section>";
     }).join("");
   }
 
-  // One table's HTML for each of groups (overviewGroups).
+  // One table's HTML for each of groups (overviewGroups). The wrapper scrolls sideways (a keyboard can scroll it too:
+  // it can take focus, and it is named for screen readers). ov-name and ov-shows cells stay fixed on the left.
   function overviewTables(o, groups) {
     const sorted = (key) => (key === o.sortKey ? ' aria-sort="' + (o.sortDir === 1 ? "ascending" : "descending") + '"' : "");
-    const head = (key, label) => '<th scope="col"' + sorted(key) + '><button type="button" data-sort="' + htmlEsc(key) + '">' + htmlEsc(label) + "</button></th>";
+    const head = (key, label, cls) => '<th scope="col"' + (cls ? ' class="' + cls + '"' : "") + sorted(key) + '><button type="button" data-sort="' + htmlEsc(key) + '">' + htmlEsc(label) + "</button></th>";
     const td = (html, label) => '<td class="unit-cell" data-label="' + htmlEsc(label) + '">' + html + "</td>";
     return groups.map((g) => {
       const titles = g.units.map((u) => o.unitTitle(u));
@@ -520,10 +511,11 @@
           '<tr class="ov-level"><th scope="row" class="ov-shows">Level</th>' + td(avg.level, "Average") + cells.map((c, i) => td(c.level, titles[i])).join("") + "</tr>" +
           "</tbody>";
       }).join("");
-      return '<div class="table-wrap overview-wrap"><table class="overview-table" data-group="' + htmlEsc(g.id) + '">' +
+      return '<div class="table-wrap overview-wrap" role="region" tabindex="0" aria-label="' + htmlEsc(g.block + ", " + g.units.length + (g.units.length === 1 ? " unit" : " units") + ". Scroll sideways to see them all") + '">' +
+        '<table class="overview-table" data-group="' + htmlEsc(g.id) + '" style="--ov-units: ' + g.units.length + '">' +
         '<caption>' + htmlEsc(g.title) + "</caption>" +
         '<colgroup><col class="ov-col-name"><col class="ov-col-shows"><col class="ov-col-avg">' + g.units.map(() => '<col class="ov-col-unit">').join("") + "</colgroup>" +
-        "<thead><tr>" + head("name", "Name") + '<th scope="col" class="ov-shows">Shows</th>' + head("average", "Average") + g.units.map((u, i) => head(u, titles[i])).join("") + "</tr></thead>" +
+        "<thead><tr>" + head("name", "Name", "ov-name") + '<th scope="col" class="ov-shows">Shows</th>' + head("average", "Average") + g.units.map((u, i) => head(u, titles[i])).join("") + "</tr></thead>" +
         body + "</table></div>";
     });
   }
@@ -764,6 +756,6 @@
     collect, overviewRows, sortOverview, filterByName, taskStats, misconceptionStats, quickLook,
     detailRows, filterDetail, mostFailedTasks, workshop, BUILDER_MAX_TASKS, spreadLevels, buildSpread, swapOptions, addOptions, toCsv, fullExportRows, fullExportCsv, dataDictionaryCsv, assignmentStats,
     lastButtonPresses, ragOf, levelBand, SUMMARY_TILES, summaryTileOf, scoreTable, sortScoreTable, studentDetail, classScoresCsv,
-    OVERVIEW_MAX_UNITS, overviewGroups, overviewCell, overviewAverage, overviewTablesHtml, pasteFlagHtml,
+    overviewGroups, overviewCell,overviewAverage, overviewTablesHtml, pasteFlagHtml,
   };
 });

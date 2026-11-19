@@ -652,6 +652,16 @@
     return r.body;
   }
 
+  // "Needs review" (teacher-api review_candidates_for_class): the class's failed checks in the last 30 days on these
+  // tasks, which the Misconceptions page matches with the review rules. -> the reply's body, or { error }.
+  const OLD_SERVER_REVIEW = "The Needs review list needs the newest version of the server. It will show once the server has been updated.";
+  async function reviewCandidates(classId, taskIds) {
+    const r = await teacherApi("review_candidates_for_class", { class_id: classId, task_ids: taskIds });
+    if (r.status === 400 && /Something went wrong/.test(r.body.error || "")) return { error: OLD_SERVER_REVIEW };
+    if (r.status !== 200) return { error: r.body.error || "Couldn't load the Needs review list. Please try again." };
+    return r.body;
+  }
+
   const leaderboards = () => (current ? boardsCall("leaderboards", { class_id: current.id }) : Promise.resolve({ error: "Choose a class first." }));
   const leaderboardsAll = () => boardsCall("leaderboards_all", {});
 
@@ -718,7 +728,7 @@
     allClasses: () => classes.map((c) => ({ id: c.id, name: c.name })),
     teacherName: () => myName,
     certificatesForClass, certificatesForStudent,
-    listHomework, createHomework, deleteHomework, homeworkReport, pasteFlagsForClass,
+    listHomework, createHomework, deleteHomework, homeworkReport, pasteFlagsForClass, reviewCandidates,
     copy, resetPin, removeStudent, renameStudent, changePassword, compareClasses, leaderboards, leaderboardsAll,
   };
 })();

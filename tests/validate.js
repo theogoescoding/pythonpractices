@@ -143,6 +143,22 @@ for (const [scope, pool] of [["all units", tasks], ["the loops units", tasks.fil
     check(n >= MIN_BANK_TASKS_PER_MISCONCEPTION, `${id} needs buggy variants on at least ${MIN_BANK_TASKS_PER_MISCONCEPTION} bank tasks in ${scope}, found ${n}`);
   }
 }
+// The "Needs review" rules (rules-review.json, added each term after the trial started): the same rules as the
+// misconceptions above. An id starting rev- (not one of misconceptions.json's), a name, a description, the date added and
+// the term; at least 3 examples on 3 or more bank tasks; each example's stored outputs up to date, and each one fails a
+// test without a general syntax error or an endless loop (tools/review-rules.js).
+{
+  const RRT = require(path.join(ROOT, "tools", "review-rules.js"));
+  let reviewRules = null;
+  try { reviewRules = JSON.parse(fs.readFileSync(path.join(ROOT, "rules-review.json"), "utf8")); } catch (e) { check(false, "rules-review.json is not valid JSON: " + e.message); }
+  if (reviewRules) {
+    const byId = Object.fromEntries(tasks.map((t) => [t.id, t]));
+    const fresh = RRT.withOutputs(reviewRules, byId);
+    for (const p of RRT.problems(reviewRules, fresh, byId, MISCONCEPTION_IDS)) check(false, "rules-review.json: " + p);
+    check(JSON.stringify(fresh) === JSON.stringify(reviewRules), "rules-review.json: stored outputs are up to date – run: node tools/review-rules.js");
+    check(MISCONCEPTION_IDS.length === 79, "misconceptions.json keeps its 79 misconceptions (newer rules go in rules-review.json: " + reviewRules.length + " so far)");
+  }
+}
 // A task moved to another unit keeps its old ids (former_ids), so older exports still find it. They must not clash.
 const currentIds = new Set(tasks.map((t) => t.id));
 const formerIds = tasks.flatMap((t) => t.former_ids || []);

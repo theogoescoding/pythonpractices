@@ -439,6 +439,13 @@
       <div id="mc-failed" aria-live="polite"></div>
       </section>
 
+      <section class="teacher-section" data-collapse="mc-review" aria-labelledby="mc-review-h">
+      <h3 id="mc-review-h">Needs review</h3>
+      <p class="small">Failed attempts from the last 30 days that match a newer misconception rule (added each term, after Theo has checked it). They matched no older rule, so look at each one: does the student really have this misconception? Each shows the student's code, if it is still stored (code is kept for 30 days).</p>
+      <p id="mc-review-status" class="small" role="status"></p>
+      <div id="mc-review" aria-live="polite"></div>
+      </section>
+
       <section class="teacher-section" data-collapse="ws-misconceptions" data-collapse-default="closed">
       <h3>Misconception table</h3>
       <p class="small">Every misconception matched in this class, in every unit: how often, for how many students, and in which tasks.</p>
@@ -460,7 +467,7 @@
         <table>
           <thead>
             <tr><th scope="col">Task</th><th scope="col">Failed attempts</th><th scope="col">Unmatched</th><th scope="col">Unmatched rate</th>
-              <th scope="col">Has buggy variants</th><th scope="col">Unmatched attempts</th></tr>
+              <th scope="col">Has buggy variants</th><th scope="col">Needs review</th><th scope="col">Unmatched attempts</th></tr>
           </thead>
           <tbody id="ws-tasks"></tbody>
         </table>
@@ -512,6 +519,7 @@
   <script src="curriculum.js"></script>
   <script src="paste-details.js"></script>
   <script src="checker.js"></script>
+  <script src="review-rules.js"></script>
   <script src="app.js"></script>
   <script src="secured.js"></script>
   <script src="certificates.js"></script>
