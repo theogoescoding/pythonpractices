@@ -79,9 +79,11 @@ function fakeServer() {
         s.lastLeaderboardBody = body;
         const mine = Object.keys(s.students).filter((k) => s.students[k].classCode === s.students[sid].classCode);
         const pts = (k) => s.points[k] || { secured: 0, level: 0, total: 0, gain: 0 };
-        const b = Secured.boards(mine.map((k) => ({ nickname: s.students[k].nickname, total: pts(k).total, gain: pts(k).gain, unitCount: 39, me: k === sid })), false);
+        // Every unit counts, as points.ts POINT_UNITS (the curriculum's units): never a fixed number.
+        const units = require(path.join(ROOT, "curriculum.js")).UNITS.length;
+        const b = Secured.boards(mine.map((k) => ({ nickname: s.students[k].nickname, total: pts(k).total, gain: pts(k).gain, unitCount: units, me: k === sid })), false);
         const me = pts(sid);
-        return reply(200, { boards: b, me: { secured: me.secured, level: me.level, total: me.total, gain: me.gain }, max: 300 * 39 });
+        return reply(200, { boards: b, me: { secured: me.secured, level: me.level, total: me.total, gain: me.gain }, max: 300 * units });
       }
       case "delete_my_progress": delete s.students[sid]; return reply(200, { deleted: true, message: "Deleted." });
       default: return reply(400, { error: "bad" });
@@ -599,6 +601,32 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
       flag.paste_phase === "practice" && flag.paste_lines === 12 && flag.paste_homework_id === "hw-1",
       "Paste flag: sent to student-api as an event with the task id, the phase, the line count and the homework id (migration 0019), and nothing else: no code or pasted text");
     check(p.Store.homework(hid)[0].done === 1, "Homework: after a pass is sent, the new \"x of y done\" from the server is kept for the home page");
+  }
+
+  // ---------- Debugging (GCSE): the server accepts the new unit (2026-11) ----------
+  // student-api and teacher-api check every row's unit against _shared/rows.ts UNITS (Deno code, read here as text),
+  // and the database against migration 0020's unit checks. A wrong answer to the error question is an ordinary
+  // failed attempt (failure_category WRONG_ERROR_KIND), sent like any other.
+  {
+    const fs = require("fs");
+    const Curriculum = require(path.join(ROOT, "curriculum.js"));
+    const rowsTs = fs.readFileSync(path.join(ROOT, "supabase", "functions", "_shared", "rows.ts"), "utf8");
+    const serverUnits = JSON.parse(rowsTs.match(/export const UNITS = (\[[^\]]*\])/)[1].replace(/\s+/g, " "));
+    const mig = fs.readFileSync(path.join(ROOT, "supabase", "migrations", "0020_debugging_gcse_unit.sql"), "utf8");
+    check(serverUnits.includes("debugging-gcse") && serverUnits.length === Curriculum.UNITS.length && Curriculum.UNITS.every((u) => serverUnits.includes(u.id)) &&
+      ["progress", "passed_tasks", "attempts", "events"].every((tb) => new RegExp(tb + "_unit_check[\\s\\S]*?'debugging-gcse'").test(mig)),
+      "Debugging (GCSE): the server accepts the new unit id (rows.ts UNITS, which matches the curriculum's units, and migration 0020's unit checks)");
+    const server = fakeServer();
+    let p = openPage(server);
+    await p.Backend.join("ABCDEF", "Dee");
+    const did = p.Backend.session().sid;
+    attempt(p.Store, did, { unit: "debugging-gcse", units: ["debugging-gcse"], taskId: "bug-L7a", taskType: "write", taskLevel: 7, result: "fail",
+      category: "WRONG_ERROR_KIND", details: { wrong: [0], answers: ["logic"] }, misconceptions: [], code: "", failedTest: null });
+    await p.Backend.flush();
+    const sent = server.attempts[did][0];
+    check(sent && sent.unit === "debugging-gcse" && sent.failure_category === "WRONG_ERROR_KIND" && JSON.stringify(sent.failure_details) === '{"wrong":[0],"answers":["logic"]}' &&
+      sent.failed_test_number === null && !p.Backend.pending(),
+      "Debugging (GCSE): an attempt in the new unit (a wrong answer to the error question) is sent to student-api like any other");
   }
 
   const failed = out.filter((ok) => !ok).length;

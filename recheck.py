@@ -37,7 +37,7 @@ from harness import run_code  # noqa: E402
 
 SYNTAX_TYPES = ("SyntaxError", "IndentationError", "TabError")
 TIMEOUT_TYPES = ("Timeout", "TooMuchOutput")
-NO_MATCH_CATEGORIES = ("NO_ANSWER",)
+NO_MATCH_CATEGORIES = ("NO_ANSWER", "WRONG_ERROR_KIND")  # WRONG_ERROR_KIND: the error question (no program was run)
 RUN_TIME_LIMIT = 5.0  # seconds, the same as the app's RUN_TIMEOUT_MS
 
 

@@ -689,6 +689,32 @@ const EXAMPLES = {
     key_idea: "Each password is at the same index as its username. The function returns True as soon as a stored pair matches, and False after checking them all.",
   },
 
+  // ---------- Debugging (GCSE) ----------
+  // One for each task type (the unit's tasks say what kind of error a program has, then fix it). Each shows the fixed
+  // program; the problem names the error, its kind, and how it was fixed. Contexts: a zoo, a bakery, a garden centre
+  // and a library.
+  "debugging-gcse:predict": {
+    problem: "This zoo program had a syntax error: the first print line had no closing bracket, so Python would not run it. Here it is with the bracket put back. Work out what the fixed program prints.",
+    code: 'penguins = 12\nprint("Penguins at the zoo:", penguins)\nprint("Feeding time is 3pm")',
+    key_idea: "A syntax error breaks the rules of Python, so the program will not run at all. Fix it in your head first, then read the fixed program one line at a time.",
+  },
+  "debugging-gcse:fill": {
+    problem: "This bakery program ran, but printed 7 instead of 12, because one line said cost = cakes + price. That is a logic error. The blank is the sign between cakes and price: with * it gives the right cost.",
+    code: 'cakes = 4\nprice = 3\ncost = cakes * price\nprint("Cost of the cakes:", cost)',
+    key_idea: "A logic error lets the program run, but the result is wrong. Work out what it should print, find the line that gives the wrong value, and fill in the fix.",
+  },
+  "debugging-gcse:parsons": {
+    problem: "In this garden centre program, the for line had no colon at its end. That is a syntax error, so that line is the one not needed. The fixed line, with the colon, goes in its place.",
+    code: 'plants = 3\nfor pot in range(plants):\n    print("Water pot", pot + 1)\nprint("All watered")',
+    key_idea: "Find the line Python would refuse to run and leave it out. Use the fixed line, and put the rest in the order the program needs.",
+  },
+  "debugging-gcse:write": {
+    problem: "This library program had two errors. The if line had no colon: a syntax error, so Python would not run it. Then it used books < 5, so 7 books were allowed: a logic error, because it ran but gave the wrong answer. Both lines are fixed here. The user types 7.",
+    code: 'books = int(input("Books borrowed: "))\nif books > 5:\n    print("That is too many books")\nelse:\n    print("Enjoy your reading")',
+    inputs: ["7"],
+    key_idea: "Fix the syntax error first, so Python runs the program. Then test it with a value you can check in your head: a wrong result shows a logic error.",
+  },
+
   // ---------- Trace tables ----------
   // Each example has "trace" (a trace table spec), so "Show me how" shows its whole table. Contexts: a shop, a
   // garden, a car park, a bus, a sticker book and a climbing wall.

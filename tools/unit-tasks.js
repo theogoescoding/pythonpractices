@@ -104,6 +104,15 @@ function checkTasks(unit, all) {
       if (s.tests.length !== 1) problems.push(s.id + ": trace tasks have exactly one test (the program's inputs)");
       t.trace_spec = s.trace || {};
     }
+    // The error question (Debugging (GCSE), Checker.errorKindQuestion): "ask" and "errors" ([{ kind, line, fix }],
+    // whole lines). The program shown is the solution with each fix line replaced by its wrong line; a write task
+    // starts from it. Checked below by running it (Checker.errorKindRunProblems).
+    if (s.errors) {
+      const errors = s.errors.map((e) => ({ kind: e.kind, line: e.line, fix: e.fix }));
+      t.error_kind = { ask: s.ask, bug: Checker.withErrors(t.solution, errors), errors };
+      for (const p of Checker.errorKindShapeProblems(t.error_kind, t.solution)) problems.push(s.id + ": " + p);
+      if (s.type === "write" && s.starter == null) t.starter = t.error_kind.bug;
+    }
     t.tests = s.tests.map((x) => ({ inputs: x.inputs, expected: null }));
     t.hints = s.hints;
     // One sentence naming the idea (the A-level units), shown after a pass or the second wrong check.
@@ -123,6 +132,10 @@ function checkTasks(unit, all) {
       jobs.push({ code: t.solution, inputs: t.tests[0].inputs, trace: true }); where.push([ti, 0, "trace"]);
       (t.buggy_variants || []).forEach((v, vi) => { jobs.push({ code: v.code, inputs: t.tests[0].inputs, trace: true, maxLines: 5000 }); where.push([ti, 0, "trace:" + vi]); });
     }
+    // The error question: the program with the errors (and each error on its own) on every test.
+    if (t.error_kind && t.error_kind.bug != null) {
+      Checker.errorKindJobs(t.error_kind, t.solution, t.tests).forEach((j, n) => { jobs.push({ code: j.code || "", inputs: j.inputs, maxLines: LINE_LIMIT }); where.push([ti, j.test, "ek:" + n]); });
+    }
     // Pick the missing line: every wrong option must fail a test (it is run like a buggy variant).
     if (t.type === "partial-parsons") {
       t.options.forEach((o, oi) => { if (oi !== t.answer) t.tests.forEach((x, k) => { jobs.push({ code: withLine(t.starter, o), inputs: x.inputs, maxLines: LINE_LIMIT }); where.push([ti, k, "option:" + oi]); }); });
@@ -132,6 +145,7 @@ function checkTasks(unit, all) {
   const variantOut = {};
   const optionOut = {};
   const traces = {};
+  const errorKindOut = {};
   results.forEach((r, j) => {
     const [ti, k, vi] = where[j];
     const t = built[ti];
@@ -139,6 +153,8 @@ function checkTasks(unit, all) {
       if (r.error) problems.push(t.id + " test " + k + ": " + JSON.stringify(r.error));
       if (r.inputsLeft) problems.push(t.id + " test " + k + ": not every input is used");
       t.tests[k].expected = Checker.normalise(r.output);
+    } else if (typeof vi === "string" && vi.startsWith("ek:")) {
+      (errorKindOut[ti] = errorKindOut[ti] || [])[+vi.slice(3)] = r;
     } else if (typeof vi === "string" && vi.startsWith("option:")) {
       const key = ti + ":" + vi;
       (optionOut[key] = optionOut[key] || [])[k] = { output: Checker.normalise(r.output), kind: Checker.errorKind(r.error) };
@@ -190,6 +206,10 @@ function checkTasks(unit, all) {
       if (t.type === "predict" && (outs[0].kind || !t.options.includes(outs[0].output) || outs[0].output === t.tests[0].expected))
         problems.push(t.id + ": the " + v.misconception + " variant's output " + JSON.stringify(outs[0].output) + " should be one of the wrong options");
     });
+    if (t.error_kind && t.error_kind.bug != null) {
+      const ekJobs = Checker.errorKindJobs(t.error_kind, t.solution, t.tests);
+      for (const p of Checker.errorKindRunProblems(t.error_kind, ekJobs, errorKindOut[ti] || [], t.tests.map((x) => x.expected))) problems.push(t.id + ": " + p);
+    }
     if (t.skills.length < 1 || t.skills.length > 3) problems.push(t.id + ": 1 to 3 skills");
     if (t.explainer != null) for (const p of explainerProblems(t)) problems.push(t.id + ": " + p);
   });

@@ -174,6 +174,20 @@
       levelTypes: { 7: "write" },
       levelNames: { 7: "Write a short check", 8: "Write a longer check" },
     },
+    // Debugging for GCSE (2026-11), in the Validation group after Authentication. Not the A-level "Debugging" unit.
+    // Every task has two parts: first say what kind of error the program has (Checker.errorKindQuestion: "Syntax error"
+    // or "Logic error" at levels 1 to 7, the two definitions at level 8, one of each at levels 9 and 10), then fix it
+    // with the level's usual task type. Write tasks start from the program with the error(s) in it, so there are no
+    // write-from-scratch tasks.
+    {
+      id: "debugging-gcse",
+      title: "Debugging (GCSE)",
+      description: "Find and fix errors. A syntax error breaks the rules of Python, so the program won't run. A logic error lets it run, but it gives the wrong result.",
+      skills: ["syntax-error", "logic-error", "error-definitions", "two-errors"],
+      levelTypes: { 7: "write" },
+      levelNames: { 7: "Fix a short program", 8: "Fix it, then match the definition", 9: "Fix two errors", 10: "Fix two errors in a longer program" },
+      noScratch: true,
+    },
     {
       id: "trace-tables",
       title: "Trace tables",
@@ -328,7 +342,7 @@
     { id: "advanced", title: "Advanced programming",
       units: ["strings", "random", "lists", "functions-basic", "functions-return", "file-handling", "arrays-2d"] },
     { id: "validation", title: "Validation", units: ["validation", "validation-presence", "validation-type", "validation-range", "validation-format",
-      "validation-length", "authentication", "trace-tables"] },
+      "validation-length", "authentication", "debugging-gcse", "trace-tables"] },
     { id: "searching-sorting", title: "Searching and sorting", units: ["linear-search", "binary-search", "bubble-sort", "insertion-sort", "merge-sort"] },
     { id: "a-level", title: "A-level",
       units: ["recursion", "scope-parameters", "oop-classes", "oop-methods", "oop-encapsulation", "oop-inheritance", "debugging",

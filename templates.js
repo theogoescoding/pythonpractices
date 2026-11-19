@@ -195,6 +195,11 @@
       task.solution = f(tpl.solution);
     }
     if (tpl.type === "parsons") task.distractors = tpl.distractors.map(f);
+    // The error question (Debugging (GCSE), Checker.errorKindQuestion): its program and lines change with the variant.
+    if (tpl.error_kind) {
+      task.error_kind = { ask: tpl.error_kind.ask, bug: f(tpl.error_kind.bug),
+        errors: tpl.error_kind.errors.map((e) => ({ kind: e.kind, line: f(e.line), fix: f(e.fix) })) };
+    }
     return task;
   }
   const GAP = /^( *)____[ \t]*$/m;
@@ -456,9 +461,18 @@
     if (tpl.type === "partial-parsons") {
       task.options.forEach((o, oi) => { if (oi !== task.answer) parts.options.push(tests.map((t) => add(task.starter.replace(GAP, (m, ind) => ind + o), t.inputs))); });
     }
+    // The error question: its program with the error(s), and each error on its own, run on every test
+    // (Checker.errorKindRunProblems decides whether the variant's errors still are what the question says).
+    if (task.error_kind) {
+      const ekJobs = Checker.errorKindJobs(task.error_kind, task.solution, tests);
+      parts.errorKindJobs = ekJobs;
+      parts.errorKind = ekJobs.map((j) => add(j.code || "", j.inputs));
+    }
     let mutants = [];
     if (tpl.type === "predict") {
-      mutants = variants.map((v) => v.code).concat(mutate(task.solution, tpl.units)).filter((c, i, a) => a.indexOf(c) === i);
+      // A predict task with an error question: the program with the error is a likely wrong answer too.
+      const fromBug = task.error_kind ? [task.error_kind.bug] : [];
+      mutants = fromBug.concat(variants.map((v) => v.code), mutate(task.solution, tpl.units)).filter((c, i, a) => a.indexOf(c) === i);
       mutants.forEach((c) => parts.mutants.push(add(c, tests[0].inputs)));
       // wrongOutputs (optional): more wrong options, as text with {{…}} placeholders (e.g. the typed answer itself),
       // used after the common-mistake ones, for a program whose mistakes mostly end in an error.
@@ -516,6 +530,13 @@
       const lines = task.solution.split("\n").map((l) => l.trim());
       if (task.distractors.some((d) => lines.includes(d.trim()))) return null;
       if (new Set(task.distractors.map((d) => d.trim())).size !== task.distractors.length) return null;
+    }
+    // The error question must still be right for this variant: a syntax error stops the program, a logic error runs
+    // and prints something wrong, and the program shown is the solution with the errors put in.
+    if (task.error_kind) {
+      if (Checker.errorKindShapeProblems(task.error_kind, task.solution).length) return null;
+      const res = parts.errorKind.map((i) => results[i]);
+      if (Checker.errorKindRunProblems(task.error_kind, parts.errorKindJobs, res, task.tests.map((t) => t.expected)).length) return null;
     }
     if (task.type === "predict") {
       const correct = task.tests[0].expected;

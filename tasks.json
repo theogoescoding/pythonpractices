@@ -143940,5 +143940,2764 @@
       "least-and-most",
       "re-ask"
     ]
+  },
+  {
+    "id": "bug-L1a",
+    "unit": "debugging-gcse",
+    "level": 1,
+    "type": "predict",
+    "title": "A welcome message",
+    "description": "The user types Ava. Fix the error in your head. What will the fixed program print?",
+    "starter": "",
+    "solution": "name = input(\"Name: \")\nprint(\"Hello\", name)\nprint(\"Welcome to the club\")",
+    "options": [
+      "Hello name\nWelcome to the club",
+      "Hello\nWelcome to the club",
+      "Hello Ava\nWelcome to the club"
+    ],
+    "answer": 2,
+    "error_kind": {
+      "ask": "kind",
+      "bug": "name = input(\"Name: \")\nprint(\"Hello\", name\nprint(\"Welcome to the club\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "print(\"Hello\", name",
+          "fix": "print(\"Hello\", name)"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "Ava"
+        ],
+        "expected": "Hello Ava\nWelcome to the club"
+      }
+    ],
+    "hints": [
+      "Count the opening and closing brackets on each line.",
+      "Once the line is fixed, print() puts a space between the two values."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "worked_example": {
+      "skill": "predict",
+      "problem": "This zoo program had a syntax error: the first print line had no closing bracket, so Python would not run it. Here it is with the bracket put back. Work out what the fixed program prints.",
+      "code": "penguins = 12\nprint(\"Penguins at the zoo:\", penguins)\nprint(\"Feeding time is 3pm\")",
+      "output": "Penguins at the zoo: 12\nFeeding time is 3pm",
+      "key_idea": "A syntax error breaks the rules of Python, so the program will not run at all. Fix it in your head first, then read the fixed program one line at a time."
+    }
+  },
+  {
+    "id": "bug-L1b",
+    "unit": "debugging-gcse",
+    "level": 1,
+    "type": "predict",
+    "title": "Three tickets",
+    "description": "int() turns the text typed into a whole number: this is called casting. This program should print the cost of three tickets. The user types 4. Fix the error in your head. What will the fixed program print?",
+    "starter": "",
+    "solution": "cost = int(input(\"Cost of one ticket: \"))\ntotal = cost * 3\nprint(\"Three tickets cost\", total)",
+    "options": [
+      "Three tickets cost 7",
+      "Three tickets cost 4",
+      "Three tickets cost 444",
+      "Three tickets cost 12"
+    ],
+    "answer": 3,
+    "error_kind": {
+      "ask": "kind",
+      "bug": "cost = int(input(\"Cost of one ticket: \"))\ntotal = cost * 3\nprint(\"Three tickets cost\", cost)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "print(\"Three tickets cost\", cost)",
+          "fix": "print(\"Three tickets cost\", total)"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "4"
+        ],
+        "expected": "Three tickets cost 12"
+      }
+    ],
+    "hints": [
+      "The program runs, so look at what it prints.",
+      "Which variable holds the cost of three tickets?"
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "predict",
+      "problem": "This zoo program had a syntax error: the first print line had no closing bracket, so Python would not run it. Here it is with the bracket put back. Work out what the fixed program prints.",
+      "code": "penguins = 12\nprint(\"Penguins at the zoo:\", penguins)\nprint(\"Feeding time is 3pm\")",
+      "output": "Penguins at the zoo: 12\nFeeding time is 3pm",
+      "key_idea": "A syntax error breaks the rules of Python, so the program will not run at all. Fix it in your head first, then read the fixed program one line at a time."
+    }
+  },
+  {
+    "id": "bug-L1c",
+    "unit": "debugging-gcse",
+    "level": 1,
+    "type": "predict",
+    "title": "Old enough to join?",
+    "description": "int() turns the text typed into a whole number: this is called casting. The user types 14. Fix the error in your head. What will the fixed program print?",
+    "starter": "",
+    "solution": "age = int(input(\"Age: \"))\nif age >= 12:\n    print(\"You can join\")\nelse:\n    print(\"Too young to join\")",
+    "options": [
+      "You can join\nToo young to join",
+      "You can join",
+      "Too young to join"
+    ],
+    "answer": 1,
+    "error_kind": {
+      "ask": "kind",
+      "bug": "age = int(input(\"Age: \"))\nif age >= 12\n    print(\"You can join\")\nelse:\n    print(\"Too young to join\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "if age >= 12",
+          "fix": "if age >= 12:"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "14"
+        ],
+        "expected": "You can join"
+      }
+    ],
+    "hints": [
+      "Every if and else line needs something at its end.",
+      "After the fix, compare the age with 12."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "worked_example": {
+      "skill": "predict",
+      "problem": "This zoo program had a syntax error: the first print line had no closing bracket, so Python would not run it. Here it is with the bracket put back. Work out what the fixed program prints.",
+      "code": "penguins = 12\nprint(\"Penguins at the zoo:\", penguins)\nprint(\"Feeding time is 3pm\")",
+      "output": "Penguins at the zoo: 12\nFeeding time is 3pm",
+      "key_idea": "A syntax error breaks the rules of Python, so the program will not run at all. Fix it in your head first, then read the fixed program one line at a time."
+    }
+  },
+  {
+    "id": "bug-L1d",
+    "unit": "debugging-gcse",
+    "level": 1,
+    "type": "predict",
+    "title": "Money left",
+    "description": "int() turns the text typed into a whole number: this is called casting. This program should take off what was spent. The user types 20. Fix the error in your head. What will the fixed program print?",
+    "starter": "",
+    "solution": "money = int(input(\"Money saved: \"))\nspent = 5\nleft = money - spent\nprint(\"Money left:\", left)",
+    "options": [
+      "Money left: 25",
+      "Money left: 20",
+      "Money left: 5",
+      "Money left: 15"
+    ],
+    "answer": 3,
+    "error_kind": {
+      "ask": "kind",
+      "bug": "money = int(input(\"Money saved: \"))\nspent = 5\nleft = money + spent\nprint(\"Money left:\", left)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "left = money + spent",
+          "fix": "left = money - spent"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "20"
+        ],
+        "expected": "Money left: 15"
+      }
+    ],
+    "hints": [
+      "The program runs. Look at the sum on line 3.",
+      "Spending takes money away."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "predict",
+      "problem": "This zoo program had a syntax error: the first print line had no closing bracket, so Python would not run it. Here it is with the bracket put back. Work out what the fixed program prints.",
+      "code": "penguins = 12\nprint(\"Penguins at the zoo:\", penguins)\nprint(\"Feeding time is 3pm\")",
+      "output": "Penguins at the zoo: 12\nFeeding time is 3pm",
+      "key_idea": "A syntax error breaks the rules of Python, so the program will not run at all. Fix it in your head first, then read the fixed program one line at a time."
+    }
+  },
+  {
+    "id": "bug-L2a",
+    "unit": "debugging-gcse",
+    "level": 2,
+    "type": "predict",
+    "title": "Quiz question",
+    "description": "The user types Paris. Fix the error in your head. What will the fixed program print?",
+    "starter": "",
+    "solution": "answer = input(\"Capital of France? \")\nif answer == \"Paris\":\n    print(\"Correct\")\nelse:\n    print(\"Not quite\")\nprint(\"Quiz over\")",
+    "options": [
+      "Correct",
+      "Not quite\nQuiz over",
+      "Correct\nQuiz over"
+    ],
+    "answer": 2,
+    "error_kind": {
+      "ask": "kind",
+      "bug": "answer = input(\"Capital of France? \")\nif answer = \"Paris\":\n    print(\"Correct\")\nelse:\n    print(\"Not quite\")\nprint(\"Quiz over\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "if answer = \"Paris\":",
+          "fix": "if answer == \"Paris\":"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "Paris"
+        ],
+        "expected": "Correct\nQuiz over"
+      }
+    ],
+    "hints": [
+      "Is = the right sign for comparing two things?",
+      "After the fix, does the answer typed match exactly, capitals and all?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "worked_example": {
+      "skill": "predict",
+      "problem": "This zoo program had a syntax error: the first print line had no closing bracket, so Python would not run it. Here it is with the bracket put back. Work out what the fixed program prints.",
+      "code": "penguins = 12\nprint(\"Penguins at the zoo:\", penguins)\nprint(\"Feeding time is 3pm\")",
+      "output": "Penguins at the zoo: 12\nFeeding time is 3pm",
+      "key_idea": "A syntax error breaks the rules of Python, so the program will not run at all. Fix it in your head first, then read the fixed program one line at a time."
+    }
+  },
+  {
+    "id": "bug-L2b",
+    "unit": "debugging-gcse",
+    "level": 2,
+    "type": "predict",
+    "title": "Pass or not",
+    "description": "int() turns the text typed into a whole number: this is called casting. A mark of 40 or more is a pass. The user types 40. Fix the error in your head. What will the fixed program print?",
+    "starter": "",
+    "solution": "mark = int(input(\"Mark: \"))\nif mark >= 40:\n    print(\"Pass\")\nelse:\n    print(\"Not yet\")",
+    "options": [
+      "Not yet",
+      "Pass",
+      "Pass\nNot yet"
+    ],
+    "answer": 1,
+    "error_kind": {
+      "ask": "kind",
+      "bug": "mark = int(input(\"Mark: \"))\nif mark < 40:\n    print(\"Pass\")\nelse:\n    print(\"Not yet\")",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "if mark < 40:",
+          "fix": "if mark >= 40:"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "40"
+        ],
+        "expected": "Pass"
+      }
+    ],
+    "hints": [
+      "The program runs, but who gets which message?",
+      "A mark of 40 or more should get the first message."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "predict",
+      "problem": "This zoo program had a syntax error: the first print line had no closing bracket, so Python would not run it. Here it is with the bracket put back. Work out what the fixed program prints.",
+      "code": "penguins = 12\nprint(\"Penguins at the zoo:\", penguins)\nprint(\"Feeding time is 3pm\")",
+      "output": "Penguins at the zoo: 12\nFeeding time is 3pm",
+      "key_idea": "A syntax error breaks the rules of Python, so the program will not run at all. Fix it in your head first, then read the fixed program one line at a time."
+    }
+  },
+  {
+    "id": "bug-L2c",
+    "unit": "debugging-gcse",
+    "level": 2,
+    "type": "predict",
+    "title": "Shopping",
+    "description": "The user types apples. Fix the error in your head. What will the fixed program print?",
+    "starter": "",
+    "solution": "item = input(\"Item: \")\nprint(\"You bought:\", item)\nprint(\"Thank you\")",
+    "options": [
+      "You bought: apples\nThank you",
+      "You bought: item\nThank you",
+      "You bought:\nThank you"
+    ],
+    "answer": 0,
+    "error_kind": {
+      "ask": "kind",
+      "bug": "item = input(\"Item: \")\nprint(\"You bought:, item)\nprint(\"Thank you\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "print(\"You bought:, item)",
+          "fix": "print(\"You bought:\", item)"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "apples"
+        ],
+        "expected": "You bought: apples\nThank you"
+      }
+    ],
+    "hints": [
+      "Every string needs a quote mark at the start and one at the end.",
+      "After the fix, print() puts a space between the two values."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "worked_example": {
+      "skill": "predict",
+      "problem": "This zoo program had a syntax error: the first print line had no closing bracket, so Python would not run it. Here it is with the bracket put back. Work out what the fixed program prints.",
+      "code": "penguins = 12\nprint(\"Penguins at the zoo:\", penguins)\nprint(\"Feeding time is 3pm\")",
+      "output": "Penguins at the zoo: 12\nFeeding time is 3pm",
+      "key_idea": "A syntax error breaks the rules of Python, so the program will not run at all. Fix it in your head first, then read the fixed program one line at a time."
+    }
+  },
+  {
+    "id": "bug-L2d",
+    "unit": "debugging-gcse",
+    "level": 2,
+    "type": "predict",
+    "title": "Laps of the track",
+    "description": "int() turns the text typed into a whole number: this is called casting. Each lap is 400 metres. The program should add up the metres. The user types 3. Fix the error in your head. What will the fixed program print?",
+    "starter": "",
+    "solution": "laps = int(input(\"Laps: \"))\ntotal = 0\nfor lap in range(laps):\n    total = total + 400\nprint(\"Metres run:\", total)",
+    "options": [
+      "Metres run: 403",
+      "Metres run: 1600",
+      "Metres run: 1200",
+      "Metres run: 400"
+    ],
+    "answer": 2,
+    "error_kind": {
+      "ask": "kind",
+      "bug": "laps = int(input(\"Laps: \"))\ntotal = 0\nfor lap in range(laps):\n    total = 400\nprint(\"Metres run:\", total)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "    total = 400",
+          "fix": "    total = total + 400"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "3"
+        ],
+        "expected": "Metres run: 1200"
+      }
+    ],
+    "hints": [
+      "The program runs, but look at how total changes each time round the loop.",
+      "total should grow by 400 for every lap."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "predict",
+      "problem": "This zoo program had a syntax error: the first print line had no closing bracket, so Python would not run it. Here it is with the bracket put back. Work out what the fixed program prints.",
+      "code": "penguins = 12\nprint(\"Penguins at the zoo:\", penguins)\nprint(\"Feeding time is 3pm\")",
+      "output": "Penguins at the zoo: 12\nFeeding time is 3pm",
+      "key_idea": "A syntax error breaks the rules of Python, so the program will not run at all. Fix it in your head first, then read the fixed program one line at a time."
+    }
+  },
+  {
+    "id": "bug-L3a",
+    "unit": "debugging-gcse",
+    "level": 3,
+    "type": "fill",
+    "title": "Counting up",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should count from 1 up to the number typed. It has an error. Fill in the blank to fix it.",
+    "starter": "count = 1\ntarget = int(input(\"Count to: \"))\n____ count <= target:\n    print(count)\n    count = count + 1",
+    "solution": "count = 1\ntarget = int(input(\"Count to: \"))\nwhile count <= target:\n    print(count)\n    count = count + 1",
+    "answers": [
+      "while"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "count = 1\ntarget = int(input(\"Count to: \"))\nwhlie count <= target:\n    print(count)\n    count = count + 1",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "whlie count <= target:",
+          "fix": "while count <= target:"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "3"
+        ],
+        "expected": "1\n2\n3"
+      },
+      {
+        "inputs": [
+          "1"
+        ],
+        "expected": "1"
+      }
+    ],
+    "hints": [
+      "Python only knows its own key words, spelt exactly.",
+      "This loop keeps going while the condition is True."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "worked_example": {
+      "skill": "fill",
+      "problem": "This bakery program ran, but printed 7 instead of 12, because one line said cost = cakes + price. That is a logic error. The blank is the sign between cakes and price: with * it gives the right cost.",
+      "code": "cakes = 4\nprice = 3\ncost = cakes * price\nprint(\"Cost of the cakes:\", cost)",
+      "output": "Cost of the cakes: 12",
+      "key_idea": "A logic error lets the program run, but the result is wrong. Work out what it should print, find the line that gives the wrong value, and fill in the fix."
+    }
+  },
+  {
+    "id": "bug-L3b",
+    "unit": "debugging-gcse",
+    "level": 3,
+    "type": "fill",
+    "title": "Coat or no coat",
+    "description": "int() turns the text typed into a whole number: this is called casting. Below 5 degrees, you need a coat. It has an error. Fill in the blank to fix it.",
+    "starter": "temp = int(input(\"Temperature: \"))\nif temp ____ 5:\n    print(\"Wear a coat\")\nelse:\n    print(\"No coat needed\")",
+    "solution": "temp = int(input(\"Temperature: \"))\nif temp < 5:\n    print(\"Wear a coat\")\nelse:\n    print(\"No coat needed\")",
+    "answers": [
+      "<"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "temp = int(input(\"Temperature: \"))\nif temp > 5:\n    print(\"Wear a coat\")\nelse:\n    print(\"No coat needed\")",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "if temp > 5:",
+          "fix": "if temp < 5:"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "2"
+        ],
+        "expected": "Wear a coat"
+      },
+      {
+        "inputs": [
+          "12"
+        ],
+        "expected": "No coat needed"
+      }
+    ],
+    "hints": [
+      "The program runs. Try a cold day: what does it print?",
+      "Below 5 means the temperature is less than 5."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "fill",
+      "problem": "This bakery program ran, but printed 7 instead of 12, because one line said cost = cakes + price. That is a logic error. The blank is the sign between cakes and price: with * it gives the right cost.",
+      "code": "cakes = 4\nprice = 3\ncost = cakes * price\nprint(\"Cost of the cakes:\", cost)",
+      "output": "Cost of the cakes: 12",
+      "key_idea": "A logic error lets the program run, but the result is wrong. Work out what it should print, find the line that gives the wrong value, and fill in the fix."
+    }
+  },
+  {
+    "id": "bug-L3c",
+    "unit": "debugging-gcse",
+    "level": 3,
+    "type": "fill",
+    "title": "Area of a rug",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should work out an area. It has an error. Fill in the blank to fix it.",
+    "starter": "width = int(input(\"Width: \"))\nheight = int(input(\"Height: \")____\nprint(\"Area:\", width * height)",
+    "solution": "width = int(input(\"Width: \"))\nheight = int(input(\"Height: \"))\nprint(\"Area:\", width * height)",
+    "answers": [
+      ")"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "width = int(input(\"Width: \"))\nheight = int(input(\"Height: \")\nprint(\"Area:\", width * height)",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "height = int(input(\"Height: \")",
+          "fix": "height = int(input(\"Height: \"))"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "3",
+          "4"
+        ],
+        "expected": "Area: 12"
+      },
+      {
+        "inputs": [
+          "5",
+          "2"
+        ],
+        "expected": "Area: 10"
+      }
+    ],
+    "hints": [
+      "Count the opening and closing brackets on each line.",
+      "int( and input( each need their own closing bracket."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "worked_example": {
+      "skill": "fill",
+      "problem": "This bakery program ran, but printed 7 instead of 12, because one line said cost = cakes + price. That is a logic error. The blank is the sign between cakes and price: with * it gives the right cost.",
+      "code": "cakes = 4\nprice = 3\ncost = cakes * price\nprint(\"Cost of the cakes:\", cost)",
+      "output": "Cost of the cakes: 12",
+      "key_idea": "A logic error lets the program run, but the result is wrong. Work out what it should print, find the line that gives the wrong value, and fill in the fix."
+    }
+  },
+  {
+    "id": "bug-L3d",
+    "unit": "debugging-gcse",
+    "level": 3,
+    "type": "fill",
+    "title": "Three scores",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should add up three scores. It has an error. Fill in the blank to fix it.",
+    "starter": "total = ____\nfor i in range(3):\n    score = int(input(\"Score: \"))\n    total = total + score\nprint(\"Total:\", total)",
+    "solution": "total = 0\nfor i in range(3):\n    score = int(input(\"Score: \"))\n    total = total + score\nprint(\"Total:\", total)",
+    "answers": [
+      "0"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "total = 1\nfor i in range(3):\n    score = int(input(\"Score: \"))\n    total = total + score\nprint(\"Total:\", total)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "total = 1",
+          "fix": "total = 0"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "4",
+          "5",
+          "6"
+        ],
+        "expected": "Total: 15"
+      },
+      {
+        "inputs": [
+          "1",
+          "2",
+          "3"
+        ],
+        "expected": "Total: 6"
+      }
+    ],
+    "hints": [
+      "The program runs, but every total is wrong by the same amount.",
+      "Before anything is added, the total should be nothing at all."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "fill",
+      "problem": "This bakery program ran, but printed 7 instead of 12, because one line said cost = cakes + price. That is a logic error. The blank is the sign between cakes and price: with * it gives the right cost.",
+      "code": "cakes = 4\nprice = 3\ncost = cakes * price\nprint(\"Cost of the cakes:\", cost)",
+      "output": "Cost of the cakes: 12",
+      "key_idea": "A logic error lets the program run, but the result is wrong. Work out what it should print, find the line that gives the wrong value, and fill in the fix."
+    }
+  },
+  {
+    "id": "bug-L4a",
+    "unit": "debugging-gcse",
+    "level": 4,
+    "type": "fill",
+    "title": "Drinks menu",
+    "description": "The program should give the drink for the number chosen. It has an error. Fill in both blanks to fix it.",
+    "starter": "choice = input(\"Pick 1, 2 or 3: \")\nif choice == \"1\":\n    print(\"Tea\")\nelif choice ____ \"____\":\n    print(\"Coffee\")\nelse:\n    print(\"Water\")",
+    "solution": "choice = input(\"Pick 1, 2 or 3: \")\nif choice == \"1\":\n    print(\"Tea\")\nelif choice == \"2\":\n    print(\"Coffee\")\nelse:\n    print(\"Water\")",
+    "answers": [
+      "==",
+      "2"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "choice = input(\"Pick 1, 2 or 3: \")\nif choice == \"1\":\n    print(\"Tea\")\nelif choice = \"2\":\n    print(\"Coffee\")\nelse:\n    print(\"Water\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "elif choice = \"2\":",
+          "fix": "elif choice == \"2\":"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "2"
+        ],
+        "expected": "Coffee"
+      },
+      {
+        "inputs": [
+          "3"
+        ],
+        "expected": "Water"
+      }
+    ],
+    "hints": [
+      "One = stores a value. Comparing two things needs something else.",
+      "Fill in the comparison, then the choice this line checks for."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "worked_example": {
+      "skill": "fill",
+      "problem": "This bakery program ran, but printed 7 instead of 12, because one line said cost = cakes + price. That is a logic error. The blank is the sign between cakes and price: with * it gives the right cost.",
+      "code": "cakes = 4\nprice = 3\ncost = cakes * price\nprint(\"Cost of the cakes:\", cost)",
+      "output": "Cost of the cakes: 12",
+      "key_idea": "A logic error lets the program run, but the result is wrong. Work out what it should print, find the line that gives the wrong value, and fill in the fix."
+    }
+  },
+  {
+    "id": "bug-L4b",
+    "unit": "debugging-gcse",
+    "level": 4,
+    "type": "fill",
+    "title": "Change from a purchase",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should work out the change. It has an error. Fill in both blanks to fix it.",
+    "starter": "price = int(input(\"Price: \"))\npaid = int(input(\"Paid: \"))\nchange = ____ - ____\nprint(\"Change:\", change)",
+    "solution": "price = int(input(\"Price: \"))\npaid = int(input(\"Paid: \"))\nchange = paid - price\nprint(\"Change:\", change)",
+    "answers": [
+      "paid",
+      "price"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "price = int(input(\"Price: \"))\npaid = int(input(\"Paid: \"))\nchange = price - paid\nprint(\"Change:\", change)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "change = price - paid",
+          "fix": "change = paid - price"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "3",
+          "5"
+        ],
+        "expected": "Change: 2"
+      },
+      {
+        "inputs": [
+          "7",
+          "10"
+        ],
+        "expected": "Change: 3"
+      }
+    ],
+    "hints": [
+      "The program runs, but the change comes out below zero.",
+      "Change is what was paid, take away the price."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "fill",
+      "problem": "This bakery program ran, but printed 7 instead of 12, because one line said cost = cakes + price. That is a logic error. The blank is the sign between cakes and price: with * it gives the right cost.",
+      "code": "cakes = 4\nprice = 3\ncost = cakes * price\nprint(\"Cost of the cakes:\", cost)",
+      "output": "Cost of the cakes: 12",
+      "key_idea": "A logic error lets the program run, but the result is wrong. Work out what it should print, find the line that gives the wrong value, and fill in the fix."
+    }
+  },
+  {
+    "id": "bug-L4c",
+    "unit": "debugging-gcse",
+    "level": 4,
+    "type": "fill",
+    "title": "Add two numbers",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should add two numbers. It has an error. Fill in both blanks to fix it.",
+    "starter": "a = int(input(\"First number: \"))\nb = int(input(\"Second number: \"))\ntotal = a + b\nprint____\"Total:\", total____",
+    "solution": "a = int(input(\"First number: \"))\nb = int(input(\"Second number: \"))\ntotal = a + b\nprint(\"Total:\", total)",
+    "answers": [
+      "(",
+      ")"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "a = int(input(\"First number: \"))\nb = int(input(\"Second number: \"))\ntotal = a + b\nprint \"Total:\", total",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "print \"Total:\", total",
+          "fix": "print(\"Total:\", total)"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "3",
+          "4"
+        ],
+        "expected": "Total: 7"
+      },
+      {
+        "inputs": [
+          "10",
+          "5"
+        ],
+        "expected": "Total: 15"
+      }
+    ],
+    "hints": [
+      "print needs something around what it prints.",
+      "Put an opening bracket before the text and a closing one at the end."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "worked_example": {
+      "skill": "fill",
+      "problem": "This bakery program ran, but printed 7 instead of 12, because one line said cost = cakes + price. That is a logic error. The blank is the sign between cakes and price: with * it gives the right cost.",
+      "code": "cakes = 4\nprice = 3\ncost = cakes * price\nprint(\"Cost of the cakes:\", cost)",
+      "output": "Cost of the cakes: 12",
+      "key_idea": "A logic error lets the program run, but the result is wrong. Work out what it should print, find the line that gives the wrong value, and fill in the fix."
+    }
+  },
+  {
+    "id": "bug-L4d",
+    "unit": "debugging-gcse",
+    "level": 4,
+    "type": "fill",
+    "title": "Five lines of a table",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should print the first 5 lines of a times table. It has an error. Fill in both blanks to fix it.",
+    "starter": "n = int(input(\"Times table: \"))\nfor i in range(____, ____):\n    print(n, \"x\", i, \"=\", n * i)",
+    "solution": "n = int(input(\"Times table: \"))\nfor i in range(1, 6):\n    print(n, \"x\", i, \"=\", n * i)",
+    "answers": [
+      "1",
+      "6"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "n = int(input(\"Times table: \"))\nfor i in range(1, 5):\n    print(n, \"x\", i, \"=\", n * i)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "for i in range(1, 5):",
+          "fix": "for i in range(1, 6):"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "3"
+        ],
+        "expected": "3 x 1 = 3\n3 x 2 = 6\n3 x 3 = 9\n3 x 4 = 12\n3 x 5 = 15"
+      },
+      {
+        "inputs": [
+          "7"
+        ],
+        "expected": "7 x 1 = 7\n7 x 2 = 14\n7 x 3 = 21\n7 x 4 = 28\n7 x 5 = 35"
+      }
+    ],
+    "hints": [
+      "The program runs, but count the lines it prints.",
+      "range stops just before its end number."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "fill",
+      "problem": "This bakery program ran, but printed 7 instead of 12, because one line said cost = cakes + price. That is a logic error. The blank is the sign between cakes and price: with * it gives the right cost.",
+      "code": "cakes = 4\nprice = 3\ncost = cakes * price\nprint(\"Cost of the cakes:\", cost)",
+      "output": "Cost of the cakes: 12",
+      "key_idea": "A logic error lets the program run, but the result is wrong. Work out what it should print, find the line that gives the wrong value, and fill in the fix."
+    }
+  },
+  {
+    "id": "bug-L5a",
+    "unit": "debugging-gcse",
+    "level": 5,
+    "type": "parsons",
+    "title": "Letter by letter",
+    "description": "The program should print each letter of a word, then Done. It has an error. Put the lines in order to make the fixed program. One line is not needed: it has the error in it.",
+    "starter": "",
+    "solution": "word = input(\"Word: \")\nfor letter in word:\n    print(letter)\nprint(\"Done\")",
+    "distractors": [
+      "for letter in word"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "word = input(\"Word: \")\nfor letter in word\n    print(letter)\nprint(\"Done\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "for letter in word",
+          "fix": "for letter in word:"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "cat"
+        ],
+        "expected": "c\na\nt\nDone"
+      },
+      {
+        "inputs": [
+          "sun"
+        ],
+        "expected": "s\nu\nn\nDone"
+      }
+    ],
+    "hints": [
+      "A for line must end with a certain symbol.",
+      "The print inside the loop is indented under the for."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "worked_example": {
+      "skill": "parsons",
+      "problem": "In this garden centre program, the for line had no colon at its end. That is a syntax error, so that line is the one not needed. The fixed line, with the colon, goes in its place.",
+      "code": "plants = 3\nfor pot in range(plants):\n    print(\"Water pot\", pot + 1)\nprint(\"All watered\")",
+      "output": "Water pot 1\nWater pot 2\nWater pot 3\nAll watered",
+      "key_idea": "Find the line Python would refuse to run and leave it out. Use the fixed line, and put the rest in the order the program needs."
+    }
+  },
+  {
+    "id": "bug-L5b",
+    "unit": "debugging-gcse",
+    "level": 5,
+    "type": "parsons",
+    "title": "Average of two tests",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should print the average of two test marks. It has an error. Put the lines in order to make the fixed program. One line is not needed: it has the error in it.",
+    "starter": "",
+    "solution": "a = int(input(\"Test 1: \"))\nb = int(input(\"Test 2: \"))\naverage = (a + b) / 2\nprint(\"Average:\", average)",
+    "distractors": [
+      "average = a + b / 2"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "a = int(input(\"Test 1: \"))\nb = int(input(\"Test 2: \"))\naverage = a + b / 2\nprint(\"Average:\", average)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "average = a + b / 2",
+          "fix": "average = (a + b) / 2"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "6",
+          "8"
+        ],
+        "expected": "Average: 7.0"
+      },
+      {
+        "inputs": [
+          "10",
+          "2"
+        ],
+        "expected": "Average: 6.0"
+      }
+    ],
+    "hints": [
+      "The program runs, but is the average sensible?",
+      "Brackets make the adding happen before the dividing."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "parsons",
+      "problem": "In this garden centre program, the for line had no colon at its end. That is a syntax error, so that line is the one not needed. The fixed line, with the colon, goes in its place.",
+      "code": "plants = 3\nfor pot in range(plants):\n    print(\"Water pot\", pot + 1)\nprint(\"All watered\")",
+      "output": "Water pot 1\nWater pot 2\nWater pot 3\nAll watered",
+      "key_idea": "Find the line Python would refuse to run and leave it out. Use the fixed line, and put the rest in the order the program needs."
+    }
+  },
+  {
+    "id": "bug-L5c",
+    "unit": "debugging-gcse",
+    "level": 5,
+    "type": "parsons",
+    "title": "Which ticket?",
+    "description": "int() turns the text typed into a whole number: this is called casting. Under 13 gets a child ticket. It has an error. Put the lines in order to make the fixed program. One line is not needed: it has the error in it.",
+    "starter": "",
+    "solution": "age = int(input(\"Age: \"))\nif age < 13:\n    print(\"Child ticket\")\nelse:\n    print(\"Adult ticket\")",
+    "distractors": [
+      "else"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "age = int(input(\"Age: \"))\nif age < 13:\n    print(\"Child ticket\")\nelse\n    print(\"Adult ticket\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "else",
+          "fix": "else:"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "9"
+        ],
+        "expected": "Child ticket"
+      },
+      {
+        "inputs": [
+          "15"
+        ],
+        "expected": "Adult ticket"
+      }
+    ],
+    "hints": [
+      "Look at the end of each if and else line.",
+      "The else line needs the same ending as the if line."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "worked_example": {
+      "skill": "parsons",
+      "problem": "In this garden centre program, the for line had no colon at its end. That is a syntax error, so that line is the one not needed. The fixed line, with the colon, goes in its place.",
+      "code": "plants = 3\nfor pot in range(plants):\n    print(\"Water pot\", pot + 1)\nprint(\"All watered\")",
+      "output": "Water pot 1\nWater pot 2\nWater pot 3\nAll watered",
+      "key_idea": "Find the line Python would refuse to run and leave it out. Use the fixed line, and put the rest in the order the program needs."
+    }
+  },
+  {
+    "id": "bug-L5d",
+    "unit": "debugging-gcse",
+    "level": 5,
+    "type": "parsons",
+    "title": "Picnic day",
+    "description": "A picnic needs a Saturday and sunny weather. It has an error. Put the lines in order to make the fixed program. One line is not needed: it has the error in it.",
+    "starter": "",
+    "solution": "day = input(\"Day: \")\nweather = input(\"Weather: \")\nif day == \"Saturday\" and weather == \"sunny\":\n    print(\"Picnic in the park\")\nelse:\n    print(\"Stay at home\")",
+    "distractors": [
+      "if day == \"Saturday\" or weather == \"sunny\":"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "day = input(\"Day: \")\nweather = input(\"Weather: \")\nif day == \"Saturday\" or weather == \"sunny\":\n    print(\"Picnic in the park\")\nelse:\n    print(\"Stay at home\")",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "if day == \"Saturday\" or weather == \"sunny\":",
+          "fix": "if day == \"Saturday\" and weather == \"sunny\":"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "Saturday",
+          "rainy"
+        ],
+        "expected": "Stay at home"
+      },
+      {
+        "inputs": [
+          "Saturday",
+          "sunny"
+        ],
+        "expected": "Picnic in the park"
+      }
+    ],
+    "hints": [
+      "The program runs. Try Saturday and rainy: what should happen?",
+      "Both things must be true for a picnic."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "parsons",
+      "problem": "In this garden centre program, the for line had no colon at its end. That is a syntax error, so that line is the one not needed. The fixed line, with the colon, goes in its place.",
+      "code": "plants = 3\nfor pot in range(plants):\n    print(\"Water pot\", pot + 1)\nprint(\"All watered\")",
+      "output": "Water pot 1\nWater pot 2\nWater pot 3\nAll watered",
+      "key_idea": "Find the line Python would refuse to run and leave it out. Use the fixed line, and put the rest in the order the program needs."
+    }
+  },
+  {
+    "id": "bug-L6a",
+    "unit": "debugging-gcse",
+    "level": 6,
+    "type": "parsons",
+    "title": "Unlock the door",
+    "description": "The program should keep asking until the PIN is 1234. It has an error. Put the lines in order to make the fixed program. Two lines are not needed.",
+    "starter": "",
+    "solution": "pin = input(\"PIN: \")\nwhile pin != \"1234\":\n    print(\"Wrong PIN\")\n    pin = input(\"PIN: \")\nprint(\"Unlocked\")",
+    "distractors": [
+      "while pin != \"1234\"",
+      "while pin == \"1234\":"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "pin = input(\"PIN: \")\nwhile pin != \"1234\"\n    print(\"Wrong PIN\")\n    pin = input(\"PIN: \")\nprint(\"Unlocked\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "while pin != \"1234\"",
+          "fix": "while pin != \"1234\":"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "1234"
+        ],
+        "expected": "Unlocked"
+      },
+      {
+        "inputs": [
+          "1111",
+          "1234"
+        ],
+        "expected": "Wrong PIN\nUnlocked"
+      }
+    ],
+    "hints": [
+      "A while line ends like an if line.",
+      "The loop should keep asking while the PIN is not right."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "worked_example": {
+      "skill": "parsons",
+      "problem": "In this garden centre program, the for line had no colon at its end. That is a syntax error, so that line is the one not needed. The fixed line, with the colon, goes in its place.",
+      "code": "plants = 3\nfor pot in range(plants):\n    print(\"Water pot\", pot + 1)\nprint(\"All watered\")",
+      "output": "Water pot 1\nWater pot 2\nWater pot 3\nAll watered",
+      "key_idea": "Find the line Python would refuse to run and leave it out. Use the fixed line, and put the rest in the order the program needs."
+    }
+  },
+  {
+    "id": "bug-L6b",
+    "unit": "debugging-gcse",
+    "level": 6,
+    "type": "parsons",
+    "title": "Best of three",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should print the best of three scores. It has an error. Put the lines in order to make the fixed program. Two lines are not needed.",
+    "starter": "",
+    "solution": "best = 0\nfor i in range(3):\n    score = int(input(\"Score: \"))\n    if score > best:\n        best = score\nprint(\"Best score:\", best)",
+    "distractors": [
+      "if score < best:",
+      "best = best + score"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "best = 0\nfor i in range(3):\n    score = int(input(\"Score: \"))\n    if score < best:\n        best = score\nprint(\"Best score:\", best)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "    if score < best:",
+          "fix": "    if score > best:"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "4",
+          "9",
+          "2"
+        ],
+        "expected": "Best score: 9"
+      },
+      {
+        "inputs": [
+          "7",
+          "3",
+          "5"
+        ],
+        "expected": "Best score: 7"
+      }
+    ],
+    "hints": [
+      "The program runs, but the best score is always 0.",
+      "best should change when a new score is bigger."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "parsons",
+      "problem": "In this garden centre program, the for line had no colon at its end. That is a syntax error, so that line is the one not needed. The fixed line, with the colon, goes in its place.",
+      "code": "plants = 3\nfor pot in range(plants):\n    print(\"Water pot\", pot + 1)\nprint(\"All watered\")",
+      "output": "Water pot 1\nWater pot 2\nWater pot 3\nAll watered",
+      "key_idea": "Find the line Python would refuse to run and leave it out. Use the fixed line, and put the rest in the order the program needs."
+    }
+  },
+  {
+    "id": "bug-L6c",
+    "unit": "debugging-gcse",
+    "level": 6,
+    "type": "parsons",
+    "title": "Make a username",
+    "description": "The program should greet the user, then make a username from both names. It has an error. Put the lines in order to make the fixed program. Two lines are not needed.",
+    "starter": "",
+    "solution": "first = input(\"First name: \")\nlast = input(\"Last name: \")\nprint(\"Hello\", first, last)\nprint(\"Your username is\", first + last)",
+    "distractors": [
+      "print(\"Hello\" first, last)",
+      "print(\"Hello\", \"first\", \"last\")"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "first = input(\"First name: \")\nlast = input(\"Last name: \")\nprint(\"Hello\" first, last)\nprint(\"Your username is\", first + last)",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "print(\"Hello\" first, last)",
+          "fix": "print(\"Hello\", first, last)"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "Ada",
+          "Lee"
+        ],
+        "expected": "Hello Ada Lee\nYour username is AdaLee"
+      },
+      {
+        "inputs": [
+          "Sam",
+          "Khan"
+        ],
+        "expected": "Hello Sam Khan\nYour username is SamKhan"
+      }
+    ],
+    "hints": [
+      "Values in print() are separated by something.",
+      "first and last are variables, so they have no quote marks."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "worked_example": {
+      "skill": "parsons",
+      "problem": "In this garden centre program, the for line had no colon at its end. That is a syntax error, so that line is the one not needed. The fixed line, with the colon, goes in its place.",
+      "code": "plants = 3\nfor pot in range(plants):\n    print(\"Water pot\", pot + 1)\nprint(\"All watered\")",
+      "output": "Water pot 1\nWater pot 2\nWater pot 3\nAll watered",
+      "key_idea": "Find the line Python would refuse to run and leave it out. Use the fixed line, and put the rest in the order the program needs."
+    }
+  },
+  {
+    "id": "bug-L6d",
+    "unit": "debugging-gcse",
+    "level": 6,
+    "type": "parsons",
+    "title": "Double points",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should double the points. It has an error. Put the lines in order to make the fixed program. Two lines are not needed.",
+    "starter": "",
+    "solution": "points = int(input(\"Points: \"))\nbonus = points * 2\nprint(\"Points with the double bonus:\", bonus)",
+    "distractors": [
+      "bonus = points + 2",
+      "bonus = points ** 2"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "points = int(input(\"Points: \"))\nbonus = points + 2\nprint(\"Points with the double bonus:\", bonus)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "bonus = points + 2",
+          "fix": "bonus = points * 2"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "5"
+        ],
+        "expected": "Points with the double bonus: 10"
+      },
+      {
+        "inputs": [
+          "8"
+        ],
+        "expected": "Points with the double bonus: 16"
+      }
+    ],
+    "hints": [
+      "The program runs. Try 5 points: what should the bonus be?",
+      "Double means two times as many."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "parsons",
+      "problem": "In this garden centre program, the for line had no colon at its end. That is a syntax error, so that line is the one not needed. The fixed line, with the colon, goes in its place.",
+      "code": "plants = 3\nfor pot in range(plants):\n    print(\"Water pot\", pot + 1)\nprint(\"All watered\")",
+      "output": "Water pot 1\nWater pot 2\nWater pot 3\nAll watered",
+      "key_idea": "Find the line Python would refuse to run and leave it out. Use the fixed line, and put the rest in the order the program needs."
+    }
+  },
+  {
+    "id": "bug-L7a",
+    "unit": "debugging-gcse",
+    "level": 7,
+    "type": "write",
+    "title": "Medals",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should print Gold for over 50, Silver for over 20, and Bronze for the rest. It has an error. Fix it in the editor.",
+    "starter": "score = int(input(\"Score: \"))\nif score > 50:\n    print(\"Gold\")\nelif score > 20\n    print(\"Silver\")\nelse:\n    print(\"Bronze\")",
+    "solution": "score = int(input(\"Score: \"))\nif score > 50:\n    print(\"Gold\")\nelif score > 20:\n    print(\"Silver\")\nelse:\n    print(\"Bronze\")",
+    "error_kind": {
+      "ask": "kind",
+      "bug": "score = int(input(\"Score: \"))\nif score > 50:\n    print(\"Gold\")\nelif score > 20\n    print(\"Silver\")\nelse:\n    print(\"Bronze\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "elif score > 20",
+          "fix": "elif score > 20:"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "60"
+        ],
+        "expected": "Gold"
+      },
+      {
+        "inputs": [
+          "30"
+        ],
+        "expected": "Silver"
+      }
+    ],
+    "hints": [
+      "Every if, elif and else line needs the same ending.",
+      "Find the line Python refuses to run."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "This library program had two errors. The if line had no colon: a syntax error, so Python would not run it. Then it used books < 5, so 7 books were allowed: a logic error, because it ran but gave the wrong answer. Both lines are fixed here. The user types 7.",
+      "code": "books = int(input(\"Books borrowed: \"))\nif books > 5:\n    print(\"That is too many books\")\nelse:\n    print(\"Enjoy your reading\")",
+      "inputs": [
+        "7"
+      ],
+      "output": "That is too many books",
+      "key_idea": "Fix the syntax error first, so Python runs the program. Then test it with a value you can check in your head: a wrong result shows a logic error."
+    }
+  },
+  {
+    "id": "bug-L7b",
+    "unit": "debugging-gcse",
+    "level": 7,
+    "type": "write",
+    "title": "Walking to school",
+    "description": "The program should count how many of the 4 answers are yes. It has an error. Fix it in the editor.",
+    "starter": "count = 0\nfor i in range(4):\n    answer = input(\"Did you walk to school? \")\n    if answer == \"yes\":\n        count = 1\nprint(\"Days walked:\", count)",
+    "solution": "count = 0\nfor i in range(4):\n    answer = input(\"Did you walk to school? \")\n    if answer == \"yes\":\n        count = count + 1\nprint(\"Days walked:\", count)",
+    "error_kind": {
+      "ask": "kind",
+      "bug": "count = 0\nfor i in range(4):\n    answer = input(\"Did you walk to school? \")\n    if answer == \"yes\":\n        count = 1\nprint(\"Days walked:\", count)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "        count = 1",
+          "fix": "        count = count + 1"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "yes",
+          "no",
+          "yes",
+          "yes"
+        ],
+        "expected": "Days walked: 3"
+      },
+      {
+        "inputs": [
+          "no",
+          "no",
+          "no",
+          "yes"
+        ],
+        "expected": "Days walked: 1"
+      }
+    ],
+    "hints": [
+      "The program runs. Try three yes answers: what is printed?",
+      "count should go up by one for each yes."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "This library program had two errors. The if line had no colon: a syntax error, so Python would not run it. Then it used books < 5, so 7 books were allowed: a logic error, because it ran but gave the wrong answer. Both lines are fixed here. The user types 7.",
+      "code": "books = int(input(\"Books borrowed: \"))\nif books > 5:\n    print(\"That is too many books\")\nelse:\n    print(\"Enjoy your reading\")",
+      "inputs": [
+        "7"
+      ],
+      "output": "That is too many books",
+      "key_idea": "Fix the syntax error first, so Python runs the program. Then test it with a value you can check in your head: a wrong result shows a logic error."
+    }
+  },
+  {
+    "id": "bug-L7c",
+    "unit": "debugging-gcse",
+    "level": 7,
+    "type": "write",
+    "title": "Pet legs",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should print a pet's name and how many legs it has. It has an error. Fix it in the editor.",
+    "starter": "name = input(\"Pet's name: \")\nlegs = int(input(\"Number of legs: ))\nprint(name, \"has\", legs, \"legs\")",
+    "solution": "name = input(\"Pet's name: \")\nlegs = int(input(\"Number of legs: \"))\nprint(name, \"has\", legs, \"legs\")",
+    "error_kind": {
+      "ask": "kind",
+      "bug": "name = input(\"Pet's name: \")\nlegs = int(input(\"Number of legs: ))\nprint(name, \"has\", legs, \"legs\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "legs = int(input(\"Number of legs: ))",
+          "fix": "legs = int(input(\"Number of legs: \"))"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "Rex",
+          "4"
+        ],
+        "expected": "Rex has 4 legs"
+      },
+      {
+        "inputs": [
+          "Polly",
+          "2"
+        ],
+        "expected": "Polly has 2 legs"
+      }
+    ],
+    "hints": [
+      "Look for a string that never ends.",
+      "Every opening quote mark needs a closing one."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "This library program had two errors. The if line had no colon: a syntax error, so Python would not run it. Then it used books < 5, so 7 books were allowed: a logic error, because it ran but gave the wrong answer. Both lines are fixed here. The user types 7.",
+      "code": "books = int(input(\"Books borrowed: \"))\nif books > 5:\n    print(\"That is too many books\")\nelse:\n    print(\"Enjoy your reading\")",
+      "inputs": [
+        "7"
+      ],
+      "output": "That is too many books",
+      "key_idea": "Fix the syntax error first, so Python runs the program. Then test it with a value you can check in your head: a wrong result shows a logic error."
+    }
+  },
+  {
+    "id": "bug-L7d",
+    "unit": "debugging-gcse",
+    "level": 7,
+    "type": "write",
+    "title": "Ten off",
+    "description": "int() turns the text typed into a whole number: this is called casting. Spend 50 or more and you get 10 off. It has an error. Fix it in the editor.",
+    "starter": "total = int(input(\"Total spent: \"))\nif total >= 50:\n    total = total + 10\nprint(\"To pay:\", total)",
+    "solution": "total = int(input(\"Total spent: \"))\nif total >= 50:\n    total = total - 10\nprint(\"To pay:\", total)",
+    "error_kind": {
+      "ask": "kind",
+      "bug": "total = int(input(\"Total spent: \"))\nif total >= 50:\n    total = total + 10\nprint(\"To pay:\", total)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "    total = total + 10",
+          "fix": "    total = total - 10"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "60"
+        ],
+        "expected": "To pay: 50"
+      },
+      {
+        "inputs": [
+          "20"
+        ],
+        "expected": "To pay: 20"
+      }
+    ],
+    "hints": [
+      "The program runs. Try 60: what should you pay?",
+      "10 off means taking 10 away."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "This library program had two errors. The if line had no colon: a syntax error, so Python would not run it. Then it used books < 5, so 7 books were allowed: a logic error, because it ran but gave the wrong answer. Both lines are fixed here. The user types 7.",
+      "code": "books = int(input(\"Books borrowed: \"))\nif books > 5:\n    print(\"That is too many books\")\nelse:\n    print(\"Enjoy your reading\")",
+      "inputs": [
+        "7"
+      ],
+      "output": "That is too many books",
+      "key_idea": "Fix the syntax error first, so Python runs the program. Then test it with a value you can check in your head: a wrong result shows a logic error."
+    }
+  },
+  {
+    "id": "bug-L8a",
+    "unit": "debugging-gcse",
+    "level": 8,
+    "type": "write",
+    "title": "Add until zero",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should add up numbers until 0 is typed, then print the total. It has an error. Fix it in the editor.",
+    "starter": "total = 0\nnumber = int(input(\"Number (0 to stop): \"))\nwhile number != 0\n    total = total + number\n    number = int(input(\"Number (0 to stop): \"))\nprint(\"Total:\", total)",
+    "solution": "total = 0\nnumber = int(input(\"Number (0 to stop): \"))\nwhile number != 0:\n    total = total + number\n    number = int(input(\"Number (0 to stop): \"))\nprint(\"Total:\", total)",
+    "error_kind": {
+      "ask": "definition",
+      "bug": "total = 0\nnumber = int(input(\"Number (0 to stop): \"))\nwhile number != 0\n    total = total + number\n    number = int(input(\"Number (0 to stop): \"))\nprint(\"Total:\", total)",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "while number != 0",
+          "fix": "while number != 0:"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "4",
+          "5",
+          "0"
+        ],
+        "expected": "Total: 9"
+      },
+      {
+        "inputs": [
+          "0"
+        ],
+        "expected": "Total: 0"
+      }
+    ],
+    "hints": [
+      "Look at the end of the while line.",
+      "Ask: would Python run this program at all?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error",
+      "error-definitions"
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "This library program had two errors. The if line had no colon: a syntax error, so Python would not run it. Then it used books < 5, so 7 books were allowed: a logic error, because it ran but gave the wrong answer. Both lines are fixed here. The user types 7.",
+      "code": "books = int(input(\"Books borrowed: \"))\nif books > 5:\n    print(\"That is too many books\")\nelse:\n    print(\"Enjoy your reading\")",
+      "inputs": [
+        "7"
+      ],
+      "output": "That is too many books",
+      "key_idea": "Fix the syntax error first, so Python runs the program. Then test it with a value you can check in your head: a wrong result shows a logic error."
+    }
+  },
+  {
+    "id": "bug-L8b",
+    "unit": "debugging-gcse",
+    "level": 8,
+    "type": "write",
+    "title": "Team ages",
+    "description": "int() turns the text typed into a whole number: this is called casting. Only ages 11 to 16 can join the school team. It has an error. Fix it in the editor.",
+    "starter": "age = int(input(\"Age: \"))\nif age >= 11 or age <= 16:\n    print(\"You can join the school team\")\nelse:\n    print(\"Sorry, you can't join\")",
+    "solution": "age = int(input(\"Age: \"))\nif age >= 11 and age <= 16:\n    print(\"You can join the school team\")\nelse:\n    print(\"Sorry, you can't join\")",
+    "error_kind": {
+      "ask": "definition",
+      "bug": "age = int(input(\"Age: \"))\nif age >= 11 or age <= 16:\n    print(\"You can join the school team\")\nelse:\n    print(\"Sorry, you can't join\")",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "if age >= 11 or age <= 16:",
+          "fix": "if age >= 11 and age <= 16:"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "13"
+        ],
+        "expected": "You can join the school team"
+      },
+      {
+        "inputs": [
+          "9"
+        ],
+        "expected": "Sorry, you can't join"
+      }
+    ],
+    "hints": [
+      "The program runs. Try age 9: who can join?",
+      "Both parts of the age check must be true."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error",
+      "error-definitions"
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "This library program had two errors. The if line had no colon: a syntax error, so Python would not run it. Then it used books < 5, so 7 books were allowed: a logic error, because it ran but gave the wrong answer. Both lines are fixed here. The user types 7.",
+      "code": "books = int(input(\"Books borrowed: \"))\nif books > 5:\n    print(\"That is too many books\")\nelse:\n    print(\"Enjoy your reading\")",
+      "inputs": [
+        "7"
+      ],
+      "output": "That is too many books",
+      "key_idea": "Fix the syntax error first, so Python runs the program. Then test it with a value you can check in your head: a wrong result shows a logic error."
+    }
+  },
+  {
+    "id": "bug-L8c",
+    "unit": "debugging-gcse",
+    "level": 8,
+    "type": "write",
+    "title": "Guess the number",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should tell the user if they guessed 7. It has an error. Fix it in the editor.",
+    "starter": "guess = int(input(\"Guess the number: \"))\nsecret = 7\nif guess == secret:\n    print(\"You got it\")\nesle:\n    print(\"Wrong, it was\", secret)",
+    "solution": "guess = int(input(\"Guess the number: \"))\nsecret = 7\nif guess == secret:\n    print(\"You got it\")\nelse:\n    print(\"Wrong, it was\", secret)",
+    "error_kind": {
+      "ask": "definition",
+      "bug": "guess = int(input(\"Guess the number: \"))\nsecret = 7\nif guess == secret:\n    print(\"You got it\")\nesle:\n    print(\"Wrong, it was\", secret)",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "esle:",
+          "fix": "else:"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "7"
+        ],
+        "expected": "You got it"
+      },
+      {
+        "inputs": [
+          "3"
+        ],
+        "expected": "Wrong, it was 7"
+      }
+    ],
+    "hints": [
+      "Check that every key word is spelt the way Python spells it.",
+      "Ask: would Python run this program at all?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error",
+      "error-definitions"
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "This library program had two errors. The if line had no colon: a syntax error, so Python would not run it. Then it used books < 5, so 7 books were allowed: a logic error, because it ran but gave the wrong answer. Both lines are fixed here. The user types 7.",
+      "code": "books = int(input(\"Books borrowed: \"))\nif books > 5:\n    print(\"That is too many books\")\nelse:\n    print(\"Enjoy your reading\")",
+      "inputs": [
+        "7"
+      ],
+      "output": "That is too many books",
+      "key_idea": "Fix the syntax error first, so Python runs the program. Then test it with a value you can check in your head: a wrong result shows a logic error."
+    }
+  },
+  {
+    "id": "bug-L8d",
+    "unit": "debugging-gcse",
+    "level": 8,
+    "type": "write",
+    "title": "Average of four",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should print the average of 4 marks. It has an error. Fix it in the editor.",
+    "starter": "total = 0\nfor i in range(4):\n    mark = int(input(\"Mark: \"))\n    total = total + mark\nprint(\"Average mark:\", total / 3)",
+    "solution": "total = 0\nfor i in range(4):\n    mark = int(input(\"Mark: \"))\n    total = total + mark\nprint(\"Average mark:\", total / 4)",
+    "error_kind": {
+      "ask": "definition",
+      "bug": "total = 0\nfor i in range(4):\n    mark = int(input(\"Mark: \"))\n    total = total + mark\nprint(\"Average mark:\", total / 3)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "print(\"Average mark:\", total / 3)",
+          "fix": "print(\"Average mark:\", total / 4)"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "10",
+          "20",
+          "30",
+          "40"
+        ],
+        "expected": "Average mark: 25.0"
+      },
+      {
+        "inputs": [
+          "5",
+          "5",
+          "5",
+          "5"
+        ],
+        "expected": "Average mark: 5.0"
+      }
+    ],
+    "hints": [
+      "The program runs. Try four marks of 5: what is the average?",
+      "The total is shared by how many marks?"
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error",
+      "error-definitions"
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "This library program had two errors. The if line had no colon: a syntax error, so Python would not run it. Then it used books < 5, so 7 books were allowed: a logic error, because it ran but gave the wrong answer. Both lines are fixed here. The user types 7.",
+      "code": "books = int(input(\"Books borrowed: \"))\nif books > 5:\n    print(\"That is too many books\")\nelse:\n    print(\"Enjoy your reading\")",
+      "inputs": [
+        "7"
+      ],
+      "output": "That is too many books",
+      "key_idea": "Fix the syntax error first, so Python runs the program. Then test it with a value you can check in your head: a wrong result shows a logic error."
+    }
+  },
+  {
+    "id": "bug-L9a",
+    "unit": "debugging-gcse",
+    "level": 9,
+    "type": "write",
+    "title": "Book order",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should work out the cost of some books. Over 20 gets free delivery. It has two errors: one syntax error and one logic error. Fix both in the editor.",
+    "starter": "price = int(input(\"Price of one book: \"))\nbooks = int(input(\"Number of books: \"))\ntotal = price + books\nif total > 20\n    print(\"Free delivery\")\nelse:\n    print(\"Delivery costs 3\")\nprint(\"Books cost\", total)",
+    "solution": "price = int(input(\"Price of one book: \"))\nbooks = int(input(\"Number of books: \"))\ntotal = price * books\nif total > 20:\n    print(\"Free delivery\")\nelse:\n    print(\"Delivery costs 3\")\nprint(\"Books cost\", total)",
+    "error_kind": {
+      "ask": "both",
+      "bug": "price = int(input(\"Price of one book: \"))\nbooks = int(input(\"Number of books: \"))\ntotal = price + books\nif total > 20\n    print(\"Free delivery\")\nelse:\n    print(\"Delivery costs 3\")\nprint(\"Books cost\", total)",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "if total > 20",
+          "fix": "if total > 20:"
+        },
+        {
+          "kind": "logic",
+          "line": "total = price + books",
+          "fix": "total = price * books"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "5",
+          "3"
+        ],
+        "expected": "Delivery costs 3\nBooks cost 15"
+      },
+      {
+        "inputs": [
+          "8",
+          "4"
+        ],
+        "expected": "Free delivery\nBooks cost 32"
+      }
+    ],
+    "hints": [
+      "One line stops Python running the program. Find it first.",
+      "Then test the program: is the total right for 5 books at 3 each?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error",
+      "logic error"
+    ],
+    "skills": [
+      "two-errors",
+      "syntax-error",
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "This library program had two errors. The if line had no colon: a syntax error, so Python would not run it. Then it used books < 5, so 7 books were allowed: a logic error, because it ran but gave the wrong answer. Both lines are fixed here. The user types 7.",
+      "code": "books = int(input(\"Books borrowed: \"))\nif books > 5:\n    print(\"That is too many books\")\nelse:\n    print(\"Enjoy your reading\")",
+      "inputs": [
+        "7"
+      ],
+      "output": "That is too many books",
+      "key_idea": "Fix the syntax error first, so Python runs the program. Then test it with a value you can check in your head: a wrong result shows a logic error."
+    }
+  },
+  {
+    "id": "bug-L9b",
+    "unit": "debugging-gcse",
+    "level": 9,
+    "type": "write",
+    "title": "Overtime pay",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should work out pay. Over 40 hours earns a bonus of 50. It has two errors: one syntax error and one logic error. Fix both in the editor.",
+    "starter": "hours = int(input(\"Hours worked: \"))\nrate = int(input(\"Pay per hour: \"))\npay = hours * rate\nif hours < 40:\n    pay = pay + 50\nprint(\"Total pay:\", pay",
+    "solution": "hours = int(input(\"Hours worked: \"))\nrate = int(input(\"Pay per hour: \"))\npay = hours * rate\nif hours > 40:\n    pay = pay + 50\nprint(\"Total pay:\", pay)",
+    "error_kind": {
+      "ask": "both",
+      "bug": "hours = int(input(\"Hours worked: \"))\nrate = int(input(\"Pay per hour: \"))\npay = hours * rate\nif hours < 40:\n    pay = pay + 50\nprint(\"Total pay:\", pay",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "print(\"Total pay:\", pay",
+          "fix": "print(\"Total pay:\", pay)"
+        },
+        {
+          "kind": "logic",
+          "line": "if hours < 40:",
+          "fix": "if hours > 40:"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "45",
+          "10"
+        ],
+        "expected": "Total pay: 500"
+      },
+      {
+        "inputs": [
+          "20",
+          "8"
+        ],
+        "expected": "Total pay: 160"
+      }
+    ],
+    "hints": [
+      "Fix the line Python refuses to run first.",
+      "Then try 45 hours: who should get the bonus?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error",
+      "logic error"
+    ],
+    "skills": [
+      "two-errors",
+      "syntax-error",
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "This library program had two errors. The if line had no colon: a syntax error, so Python would not run it. Then it used books < 5, so 7 books were allowed: a logic error, because it ran but gave the wrong answer. Both lines are fixed here. The user types 7.",
+      "code": "books = int(input(\"Books borrowed: \"))\nif books > 5:\n    print(\"That is too many books\")\nelse:\n    print(\"Enjoy your reading\")",
+      "inputs": [
+        "7"
+      ],
+      "output": "That is too many books",
+      "key_idea": "Fix the syntax error first, so Python runs the program. Then test it with a value you can check in your head: a wrong result shows a logic error."
+    }
+  },
+  {
+    "id": "bug-L9c",
+    "unit": "debugging-gcse",
+    "level": 9,
+    "type": "write",
+    "title": "The top and the bottom",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should store 3 temperatures, then print the highest and the lowest. It has two errors: one syntax error and one logic error. Fix both in the editor.",
+    "starter": "temps = []\nfor day in range(3)\n    t = int(input(\"Temperature: \"))\n    temps.append(t)\nprint(\"Highest:\", max(temps))\nprint(\"Lowest:\", max(temps))",
+    "solution": "temps = []\nfor day in range(3):\n    t = int(input(\"Temperature: \"))\n    temps.append(t)\nprint(\"Highest:\", max(temps))\nprint(\"Lowest:\", min(temps))",
+    "error_kind": {
+      "ask": "both",
+      "bug": "temps = []\nfor day in range(3)\n    t = int(input(\"Temperature: \"))\n    temps.append(t)\nprint(\"Highest:\", max(temps))\nprint(\"Lowest:\", max(temps))",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "for day in range(3)",
+          "fix": "for day in range(3):"
+        },
+        {
+          "kind": "logic",
+          "line": "print(\"Lowest:\", max(temps))",
+          "fix": "print(\"Lowest:\", min(temps))"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "12",
+          "15",
+          "9"
+        ],
+        "expected": "Highest: 15\nLowest: 9"
+      },
+      {
+        "inputs": [
+          "20",
+          "18",
+          "22"
+        ],
+        "expected": "Highest: 22\nLowest: 18"
+      }
+    ],
+    "hints": [
+      "One line is missing something at its end.",
+      "Then check: which function gives the smallest value?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error",
+      "logic error"
+    ],
+    "skills": [
+      "two-errors",
+      "syntax-error",
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "This library program had two errors. The if line had no colon: a syntax error, so Python would not run it. Then it used books < 5, so 7 books were allowed: a logic error, because it ran but gave the wrong answer. Both lines are fixed here. The user types 7.",
+      "code": "books = int(input(\"Books borrowed: \"))\nif books > 5:\n    print(\"That is too many books\")\nelse:\n    print(\"Enjoy your reading\")",
+      "inputs": [
+        "7"
+      ],
+      "output": "That is too many books",
+      "key_idea": "Fix the syntax error first, so Python runs the program. Then test it with a value you can check in your head: a wrong result shows a logic error."
+    }
+  },
+  {
+    "id": "bug-L9d",
+    "unit": "debugging-gcse",
+    "level": 9,
+    "type": "write",
+    "title": "Admin login",
+    "description": "Only the username admin with the password letmein can log in. It has two errors: one syntax error and one logic error. Fix both in the editor.",
+    "starter": "name = input(\"Username: \")\npassword = input(\"Password: \")\nif name == \"admin\" or password == \"letmein\":\n    print(\"Welcome back\")\nelse\n    print(\"Access denied\")",
+    "solution": "name = input(\"Username: \")\npassword = input(\"Password: \")\nif name == \"admin\" and password == \"letmein\":\n    print(\"Welcome back\")\nelse:\n    print(\"Access denied\")",
+    "error_kind": {
+      "ask": "both",
+      "bug": "name = input(\"Username: \")\npassword = input(\"Password: \")\nif name == \"admin\" or password == \"letmein\":\n    print(\"Welcome back\")\nelse\n    print(\"Access denied\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "else",
+          "fix": "else:"
+        },
+        {
+          "kind": "logic",
+          "line": "if name == \"admin\" or password == \"letmein\":",
+          "fix": "if name == \"admin\" and password == \"letmein\":"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "admin",
+          "guess"
+        ],
+        "expected": "Access denied"
+      },
+      {
+        "inputs": [
+          "admin",
+          "letmein"
+        ],
+        "expected": "Welcome back"
+      }
+    ],
+    "hints": [
+      "Fix the line Python refuses to run first.",
+      "Then try admin with a wrong password: should that log in?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error",
+      "logic error"
+    ],
+    "skills": [
+      "two-errors",
+      "syntax-error",
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "This library program had two errors. The if line had no colon: a syntax error, so Python would not run it. Then it used books < 5, so 7 books were allowed: a logic error, because it ran but gave the wrong answer. Both lines are fixed here. The user types 7.",
+      "code": "books = int(input(\"Books borrowed: \"))\nif books > 5:\n    print(\"That is too many books\")\nelse:\n    print(\"Enjoy your reading\")",
+      "inputs": [
+        "7"
+      ],
+      "output": "That is too many books",
+      "key_idea": "Fix the syntax error first, so Python runs the program. Then test it with a value you can check in your head: a wrong result shows a logic error."
+    }
+  },
+  {
+    "id": "bug-L10a",
+    "unit": "debugging-gcse",
+    "level": 10,
+    "type": "write",
+    "title": "Ticket prices",
+    "description": "int() turns the text typed into a whole number: this is called casting. Under 16 pays 5 and everyone else pays 8. The program adds up 3 tickets. It has two errors: one syntax error and one logic error. Fix both in the editor.",
+    "starter": "def ticket_price(age)\n    if age > 16:\n        return 5\n    else:\n        return 8\n\ntotal = 0\nfor i in range(3):\n    age = int(input(\"Age: \"))\n    total = total + ticket_price(age)\nprint(\"Total for 3 tickets:\", total)",
+    "solution": "def ticket_price(age):\n    if age < 16:\n        return 5\n    else:\n        return 8\n\ntotal = 0\nfor i in range(3):\n    age = int(input(\"Age: \"))\n    total = total + ticket_price(age)\nprint(\"Total for 3 tickets:\", total)",
+    "error_kind": {
+      "ask": "both",
+      "bug": "def ticket_price(age)\n    if age > 16:\n        return 5\n    else:\n        return 8\n\ntotal = 0\nfor i in range(3):\n    age = int(input(\"Age: \"))\n    total = total + ticket_price(age)\nprint(\"Total for 3 tickets:\", total)",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "def ticket_price(age)",
+          "fix": "def ticket_price(age):"
+        },
+        {
+          "kind": "logic",
+          "line": "    if age > 16:",
+          "fix": "    if age < 16:"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "10",
+          "20",
+          "40"
+        ],
+        "expected": "Total for 3 tickets: 21"
+      },
+      {
+        "inputs": [
+          "15",
+          "16",
+          "12"
+        ],
+        "expected": "Total for 3 tickets: 18"
+      }
+    ],
+    "hints": [
+      "A def line ends like an if line. Fix that first.",
+      "Then try ages 10, 20 and 40: what should the total be?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error",
+      "logic error"
+    ],
+    "skills": [
+      "two-errors",
+      "syntax-error",
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "This library program had two errors. The if line had no colon: a syntax error, so Python would not run it. Then it used books < 5, so 7 books were allowed: a logic error, because it ran but gave the wrong answer. Both lines are fixed here. The user types 7.",
+      "code": "books = int(input(\"Books borrowed: \"))\nif books > 5:\n    print(\"That is too many books\")\nelse:\n    print(\"Enjoy your reading\")",
+      "inputs": [
+        "7"
+      ],
+      "output": "That is too many books",
+      "key_idea": "Fix the syntax error first, so Python runs the program. Then test it with a value you can check in your head: a wrong result shows a logic error."
+    }
+  },
+  {
+    "id": "bug-L10b",
+    "unit": "debugging-gcse",
+    "level": 10,
+    "type": "write",
+    "title": "Stop at -1",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should read marks until -1, then print their average (or No marks entered). It has two errors: one syntax error and one logic error. Fix both in the editor.",
+    "starter": "total = 0\ncount = 0\nmark = int(input(\"Mark (-1 to stop): \"))\nwhile mark != -1\n    total = total + mark\n    count = count + 2\n    mark = int(input(\"Mark (-1 to stop): \"))\nif count > 0:\n    print(\"Average:\", total / count)\nelse:\n    print(\"No marks entered\")",
+    "solution": "total = 0\ncount = 0\nmark = int(input(\"Mark (-1 to stop): \"))\nwhile mark != -1:\n    total = total + mark\n    count = count + 1\n    mark = int(input(\"Mark (-1 to stop): \"))\nif count > 0:\n    print(\"Average:\", total / count)\nelse:\n    print(\"No marks entered\")",
+    "error_kind": {
+      "ask": "both",
+      "bug": "total = 0\ncount = 0\nmark = int(input(\"Mark (-1 to stop): \"))\nwhile mark != -1\n    total = total + mark\n    count = count + 2\n    mark = int(input(\"Mark (-1 to stop): \"))\nif count > 0:\n    print(\"Average:\", total / count)\nelse:\n    print(\"No marks entered\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "while mark != -1",
+          "fix": "while mark != -1:"
+        },
+        {
+          "kind": "logic",
+          "line": "    count = count + 2",
+          "fix": "    count = count + 1"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "10",
+          "20",
+          "-1"
+        ],
+        "expected": "Average: 15.0"
+      },
+      {
+        "inputs": [
+          "-1"
+        ],
+        "expected": "No marks entered"
+      }
+    ],
+    "hints": [
+      "Fix the line Python refuses to run first.",
+      "Then try 10 and 20: what should the average be, and how many marks were counted?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error",
+      "logic error"
+    ],
+    "skills": [
+      "two-errors",
+      "syntax-error",
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "This library program had two errors. The if line had no colon: a syntax error, so Python would not run it. Then it used books < 5, so 7 books were allowed: a logic error, because it ran but gave the wrong answer. Both lines are fixed here. The user types 7.",
+      "code": "books = int(input(\"Books borrowed: \"))\nif books > 5:\n    print(\"That is too many books\")\nelse:\n    print(\"Enjoy your reading\")",
+      "inputs": [
+        "7"
+      ],
+      "output": "That is too many books",
+      "key_idea": "Fix the syntax error first, so Python runs the program. Then test it with a value you can check in your head: a wrong result shows a logic error."
+    }
+  },
+  {
+    "id": "bug-L10c",
+    "unit": "debugging-gcse",
+    "level": 10,
+    "type": "write",
+    "title": "Stock orders",
+    "description": "int() turns the text typed into a whole number: this is called casting. Each order is sent if there is enough stock: that includes taking the very last of it. It has two errors: one syntax error and one logic error. Fix both in the editor.",
+    "starter": "stock = int(input(\"Stock: \"))\norders = int(input(\"Orders: \"))\nfor i in range(orders):\n    wanted = int(input(\"Wanted: \"))\n    if wanted < stock:\n        stock = stock - wanted\n        print(\"Sent\", wanted\n    else:\n        print(\"Not enough stock\")\nprint(\"Stock left:\", stock)",
+    "solution": "stock = int(input(\"Stock: \"))\norders = int(input(\"Orders: \"))\nfor i in range(orders):\n    wanted = int(input(\"Wanted: \"))\n    if wanted <= stock:\n        stock = stock - wanted\n        print(\"Sent\", wanted)\n    else:\n        print(\"Not enough stock\")\nprint(\"Stock left:\", stock)",
+    "error_kind": {
+      "ask": "both",
+      "bug": "stock = int(input(\"Stock: \"))\norders = int(input(\"Orders: \"))\nfor i in range(orders):\n    wanted = int(input(\"Wanted: \"))\n    if wanted < stock:\n        stock = stock - wanted\n        print(\"Sent\", wanted\n    else:\n        print(\"Not enough stock\")\nprint(\"Stock left:\", stock)",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "        print(\"Sent\", wanted",
+          "fix": "        print(\"Sent\", wanted)"
+        },
+        {
+          "kind": "logic",
+          "line": "    if wanted < stock:",
+          "fix": "    if wanted <= stock:"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "10",
+          "2",
+          "4",
+          "6"
+        ],
+        "expected": "Sent 4\nSent 6\nStock left: 0"
+      },
+      {
+        "inputs": [
+          "5",
+          "1",
+          "5"
+        ],
+        "expected": "Sent 5\nStock left: 0"
+      }
+    ],
+    "hints": [
+      "Fix the line Python refuses to run first.",
+      "Then try a stock of 5 and an order for 5: should it be sent?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error",
+      "logic error"
+    ],
+    "skills": [
+      "two-errors",
+      "syntax-error",
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "This library program had two errors. The if line had no colon: a syntax error, so Python would not run it. Then it used books < 5, so 7 books were allowed: a logic error, because it ran but gave the wrong answer. Both lines are fixed here. The user types 7.",
+      "code": "books = int(input(\"Books borrowed: \"))\nif books > 5:\n    print(\"That is too many books\")\nelse:\n    print(\"Enjoy your reading\")",
+      "inputs": [
+        "7"
+      ],
+      "output": "That is too many books",
+      "key_idea": "Fix the syntax error first, so Python runs the program. Then test it with a value you can check in your head: a wrong result shows a logic error."
+    }
+  },
+  {
+    "id": "bug-L10d",
+    "unit": "debugging-gcse",
+    "level": 10,
+    "type": "write",
+    "title": "Four-digit codes",
+    "description": "A code must be 4 digits. The program asks until a valid code is typed, then says how many wrong tries there were. It has two errors: one syntax error and one logic error. Fix both in the editor.",
+    "starter": "def is_valid(code):\n    if len(code) != 4:\n        return False\n    if not code.isdigit()\n        return False\n    return True\n\ntries = 0\ncode = input(\"Code: \")\nwhile not is_valid(code):\n    tries = tries + 2\n    print(\"Invalid code\")\n    code = input(\"Code: \")\nprint(\"Code accepted after\", tries, \"wrong tries\")",
+    "solution": "def is_valid(code):\n    if len(code) != 4:\n        return False\n    if not code.isdigit():\n        return False\n    return True\n\ntries = 0\ncode = input(\"Code: \")\nwhile not is_valid(code):\n    tries = tries + 1\n    print(\"Invalid code\")\n    code = input(\"Code: \")\nprint(\"Code accepted after\", tries, \"wrong tries\")",
+    "error_kind": {
+      "ask": "both",
+      "bug": "def is_valid(code):\n    if len(code) != 4:\n        return False\n    if not code.isdigit()\n        return False\n    return True\n\ntries = 0\ncode = input(\"Code: \")\nwhile not is_valid(code):\n    tries = tries + 2\n    print(\"Invalid code\")\n    code = input(\"Code: \")\nprint(\"Code accepted after\", tries, \"wrong tries\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "    if not code.isdigit()",
+          "fix": "    if not code.isdigit():"
+        },
+        {
+          "kind": "logic",
+          "line": "    tries = tries + 2",
+          "fix": "    tries = tries + 1"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "12",
+          "abcd",
+          "4321"
+        ],
+        "expected": "Invalid code\nInvalid code\nCode accepted after 2 wrong tries"
+      },
+      {
+        "inputs": [
+          "9876"
+        ],
+        "expected": "Code accepted after 0 wrong tries"
+      }
+    ],
+    "hints": [
+      "Fix the line Python refuses to run first.",
+      "Then try two wrong codes: how many wrong tries should it say?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error",
+      "logic error"
+    ],
+    "skills": [
+      "two-errors",
+      "syntax-error",
+      "logic-error"
+    ],
+    "worked_example": {
+      "skill": "write",
+      "problem": "This library program had two errors. The if line had no colon: a syntax error, so Python would not run it. Then it used books < 5, so 7 books were allowed: a logic error, because it ran but gave the wrong answer. Both lines are fixed here. The user types 7.",
+      "code": "books = int(input(\"Books borrowed: \"))\nif books > 5:\n    print(\"That is too many books\")\nelse:\n    print(\"Enjoy your reading\")",
+      "inputs": [
+        "7"
+      ],
+      "output": "That is too many books",
+      "key_idea": "Fix the syntax error first, so Python runs the program. Then test it with a value you can check in your head: a wrong result shows a logic error."
+    }
+  },
+  {
+    "id": "bug-P2a",
+    "unit": "debugging-gcse",
+    "level": 2,
+    "type": "predict",
+    "title": "Hello again",
+    "description": "The user types Leeds. Fix the error in your head. What will the fixed program print?",
+    "starter": "",
+    "solution": "city = input(\"Home town: \")\nprint(\"You live in\", city)\nprint(\"Nice place\")",
+    "options": [
+      "You live in Leeds\nNice place",
+      "You live in\nNice place",
+      "You live in city\nNice place"
+    ],
+    "answer": 0,
+    "error_kind": {
+      "ask": "kind",
+      "bug": "city = input(\"Home town: \")\nprint(\"You live in\", city\nprint(\"Nice place\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "print(\"You live in\", city",
+          "fix": "print(\"You live in\", city)"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "Leeds"
+        ],
+        "expected": "You live in Leeds\nNice place"
+      }
+    ],
+    "hints": [
+      "Count the brackets on each line.",
+      "After the fix, print() puts a space between the two values."
+    ],
+    "tags": [
+      "placement",
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ]
+  },
+  {
+    "id": "bug-P2b",
+    "unit": "debugging-gcse",
+    "level": 2,
+    "type": "predict",
+    "title": "Bus fare",
+    "description": "int() turns the text typed into a whole number: this is called casting. Under 5s travel free. Everyone else pays 2. The user types 3. Fix the error in your head. What will the fixed program print?",
+    "starter": "",
+    "solution": "age = int(input(\"Age: \"))\nif age < 5:\n    print(\"Free\")\nelse:\n    print(\"Pay 2\")",
+    "options": [
+      "Free\nPay 2",
+      "Pay 2",
+      "Free"
+    ],
+    "answer": 2,
+    "error_kind": {
+      "ask": "kind",
+      "bug": "age = int(input(\"Age: \"))\nif age > 5:\n    print(\"Free\")\nelse:\n    print(\"Pay 2\")",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "if age > 5:",
+          "fix": "if age < 5:"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "3"
+        ],
+        "expected": "Free"
+      }
+    ],
+    "hints": [
+      "The program runs, but who travels free?",
+      "Under 5 means less than 5."
+    ],
+    "tags": [
+      "placement",
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ]
+  },
+  {
+    "id": "bug-P5a",
+    "unit": "debugging-gcse",
+    "level": 5,
+    "type": "parsons",
+    "title": "Count down",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should count down from the number typed to 1. It has an error. Put the lines in order to make the fixed program. One line is not needed: it has the error in it.",
+    "starter": "",
+    "solution": "n = int(input(\"Start: \"))\nwhile n > 0:\n    print(n)\n    n = n - 1",
+    "distractors": [
+      "while n > 0"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "n = int(input(\"Start: \"))\nwhile n > 0\n    print(n)\n    n = n - 1",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "while n > 0",
+          "fix": "while n > 0:"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "3"
+        ],
+        "expected": "3\n2\n1"
+      },
+      {
+        "inputs": [
+          "1"
+        ],
+        "expected": "1"
+      }
+    ],
+    "hints": [
+      "A while line ends like an if line.",
+      "The two lines inside the loop are indented."
+    ],
+    "tags": [
+      "placement",
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ]
+  },
+  {
+    "id": "bug-P5b",
+    "unit": "debugging-gcse",
+    "level": 5,
+    "type": "parsons",
+    "title": "Area of a square",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should print the area of a square. It has an error. Put the lines in order to make the fixed program. One line is not needed: it has the error in it.",
+    "starter": "",
+    "solution": "side = int(input(\"Side: \"))\narea = side * side\nprint(\"Area:\", area)",
+    "distractors": [
+      "area = side + side"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "side = int(input(\"Side: \"))\narea = side + side\nprint(\"Area:\", area)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "area = side + side",
+          "fix": "area = side * side"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "3"
+        ],
+        "expected": "Area: 9"
+      },
+      {
+        "inputs": [
+          "5"
+        ],
+        "expected": "Area: 25"
+      }
+    ],
+    "hints": [
+      "The program runs, but is the area right for a side of 3?",
+      "Area means side times side."
+    ],
+    "tags": [
+      "placement",
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ]
+  },
+  {
+    "id": "bug-P7a",
+    "unit": "debugging-gcse",
+    "level": 7,
+    "type": "write",
+    "title": "Even or odd",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should say whether a number is even or odd. It has an error. Fix it in the editor.",
+    "starter": "n = int(input(\"Number: \"))\nif n % 2 = 0:\n    print(\"Even\")\nelse:\n    print(\"Odd\")",
+    "solution": "n = int(input(\"Number: \"))\nif n % 2 == 0:\n    print(\"Even\")\nelse:\n    print(\"Odd\")",
+    "error_kind": {
+      "ask": "kind",
+      "bug": "n = int(input(\"Number: \"))\nif n % 2 = 0:\n    print(\"Even\")\nelse:\n    print(\"Odd\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "if n % 2 = 0:",
+          "fix": "if n % 2 == 0:"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "4"
+        ],
+        "expected": "Even"
+      },
+      {
+        "inputs": [
+          "7"
+        ],
+        "expected": "Odd"
+      }
+    ],
+    "hints": [
+      "Is = the right sign for comparing?",
+      "Ask: would Python run this program at all?"
+    ],
+    "tags": [
+      "placement",
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ]
+  },
+  {
+    "id": "bug-P7b",
+    "unit": "debugging-gcse",
+    "level": 7,
+    "type": "write",
+    "title": "Running total",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should add up 3 numbers. It has an error. Fix it in the editor.",
+    "starter": "total = 0\nfor i in range(3):\n    n = int(input(\"Number: \"))\n    total = n\nprint(\"Total:\", total)",
+    "solution": "total = 0\nfor i in range(3):\n    n = int(input(\"Number: \"))\n    total = total + n\nprint(\"Total:\", total)",
+    "error_kind": {
+      "ask": "kind",
+      "bug": "total = 0\nfor i in range(3):\n    n = int(input(\"Number: \"))\n    total = n\nprint(\"Total:\", total)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "    total = n",
+          "fix": "    total = total + n"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "2",
+          "3",
+          "4"
+        ],
+        "expected": "Total: 9"
+      },
+      {
+        "inputs": [
+          "5",
+          "5",
+          "1"
+        ],
+        "expected": "Total: 11"
+      }
+    ],
+    "hints": [
+      "The program runs. Try 2, 3 and 4: what should the total be?",
+      "total should grow by each number."
+    ],
+    "tags": [
+      "placement",
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ]
+  },
+  {
+    "id": "bug-P9a",
+    "unit": "debugging-gcse",
+    "level": 9,
+    "type": "write",
+    "title": "Cinema snacks",
+    "description": "int() turns the text typed into a whole number: this is called casting. Popcorn costs 3 and a drink costs 2. The program should print the total for the numbers typed. It has two errors: one syntax error and one logic error. Fix both in the editor.",
+    "starter": "popcorn = int(input(\"Popcorn: \"))\ndrinks = int(input(\"Drinks: \"))\ntotal = popcorn * 2 + drinks * 3\nprint(\"Total:\" total)",
+    "solution": "popcorn = int(input(\"Popcorn: \"))\ndrinks = int(input(\"Drinks: \"))\ntotal = popcorn * 3 + drinks * 2\nprint(\"Total:\", total)",
+    "error_kind": {
+      "ask": "both",
+      "bug": "popcorn = int(input(\"Popcorn: \"))\ndrinks = int(input(\"Drinks: \"))\ntotal = popcorn * 2 + drinks * 3\nprint(\"Total:\" total)",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "print(\"Total:\" total)",
+          "fix": "print(\"Total:\", total)"
+        },
+        {
+          "kind": "logic",
+          "line": "total = popcorn * 2 + drinks * 3",
+          "fix": "total = popcorn * 3 + drinks * 2"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "2",
+          "1"
+        ],
+        "expected": "Total: 8"
+      },
+      {
+        "inputs": [
+          "1",
+          "3"
+        ],
+        "expected": "Total: 9"
+      }
+    ],
+    "hints": [
+      "Fix the line Python refuses to run first.",
+      "Then check which price goes with which snack."
+    ],
+    "tags": [
+      "placement",
+      "debugging",
+      "syntax error",
+      "logic error"
+    ],
+    "skills": [
+      "two-errors",
+      "syntax-error",
+      "logic-error"
+    ]
+  },
+  {
+    "id": "bug-P9b",
+    "unit": "debugging-gcse",
+    "level": 9,
+    "type": "write",
+    "title": "Countdown loop",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should print the numbers from the one typed down to 1, then Lift off. It has two errors: one syntax error and one logic error. Fix both in the editor.",
+    "starter": "n = int(input(\"Start: \"))\nfor i in range(n, 0, -1)\n    print(i)\n    print(\"Lift off\")",
+    "solution": "n = int(input(\"Start: \"))\nfor i in range(n, 0, -1):\n    print(i)\nprint(\"Lift off\")",
+    "error_kind": {
+      "ask": "both",
+      "bug": "n = int(input(\"Start: \"))\nfor i in range(n, 0, -1)\n    print(i)\n    print(\"Lift off\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "for i in range(n, 0, -1)",
+          "fix": "for i in range(n, 0, -1):"
+        },
+        {
+          "kind": "logic",
+          "line": "    print(\"Lift off\")",
+          "fix": "print(\"Lift off\")"
+        }
+      ]
+    },
+    "tests": [
+      {
+        "inputs": [
+          "3"
+        ],
+        "expected": "3\n2\n1\nLift off"
+      },
+      {
+        "inputs": [
+          "2"
+        ],
+        "expected": "2\n1\nLift off"
+      }
+    ],
+    "hints": [
+      "Fix the line Python refuses to run first.",
+      "Then check how many times Lift off is printed."
+    ],
+    "tags": [
+      "placement",
+      "debugging",
+      "syntax error",
+      "logic error"
+    ],
+    "skills": [
+      "two-errors",
+      "syntax-error",
+      "logic-error"
+    ]
   }
 ]

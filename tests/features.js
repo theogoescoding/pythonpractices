@@ -168,8 +168,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
 
   // ===================== Strings, Random and Lists units =====================
   {
-    check(Curriculum.UNITS.map((u) => u.id).join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d,validation,validation-presence,validation-type,validation-range,validation-format,validation-length,authentication,trace-tables,linear-search,binary-search,bubble-sort,insertion-sort,merge-sort,recursion,scope-parameters,oop-classes,oop-methods,oop-encapsulation,oop-inheritance,debugging,records-tuples,stacks-queues,linked-lists,hash-tables,arrays-3d",
-      "Unit order: Output, Variables, Data types, Maths, Selection, the two loops units, Strings, Random, Lists, the two functions units, File handling, 2D arrays, Validation, the five Validation units (Presence, Type, Range, Format and Length checks), Authentication, Trace tables, Linear search, Binary search, Bubble sort, Insertion sort, Merge sort, then the seven A-level programming techniques units and the five A-level data structures units");
+    check(Curriculum.UNITS.map((u) => u.id).join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d,validation,validation-presence,validation-type,validation-range,validation-format,validation-length,authentication,debugging-gcse,trace-tables,linear-search,binary-search,bubble-sort,insertion-sort,merge-sort,recursion,scope-parameters,oop-classes,oop-methods,oop-encapsulation,oop-inheritance,debugging,records-tuples,stacks-queues,linked-lists,hash-tables,arrays-3d",
+      "Unit order: Output, Variables, Data types, Maths, Selection, the two loops units, Strings, Random, Lists, the two functions units, File handling, 2D arrays, Validation, the five Validation units (Presence, Type, Range, Format and Length checks), Authentication, Debugging (GCSE), Trace tables, Linear search, Binary search, Bubble sort, Insertion sort, Merge sort, then the seven A-level programming techniques units and the five A-level data structures units");
     const NEW = {
       strings: { title: "Strings", prefix: "str", skills: "length,indexing,slicing,upper/lower,find,replace,in" },
       random: { title: "Random", prefix: "rand", skills: "import,randint,choice,simulation" },
@@ -878,9 +878,9 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     }
     check(G[0].units.join() === "output,variables,data-types,maths,selection,loops-condition,loops-count" &&
       G[1].units.join() === "strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d" &&
-      G[2].units.join() === "validation,validation-presence,validation-type,validation-range,validation-format,validation-length,authentication,trace-tables" &&
+      G[2].units.join() === "validation,validation-presence,validation-type,validation-range,validation-format,validation-length,authentication,debugging-gcse,trace-tables" &&
       G[3].units.join() === "linear-search,binary-search,bubble-sort,insertion-sort,merge-sort",
-      "Unit menu: fundamentals and advanced units as listed; the Validation group holds Validation, the five Validation units (Presence, Type, Range, Format and Length checks), Authentication and Trace tables; Searching and sorting holds its five units");
+      "Unit menu: fundamentals and advanced units as listed; the Validation group holds Validation, the five Validation units (Presence, Type, Range, Format and Length checks), Authentication, Debugging (GCSE) and Trace tables; Searching and sorting holds its five units");
     const collapseSrc = read("collapse.js");
     check(/aria-expanded/.test(collapseSrc) && /try \{[^}]*localStorage\.getItem\(key/.test(collapseSrc) && /try \{[^}]*localStorage\.setItem\(key/.test(collapseSrc) &&
       /Collapse\.buttonHtml\(/.test(homeSrc) && /Collapse\.wire\(\$\("unit-list"\), COLLAPSED_KEY\)/.test(homeSrc) && !/localStorage/.test(homeSrc) &&
@@ -2266,7 +2266,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       { category: "TYPE", details: { types: ["str", "int"], line: 1 } }, { category: "TIMEOUT", details: {} },
       { category: "NO_ANSWER", details: {} }, { category: "ORDER", details: {} }, { category: "OTHER_ERROR", details: { errorType: "ValueError", line: 1 } },
       { category: "WRONG_OUTPUT", details: { test: 1 } }, { category: "WRONG_OUTPUT", details: { parsons: "used a line that isn't needed" } },
-      { category: "WRONG_CHOICE", details: {} },
+      { category: "WRONG_CHOICE", details: {} }, { category: "WRONG_ERROR_KIND", details: { wrong: [0], answers: ["logic"] } },
     ];
     for (const f of samples) {
       const lines = Checker.failureMessage(f).split("\n");
@@ -2568,7 +2568,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     });
     check(tablesL.length === groupsL.length && everyTwo && groupsL.reduce((n, g) => n + g.units.length, 0) === gcse.length &&
       groupsL.every((g) => g.units.length <= TD.OVERVIEW_MAX_UNITS) && TD.OVERVIEW_MAX_UNITS === 5 &&
-      JSON.stringify(groupsL.map((g) => g.units.length)) === "[4,3,4,3,4,4,5]" && groupsL[1].title === "Programming fundamentals (continued)",
+      JSON.stringify(groupsL.map((g) => g.units.length)) === "[4,3,4,3,5,4,5]" && groupsL[1].title === "Programming fundamentals (continued)",
       "Students page: every student has two rows in every table (Freshness, then Level, the name merged across both), and every unit is in one table of at most 5 units");
     // The same text and colours as the single cell before, split between the rows: a frozen copy of the old cell code.
     const escO = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -2641,19 +2641,22 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const kept = nonDerived.filter((t) => keyOf(t) === srcKey(t));
     const moved = nonDerived.filter((t) => keyOf(t) !== srcKey(t));
     const selVal = nonDerived.filter((t) => t.units.some((u) => ["selection", "validation"].includes(u)));
-    check(nonDerived.length === 266 && nonDerived.every((t) => t.worked_example && t.worked_example.problem && t.worked_example.code && typeof t.worked_example.output === "string" && t.worked_example.key_idea) &&
+    // (2026-11, Debugging (GCSE): 6 more combined templates, 3 with Authentication and 3 with Trace tables, and 40 more
+    // derived ones. The 3 with Authentication take an Authentication example, the 3 with Trace tables keep their
+    // Debugging (GCSE) source's.)
+    check(nonDerived.length === 272 && nonDerived.every((t) => t.worked_example && t.worked_example.problem && t.worked_example.code && typeof t.worked_example.output === "string" && t.worked_example.key_idea) &&
       selVal.length === 35 && selVal.every((t) => t.worked_example),
-      "Show me how: every non-derived template (266, including the 35 Selection and Validation ones) has its own worked example");
+      "Show me how: every non-derived template (272, including the 35 Selection and Validation ones) has its own worked example");
     check(nonDerived.every((t) => t.worked_example.skill === keyOf(t).split(":")[1] && keyOf(t).startsWith(W.templateUnit(t) + ":")) &&
-      moved.length === 115 && moved.every((t) => JSON.stringify(t.worked_example) !== JSON.stringify(byIdW[t.source].worked_example)) &&
+      moved.length === 118 && moved.every((t) => JSON.stringify(t.worked_example) !== JSON.stringify(byIdW[t.source].worked_example)) &&
       moved.some((t) => t.id === "sel-t8" && keyOf(t) === "selection:modulo-conditions") && moved.some((t) => t.id === "comb-val-auth-pin" && keyOf(t) === "validation:type-check"),
-      "Show me how: the 115 templates whose source task's example is another topic's use the key their own unit, type and skills give (e.g. sel-t8: selection:modulo-conditions)");
-    check(kept.length === 151 && kept.every((t) => JSON.stringify(t.worked_example) === JSON.stringify(byIdW[t.source].worked_example)),
-      "Show me how: the 151 templates whose example already fitted keep exactly the same example");
-    check(derived.length === 1341 && derived.every((t) => !("worked_example" in t) && byIdW[t.source].worked_example && W.exampleKey(byIdW[t.source]) === W.exampleKey({ unit: t.units[0], type: t.type, skills: t.skills })),
-      "Show me how: derived templates (1341) have no example of their own, so their variants use their source task's, which has the same unit, type and skills");
+      "Show me how: the 118 templates whose source task's example is another topic's use the key their own unit, type and skills give (e.g. sel-t8: selection:modulo-conditions)");
+    check(kept.length === 154 && kept.every((t) => JSON.stringify(t.worked_example) === JSON.stringify(byIdW[t.source].worked_example)),
+      "Show me how: the 154 templates whose example already fitted keep exactly the same example");
+    check(derived.length === 1381 && derived.every((t) => !("worked_example" in t) && byIdW[t.source].worked_example && W.exampleKey(byIdW[t.source]) === W.exampleKey({ unit: t.units[0], type: t.type, skills: t.skills })),
+      "Show me how: derived templates (1381) have no example of their own, so their variants use their source task's, which has the same unit, type and skills");
     const combined = nonDerived.filter((t) => t.units.length > 1);
-    check(combined.length === 133 && combined.every((t) => W.templateUnit(t) === App.unitOfSkill(t.skills[0], t.units) && keyOf(t).startsWith(W.templateUnit(t) + ":")) &&
+    check(combined.length === 139 && combined.every((t) => W.templateUnit(t) === App.unitOfSkill(t.skills[0], t.units) && keyOf(t).startsWith(W.templateUnit(t) + ":")) &&
       combined.some((t) => W.templateUnit(t) !== t.units[0]),
       "Show me how: a combined template's example comes from the unit of its first skill");
     // Across several seeds: a different context, not the variant's solution, and the stored output is a fresh run's.
@@ -2668,8 +2671,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     }
     const distinct = [...new Map(nonDerived.map((t) => [t.worked_example.code + "|" + JSON.stringify(t.worked_example.inputs || []), t.worked_example])).values()];
     const freshW = runPython(distinct.map((e) => ({ code: e.code, inputs: e.inputs || [] })));
-    check(variantsW === 1064 && !sharedW && !sameW && freshW.every((r, i) => !r.error && Checker.normalise(r.output) === distinct[i].output),
-      "Show me how: on 4 seeds of every non-derived template (1064 variants), the example shares no 4+ character text with the variant, isn't its solution, and its stored output matches a fresh run (" + distinct.length + " examples)");
+    check(variantsW === 1088 && !sharedW && !sameW && freshW.every((r, i) => !r.error && Checker.normalise(r.output) === distinct[i].output),
+      "Show me how: on 4 seeds of every non-derived template (1088 variants), the example shares no 4+ character text with the variant, isn't its solution, and its stored output matches a fresh run (" + distinct.length + " examples)");
     // The tool: running it again changes nothing (tasks.json and templates.json).
     const againT = W.withTemplateExamples(tplW);
     const againK = W.withWorkedExamples(tasks);
@@ -2841,8 +2844,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const top = S.studentPoints({ units: U, current: { variables: { level: 10, placement: { status: "done" } } }, attempts: [pass("variables", 2), pass("variables", 1)], now: NOW });
     const pending = S.studentPoints({ units: U, current: { variables: { level: 10, placement: { status: "pending" } } }, attempts: [pass("variables", 2), pass("variables", 1)], now: NOW });
     check(top.units.variables.secured === 200 && top.units.variables.level === 100 && top.total === 300 && top.units["linear-search"].total === 0 && pending.total === 0 &&
-      S.maxPoints(Curriculum.UNITS.length) === 300 * Curriculum.UNITS.length && Curriculum.UNITS.length === 39,
-      "Points: a unit secured at 100% and at level 10 gives 300; with its placement still to do it gives 0; every one of the 39 units counts, so the most is 11,700");
+      S.maxPoints(Curriculum.UNITS.length) === 300 * Curriculum.UNITS.length && Curriculum.UNITS.length === 40 && S.maxPoints(Curriculum.UNITS.length) === 12000,
+      "Points: a unit secured at 100% and at level 10 gives 300; with its placement still to do it gives 0; every one of the 40 units counts (Debugging (GCSE) is the 40th), so the most is 12,000");
     // Normalised: points / (300 x units) x 100, one decimal place; the All my classes boards rank by it.
     const mixed = S.boards([{ nickname: "Ann", total: 1500, gain: 300, unitCount: 10, class_name: "7A" }, { nickname: "Bo", total: 2000, gain: 390, unitCount: 39, class_name: "8B" }], true);
     check(S.normalised(5850, 39) === 50 && S.normalised(234, 39) === 2 && S.normalised(1, 39) === 0 && S.normalised(100, 0) === 0 &&
@@ -2978,7 +2981,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(Cert.BLOCKS.map((b) => b.name).join("|") === pageBlocks.join("|") && pageBlocks.length === 6 &&
       Cert.BLOCKS.map((b) => b.id).join() === "fundamentals,advanced,validation,searching-sorting,programming-techniques,data-structures" &&
       Cert.BLOCKS.reduce((n, b) => n + b.units.length, 0) === Curriculum.UNITS.length && Sec.FLOOR_START === 50 && Sec.FLOOR_STEP === 10 && Sec.FLOOR_CAP === 100,
-      "Certificates: the six blocks are the Students page's (Programming fundamentals ... A-level: Data structures), covering all 39 units; secured.js's floor rules are unchanged (50%, +10, up to 100%)");
+      "Certificates: the six blocks are the Students page's (Programming fundamentals ... A-level: Data structures), covering all " + Curriculum.UNITS.length + " units; secured.js's floor rules are unchanged (50%, +10, up to 100%)");
     // Floor at 100%: secured.js's own score() at each pass. Secured, then five returns to 100%: 50, 60, 70, 80, 90, 100.
     const floors = [0, 8, 16, 24, 32, 40].map((d) => Sec.score(toFull("output", 0), "output", T0 + d * DAY + 1000).floor);
     check(floors.join() === "50,60,70,80,90,100" && Cert.floorFullAt(toFull("output", 0), "output") === T0 + 40 * DAY &&
@@ -3263,6 +3266,104 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       /check \(record_type = 'paste_flag' or \(paste_phase is null and paste_lines is null and paste_homework_id is null\)\)/.test(mig) &&
       !/^\s*(grant|revoke|create policy|alter policy|drop)/im.test(mig),
       "0019: three optional columns on events in one transaction, null unless the row is a paste flag; no grant or policy changes");
+  }
+
+  // ===================== Prompt 7 (2026-11): the Debugging (GCSE) unit and the error question =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const U = "debugging-gcse";
+    const mine = tasks.filter((t) => t.unit === U);
+    const practice = mine.filter((t) => !App.isPlacementTask(t));
+    const placement = mine.filter(App.isPlacementTask);
+    const tplAll = JSON.parse(read("templates.json"));
+
+    // The error question: two answers, the definitions, and the combined question.
+    const ek1 = { ask: "kind", bug: "x", errors: [{ kind: "syntax", line: "if a > 1", fix: "if a > 1:" }] };
+    const ekD = { ask: "definition", bug: "x", errors: [{ kind: "logic", line: "t = t - 1", fix: "t = t + 1" }] };
+    const ek2 = { ask: "both", bug: "x", errors: [{ kind: "syntax", line: "    print(t", fix: "    print(t)" }, { kind: "logic", line: "t = t - 1", fix: "t = t + 1" }] };
+    const q1 = Checker.errorKindQuestion(ek1), qD = Checker.errorKindQuestion(ekD), q2 = Checker.errorKindQuestion(ek2);
+    check(q1.parts.length === 1 && q1.parts[0].options.map((o) => o.label).join() === "Syntax error,Logic error" && q1.parts[0].options.map((o) => o.value).join() === "syntax,logic" &&
+      Checker.checkErrorKind(ek1, ["syntax"]).correct && !Checker.checkErrorKind(ek1, ["logic"]).correct && !Checker.checkErrorKind(ek1, [null]).complete,
+      "Error question (two answers): \"Syntax error\" or \"Logic error\"; the right one passes, the other fails, no answer isn't complete");
+    const defs = qD.parts[0].options.map((o) => o.label);
+    check(qD.parts.length === 1 && defs.join("|") === [Checker.ERROR_KIND_OPTIONS.syntax, Checker.ERROR_KIND_OPTIONS.logic].join("|") &&
+      defs.every((d) => /^[A-Z][^.]*\.$/.test(d) && d.length <= 90 && !/syntax|logic/i.test(d)) &&
+      /^A syntax error breaks the rules of the programming language, so the program will not run\.$/.test(Checker.ERROR_KIND_DEFINITIONS.syntax) &&
+      /^A logic error does not stop the program running, but the program gives the wrong result\.$/.test(Checker.ERROR_KIND_DEFINITIONS.logic) &&
+      Checker.checkErrorKind(ekD, ["logic"]).correct && !Checker.checkErrorKind(ekD, ["syntax"]).correct,
+      "Error question (definitions): the two answers are the definitions as plain sentences (no names, so the student matches the meaning), shown as the options before answering");
+    const both = Checker.checkErrorKind(ek2, ["logic", "syntax"]);
+    check(q2.parts.length === 2 && q2.parts.map((p) => p.line).join("|") === "print(t|t = t - 1" && Checker.checkErrorKind(ek2, ["syntax", "logic"]).correct &&
+      !both.correct && both.wrong.join() === "0,1" && Checker.checkErrorKind(ek2, ["syntax", "syntax"]).wrong.join() === "1" && !Checker.checkErrorKind(ek2, ["syntax", null]).complete,
+      "Error question (combined): each of the two lines is named syntax or logic; both must be right (which is which)");
+    const fail = Checker.classifyAttempt({ type: "write", errorKind: both });
+    check(fail.category === "WRONG_ERROR_KIND" && fail.failedTest === null && Checker.matchMisconceptions({ buggy_variants: [{ misconception: "X", outputs: [{ output: "" }] }] }, fail).length === 0 &&
+      /Both answers about the errors are wrong/.test(Checker.failureParts(fail).message) && Checker.CATEGORIES.includes("WRONG_ERROR_KIND") &&
+      /NO_MATCH_CATEGORIES = \("NO_ANSWER", "WRONG_ERROR_KIND"\)/.test(read("recheck.py")) && /\["failure_category", "WRONG_ERROR_KIND",/.test(read("teacher-data.js")),
+      "Error question: a wrong answer is a failed check (WRONG_ERROR_KIND), the program isn't run, no misconception is matched (here or in recheck.py), and the data dictionary explains it");
+    // Its programs: the bug is the solution with the errors put in, and each error is what it says (checked by running).
+    const ekRun = [];
+    const ekJobs = [];
+    for (const t of mine) { const js = Checker.errorKindJobs(t.error_kind, t.solution, t.tests); ekRun.push({ t, js, from: ekJobs.length }); ekJobs.push(...js.map((j) => ({ code: j.code, inputs: j.inputs, maxLines: 100000 }))); }
+    const ekRes = runPython(ekJobs);
+    const ekProblems = ekRun.flatMap(({ t, js, from }) => Checker.errorKindShapeProblems(t.error_kind, t.solution).concat(Checker.errorKindRunProblems(t.error_kind, js, ekRes.slice(from, from + js.length), t.tests.map((x) => x.expected))).map((p) => t.id + ": " + p));
+    check(!ekProblems.length && Checker.errorKindRunProblems(Object.assign({}, ekD, { errors: [{ kind: "syntax", line: "a", fix: "b" }] }), [{ role: "bug", test: 0 }], [{ output: "1" }], ["1"]).length === 1,
+      "Error question: on every task, a syntax error stops Python running the program and a logic error runs but prints something wrong (each on its own too, when there are two)" + (ekProblems.length ? " " + ekProblems.slice(0, 3).join("; ") : ""));
+
+    // 40 practice tasks (4 at each level, the usual task type), 8 placement tasks; the question by level.
+    const ladder = ["predict", "predict", "fill", "fill", "parsons", "parsons", "write", "write", "write", "write"];
+    const ask = (lv) => (lv <= 7 ? "kind" : lv === 8 ? "definition" : "both");
+    check(practice.length === 40 && [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].every((lv) => practice.filter((t) => t.level === lv).length === 4) &&
+      mine.every((t) => t.type === ladder[t.level - 1] && t.error_kind && t.error_kind.ask === ask(t.level) && /^bug-[LP]\d+[a-z]$/.test(t.id)) &&
+      [1, 2, 3, 4, 5, 6, 7, 8].every((lv) => practice.filter((t) => t.level === lv && t.error_kind.errors[0].kind === "syntax").length === 2) &&
+      practice.filter((t) => t.level >= 9).every((t) => t.error_kind.errors.length === 2) &&
+      placement.length === 8 && [2, 5, 7, 9].every((lv) => placement.filter((t) => t.level === lv).length === 2) &&
+      mine.filter((t) => t.type === "write").every((t) => t.starter === t.error_kind.bug) && !tasks.some((t) => t.unit !== U && /^bug-/.test(t.id)),
+      "Debugging (GCSE): 40 practice tasks, 4 at each level with the usual task type (predict, fill, Parsons, write); levels 1-7 ask syntax or logic, level 8 the definitions, 9-10 both; 2 of each kind at levels 1-8; 8 placement tasks (levels 2, 5, 7, 9) like the other GCSE units; write tasks start from the program with the errors");
+    // Its place: the Validation block, after Authentication (unit menu, Students page, certificate); not the A-level one.
+    const valGroup = Curriculum.UNIT_GROUPS.find((g) => g.id === "validation");
+    const Cert = require(path.join(ROOT, "certificates.js"));
+    const TDg = require(path.join(ROOT, "teacher-data.js"));
+    const blocks = TDg.overviewGroups(Curriculum.UNITS.map((u) => u.id), Curriculum.UNIT_GROUPS).filter((g) => g.units.includes(U));
+    check(valGroup.units.indexOf(U) === valGroup.units.indexOf("authentication") + 1 && Curriculum.unitTitle(U) === "Debugging (GCSE)" && Curriculum.unitTitle("debugging") === "Debugging" &&
+      !Curriculum.A_LEVEL_UNIT_IDS.includes(U) && Curriculum.stageUnits("gcse").includes(U) && !Curriculum.hasScratch(U) && Curriculum.hasPlacement(U) &&
+      blocks.length === 1 && blocks[0].block === "Validation" && Cert.BLOCKS.find((b) => b.id === "validation").units.includes(U) && /debugging-gcse \(Debugging \(GCSE\)\)/.test(read("teacher-data.js")),
+      "Debugging (GCSE): in the Validation block after Authentication (unit menu, Students page, Validation certificate, export's unit list); a GCSE unit, separate from the A-level Debugging unit");
+    // "Show me how": every practice task has a worked example (by task type), and every template of the unit too.
+    const keys = [...new Set(practice.map((t) => t.unit + ":" + t.worked_example.skill))].sort();
+    const unitTpls = tplAll.filter((t) => t.units.includes(U));
+    check(practice.every((t) => t.worked_example && t.worked_example.code && t.worked_example.key_idea && t.worked_example.skill === t.type) &&
+      keys.join() === "debugging-gcse:fill,debugging-gcse:parsons,debugging-gcse:predict,debugging-gcse:write" &&
+      unitTpls.every((t) => t.worked_example || (tasks.find((x) => x.id === t.source) || {}).worked_example) && unitTpls.filter((t) => t.derived).length === 40,
+      "Debugging (GCSE): \"Show me how\" has an example for every one of the 40 practice tasks (one for each task type) and every template; no task is without one");
+    // Variants (the climb script, as for the Validation units): 90 or more at every level; a climb never runs out.
+    const dr = JSON.parse(require("child_process").execFileSync(process.execPath, [path.join(ROOT, "tests", "validation-units-check.js"), "--units", U], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 }));
+    const perLevel = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((lv) => dr.templates.filter((t) => t.level === lv).reduce((n, t) => n + t.different, 0));
+    check(dr.templates.length === 40 && perLevel.every((n) => n >= 90) && dr.templates.every((t) => !t.sameTests && !t.shared && t.different >= 5),
+      "Debugging (GCSE): every level has 90 or more different variants (" + perLevel.join(", ") + "), from 8 test sets and 4 contexts per task");
+    check(dr.sims.every((s) => s.ranOut === 0 && s.steps === 60 && s.sameId === 0) && dr.sims.find((s) => s.kind === "pass-all").top === 10 &&
+      dr.sims.find((s) => s.kind === "fail-at-7").levels.every((l) => !/^([89]|10)/.test(l)),
+      "Debugging (GCSE): a student who passes everything reaches level 10, and one who fails every level 7 task never runs out of tasks (60 tasks each)");
+    // The engine: templates.js and derive-templates.js carry the question into every variant, and check it again.
+    const Tm = require(path.join(ROOT, "templates.js"));
+    const sample = ["d-bug-L1b", "d-bug-L8a", "d-bug-L9c"].map((id) => Tm.realiseSync(tplAll.find((t) => t.id === id), 3, runPython));
+    check(sample.every((v) => v && v.error_kind && Checker.errorKindShapeProblems(v.error_kind, v.solution).length === 0) &&
+      sample.map((v) => v.error_kind.ask).join() === "kind,definition,both" && sample[1].starter === sample[1].error_kind.bug &&
+      /if \(task\.error_kind\) \{\s*if \(Checker\.errorKindShapeProblems/.test(read("templates.js")) && /tpl\.error_kind = \{ ask: t\.error_kind\.ask, bug: s\(t\.error_kind\.bug\)/.test(read("tools/derive-templates.js")),
+      "Error question in templates: every variant carries it (its program and lines changed like the code), and a variant whose errors no longer behave is never used");
+    // The practice page: part 1 is the question (the definitions are on screen as its options), part 2 the usual task.
+    const appS = read("app.js");
+    check(/function errorKindGate\(t, c\)/.test(appS) && /if \(t\.error_kind && !c\.finished && !errorKindGate\(t, c\)\) return;/.test(appS) &&
+      /const q = Checker\.errorKindQuestion\(ek\);/.test(appS) && /esc\(o\.label\)/.test(appS) && /numberedCode\(t\.error_kind\.bug\)/.test(appS) &&
+      /if \(t\.type === "predict"\) \{ checkPredict\(failure\); return false; \}/.test(appS) && /if \(t\.error_kind\) d\.errorKind = t\.error_kind\.errors\.map\(\(\) => null\);/.test(appS) &&
+      App.initialDraft(practice.find((t) => t.level === 9)).errorKind.length === 2 && /\.error-kind \{/.test(read("styles.css")),
+      "Practice page: the program with the error, then part 1 (the question, with the definitions as its answers at level 8), then part 2; part 1 must be answered and right before the program is checked");
+    // The server: the unit id in rows.ts and migration 0020.
+    const rowsTs = read("supabase/functions/_shared/rows.ts"), mig = read("supabase/migrations/0020_debugging_gcse_unit.sql");
+    const rowUnits = JSON.parse(rowsTs.match(/export const UNITS = (\[[^\]]*\])/)[1].replace(/\s+/g, " "));
+    check(rowUnits.includes(U) && Curriculum.UNITS.every((u) => rowUnits.includes(u.id)) && /^begin;$/m.test(mig) && /^commit;$/m.test(mig) &&
+      ["progress", "passed_tasks", "attempts", "events"].every((tb) => new RegExp("alter table public\\." + tb + " add constraint " + tb + "_unit_check[\\s\\S]*?'debugging-gcse'").test(mig)),
+      "Server: rows.ts accepts debugging-gcse (and every unit in the curriculum), and 0020 adds it to the unit check of progress, passed tasks, attempts and events, in one transaction");
   }
 
   // ===================== Selection, trimmed =====================

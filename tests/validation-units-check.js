@@ -11,7 +11,8 @@
 //    Template variants come from the variants made in step 1 (and POOL seeds of each bigger template), so nothing is run
 //    during the climb. It records whether a task ever couldn't be made, and any two tasks in a row with the same id
 //    (fingerprint) or the same right answer.
-// Usage: node tests/validation-units-check.js
+// Usage: node tests/validation-units-check.js                          the five Validation units
+//        node tests/validation-units-check.js --units debugging-gcse   other units (2026-11: Debugging (GCSE))
 "use strict";
 const path = require("path");
 const ROOT = path.join(__dirname, "..");
@@ -22,7 +23,8 @@ const tasks = require(path.join(ROOT, "tasks.json"));
 const templates = require(path.join(ROOT, "templates.json"));
 const byId = Object.fromEntries(tasks.map((t) => [t.id, t]));
 
-const UNITS = ["validation-presence", "validation-type", "validation-range", "validation-format", "validation-length"];
+const UNITS = process.argv.includes("--units") ? process.argv[process.argv.indexOf("--units") + 1].split(",")
+  : ["validation-presence", "validation-type", "validation-range", "validation-format", "validation-length"];
 const MAX_EXACT = 150; // draws up to which every variant is made and checked
 const POOL = 60;       // seeds made for each bigger template (for the climb)
 const STEPS = 60;      // tasks in each simulated climb

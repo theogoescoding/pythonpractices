@@ -229,7 +229,9 @@ button.danger { background: var(--fail); border-color: var(--fail); color: var(-
 
 /* ---------- Layout ---------- */
 .layout { display: grid; grid-template-columns: minmax(0, 1fr) 18rem; gap: 1.25rem; padding-block: 1.25rem; align-items: start; }
-@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+/* One column on a narrow screen. minmax(0, 1fr), not 1fr: a long code line (a program shown, the expected output, the
+   editor) then scrolls inside its own box instead of widening the whole page (2026-11, found with Debugging (GCSE)). */
+@media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
 
 .task-card, .side-panel {
   background: var(--card);
@@ -371,6 +373,21 @@ pre.code.numbered .ln { color: var(--muted); margin-right: 1rem; user-select: no
 .pp-options .option input { margin-top: .55rem; }
 .pp-options .option:has(input:checked) { border-color: var(--parsons); }
 .unit-note { margin-top: .25rem; }
+
+/* ---------- The error question (Debugging (GCSE): part 1, then part 2 fixes it) ---------- */
+.ek-bug-h, .ek-step { margin: 1rem 0 .25rem; font-size: 1.05rem; }
+.error-kind { border: 2px solid var(--border); border-radius: 8px; padding: .5rem .9rem .75rem; margin: 1rem 0; background: var(--card); }
+.error-kind h3 { margin: .25rem 0 .5rem; font-size: 1.05rem; }
+.error-kind .ek-part { margin-top: .5rem; min-width: 0; }
+.error-kind .option { align-items: center; padding: .55rem .75rem; line-height: 1.4; }
+.error-kind .option input { margin-top: 0; }
+.error-kind .option:has(input:checked) { border-color: var(--primary); }
+.error-kind .option.correct { border-color: var(--pass); background: var(--pass-bg); }
+.error-kind .option.wrong { border-color: var(--fail); background: var(--fail-bg); }
+.ek-line { display: inline-block; max-width: 100%; white-space: pre-wrap; overflow-wrap: anywhere; font-family: Consolas, "Cascadia Mono", "Courier New", monospace;
+  font-weight: 400; background: var(--code-bg); border-radius: 4px; padding: 0 .3rem; }
+.ek-answers { margin: .5rem 0 0; padding-left: 1.25rem; }
+.ek-answers li { margin: .2rem 0; }
 
 /* ---------- Parsons ---------- */
 /* minmax(0, 1fr): a long line can't widen its column past the task card (it ran under the side panel); it wraps. */

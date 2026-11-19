@@ -181,8 +181,8 @@ for (const t of practiceTasks) {
 }
 
 // Unit order on the landing page, and a skill that is in two units' lists counting for the task's own unit.
-check(UNIT_IDS.join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d,validation,validation-presence,validation-type,validation-range,validation-format,validation-length,authentication,trace-tables,linear-search,binary-search,bubble-sort,insertion-sort,merge-sort," + A_LEVEL_UNITS.join(),
-  "Units are listed with Data types and casting between Variables and Maths; Strings, Random and Lists after the two loops units; then the two functions units, File handling and 2D arrays; then Validation, the five Validation units (Presence, Type, Range, Format and Length checks), Authentication and Trace tables; then the five searching and sorting units; then the seven A-level programming techniques units (Recursion, Scope and parameters, the four object-oriented programming units, Debugging) and the five A-level data structures units (Records and tuples, Stacks and queues, Linked lists, Hash tables, 3D arrays)");
+check(UNIT_IDS.join() === "output,variables,data-types,maths,selection,loops-condition,loops-count,strings,random,lists,functions-basic,functions-return,file-handling,arrays-2d,validation,validation-presence,validation-type,validation-range,validation-format,validation-length,authentication,debugging-gcse,trace-tables,linear-search,binary-search,bubble-sort,insertion-sort,merge-sort," + A_LEVEL_UNITS.join(),
+  "Units are listed with Data types and casting between Variables and Maths; Strings, Random and Lists after the two loops units; then the two functions units, File handling and 2D arrays; then Validation, the five Validation units (Presence, Type, Range, Format and Length checks), Authentication, Debugging (GCSE) and Trace tables; then the five searching and sorting units; then the seven A-level programming techniques units (Recursion, Scope and parameters, the four object-oriented programming units, Debugging) and the five A-level data structures units (Records and tuples, Stacks and queues, Linked lists, Hash tables, 3D arrays)");
 check(App.unitOfSkill("accumulator", ["loops-condition"]) === "loops-condition" && App.unitOfSkill("accumulator", ["loops-count"]) === "loops-count" &&
   App.unitOfSkill("accumulator") === "loops-condition", "A skill in two units' lists belongs to the task's own unit");
 check(App.unitOfSkill("and/or", ["loops-condition"]) === "loops-condition" && App.unitOfSkill("and/or", ["selection"]) === "selection" &&
@@ -277,6 +277,12 @@ function checkTask(t) {
     check(tr && Array.isArray(tr.columns) && Array.isArray(tr.rows) && Array.isArray(tr.ask), `${name}: trace tasks need a trace table (columns, rows, ask)`);
     if (tr) for (const p of Checker.traceProblems(tr)) check(false, `${name}: ${p}`);
     check(t.tests.length === 1, `${name}: trace tasks have exactly one test`);
+  }
+  // The error question (Debugging (GCSE), Checker.errorKindQuestion): every task in the unit has one; the program shown
+  // is the solution with the errors put in; a write task starts from it. (Running it is checked further down.)
+  if ((t.units || [t.unit]).includes("debugging-gcse") || t.error_kind) {
+    for (const p of Checker.errorKindShapeProblems(t.error_kind, t.solution)) check(false, `${name}: ${p}`);
+    if (t.error_kind && t.type === "write") check(t.starter === t.error_kind.bug, `${name}: a write task with an error question starts from the program with the error(s)`);
   }
   // The explainer: every task in the A-level units (bank tasks and every template variant) has one short sentence,
   // with no placeholder left in it, and a predict task's doesn't give the answer.
@@ -382,6 +388,7 @@ check(!templates.some((tpl) => tpl.derived && taskById[tpl.source] && (taskById[
 // ---------- Run every reference solution against its own tests ----------
 const jobs = [];
 const meta = [];
+const errorKindRuns = []; // { t, ekJobs, from }: each task's error-question runs (checked after the batch)
 for (const t of tasks.concat(variants)) {
   (t.tests || []).forEach((test, i) => {
     jobs.push({ code: t.solution, inputs: test.inputs });
@@ -412,6 +419,13 @@ for (const t of tasks.concat(variants)) {
   if (t.type === "trace") {
     jobs.push({ code: t.solution, inputs: t.tests[0].inputs, trace: true });
     meta.push({ kind: "trace-table", t, i: 0 });
+  }
+  // The error question: a syntax error stops the program, a logic error runs but prints something wrong (each one on
+  // its own too, when there are two). Checker.errorKindRunProblems decides, once every run is back.
+  if (t.error_kind && Checker.withErrors(t.solution, t.error_kind.errors) != null) {
+    const ekJobs = Checker.errorKindJobs(t.error_kind, t.solution, t.tests);
+    errorKindRuns.push({ t, ekJobs, from: jobs.length });
+    for (const j of ekJobs) { jobs.push({ code: j.code, inputs: j.inputs, maxLines: 100000 }); meta.push({ kind: "error-kind", t, i: j.test }); }
   }
 }
 
@@ -445,6 +459,10 @@ results.forEach((r, k) => {
     check(JSON.stringify([table.columns, table.rows, table.ask]) === JSON.stringify([t.trace.columns, t.trace.rows, t.trace.ask]), `${t.id}: the stored trace table isn't the one tracing the solution gives`);
   }
 });
+for (const { t, ekJobs, from } of errorKindRuns) {
+  for (const p of Checker.errorKindRunProblems(t.error_kind, ekJobs, results.slice(from, from + ekJobs.length), t.tests.map((x) => x.expected))) check(false, `${t.id}: ${p}`);
+}
+check(errorKindRuns.length > 0, "The error question (Debugging (GCSE)) is checked by running every task's and variant's program with the errors (" + errorKindRuns.length + " tasks and variants)");
 for (const [id, passes] of Object.entries(starterPasses)) check(!passes, `${id}: starter code already passes every test`);
 for (const [key, passes] of Object.entries(optionPasses)) check(!passes, `${key.split(":")[0]}: wrong option ${Number(key.split(":")[1]) + 1} passes every test`);
 

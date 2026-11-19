@@ -266,7 +266,13 @@ function shuffle(arr) {
 
 // A task's answer as it starts: empty blanks, the Parsons lines shuffled and none used, no predict choice (or missing
 // line chosen), an empty trace table, or the starter code.
+// A task with an error question (Debugging (GCSE)) also starts with no answer to it: one null per part (errorKind).
 function initialDraft(t) {
+  const d = typeDraft(t);
+  if (t.error_kind) d.errorKind = t.error_kind.errors.map(() => null);
+  return d;
+}
+function typeDraft(t) {
   if (t.type === "fill") return { blanks: t.starter.split("____").slice(1).map(() => "") };
   if (t.type === "trace") return { cells: {} };
   if (t.type === "partial-parsons") return { choice: null };
@@ -1554,6 +1560,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     else if (t.type === "trace") body = traceBody(t, c);
     else if (t.type === "partial-parsons") body = partialBody(t, c);
     else body = writeBody(t, c);
+    if (t.error_kind && t.type !== "predict") body = errorKindBody(t, c, body); // predictBody puts the question in itself
 
     const checkLabel = t.type === "predict" ? "Run to check my answer" : "Check my answer";
     const showLevelButtons = !endless && !inAssignment && !c.placement;
@@ -1584,6 +1591,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     else if (t.type === "trace") wireTrace(c);
     else if (t.type === "partial-parsons") wirePartial(t, c);
     else wireWrite(c);
+    if (t.error_kind) wireErrorKind(c);
 
     if ($("run-btn")) $("run-btn").addEventListener("click", runOnce);
     $("check-btn").addEventListener("click", check);
@@ -1925,10 +1933,34 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   const errorBox = (err) => TaskView.errorBoxHtml(err);
 
   // ---------- Check (all tests) ----------
+  // The error question is checked first (Checker.checkErrorKind). It must be answered; a wrong answer is a failed check
+  // (category WRONG_ERROR_KIND) and the program isn't run. On a predict task, one check finishes the task, as a wrong
+  // prediction does. Returns true when the question is answered rightly (the usual check goes on).
+  function errorKindGate(t, c) {
+    const ek = Checker.checkErrorKind(t.error_kind, c.draft.errorKind);
+    if (!ek.complete) {
+      showProblem(t.error_kind.ask === "both" ? "Answer part 1 first: choose the kind of error for each line." : "Answer part 1 first: choose the kind of error.");
+      return false;
+    }
+    if (ek.correct) return true;
+    const failure = Checker.classifyAttempt({ type: t.type, errorKind: ek });
+    if (t.type === "predict") { checkPredict(failure); return false; }
+    c.attempts += 1;
+    noteAttempt();
+    recordAttempt(t, c, { result: "fail", failure, code: "" });
+    const more = c.placement && placementAfterFail() ? "You have one more try." : "";
+    save();
+    $("results").innerHTML = failureHtml(t, failure, more);
+    renderButtons();
+    if (c.finished) { refreshErrorKind(); renderFinishedMessage(); }
+    return false;
+  }
+
   async function check() {
     if (busy) return;
     const t = task();
     const c = cur();
+    if (t.error_kind && !c.finished && !errorKindGate(t, c)) return;
     if (t.type === "predict") return checkPredict();
     if (t.type === "trace") return checkTrace();
     const built = buildCode(true);
@@ -1993,11 +2025,13 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
         recordAttempt(t, c, { result: "pass", levels });
       }
       renderButtons();
+      refreshErrorKind();
       if (notice && !c.placement) $("results").insertAdjacentHTML("afterbegin", '<p class="notice notice-' + notice.kind + '">' + esc(notice.text) + "</p>");
       $("next-btn").focus();
       showDialogIfDue();
     } else if (c.finished) {
       renderButtons();
+      refreshErrorKind();
       if (counted) renderFinishedMessage(); // the last placement try was used
     }
   }
@@ -2202,12 +2236,66 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     $("task").focus();
   }
 
+  // ---------- The error question (Debugging (GCSE): Checker.errorKindQuestion) ----------
+  // Part 1: what kind of error the program has ("Syntax error" or "Logic error"; the two definitions at level 8; at
+  // levels 9 and 10, which of the two lines is which). Part 2: the level's usual task, to fix it. The program with the
+  // error is shown above the question (a write task's editor starts with it, so it isn't shown twice). Once the task is
+  // finished, the right answers are shown, with the definition of each kind of error.
+  function errorKindHtml(t, c) {
+    const ek = t.error_kind;
+    const q = Checker.errorKindQuestion(ek);
+    const answers = c.draft.errorKind || [];
+    let html = '<section class="error-kind" aria-labelledby="ek-h"><h3 id="ek-h">Part 1: ' + esc(q.prompt) + "</h3>";
+    q.parts.forEach((p, i) => {
+      html += '<fieldset class="options ek-part"><legend>' + esc(p.prompt) + (p.line ? ' <code class="ek-line">' + esc(p.line) + "</code>" : "") + "</legend>";
+      p.options.forEach((o) => {
+        let cls = "option";
+        if (c.finished && o.value === ek.errors[i].kind) cls += " correct";
+        else if (c.finished && o.value === answers[i]) cls += " wrong";
+        html += '<label class="' + cls + '"><input type="radio" name="ek-' + i + '" value="' + o.value + '"' + (answers[i] === o.value ? " checked" : "") +
+          (c.finished ? " disabled" : "") + "> " + esc(o.label) + "</label>";
+      });
+      html += "</fieldset>";
+    });
+    if (c.finished) {
+      html += '<ul class="ek-answers">' + ek.errors.map((e) => "<li>" + (ek.ask === "both" ? '<code class="ek-line">' + esc(e.line.trim()) + "</code> – " : "") +
+        esc(Checker.ERROR_KIND_DEFINITIONS[e.kind]) + "</li>").join("") + "</ul>";
+    }
+    return html + "</section>";
+  }
+  const PART_TWO = { predict: "What will the fixed program print?", fill: "Fill in the blanks to fix the program.", parsons: "Put the lines in order to make the fixed program.",
+    write: "Fix the program in the editor." };
+  function errorKindBody(t, c, body) {
+    const two = t.error_kind.errors.length === 2;
+    const shown = t.type === "write" ? "" : '<h3 class="ek-bug-h">The program with ' + (two ? "the errors" : "the error") + "</h3>" + numberedCode(t.error_kind.bug);
+    return shown + errorKindHtml(t, c) + '<h3 class="ek-step">Part 2: ' + esc(PART_TWO[t.type] || "Fix the program.") + "</h3>" + body;
+  }
+  // Once the task is finished (a pass, or the last placement try), part 1 shows its right answers and definitions.
+  function refreshErrorKind() {
+    const t = task();
+    const el = document.querySelector(".error-kind");
+    if (t.error_kind && el && cur().finished) el.outerHTML = errorKindHtml(t, cur());
+  }
+  function wireErrorKind(c) {
+    document.querySelectorAll('.error-kind input[type="radio"]').forEach((r) => {
+      r.addEventListener("change", () => {
+        const i = +r.name.slice(3);
+        if (!c.draft.errorKind) c.draft.errorKind = task().error_kind.errors.map(() => null);
+        c.draft.errorKind[i] = r.value;
+        save();
+      });
+    });
+  }
+
   // ---------- Predict ----------
   function predictBody(t, c) {
     const inputs = t.tests[0].inputs;
-    let html = '<pre class="code">' + highlight(t.solution) + "</pre>";
+    // A predict task with an error question shows the program with the error (not the fixed one, its solution), then
+    // the question, then the outputs to choose from: what the fixed program prints.
+    let html = t.error_kind ? '<h3 class="ek-bug-h">The program with the error</h3>' + numberedCode(t.error_kind.bug) : '<pre class="code">' + highlight(t.solution) + "</pre>";
     if (inputs.length) html += '<p class="inputs-note">When this program runs, the user types: ' + inputs.map((v) => "<kbd>" + esc(v) + "</kbd>").join(" then ") + "</p>";
-    html += '<fieldset class="options"><legend>What will it print?</legend>';
+    if (t.error_kind) html += errorKindHtml(t, c) + '<h3 class="ek-step">Part 2: ' + esc(PART_TWO.predict) + "</h3>";
+    html += '<fieldset class="options"><legend>' + (t.error_kind ? "The fixed program prints:" : "What will it print?") + "</legend>";
     t.options.forEach((opt, i) => {
       const checked = c.draft.choice === i ? " checked" : "";
       const disabled = c.finished ? " disabled" : "";
@@ -2227,15 +2315,16 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     if (c.finished) showPredictResult(null);
   }
 
-  async function checkPredict() {
+  // errorKindFailure: the error question was answered wrongly (errorKindGate), so the task fails whatever was chosen.
+  async function checkPredict(errorKindFailure) {
     const t = task();
     const c = cur();
     if (c.finished) return;
-    if (c.draft.choice == null) return showProblem("Choose the output you think it will print first.");
+    if (c.draft.choice == null) return showProblem(t.error_kind ? "Choose what you think the fixed program prints first." : "Choose the output you think it will print first.");
     c.attempts += 1;
     noteAttempt();
-    const correct = c.draft.choice === t.answer;
-    const failure = correct ? null : Checker.classifyAttempt({ type: "predict", choice: c.draft.choice, options: t.options, answer: t.answer });
+    const correct = !errorKindFailure && c.draft.choice === t.answer;
+    const failure = correct ? null : errorKindFailure || Checker.classifyAttempt({ type: "predict", choice: c.draft.choice, options: t.options, answer: t.answer });
     if (inAssignment && !correct) {
       // Unlimited tries: the answer isn't shown, so the student can think again and choose another option.
       recordAttempt(t, c, { result: "fail", failure, code: "" });
@@ -2272,12 +2361,16 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     const t = task();
     const c = cur();
     const output = actual == null ? t.options[t.answer] : actual;
+    // With an error question: a wrong answer to it is the reason given, even if the output chosen was right.
+    const ek = t.error_kind ? Checker.checkErrorKind(t.error_kind, c.draft.errorKind) : null;
     let html = c.passed
-      ? '<p class="success">✓ Correct – your prediction matched!</p>'
+      ? '<p class="success">✓ Correct – ' + (ek ? "you named the error and predicted the fixed program!" : "your prediction matched!") + "</p>"
       : c.draft.choice == null
         ? '<p class="problem">Not quite. Compare your choice with what the program really printed, and trace through the code line by line.</p>'
-        : failureHtml(t, Checker.classifyAttempt({ type: "predict", choice: c.draft.choice, options: t.options, answer: t.answer }));
-    html += "<h3>The program printed</h3><pre class=\"output\">" + showOutput(output) + "</pre>";
+        : ek && !ek.correct
+          ? failureHtml(t, Checker.classifyAttempt({ type: t.type, errorKind: ek })) + (c.draft.choice === t.answer ? '<p class="small">Your choice of output was right.</p>' : "")
+          : failureHtml(t, Checker.classifyAttempt({ type: "predict", choice: c.draft.choice, options: t.options, answer: t.answer }));
+    html += "<h3>" + (t.error_kind ? "The fixed program printed" : "The program printed") + "</h3><pre class=\"output\">" + showOutput(output) + "</pre>";
     $("results").innerHTML = html;
   }
 

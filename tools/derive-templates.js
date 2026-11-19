@@ -488,6 +488,9 @@ const OVERRIDES = {
 // The five Validation units (Presence, Type, Range, Format and Length checks): their overrides are kept with their
 // tasks, in tools/validation-units-tasks.js, so each variant's input is drawn from both sides of the check.
 Object.assign(OVERRIDES, require("./validation-units-tasks.js").OVERRIDES);
+// Debugging (GCSE): 8 test sets (or typed answers) and 4 contexts each, numbers never changed, in
+// tools/debugging-gcse-tasks.js, so each variant's errors stay where they are (templates.js checks them again).
+Object.assign(OVERRIDES, require("./debugging-gcse-tasks.js").OVERRIDES);
 
 const isPlacement = (t) => (t.tags || []).includes("placement");
 // A number in text or code. It may be followed by a unit ("50g", "20p", "3pm", "5s" in "under 5s"), but not be part
@@ -526,7 +529,7 @@ function factNumbers(t) {
 
 function codeOf(t) {
   return [t.solution, t.starter || "", ...(t.distractors || []), ...(t.answers || []), ...(t.type === "partial-parsons" ? t.options : []),
-    ...(t.buggy_variants || []).map((v) => v.code)].join("\n");
+    ...(t.buggy_variants || []).map((v) => v.code), ...(t.error_kind ? [t.error_kind.bug] : [])].join("\n");
 }
 
 // Replaces numbers in a text by placeholders. map: numeric value → expression text (e.g. "a0", "a0 + 1"),
@@ -811,6 +814,11 @@ function derive(t, fixedExtra, opts) {
   tpl.tags = t.tags.slice();
   tpl.skills = t.skills.slice();
   if (t.buggy_variants) tpl.buggy_variants = t.buggy_variants.map((v) => ({ misconception: v.misconception, code: s(v.code) }));
+  // The error question (Debugging (GCSE)): the program with the errors and each wrong and fixed line change like the
+  // code, so the question stays right for every variant (templates.js checks each variant's errors again).
+  if (t.error_kind) {
+    tpl.error_kind = { ask: t.error_kind.ask, bug: s(t.error_kind.bug), errors: t.error_kind.errors.map((e) => ({ kind: e.kind, line: s(e.line), fix: s(e.fix) })) };
+  }
   // A variant is never the bank task itself: at least one number, word, swap or test set must differ.
   for (const [w, p] of Object.entries(words)) changed.push(p + " !== " + JSON.stringify(w));
   for (const g of swaps) changed.push(g.param + " !== 0");

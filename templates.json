@@ -136577,5 +136577,3670 @@
       "output": "Ship names have 4 to 14 characters",
       "key_idea": "For a least and a most, both must be True, so join them with and. >= and <= include the two limits."
     }
+  },
+  {
+    "id": "d-bug-L1a",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L1a",
+    "derived": true,
+    "level": 1,
+    "type": "predict",
+    "title": "A welcome message",
+    "description": "The user {{SAYS[ts]}}. Fix the error in your head. What will the fixed program print?",
+    "starter": "",
+    "solution": "name = input(\"Name: \")\nprint(\"Hello\", name)\nprint(\"{{[\"Welcome to the club\",\"Welcome to the team\",\"Welcome to the choir\",\"Welcome to the band\"][p0]}}\")",
+    "optionCount": 3,
+    "wrongOutputs": [
+      "Hello\n{{[\"Welcome to the club\",\"Welcome to the team\",\"Welcome to the choir\",\"Welcome to the band\"][p0]}}",
+      "Hello name\n{{[\"Welcome to the club\",\"Welcome to the team\",\"Welcome to the choir\",\"Welcome to the band\"][p0]}}",
+      "Hello {{TS[ts][0][0]}}"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "Count the opening and closing brackets on each line.",
+      "Once the line is fixed, print() puts a space between the two values."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "name = input(\"Name: \")\nprint(\"Hello\", name\nprint(\"{{[\"Welcome to the club\",\"Welcome to the team\",\"Welcome to the choir\",\"Welcome to the band\"][p0]}}\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "print(\"Hello\", name",
+          "fix": "print(\"Hello\", name)"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"Ava\"]],[[\"Ben\"]],[[\"Cara\"]],[[\"Dev\"]],[[\"Eli\"]],[[\"Fay\"]],[[\"Gus\"]],[[\"Hana\"]]]",
+      "SAYS": "[\"types Ava\",\"types Ben\",\"types Cara\",\"types Dev\",\"types Eli\",\"types Fay\",\"types Gus\",\"types Hana\"]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L1b",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L1b",
+    "derived": true,
+    "level": 1,
+    "type": "predict",
+    "title": "Three {{[\"tickets\",\"passes\",\"badges\",\"mugs\"][p0]}}",
+    "description": "int() turns the text typed into a whole number: this is called casting. This program should print the cost of three {{[\"tickets\",\"passes\",\"badges\",\"mugs\"][p0]}}. The user {{SAYS[ts]}}. Fix the error in your head. What will the fixed program print?",
+    "starter": "",
+    "solution": "cost = int(input(\"Cost of one {{[\"ticket\",\"pass\",\"badge\",\"mug\"][p0]}}: \"))\ntotal = cost * 3\nprint(\"Three {{[\"tickets\",\"passes\",\"badges\",\"mugs\"][p0]}} cost\", total)",
+    "optionCount": 4,
+    "wrongOutputs": [
+      "Three {{[\"tickets\",\"passes\",\"badges\",\"mugs\"][p0]}} cost {{TS[ts][0][0]}}{{TS[ts][0][0]}}{{TS[ts][0][0]}}",
+      "Three {{[\"tickets\",\"passes\",\"badges\",\"mugs\"][p0]}} cost {{TS[ts][0][0]}}"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "The program runs, so look at what it prints.",
+      "Which variable holds the cost of three {{[\"tickets\",\"passes\",\"badges\",\"mugs\"][p0]}}?"
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "cost = int(input(\"Cost of one {{[\"ticket\",\"pass\",\"badge\",\"mug\"][p0]}}: \"))\ntotal = cost * 3\nprint(\"Three {{[\"tickets\",\"passes\",\"badges\",\"mugs\"][p0]}} cost\", cost)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "print(\"Three {{[\"tickets\",\"passes\",\"badges\",\"mugs\"][p0]}} cost\", cost)",
+          "fix": "print(\"Three {{[\"tickets\",\"passes\",\"badges\",\"mugs\"][p0]}} cost\", total)"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"4\"]],[[\"5\"]],[[\"6\"]],[[\"7\"]],[[\"8\"]],[[\"9\"]],[[\"12\"]],[[\"15\"]]]",
+      "SAYS": "[\"types 4\",\"types 5\",\"types 6\",\"types 7\",\"types 8\",\"types 9\",\"types 12\",\"types 15\"]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L1c",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L1c",
+    "derived": true,
+    "level": 1,
+    "type": "predict",
+    "title": "Old enough to {{[\"join\",\"enter\",\"play\",\"sign up\"][p0]}}?",
+    "description": "int() turns the text typed into a whole number: this is called casting. The user {{SAYS[ts]}}. Fix the error in your head. What will the fixed program print?",
+    "starter": "",
+    "solution": "age = int(input(\"Age: \"))\nif age >= 12:\n    print(\"You can {{[\"join\",\"enter\",\"play\",\"sign up\"][p0]}}\")\nelse:\n    print(\"Too young to {{[\"join\",\"enter\",\"play\",\"sign up\"][p0]}}\")",
+    "optionCount": 3,
+    "wrongOutputs": [
+      "You can {{[\"join\",\"enter\",\"play\",\"sign up\"][p0]}}",
+      "Too young to {{[\"join\",\"enter\",\"play\",\"sign up\"][p0]}}",
+      "You can {{[\"join\",\"enter\",\"play\",\"sign up\"][p0]}}\nToo young to {{[\"join\",\"enter\",\"play\",\"sign up\"][p0]}}"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "Every if and else line needs something at its end.",
+      "After the fix, compare the age with 12."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "age = int(input(\"Age: \"))\nif age >= 12\n    print(\"You can {{[\"join\",\"enter\",\"play\",\"sign up\"][p0]}}\")\nelse:\n    print(\"Too young to {{[\"join\",\"enter\",\"play\",\"sign up\"][p0]}}\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "if age >= 12",
+          "fix": "if age >= 12:"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"14\"]],[[\"9\"]],[[\"12\"]],[[\"11\"]],[[\"16\"]],[[\"10\"]],[[\"13\"]],[[\"8\"]]]",
+      "SAYS": "[\"types 14\",\"types 9\",\"types 12\",\"types 11\",\"types 16\",\"types 10\",\"types 13\",\"types 8\"]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L1d",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L1d",
+    "derived": true,
+    "level": 1,
+    "type": "predict",
+    "title": "{{[\"Money left\",\"Coins left\",\"Tokens left\",\"Points left\"][p0]}}",
+    "description": "int() turns the text typed into a whole number: this is called casting. This program should take off what was spent. The user {{SAYS[ts]}}. Fix the error in your head. What will the fixed program print?",
+    "starter": "",
+    "solution": "money = int(input(\"{{[\"Money saved\",\"Coins saved\",\"Tokens saved\",\"Points saved\"][p0]}}: \"))\nspent = 5\nleft = money - spent\nprint(\"{{[\"Money left\",\"Coins left\",\"Tokens left\",\"Points left\"][p0]}}:\", left)",
+    "optionCount": 4,
+    "wrongOutputs": [
+      "{{[\"Money left\",\"Coins left\",\"Tokens left\",\"Points left\"][p0]}}: {{TS[ts][0][0]}}",
+      "{{[\"Money left\",\"Coins left\",\"Tokens left\",\"Points left\"][p0]}}: 5"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "The program runs. Look at the sum on line 3.",
+      "Spending takes money away."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "money = int(input(\"{{[\"Money saved\",\"Coins saved\",\"Tokens saved\",\"Points saved\"][p0]}}: \"))\nspent = 5\nleft = money + spent\nprint(\"{{[\"Money left\",\"Coins left\",\"Tokens left\",\"Points left\"][p0]}}:\", left)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "left = money + spent",
+          "fix": "left = money - spent"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"20\"]],[[\"12\"]],[[\"30\"]],[[\"9\"]],[[\"15\"]],[[\"25\"]],[[\"40\"]],[[\"8\"]]]",
+      "SAYS": "[\"types 20\",\"types 12\",\"types 30\",\"types 9\",\"types 15\",\"types 25\",\"types 40\",\"types 8\"]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L2a",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L2a",
+    "derived": true,
+    "level": 2,
+    "type": "predict",
+    "title": "Quiz question",
+    "description": "The user {{SAYS[ts]}}. Fix the error in your head. What will the fixed program print?",
+    "starter": "",
+    "solution": "answer = input(\"{{[\"Capital of France\",\"Capital of Spain\",\"Capital of Italy\",\"Capital of Germany\"][p0]}}? \")\nif answer == \"{{[\"Paris\",\"Madrid\",\"Rome\",\"Berlin\"][p0]}}\":\n    print(\"Correct\")\nelse:\n    print(\"Not quite\")\nprint(\"Quiz over\")",
+    "optionCount": 3,
+    "wrongOutputs": [
+      "Correct\nQuiz over",
+      "Not quite\nQuiz over",
+      "Correct",
+      "Not quite"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "Is = the right sign for comparing two things?",
+      "After the fix, does the answer typed match exactly, capitals and all?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "answer = input(\"{{[\"Capital of France\",\"Capital of Spain\",\"Capital of Italy\",\"Capital of Germany\"][p0]}}? \")\nif answer = \"{{[\"Paris\",\"Madrid\",\"Rome\",\"Berlin\"][p0]}}\":\n    print(\"Correct\")\nelse:\n    print(\"Not quite\")\nprint(\"Quiz over\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "if answer = \"{{[\"Paris\",\"Madrid\",\"Rome\",\"Berlin\"][p0]}}\":",
+          "fix": "if answer == \"{{[\"Paris\",\"Madrid\",\"Rome\",\"Berlin\"][p0]}}\":"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"Paris\"]],[[\"paris\"]],[[\"London\"]],[[\"Rome\"]],[[\"Madrid\"]],[[\"Lyon\"]],[[\"Berlin\"]],[[\"Nice\"]]]",
+      "SAYS": "[\"types Paris\",\"types paris\",\"types London\",\"types Rome\",\"types Madrid\",\"types Lyon\",\"types Berlin\",\"types Nice\"]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L2b",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L2b",
+    "derived": true,
+    "level": 2,
+    "type": "predict",
+    "title": "{{[\"Pass\",\"Well done\",\"Passed\",\"Pass\"][p0]}} or not",
+    "description": "int() turns the text typed into a whole number: this is called casting. A mark of 40 or more is a pass. The user {{SAYS[ts]}}. Fix the error in your head. What will the fixed program print?",
+    "starter": "",
+    "solution": "mark = int(input(\"Mark: \"))\nif mark >= 40:\n    print(\"{{[\"Pass\",\"Well done\",\"Passed\",\"Pass\"][p0]}}\")\nelse:\n    print(\"{{[\"Not yet\",\"Try again\",\"Keep going\",\"Resit\"][p0]}}\")",
+    "optionCount": 3,
+    "wrongOutputs": [
+      "{{[\"Pass\",\"Well done\",\"Passed\",\"Pass\"][p0]}}",
+      "{{[\"Not yet\",\"Try again\",\"Keep going\",\"Resit\"][p0]}}",
+      "{{[\"Pass\",\"Well done\",\"Passed\",\"Pass\"][p0]}}\n{{[\"Not yet\",\"Try again\",\"Keep going\",\"Resit\"][p0]}}"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "The program runs, but who gets which message?",
+      "A mark of 40 or more should get the first message."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "mark = int(input(\"Mark: \"))\nif mark < 40:\n    print(\"{{[\"Pass\",\"Well done\",\"Passed\",\"Pass\"][p0]}}\")\nelse:\n    print(\"{{[\"Not yet\",\"Try again\",\"Keep going\",\"Resit\"][p0]}}\")",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "if mark < 40:",
+          "fix": "if mark >= 40:"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"40\"]],[[\"39\"]],[[\"55\"]],[[\"12\"]],[[\"41\"]],[[\"70\"]],[[\"30\"]],[[\"90\"]]]",
+      "SAYS": "[\"types 40\",\"types 39\",\"types 55\",\"types 12\",\"types 41\",\"types 70\",\"types 30\",\"types 90\"]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L2c",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L2c",
+    "derived": true,
+    "level": 2,
+    "type": "predict",
+    "title": "Shopping",
+    "description": "The user {{SAYS[ts]}}. Fix the error in your head. What will the fixed program print?",
+    "starter": "",
+    "solution": "item = input(\"Item: \")\nprint(\"{{[\"You bought\",\"In your basket\",\"Added\",\"Your order\"][p0]}}:\", item)\nprint(\"{{[\"Thank you\",\"Goodbye\",\"See you soon\",\"Thanks\"][p0]}}\")",
+    "optionCount": 3,
+    "wrongOutputs": [
+      "{{[\"You bought\",\"In your basket\",\"Added\",\"Your order\"][p0]}}:\n{{[\"Thank you\",\"Goodbye\",\"See you soon\",\"Thanks\"][p0]}}",
+      "{{[\"You bought\",\"In your basket\",\"Added\",\"Your order\"][p0]}}: item\n{{[\"Thank you\",\"Goodbye\",\"See you soon\",\"Thanks\"][p0]}}",
+      "{{[\"You bought\",\"In your basket\",\"Added\",\"Your order\"][p0]}}: {{TS[ts][0][0]}}"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "Every string needs a quote mark at the start and one at the end.",
+      "After the fix, print() puts a space between the two values."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "item = input(\"Item: \")\nprint(\"{{[\"You bought\",\"In your basket\",\"Added\",\"Your order\"][p0]}}:, item)\nprint(\"{{[\"Thank you\",\"Goodbye\",\"See you soon\",\"Thanks\"][p0]}}\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "print(\"{{[\"You bought\",\"In your basket\",\"Added\",\"Your order\"][p0]}}:, item)",
+          "fix": "print(\"{{[\"You bought\",\"In your basket\",\"Added\",\"Your order\"][p0]}}:\", item)"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"apples\"]],[[\"bread\"]],[[\"milk\"]],[[\"eggs\"]],[[\"rice\"]],[[\"pasta\"]],[[\"cheese\"]],[[\"jam\"]]]",
+      "SAYS": "[\"types apples\",\"types bread\",\"types milk\",\"types eggs\",\"types rice\",\"types pasta\",\"types cheese\",\"types jam\"]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L2d",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L2d",
+    "derived": true,
+    "level": 2,
+    "type": "predict",
+    "title": "{{[\"Laps\",\"Lengths\",\"Circuits\",\"Rounds\"][p0]}} of the track",
+    "description": "int() turns the text typed into a whole number: this is called casting. Each lap is 400 metres. The program should add up the metres. The user {{SAYS[ts]}}. Fix the error in your head. What will the fixed program print?",
+    "starter": "",
+    "solution": "laps = int(input(\"{{[\"Laps\",\"Lengths\",\"Circuits\",\"Rounds\"][p0]}}: \"))\ntotal = 0\nfor lap in range(laps):\n    total = total + 400\nprint(\"{{[\"Metres run\",\"Metres swum\",\"Metres cycled\",\"Metres walked\"][p0]}}:\", total)",
+    "optionCount": 4,
+    "wrongOutputs": [
+      "{{[\"Metres run\",\"Metres swum\",\"Metres cycled\",\"Metres walked\"][p0]}}: 400",
+      "{{[\"Metres run\",\"Metres swum\",\"Metres cycled\",\"Metres walked\"][p0]}}: {{TS[ts][0][0]}}"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "The program runs, but look at how total changes each time round the loop.",
+      "total should grow by 400 for every lap."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "laps = int(input(\"{{[\"Laps\",\"Lengths\",\"Circuits\",\"Rounds\"][p0]}}: \"))\ntotal = 0\nfor lap in range(laps):\n    total = 400\nprint(\"{{[\"Metres run\",\"Metres swum\",\"Metres cycled\",\"Metres walked\"][p0]}}:\", total)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "    total = 400",
+          "fix": "    total = total + 400"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"3\"]],[[\"2\"]],[[\"4\"]],[[\"5\"]],[[\"6\"]],[[\"7\"]],[[\"8\"]],[[\"10\"]]]",
+      "SAYS": "[\"types 3\",\"types 2\",\"types 4\",\"types 5\",\"types 6\",\"types 7\",\"types 8\",\"types 10\"]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L3a",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L3a",
+    "derived": true,
+    "level": 3,
+    "type": "fill",
+    "title": "Counting up",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should count from 1 up to the number typed. It has an error. Fill in the blank to fix it.",
+    "starter": "count = 1\ntarget = int(input(\"{{[\"Count to\",\"Go up to\",\"Stop at\",\"Last number\"][p0]}}: \"))\n____ count <= target:\n    print(count)\n    count = count + 1",
+    "answers": [
+      "while"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "Python only knows its own key words, spelt exactly.",
+      "This loop keeps going while the condition is True."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "count = 1\ntarget = int(input(\"{{[\"Count to\",\"Go up to\",\"Stop at\",\"Last number\"][p0]}}: \"))\nwhlie count <= target:\n    print(count)\n    count = count + 1",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "whlie count <= target:",
+          "fix": "while count <= target:"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"3\"],[\"1\"]],[[\"4\"],[\"2\"]],[[\"5\"],[\"1\"]],[[\"2\"],[\"3\"]],[[\"6\"],[\"2\"]],[[\"3\"],[\"5\"]],[[\"4\"],[\"1\"]],[[\"7\"],[\"3\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L3b",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L3b",
+    "derived": true,
+    "level": 3,
+    "type": "fill",
+    "title": "Coat or no coat",
+    "description": "int() turns the text typed into a whole number: this is called casting. Below 5 degrees, you need a coat. It has an error. Fill in the blank to fix it.",
+    "starter": "temp = int(input(\"Temperature: \"))\nif temp ____ 5:\n    print(\"{{[\"Wear a coat\",\"Wear gloves\",\"Wear a hat\",\"Wear a scarf\"][p0]}}\")\nelse:\n    print(\"{{[\"No coat needed\",\"No gloves needed\",\"No hat needed\",\"No scarf needed\"][p0]}}\")",
+    "answers": [
+      "<"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "The program runs. Try a cold day: what does it print?",
+      "Below 5 means the temperature is less than 5."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "temp = int(input(\"Temperature: \"))\nif temp > 5:\n    print(\"{{[\"Wear a coat\",\"Wear gloves\",\"Wear a hat\",\"Wear a scarf\"][p0]}}\")\nelse:\n    print(\"{{[\"No coat needed\",\"No gloves needed\",\"No hat needed\",\"No scarf needed\"][p0]}}\")",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "if temp > 5:",
+          "fix": "if temp < 5:"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"2\"],[\"12\"]],[[\"0\"],[\"9\"]],[[\"3\"],[\"20\"]],[[\"-1\"],[\"15\"]],[[\"4\"],[\"7\"]],[[\"1\"],[\"18\"]],[[\"-3\"],[\"10\"]],[[\"2\"],[\"25\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L3c",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L3c",
+    "derived": true,
+    "level": 3,
+    "type": "fill",
+    "title": "{{[\"Area\",\"Floor area\",\"Squares\",\"Space\"][p0]}} of a rug",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should work out an area. It has an error. Fill in the blank to fix it.",
+    "starter": "width = int(input(\"{{[\"Width\",\"Length\",\"Across\",\"Wide\"][p0]}}: \"))\nheight = int(input(\"{{[\"Height\",\"Breadth\",\"Down\",\"Tall\"][p0]}}: \")____\nprint(\"{{[\"Area\",\"Floor area\",\"Squares\",\"Space\"][p0]}}:\", width * height)",
+    "answers": [
+      ")"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "Count the opening and closing brackets on each line.",
+      "int( and input( each need their own closing bracket."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "width = int(input(\"{{[\"Width\",\"Length\",\"Across\",\"Wide\"][p0]}}: \"))\nheight = int(input(\"{{[\"Height\",\"Breadth\",\"Down\",\"Tall\"][p0]}}: \")\nprint(\"{{[\"Area\",\"Floor area\",\"Squares\",\"Space\"][p0]}}:\", width * height)",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "height = int(input(\"{{[\"Height\",\"Breadth\",\"Down\",\"Tall\"][p0]}}: \")",
+          "fix": "height = int(input(\"{{[\"Height\",\"Breadth\",\"Down\",\"Tall\"][p0]}}: \"))"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"3\",\"4\"],[\"5\",\"2\"]],[[\"6\",\"2\"],[\"4\",\"4\"]],[[\"7\",\"3\"],[\"2\",\"9\"]],[[\"5\",\"5\"],[\"3\",\"8\"]],[[\"10\",\"2\"],[\"6\",\"6\"]],[[\"4\",\"9\"],[\"8\",\"3\"]],[[\"2\",\"7\"],[\"9\",\"4\"]],[[\"8\",\"5\"],[\"3\",\"3\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L3d",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L3d",
+    "derived": true,
+    "level": 3,
+    "type": "fill",
+    "title": "Three scores",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should add up three scores. It has an error. Fill in the blank to fix it.",
+    "starter": "total = ____\nfor i in range(3):\n    score = int(input(\"{{[\"Score\",\"Points\",\"Goals\",\"Runs\"][p0]}}: \"))\n    total = total + score\nprint(\"{{[\"Total\",\"Sum\",\"All goals\",\"Total runs\"][p0]}}:\", total)",
+    "answers": [
+      "0"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "The program runs, but every total is wrong by the same amount.",
+      "Before anything is added, the total should be nothing at all."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "total = 1\nfor i in range(3):\n    score = int(input(\"{{[\"Score\",\"Points\",\"Goals\",\"Runs\"][p0]}}: \"))\n    total = total + score\nprint(\"{{[\"Total\",\"Sum\",\"All goals\",\"Total runs\"][p0]}}:\", total)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "total = 1",
+          "fix": "total = 0"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"4\",\"5\",\"6\"],[\"1\",\"2\",\"3\"]],[[\"10\",\"20\",\"30\"],[\"2\",\"2\",\"2\"]],[[\"7\",\"8\",\"9\"],[\"3\",\"0\",\"5\"]],[[\"5\",\"5\",\"5\"],[\"1\",\"9\",\"4\"]],[[\"12\",\"3\",\"6\"],[\"8\",\"8\",\"1\"]],[[\"2\",\"4\",\"6\"],[\"9\",\"9\",\"9\"]],[[\"0\",\"6\",\"3\"],[\"11\",\"2\",\"7\"]],[[\"15\",\"5\",\"10\"],[\"4\",\"3\",\"2\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L4a",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L4a",
+    "derived": true,
+    "level": 4,
+    "type": "fill",
+    "title": "Drinks menu",
+    "description": "The program should give the drink for the number chosen. It has an error. Fill in both blanks to fix it.",
+    "starter": "choice = input(\"Pick 1, 2 or 3: \")\nif choice == \"1\":\n    print(\"{{[\"Tea\",\"Juice\",\"Soup\",\"Red\"][p0]}}\")\nelif choice ____ \"____\":\n    print(\"{{[\"Coffee\",\"Milk\",\"Salad\",\"Blue\"][p0]}}\")\nelse:\n    print(\"{{[\"Water\",\"Squash\",\"Bread\",\"Green\"][p0]}}\")",
+    "answers": [
+      "==",
+      "2"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "One = stores a value. Comparing two things needs something else.",
+      "Fill in the comparison, then the choice this line checks for."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "choice = input(\"Pick 1, 2 or 3: \")\nif choice == \"1\":\n    print(\"{{[\"Tea\",\"Juice\",\"Soup\",\"Red\"][p0]}}\")\nelif choice = \"2\":\n    print(\"{{[\"Coffee\",\"Milk\",\"Salad\",\"Blue\"][p0]}}\")\nelse:\n    print(\"{{[\"Water\",\"Squash\",\"Bread\",\"Green\"][p0]}}\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "elif choice = \"2\":",
+          "fix": "elif choice == \"2\":"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"2\"],[\"3\"]],[[\"1\"],[\"2\"]],[[\"3\"],[\"1\"]],[[\"2\"],[\"1\"]],[[\"1\"],[\"3\"]],[[\"3\"],[\"2\"]],[[\"2\"],[\"4\"]],[[\"5\"],[\"1\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L4b",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L4b",
+    "derived": true,
+    "level": 4,
+    "type": "fill",
+    "title": "{{[\"Change\",\"Money back\",\"Returned\",\"Due back\"][p0]}} from a purchase",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should work out the change. It has an error. Fill in both blanks to fix it.",
+    "starter": "price = int(input(\"{{[\"Price\",\"Cost\",\"Bill\",\"Fare\"][p0]}}: \"))\npaid = int(input(\"{{[\"Paid\",\"Given\",\"Handed over\",\"Tendered\"][p0]}}: \"))\nchange = ____ - ____\nprint(\"{{[\"Change\",\"Money back\",\"Returned\",\"Due back\"][p0]}}:\", change)",
+    "answers": [
+      "paid",
+      "price"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "The program runs, but the change comes out below zero.",
+      "{{[\"Change\",\"Money back\",\"Returned\",\"Due back\"][p0]}} is what was paid, take away the price."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "price = int(input(\"{{[\"Price\",\"Cost\",\"Bill\",\"Fare\"][p0]}}: \"))\npaid = int(input(\"{{[\"Paid\",\"Given\",\"Handed over\",\"Tendered\"][p0]}}: \"))\nchange = price - paid\nprint(\"{{[\"Change\",\"Money back\",\"Returned\",\"Due back\"][p0]}}:\", change)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "change = price - paid",
+          "fix": "change = paid - price"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"3\",\"5\"],[\"7\",\"10\"]],[[\"4\",\"10\"],[\"6\",\"8\"]],[[\"12\",\"20\"],[\"5\",\"5\"]],[[\"9\",\"10\"],[\"15\",\"20\"]],[[\"2\",\"5\"],[\"8\",\"10\"]],[[\"6\",\"10\"],[\"11\",\"20\"]],[[\"7\",\"10\"],[\"3\",\"3\"]],[[\"13\",\"20\"],[\"1\",\"2\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L4c",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L4c",
+    "derived": true,
+    "level": 4,
+    "type": "fill",
+    "title": "Add two numbers",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should add two numbers. It has an error. Fill in both blanks to fix it.",
+    "starter": "a = int(input(\"First number: \"))\nb = int(input(\"Second number: \"))\ntotal = a + b\nprint____\"{{[\"Total\",\"Sum\",\"Added up\",\"Together\"][p0]}}:\", total____",
+    "answers": [
+      "(",
+      ")"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "print needs something around what it prints.",
+      "Put an opening bracket before the text and a closing one at the end."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "a = int(input(\"First number: \"))\nb = int(input(\"Second number: \"))\ntotal = a + b\nprint \"{{[\"Total\",\"Sum\",\"Added up\",\"Together\"][p0]}}:\", total",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "print \"{{[\"Total\",\"Sum\",\"Added up\",\"Together\"][p0]}}:\", total",
+          "fix": "print(\"{{[\"Total\",\"Sum\",\"Added up\",\"Together\"][p0]}}:\", total)"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"3\",\"4\"],[\"10\",\"5\"]],[[\"1\",\"1\"],[\"6\",\"7\"]],[[\"8\",\"2\"],[\"0\",\"9\"]],[[\"5\",\"5\"],[\"12\",\"3\"]],[[\"7\",\"6\"],[\"2\",\"2\"]],[[\"20\",\"1\"],[\"4\",\"8\"]],[[\"9\",\"9\"],[\"3\",\"5\"]],[[\"11\",\"4\"],[\"6\",\"0\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L4d",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L4d",
+    "derived": true,
+    "level": 4,
+    "type": "fill",
+    "title": "Five lines of a table",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should print the first 5 lines of a times table. It has an error. Fill in both blanks to fix it.",
+    "starter": "n = int(input(\"{{[\"Times table\",\"Which table\",\"Table to show\",\"Number\"][p0]}}: \"))\nfor i in range(____, ____):\n    print(n, \"x\", i, \"=\", n * i)",
+    "answers": [
+      "1",
+      "6"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "The program runs, but count the lines it prints.",
+      "range stops just before its end number."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "n = int(input(\"{{[\"Times table\",\"Which table\",\"Table to show\",\"Number\"][p0]}}: \"))\nfor i in range(1, 5):\n    print(n, \"x\", i, \"=\", n * i)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "for i in range(1, 5):",
+          "fix": "for i in range(1, 6):"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"3\"],[\"7\"]],[[\"2\"],[\"5\"]],[[\"4\"],[\"9\"]],[[\"6\"],[\"8\"]],[[\"5\"],[\"10\"]],[[\"7\"],[\"2\"]],[[\"9\"],[\"3\"]],[[\"8\"],[\"11\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L5a",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L5a",
+    "derived": true,
+    "level": 5,
+    "type": "parsons",
+    "title": "Letter by letter",
+    "description": "The program should print each letter of a word, then {{[\"Done\",\"Finished\",\"End\",\"All done\"][p0]}}. It has an error. Put the lines in order to make the fixed program. One line is not needed: it has the error in it.",
+    "starter": "",
+    "solution": "word = input(\"{{[\"Word\",\"Name\",\"Code\",\"Pet\"][p0]}}: \")\nfor letter in word:\n    print(letter)\nprint(\"{{[\"Done\",\"Finished\",\"End\",\"All done\"][p0]}}\")",
+    "distractors": [
+      "for letter in word"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "A for line must end with a certain symbol.",
+      "The print inside the loop is indented under the for."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "word = input(\"{{[\"Word\",\"Name\",\"Code\",\"Pet\"][p0]}}: \")\nfor letter in word\n    print(letter)\nprint(\"{{[\"Done\",\"Finished\",\"End\",\"All done\"][p0]}}\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "for letter in word",
+          "fix": "for letter in word:"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"cat\"],[\"sun\"]],[[\"dog\"],[\"hi\"]],[[\"pen\"],[\"book\"]],[[\"map\"],[\"a\"]],[[\"tree\"],[\"ox\"]],[[\"fish\"],[\"egg\"]],[[\"bat\"],[\"moon\"]],[[\"ink\"],[\"jam\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L5b",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L5b",
+    "derived": true,
+    "level": 5,
+    "type": "parsons",
+    "title": "{{[\"Average\",\"Mean\",\"Average score\",\"Mean score\"][p0]}} of two tests",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should print the average of two test marks. It has an error. Put the lines in order to make the fixed program. One line is not needed: it has the error in it.",
+    "starter": "",
+    "solution": "a = int(input(\"{{[\"Test\",\"Quiz\",\"Game\",\"Round\"][p0]}} 1: \"))\nb = int(input(\"{{[\"Test\",\"Quiz\",\"Game\",\"Round\"][p0]}} 2: \"))\naverage = (a + b) / 2\nprint(\"{{[\"Average\",\"Mean\",\"Average score\",\"Mean score\"][p0]}}:\", average)",
+    "distractors": [
+      "average = a + b / 2"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "The program runs, but is the average sensible?",
+      "Brackets make the adding happen before the dividing."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "a = int(input(\"{{[\"Test\",\"Quiz\",\"Game\",\"Round\"][p0]}} 1: \"))\nb = int(input(\"{{[\"Test\",\"Quiz\",\"Game\",\"Round\"][p0]}} 2: \"))\naverage = a + b / 2\nprint(\"{{[\"Average\",\"Mean\",\"Average score\",\"Mean score\"][p0]}}:\", average)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "average = a + b / 2",
+          "fix": "average = (a + b) / 2"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"6\",\"8\"],[\"10\",\"2\"]],[[\"2\",\"4\"],[\"9\",\"3\"]],[[\"7\",\"7\"],[\"5\",\"1\"]],[[\"8\",\"2\"],[\"3\",\"9\"]],[[\"4\",\"6\"],[\"10\",\"10\"]],[[\"1\",\"5\"],[\"6\",\"2\"]],[[\"9\",\"1\"],[\"8\",\"6\"]],[[\"3\",\"3\"],[\"7\",\"5\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L5c",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L5c",
+    "derived": true,
+    "level": 5,
+    "type": "parsons",
+    "title": "Which ticket?",
+    "description": "int() turns the text typed into a whole number: this is called casting. Under 13 gets a child ticket. It has an error. Put the lines in order to make the fixed program. One line is not needed: it has the error in it.",
+    "starter": "",
+    "solution": "age = int(input(\"Age: \"))\nif age < 13:\n    print(\"{{[\"Child ticket\",\"Junior pass\",\"Kids menu\",\"Small cup\"][p0]}}\")\nelse:\n    print(\"{{[\"Adult ticket\",\"Senior pass\",\"Main menu\",\"Large cup\"][p0]}}\")",
+    "distractors": [
+      "else"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "Look at the end of each if and else line.",
+      "The else line needs the same ending as the if line."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "age = int(input(\"Age: \"))\nif age < 13:\n    print(\"{{[\"Child ticket\",\"Junior pass\",\"Kids menu\",\"Small cup\"][p0]}}\")\nelse\n    print(\"{{[\"Adult ticket\",\"Senior pass\",\"Main menu\",\"Large cup\"][p0]}}\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "else",
+          "fix": "else:"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"9\"],[\"15\"]],[[\"12\"],[\"13\"]],[[\"5\"],[\"40\"]],[[\"10\"],[\"16\"]],[[\"3\"],[\"70\"]],[[\"11\"],[\"20\"]],[[\"8\"],[\"14\"]],[[\"6\"],[\"30\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L5d",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L5d",
+    "derived": true,
+    "level": 5,
+    "type": "parsons",
+    "title": "Picnic day",
+    "description": "A picnic needs a Saturday and sunny weather. It has an error. Put the lines in order to make the fixed program. One line is not needed: it has the error in it.",
+    "starter": "",
+    "solution": "day = input(\"Day: \")\nweather = input(\"Weather: \")\nif day == \"Saturday\" and weather == \"sunny\":\n    print(\"{{[\"Picnic in the park\",\"Beach trip\",\"Bike ride\",\"Football match\"][p0]}}\")\nelse:\n    print(\"{{[\"Stay at home\",\"Watch a film\",\"Read a book\",\"Play a board game\"][p0]}}\")",
+    "distractors": [
+      "if day == \"Saturday\" or weather == \"sunny\":"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "The program runs. Try Saturday and rainy: what should happen?",
+      "Both things must be true for a picnic."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "day = input(\"Day: \")\nweather = input(\"Weather: \")\nif day == \"Saturday\" or weather == \"sunny\":\n    print(\"{{[\"Picnic in the park\",\"Beach trip\",\"Bike ride\",\"Football match\"][p0]}}\")\nelse:\n    print(\"{{[\"Stay at home\",\"Watch a film\",\"Read a book\",\"Play a board game\"][p0]}}\")",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "if day == \"Saturday\" or weather == \"sunny\":",
+          "fix": "if day == \"Saturday\" and weather == \"sunny\":"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"Saturday\",\"rainy\"],[\"Saturday\",\"sunny\"]],[[\"Monday\",\"sunny\"],[\"Saturday\",\"sunny\"]],[[\"Saturday\",\"sunny\"],[\"Sunday\",\"sunny\"]],[[\"Saturday\",\"cloudy\"],[\"Saturday\",\"sunny\"]],[[\"Friday\",\"sunny\"],[\"Saturday\",\"sunny\"]],[[\"Saturday\",\"sunny\"],[\"Saturday\",\"windy\"]],[[\"Tuesday\",\"sunny\"],[\"Saturday\",\"sunny\"]],[[\"Saturday\",\"sunny\"],[\"Saturday\",\"snowy\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L6a",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L6a",
+    "derived": true,
+    "level": 6,
+    "type": "parsons",
+    "title": "Unlock the door",
+    "description": "The program should keep asking until the {{[\"PIN\",\"Code\",\"Passcode\",\"Key\"][p0]}} is 1234. It has an error. Put the lines in order to make the fixed program. Two lines are not needed.",
+    "starter": "",
+    "solution": "pin = input(\"{{[\"PIN\",\"Code\",\"Passcode\",\"Key\"][p0]}}: \")\nwhile pin != \"1234\":\n    print(\"Wrong {{[\"PIN\",\"Code\",\"Passcode\",\"Key\"][p0]}}\")\n    pin = input(\"{{[\"PIN\",\"Code\",\"Passcode\",\"Key\"][p0]}}: \")\nprint(\"{{[\"Unlocked\",\"Door open\",\"Access granted\",\"Welcome in\"][p0]}}\")",
+    "distractors": [
+      "while pin != \"1234\"",
+      "while pin == \"1234\":"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "A while line ends like an if line.",
+      "The loop should keep asking while the {{[\"PIN\",\"Code\",\"Passcode\",\"Key\"][p0]}} is not right."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "pin = input(\"{{[\"PIN\",\"Code\",\"Passcode\",\"Key\"][p0]}}: \")\nwhile pin != \"1234\"\n    print(\"Wrong {{[\"PIN\",\"Code\",\"Passcode\",\"Key\"][p0]}}\")\n    pin = input(\"{{[\"PIN\",\"Code\",\"Passcode\",\"Key\"][p0]}}: \")\nprint(\"{{[\"Unlocked\",\"Door open\",\"Access granted\",\"Welcome in\"][p0]}}\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "while pin != \"1234\"",
+          "fix": "while pin != \"1234\":"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"1234\"],[\"1111\",\"1234\"]],[[\"0000\",\"1234\"],[\"1234\"]],[[\"1234\"],[\"4321\",\"9999\",\"1234\"]],[[\"12\",\"1234\"],[\"1234\"]],[[\"1234\"],[\"2468\",\"1234\"]],[[\"1243\",\"1234\"],[\"1234\"]],[[\"1234\"],[\"0\",\"00\",\"1234\"]],[[\"5555\",\"1234\"],[\"1234\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L6b",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L6b",
+    "derived": true,
+    "level": 6,
+    "type": "parsons",
+    "title": "Best of three",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should print the best of three scores. It has an error. Put the lines in order to make the fixed program. Two lines are not needed.",
+    "starter": "",
+    "solution": "best = 0\nfor i in range(3):\n    score = int(input(\"{{[\"Score\",\"Jump\",\"Throw\",\"Lap\"][p0]}}: \"))\n    if score > best:\n        best = score\nprint(\"{{[\"Best score\",\"Longest jump\",\"Furthest throw\",\"Best lap\"][p0]}}:\", best)",
+    "distractors": [
+      "if score < best:",
+      "best = best + score"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "The program runs, but the best score is always 0.",
+      "best should change when a new score is bigger."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "best = 0\nfor i in range(3):\n    score = int(input(\"{{[\"Score\",\"Jump\",\"Throw\",\"Lap\"][p0]}}: \"))\n    if score < best:\n        best = score\nprint(\"{{[\"Best score\",\"Longest jump\",\"Furthest throw\",\"Best lap\"][p0]}}:\", best)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "    if score < best:",
+          "fix": "    if score > best:"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"4\",\"9\",\"2\"],[\"7\",\"3\",\"5\"]],[[\"1\",\"2\",\"3\"],[\"8\",\"8\",\"1\"]],[[\"6\",\"1\",\"6\"],[\"2\",\"9\",\"4\"]],[[\"10\",\"4\",\"7\"],[\"3\",\"3\",\"3\"]],[[\"5\",\"8\",\"1\"],[\"9\",\"2\",\"9\"]],[[\"2\",\"2\",\"6\"],[\"7\",\"1\",\"4\"]],[[\"12\",\"15\",\"9\"],[\"4\",\"4\",\"5\"]],[[\"3\",\"7\",\"7\"],[\"11\",\"6\",\"2\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L6c",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L6c",
+    "derived": true,
+    "level": 6,
+    "type": "parsons",
+    "title": "Make a username",
+    "description": "The program should greet the user, then make a username from both names. It has an error. Put the lines in order to make the fixed program. Two lines are not needed.",
+    "starter": "",
+    "solution": "first = input(\"First name: \")\nlast = input(\"Last name: \")\nprint(\"{{[\"Hello\",\"Hi\",\"Welcome\",\"Good morning\"][p0]}}\", first, last)\nprint(\"{{[\"Your username is\",\"Your login is\",\"Your gamer tag is\",\"Your code name is\"][p0]}}\", first + last)",
+    "distractors": [
+      "print(\"{{[\"Hello\",\"Hi\",\"Welcome\",\"Good morning\"][p0]}}\" first, last)",
+      "print(\"{{[\"Hello\",\"Hi\",\"Welcome\",\"Good morning\"][p0]}}\", \"first\", \"last\")"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "Values in print() are separated by something.",
+      "first and last are variables, so they have no quote marks."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "first = input(\"First name: \")\nlast = input(\"Last name: \")\nprint(\"{{[\"Hello\",\"Hi\",\"Welcome\",\"Good morning\"][p0]}}\" first, last)\nprint(\"{{[\"Your username is\",\"Your login is\",\"Your gamer tag is\",\"Your code name is\"][p0]}}\", first + last)",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "print(\"{{[\"Hello\",\"Hi\",\"Welcome\",\"Good morning\"][p0]}}\" first, last)",
+          "fix": "print(\"{{[\"Hello\",\"Hi\",\"Welcome\",\"Good morning\"][p0]}}\", first, last)"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"Ada\",\"Lee\"],[\"Sam\",\"Khan\"]],[[\"Mo\",\"Ali\"],[\"Jo\",\"Park\"]],[[\"Eve\",\"Ng\"],[\"Raj\",\"Das\"]],[[\"Liv\",\"Cole\"],[\"Tom\",\"Wu\"]],[[\"Zak\",\"Bell\"],[\"Amy\",\"Fox\"]],[[\"Ian\",\"Shaw\"],[\"Kim\",\"Lowe\"]],[[\"Una\",\"Reid\"],[\"Ned\",\"Gray\"]],[[\"Bea\",\"Hart\"],[\"Cal\",\"Moss\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L6d",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L6d",
+    "derived": true,
+    "level": 6,
+    "type": "parsons",
+    "title": "Double points",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should double the points. It has an error. Put the lines in order to make the fixed program. Two lines are not needed.",
+    "starter": "",
+    "solution": "points = int(input(\"{{[\"Points\",\"Stars\",\"Coins\",\"Gems\"][p0]}}: \"))\nbonus = points * 2\nprint(\"{{[\"Points\",\"Stars\",\"Coins\",\"Gems\"][p0]}} with the {{[\"double bonus\",\"double reward\",\"double prize\",\"double treasure\"][p0]}}:\", bonus)",
+    "distractors": [
+      "bonus = points + 2",
+      "bonus = points ** 2"
+    ],
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "The program runs. Try 5 points: what should the bonus be?",
+      "Double means two times as many."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "points = int(input(\"{{[\"Points\",\"Stars\",\"Coins\",\"Gems\"][p0]}}: \"))\nbonus = points + 2\nprint(\"{{[\"Points\",\"Stars\",\"Coins\",\"Gems\"][p0]}} with the {{[\"double bonus\",\"double reward\",\"double prize\",\"double treasure\"][p0]}}:\", bonus)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "bonus = points + 2",
+          "fix": "bonus = points * 2"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"5\"],[\"8\"]],[[\"3\"],[\"10\"]],[[\"7\"],[\"4\"]],[[\"12\"],[\"6\"]],[[\"9\"],[\"1\"]],[[\"15\"],[\"20\"]],[[\"11\"],[\"3\"]],[[\"6\"],[\"25\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L7a",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L7a",
+    "derived": true,
+    "level": 7,
+    "type": "write",
+    "title": "Medals",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should print {{[\"Gold\",\"Ruby\",\"First\",\"Star\"][p0]}} for over 50, {{[\"Silver\",\"Pearl\",\"Second\",\"Merit\"][p0]}} for over 20, and {{[\"Bronze\",\"Coral\",\"Third\",\"Effort\"][p0]}} for the rest. It has an error. Fix it in the editor.",
+    "starter": "score = int(input(\"Score: \"))\nif score > 50:\n    print(\"{{[\"Gold\",\"Ruby\",\"First\",\"Star\"][p0]}}\")\nelif score > 20\n    print(\"{{[\"Silver\",\"Pearl\",\"Second\",\"Merit\"][p0]}}\")\nelse:\n    print(\"{{[\"Bronze\",\"Coral\",\"Third\",\"Effort\"][p0]}}\")",
+    "solution": "score = int(input(\"Score: \"))\nif score > 50:\n    print(\"{{[\"Gold\",\"Ruby\",\"First\",\"Star\"][p0]}}\")\nelif score > 20:\n    print(\"{{[\"Silver\",\"Pearl\",\"Second\",\"Merit\"][p0]}}\")\nelse:\n    print(\"{{[\"Bronze\",\"Coral\",\"Third\",\"Effort\"][p0]}}\")",
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "Every if, elif and else line needs the same ending.",
+      "Find the line Python refuses to run."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "score = int(input(\"Score: \"))\nif score > 50:\n    print(\"{{[\"Gold\",\"Ruby\",\"First\",\"Star\"][p0]}}\")\nelif score > 20\n    print(\"{{[\"Silver\",\"Pearl\",\"Second\",\"Merit\"][p0]}}\")\nelse:\n    print(\"{{[\"Bronze\",\"Coral\",\"Third\",\"Effort\"][p0]}}\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "elif score > 20",
+          "fix": "elif score > 20:"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"60\"],[\"30\"]],[[\"75\"],[\"10\"]],[[\"25\"],[\"90\"]],[[\"5\"],[\"51\"]],[[\"21\"],[\"0\"]],[[\"100\"],[\"40\"]],[[\"35\"],[\"15\"]],[[\"55\"],[\"22\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L7b",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L7b",
+    "derived": true,
+    "level": 7,
+    "type": "write",
+    "title": "Walking to school",
+    "description": "The program should count how many of the 4 answers are yes. It has an error. Fix it in the editor.",
+    "starter": "count = 0\nfor i in range(4):\n    answer = input(\"Did you {{[\"walk to school\",\"cycle to school\",\"read at home\",\"eat breakfast\"][p0]}}? \")\n    if answer == \"yes\":\n        count = 1\nprint(\"{{[\"Days walked\",\"Days cycled\",\"Days read\",\"Breakfasts eaten\"][p0]}}:\", count)",
+    "solution": "count = 0\nfor i in range(4):\n    answer = input(\"Did you {{[\"walk to school\",\"cycle to school\",\"read at home\",\"eat breakfast\"][p0]}}? \")\n    if answer == \"yes\":\n        count = count + 1\nprint(\"{{[\"Days walked\",\"Days cycled\",\"Days read\",\"Breakfasts eaten\"][p0]}}:\", count)",
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "The program runs. Try three yes answers: what is printed?",
+      "count should go up by one for each yes."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "count = 0\nfor i in range(4):\n    answer = input(\"Did you {{[\"walk to school\",\"cycle to school\",\"read at home\",\"eat breakfast\"][p0]}}? \")\n    if answer == \"yes\":\n        count = 1\nprint(\"{{[\"Days walked\",\"Days cycled\",\"Days read\",\"Breakfasts eaten\"][p0]}}:\", count)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "        count = 1",
+          "fix": "        count = count + 1"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"yes\",\"no\",\"yes\",\"yes\"],[\"no\",\"no\",\"no\",\"yes\"]],[[\"yes\",\"yes\",\"no\",\"no\"],[\"no\",\"no\",\"no\",\"no\"]],[[\"no\",\"yes\",\"yes\",\"yes\"],[\"yes\",\"no\",\"no\",\"no\"]],[[\"yes\",\"yes\",\"yes\",\"yes\"],[\"no\",\"yes\",\"no\",\"no\"]],[[\"no\",\"no\",\"yes\",\"yes\"],[\"yes\",\"no\",\"no\",\"no\"]],[[\"yes\",\"no\",\"yes\",\"no\"],[\"no\",\"no\",\"yes\",\"no\"]],[[\"yes\",\"yes\",\"yes\",\"no\"],[\"no\",\"no\",\"no\",\"no\"]],[[\"no\",\"yes\",\"no\",\"yes\"],[\"yes\",\"yes\",\"yes\",\"yes\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L7c",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L7c",
+    "derived": true,
+    "level": 7,
+    "type": "write",
+    "title": "Pet legs",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should print a pet's name and how many legs it has. It has an error. Fix it in the editor.",
+    "starter": "name = input(\"{{[\"Pet's name\",\"Animal's name\",\"Creature's name\",\"Monster's name\"][p0]}}: \")\nlegs = int(input(\"Number of legs: ))\nprint(name, \"has\", legs, \"legs\")",
+    "solution": "name = input(\"{{[\"Pet's name\",\"Animal's name\",\"Creature's name\",\"Monster's name\"][p0]}}: \")\nlegs = int(input(\"Number of legs: \"))\nprint(name, \"has\", legs, \"legs\")",
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "Look for a string that never ends.",
+      "Every opening quote mark needs a closing one."
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "name = input(\"{{[\"Pet's name\",\"Animal's name\",\"Creature's name\",\"Monster's name\"][p0]}}: \")\nlegs = int(input(\"Number of legs: ))\nprint(name, \"has\", legs, \"legs\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "legs = int(input(\"Number of legs: ))",
+          "fix": "legs = int(input(\"Number of legs: \"))"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"Rex\",\"4\"],[\"Polly\",\"2\"]],[[\"Tom\",\"4\"],[\"Nemo\",\"0\"]],[[\"Kiki\",\"2\"],[\"Bob\",\"4\"]],[[\"Sid\",\"8\"],[\"Max\",\"4\"]],[[\"Lulu\",\"2\"],[\"Fluff\",\"4\"]],[[\"Spot\",\"4\"],[\"Tweet\",\"2\"]],[[\"Ziggy\",\"6\"],[\"Coco\",\"2\"]],[[\"Bella\",\"4\"],[\"Shelly\",\"0\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L7d",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L7d",
+    "derived": true,
+    "level": 7,
+    "type": "write",
+    "title": "Ten off",
+    "description": "int() turns the text typed into a whole number: this is called casting. Spend 50 or more and you get 10 off. It has an error. Fix it in the editor.",
+    "starter": "total = int(input(\"{{[\"Total spent\",\"Bill\",\"Basket total\",\"Order total\"][p0]}}: \"))\nif total >= 50:\n    total = total + 10\nprint(\"{{[\"To pay\",\"Amount due\",\"You pay\",\"Final price\"][p0]}}:\", total)",
+    "solution": "total = int(input(\"{{[\"Total spent\",\"Bill\",\"Basket total\",\"Order total\"][p0]}}: \"))\nif total >= 50:\n    total = total - 10\nprint(\"{{[\"To pay\",\"Amount due\",\"You pay\",\"Final price\"][p0]}}:\", total)",
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "The program runs. Try 60: what should you pay?",
+      "10 off means taking 10 away."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "kind",
+      "bug": "total = int(input(\"{{[\"Total spent\",\"Bill\",\"Basket total\",\"Order total\"][p0]}}: \"))\nif total >= 50:\n    total = total + 10\nprint(\"{{[\"To pay\",\"Amount due\",\"You pay\",\"Final price\"][p0]}}:\", total)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "    total = total + 10",
+          "fix": "    total = total - 10"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"60\"],[\"20\"]],[[\"50\"],[\"30\"]],[[\"75\"],[\"49\"]],[[\"100\"],[\"10\"]],[[\"55\"],[\"5\"]],[[\"90\"],[\"45\"]],[[\"51\"],[\"12\"]],[[\"80\"],[\"35\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L8a",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L8a",
+    "derived": true,
+    "level": 8,
+    "type": "write",
+    "title": "Add until zero",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should add up numbers until 0 is typed, then print the total. It has an error. Fix it in the editor.",
+    "starter": "total = 0\nnumber = int(input(\"Number (0 to stop): \"))\nwhile number != 0\n    total = total + number\n    number = int(input(\"Number (0 to stop): \"))\nprint(\"{{[\"Total\",\"Sum\",\"Running total\",\"Grand total\"][p0]}}:\", total)",
+    "solution": "total = 0\nnumber = int(input(\"Number (0 to stop): \"))\nwhile number != 0:\n    total = total + number\n    number = int(input(\"Number (0 to stop): \"))\nprint(\"{{[\"Total\",\"Sum\",\"Running total\",\"Grand total\"][p0]}}:\", total)",
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "Look at the end of the while line.",
+      "Ask: would Python run this program at all?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error",
+      "error-definitions"
+    ],
+    "error_kind": {
+      "ask": "definition",
+      "bug": "total = 0\nnumber = int(input(\"Number (0 to stop): \"))\nwhile number != 0\n    total = total + number\n    number = int(input(\"Number (0 to stop): \"))\nprint(\"{{[\"Total\",\"Sum\",\"Running total\",\"Grand total\"][p0]}}:\", total)",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "while number != 0",
+          "fix": "while number != 0:"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"4\",\"5\",\"0\"],[\"0\"]],[[\"10\",\"0\"],[\"3\",\"3\",\"3\",\"0\"]],[[\"0\"],[\"7\",\"0\"]],[[\"1\",\"2\",\"3\",\"0\"],[\"0\"]],[[\"8\",\"0\"],[\"2\",\"9\",\"0\"]],[[\"0\"],[\"5\",\"5\",\"0\"]],[[\"6\",\"6\",\"0\"],[\"1\",\"0\"]],[[\"12\",\"3\",\"0\"],[\"0\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L8b",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L8b",
+    "derived": true,
+    "level": 8,
+    "type": "write",
+    "title": "Team ages",
+    "description": "int() turns the text typed into a whole number: this is called casting. Only ages 11 to 16 can join the {{[\"school team\",\"youth club\",\"junior choir\",\"chess club\"][p0]}}. It has an error. Fix it in the editor.",
+    "starter": "age = int(input(\"Age: \"))\nif age >= 11 or age <= 16:\n    print(\"You can join the {{[\"school team\",\"youth club\",\"junior choir\",\"chess club\"][p0]}}\")\nelse:\n    print(\"Sorry, you can't join\")",
+    "solution": "age = int(input(\"Age: \"))\nif age >= 11 and age <= 16:\n    print(\"You can join the {{[\"school team\",\"youth club\",\"junior choir\",\"chess club\"][p0]}}\")\nelse:\n    print(\"Sorry, you can't join\")",
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "The program runs. Try age 9: who can join?",
+      "Both parts of the age check must be true."
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error",
+      "error-definitions"
+    ],
+    "error_kind": {
+      "ask": "definition",
+      "bug": "age = int(input(\"Age: \"))\nif age >= 11 or age <= 16:\n    print(\"You can join the {{[\"school team\",\"youth club\",\"junior choir\",\"chess club\"][p0]}}\")\nelse:\n    print(\"Sorry, you can't join\")",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "if age >= 11 or age <= 16:",
+          "fix": "if age >= 11 and age <= 16:"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"13\"],[\"9\"]],[[\"11\"],[\"17\"]],[[\"16\"],[\"20\"]],[[\"8\"],[\"14\"]],[[\"12\"],[\"5\"]],[[\"30\"],[\"15\"]],[[\"10\"],[\"11\"]],[[\"16\"],[\"17\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L8c",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L8c",
+    "derived": true,
+    "level": 8,
+    "type": "write",
+    "title": "Guess the number",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should tell the user if they guessed 7. It has an error. Fix it in the editor.",
+    "starter": "guess = int(input(\"Guess the number: \"))\nsecret = 7\nif guess == secret:\n    print(\"{{[\"You got it\",\"Well guessed\",\"Spot on\",\"Correct guess\"][p0]}}\")\nesle:\n    print(\"Wrong, it was\", secret)",
+    "solution": "guess = int(input(\"Guess the number: \"))\nsecret = 7\nif guess == secret:\n    print(\"{{[\"You got it\",\"Well guessed\",\"Spot on\",\"Correct guess\"][p0]}}\")\nelse:\n    print(\"Wrong, it was\", secret)",
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "Check that every key word is spelt the way Python spells it.",
+      "Ask: would Python run this program at all?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error"
+    ],
+    "skills": [
+      "syntax-error",
+      "error-definitions"
+    ],
+    "error_kind": {
+      "ask": "definition",
+      "bug": "guess = int(input(\"Guess the number: \"))\nsecret = 7\nif guess == secret:\n    print(\"{{[\"You got it\",\"Well guessed\",\"Spot on\",\"Correct guess\"][p0]}}\")\nesle:\n    print(\"Wrong, it was\", secret)",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "esle:",
+          "fix": "else:"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"7\"],[\"3\"]],[[\"2\"],[\"7\"]],[[\"7\"],[\"9\"]],[[\"10\"],[\"7\"]],[[\"7\"],[\"1\"]],[[\"6\"],[\"7\"]],[[\"7\"],[\"8\"]],[[\"4\"],[\"7\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L8d",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L8d",
+    "derived": true,
+    "level": 8,
+    "type": "write",
+    "title": "Average of four",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should print the average of 4 marks. It has an error. Fix it in the editor.",
+    "starter": "total = 0\nfor i in range(4):\n    mark = int(input(\"{{[\"Mark\",\"Score\",\"Time\",\"Height\"][p0]}}: \"))\n    total = total + mark\nprint(\"{{[\"Average mark\",\"Average score\",\"Average time\",\"Average height\"][p0]}}:\", total / 3)",
+    "solution": "total = 0\nfor i in range(4):\n    mark = int(input(\"{{[\"Mark\",\"Score\",\"Time\",\"Height\"][p0]}}: \"))\n    total = total + mark\nprint(\"{{[\"Average mark\",\"Average score\",\"Average time\",\"Average height\"][p0]}}:\", total / 4)",
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "The program runs. Try four marks of 5: what is the average?",
+      "The total is shared by how many marks?"
+    ],
+    "tags": [
+      "debugging",
+      "logic error"
+    ],
+    "skills": [
+      "logic-error",
+      "error-definitions"
+    ],
+    "error_kind": {
+      "ask": "definition",
+      "bug": "total = 0\nfor i in range(4):\n    mark = int(input(\"{{[\"Mark\",\"Score\",\"Time\",\"Height\"][p0]}}: \"))\n    total = total + mark\nprint(\"{{[\"Average mark\",\"Average score\",\"Average time\",\"Average height\"][p0]}}:\", total / 3)",
+      "errors": [
+        {
+          "kind": "logic",
+          "line": "print(\"{{[\"Average mark\",\"Average score\",\"Average time\",\"Average height\"][p0]}}:\", total / 3)",
+          "fix": "print(\"{{[\"Average mark\",\"Average score\",\"Average time\",\"Average height\"][p0]}}:\", total / 4)"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"10\",\"20\",\"30\",\"40\"],[\"5\",\"5\",\"5\",\"5\"]],[[\"1\",\"2\",\"3\",\"4\"],[\"8\",\"8\",\"8\",\"8\"]],[[\"12\",\"12\",\"0\",\"0\"],[\"9\",\"3\",\"6\",\"2\"]],[[\"7\",\"7\",\"7\",\"7\"],[\"10\",\"0\",\"10\",\"0\"]],[[\"4\",\"8\",\"12\",\"16\"],[\"3\",\"3\",\"3\",\"3\"]],[[\"20\",\"10\",\"5\",\"5\"],[\"1\",\"1\",\"1\",\"1\"]],[[\"6\",\"2\",\"8\",\"4\"],[\"9\",\"9\",\"9\",\"9\"]],[[\"15\",\"5\",\"10\",\"10\"],[\"2\",\"4\",\"6\",\"8\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L9a",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L9a",
+    "derived": true,
+    "level": 9,
+    "type": "write",
+    "title": "Book order",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should work out the cost of some {{[\"books\",\"comics\",\"games\",\"films\"][p0]}}. Over 20 gets free delivery. It has two errors: one syntax error and one logic error. Fix both in the editor.",
+    "starter": "price = int(input(\"Price of one {{[\"book\",\"comic\",\"game\",\"film\"][p0]}}: \"))\n{{[\"books\",\"comics\",\"games\",\"films\"][p0]}} = int(input(\"Number of {{[\"books\",\"comics\",\"games\",\"films\"][p0]}}: \"))\ntotal = price + {{[\"books\",\"comics\",\"games\",\"films\"][p0]}}\nif total > 20\n    print(\"Free delivery\")\nelse:\n    print(\"Delivery costs 3\")\nprint(\"{{[\"Books\",\"Comics\",\"Games\",\"Films\"][p0]}} cost\", total)",
+    "solution": "price = int(input(\"Price of one {{[\"book\",\"comic\",\"game\",\"film\"][p0]}}: \"))\n{{[\"books\",\"comics\",\"games\",\"films\"][p0]}} = int(input(\"Number of {{[\"books\",\"comics\",\"games\",\"films\"][p0]}}: \"))\ntotal = price * {{[\"books\",\"comics\",\"games\",\"films\"][p0]}}\nif total > 20:\n    print(\"Free delivery\")\nelse:\n    print(\"Delivery costs 3\")\nprint(\"{{[\"Books\",\"Comics\",\"Games\",\"Films\"][p0]}} cost\", total)",
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "One line stops Python running the program. Find it first.",
+      "Then test the program: is the total right for 5 {{[\"books\",\"comics\",\"games\",\"films\"][p0]}} at 3 each?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error",
+      "logic error"
+    ],
+    "skills": [
+      "two-errors",
+      "syntax-error",
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "both",
+      "bug": "price = int(input(\"Price of one {{[\"book\",\"comic\",\"game\",\"film\"][p0]}}: \"))\n{{[\"books\",\"comics\",\"games\",\"films\"][p0]}} = int(input(\"Number of {{[\"books\",\"comics\",\"games\",\"films\"][p0]}}: \"))\ntotal = price + {{[\"books\",\"comics\",\"games\",\"films\"][p0]}}\nif total > 20\n    print(\"Free delivery\")\nelse:\n    print(\"Delivery costs 3\")\nprint(\"{{[\"Books\",\"Comics\",\"Games\",\"Films\"][p0]}} cost\", total)",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "if total > 20",
+          "fix": "if total > 20:"
+        },
+        {
+          "kind": "logic",
+          "line": "total = price + {{[\"books\",\"comics\",\"games\",\"films\"][p0]}}",
+          "fix": "total = price * {{[\"books\",\"comics\",\"games\",\"films\"][p0]}}"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"5\",\"3\"],[\"8\",\"4\"]],[[\"6\",\"4\"],[\"2\",\"3\"]],[[\"10\",\"3\"],[\"4\",\"2\"]],[[\"3\",\"9\"],[\"7\",\"2\"]],[[\"12\",\"2\"],[\"5\",\"5\"]],[[\"9\",\"1\"],[\"4\",\"6\"]],[[\"2\",\"8\"],[\"11\",\"3\"]],[[\"7\",\"7\"],[\"3\",\"3\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L9b",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L9b",
+    "derived": true,
+    "level": 9,
+    "type": "write",
+    "title": "Overtime pay",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should work out pay. Over 40 hours earns a bonus of 50. It has two errors: one syntax error and one logic error. Fix both in the editor.",
+    "starter": "hours = int(input(\"{{[\"Hours worked\",\"Days worked\",\"Shifts done\",\"Lessons taught\"][p0]}}: \"))\nrate = int(input(\"{{[\"Pay per hour\",\"Pay per day\",\"Pay per shift\",\"Pay per lesson\"][p0]}}: \"))\npay = hours * rate\nif hours < 40:\n    pay = pay + 50\nprint(\"{{[\"Total pay\",\"Wages\",\"Earnings\",\"Income\"][p0]}}:\", pay",
+    "solution": "hours = int(input(\"{{[\"Hours worked\",\"Days worked\",\"Shifts done\",\"Lessons taught\"][p0]}}: \"))\nrate = int(input(\"{{[\"Pay per hour\",\"Pay per day\",\"Pay per shift\",\"Pay per lesson\"][p0]}}: \"))\npay = hours * rate\nif hours > 40:\n    pay = pay + 50\nprint(\"{{[\"Total pay\",\"Wages\",\"Earnings\",\"Income\"][p0]}}:\", pay)",
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "Fix the line Python refuses to run first.",
+      "Then try 45 hours: who should get the bonus?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error",
+      "logic error"
+    ],
+    "skills": [
+      "two-errors",
+      "syntax-error",
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "both",
+      "bug": "hours = int(input(\"{{[\"Hours worked\",\"Days worked\",\"Shifts done\",\"Lessons taught\"][p0]}}: \"))\nrate = int(input(\"{{[\"Pay per hour\",\"Pay per day\",\"Pay per shift\",\"Pay per lesson\"][p0]}}: \"))\npay = hours * rate\nif hours < 40:\n    pay = pay + 50\nprint(\"{{[\"Total pay\",\"Wages\",\"Earnings\",\"Income\"][p0]}}:\", pay",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "print(\"{{[\"Total pay\",\"Wages\",\"Earnings\",\"Income\"][p0]}}:\", pay",
+          "fix": "print(\"{{[\"Total pay\",\"Wages\",\"Earnings\",\"Income\"][p0]}}:\", pay)"
+        },
+        {
+          "kind": "logic",
+          "line": "if hours < 40:",
+          "fix": "if hours > 40:"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"45\",\"10\"],[\"20\",\"8\"]],[[\"50\",\"9\"],[\"30\",\"10\"]],[[\"41\",\"5\"],[\"12\",\"6\"]],[[\"60\",\"8\"],[\"35\",\"7\"]],[[\"44\",\"10\"],[\"10\",\"10\"]],[[\"48\",\"6\"],[\"25\",\"9\"]],[[\"42\",\"7\"],[\"8\",\"12\"]],[[\"55\",\"5\"],[\"39\",\"4\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L9c",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L9c",
+    "derived": true,
+    "level": 9,
+    "type": "write",
+    "title": "The top and the bottom",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should store 3 temperatures, then print the highest and the lowest. It has two errors: one syntax error and one logic error. Fix both in the editor.",
+    "starter": "temps = []\nfor day in range(3)\n    t = int(input(\"{{[\"Temperature\",\"Rainfall\",\"Steps\",\"Score\"][p0]}}: \"))\n    temps.append(t)\nprint(\"{{[\"Highest\",\"Wettest\",\"Most\",\"Best\"][p0]}}:\", max(temps))\nprint(\"{{[\"Lowest\",\"Driest\",\"Fewest\",\"Worst\"][p0]}}:\", max(temps))",
+    "solution": "temps = []\nfor day in range(3):\n    t = int(input(\"{{[\"Temperature\",\"Rainfall\",\"Steps\",\"Score\"][p0]}}: \"))\n    temps.append(t)\nprint(\"{{[\"Highest\",\"Wettest\",\"Most\",\"Best\"][p0]}}:\", max(temps))\nprint(\"{{[\"Lowest\",\"Driest\",\"Fewest\",\"Worst\"][p0]}}:\", min(temps))",
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "One line is missing something at its end.",
+      "Then check: which function gives the smallest value?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error",
+      "logic error"
+    ],
+    "skills": [
+      "two-errors",
+      "syntax-error",
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "both",
+      "bug": "temps = []\nfor day in range(3)\n    t = int(input(\"{{[\"Temperature\",\"Rainfall\",\"Steps\",\"Score\"][p0]}}: \"))\n    temps.append(t)\nprint(\"{{[\"Highest\",\"Wettest\",\"Most\",\"Best\"][p0]}}:\", max(temps))\nprint(\"{{[\"Lowest\",\"Driest\",\"Fewest\",\"Worst\"][p0]}}:\", max(temps))",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "for day in range(3)",
+          "fix": "for day in range(3):"
+        },
+        {
+          "kind": "logic",
+          "line": "print(\"{{[\"Lowest\",\"Driest\",\"Fewest\",\"Worst\"][p0]}}:\", max(temps))",
+          "fix": "print(\"{{[\"Lowest\",\"Driest\",\"Fewest\",\"Worst\"][p0]}}:\", min(temps))"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"12\",\"15\",\"9\"],[\"20\",\"18\",\"22\"]],[[\"5\",\"7\",\"6\"],[\"1\",\"2\",\"3\"]],[[\"30\",\"10\",\"20\"],[\"8\",\"8\",\"9\"]],[[\"14\",\"11\",\"17\"],[\"3\",\"6\",\"4\"]],[[\"25\",\"21\",\"23\"],[\"0\",\"5\",\"2\"]],[[\"9\",\"9\",\"10\"],[\"16\",\"19\",\"13\"]],[[\"7\",\"3\",\"5\"],[\"28\",\"24\",\"26\"]],[[\"18\",\"12\",\"15\"],[\"4\",\"10\",\"7\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L9d",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L9d",
+    "derived": true,
+    "level": 9,
+    "type": "write",
+    "title": "Admin login",
+    "description": "Only the username admin with the password letmein can log in. It has two errors: one syntax error and one logic error. Fix both in the editor.",
+    "starter": "name = input(\"Username: \")\npassword = input(\"Password: \")\nif name == \"admin\" or password == \"letmein\":\n    print(\"{{[\"Welcome back\",\"Logged in\",\"Hello again\",\"You're in\"][p0]}}\")\nelse\n    print(\"{{[\"Access denied\",\"Login failed\",\"Wrong details\",\"Try again\"][p0]}}\")",
+    "solution": "name = input(\"Username: \")\npassword = input(\"Password: \")\nif name == \"admin\" and password == \"letmein\":\n    print(\"{{[\"Welcome back\",\"Logged in\",\"Hello again\",\"You're in\"][p0]}}\")\nelse:\n    print(\"{{[\"Access denied\",\"Login failed\",\"Wrong details\",\"Try again\"][p0]}}\")",
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "Fix the line Python refuses to run first.",
+      "Then try admin with a wrong password: should that log in?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error",
+      "logic error"
+    ],
+    "skills": [
+      "two-errors",
+      "syntax-error",
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "both",
+      "bug": "name = input(\"Username: \")\npassword = input(\"Password: \")\nif name == \"admin\" or password == \"letmein\":\n    print(\"{{[\"Welcome back\",\"Logged in\",\"Hello again\",\"You're in\"][p0]}}\")\nelse\n    print(\"{{[\"Access denied\",\"Login failed\",\"Wrong details\",\"Try again\"][p0]}}\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "else",
+          "fix": "else:"
+        },
+        {
+          "kind": "logic",
+          "line": "if name == \"admin\" or password == \"letmein\":",
+          "fix": "if name == \"admin\" and password == \"letmein\":"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"admin\",\"guess\"],[\"admin\",\"letmein\"]],[[\"guest\",\"letmein\"],[\"admin\",\"letmein\"]],[[\"admin\",\"letmein\"],[\"admin\",\"password\"]],[[\"root\",\"letmein\"],[\"admin\",\"letmein\"]],[[\"admin\",\"letmein\"],[\"admin\",\"LETMEIN\"]],[[\"Admin\",\"letmein\"],[\"admin\",\"letmein\"]],[[\"admin\",\"letmein\"],[\"admin\",\"letme\"]],[[\"user\",\"letmein\"],[\"admin\",\"letmein\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L10a",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L10a",
+    "derived": true,
+    "level": 10,
+    "type": "write",
+    "title": "Ticket prices",
+    "description": "int() turns the text typed into a whole number: this is called casting. Under 16 pays 5 and everyone else pays 8. The program adds up 3 tickets. It has two errors: one syntax error and one logic error. Fix both in the editor.",
+    "starter": "def ticket_price(age)\n    if age > 16:\n        return 5\n    else:\n        return 8\n\ntotal = 0\nfor i in range(3):\n    age = int(input(\"Age: \"))\n    total = total + ticket_price(age)\nprint(\"{{[\"Total for 3 tickets\",\"Cost of 3 tickets\",\"3 tickets cost\",\"Price for 3 people\"][p0]}}:\", total)",
+    "solution": "def ticket_price(age):\n    if age < 16:\n        return 5\n    else:\n        return 8\n\ntotal = 0\nfor i in range(3):\n    age = int(input(\"Age: \"))\n    total = total + ticket_price(age)\nprint(\"{{[\"Total for 3 tickets\",\"Cost of 3 tickets\",\"3 tickets cost\",\"Price for 3 people\"][p0]}}:\", total)",
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "A def line ends like an if line. Fix that first.",
+      "Then try ages 10, 20 and 40: what should the total be?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error",
+      "logic error"
+    ],
+    "skills": [
+      "two-errors",
+      "syntax-error",
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "both",
+      "bug": "def ticket_price(age)\n    if age > 16:\n        return 5\n    else:\n        return 8\n\ntotal = 0\nfor i in range(3):\n    age = int(input(\"Age: \"))\n    total = total + ticket_price(age)\nprint(\"{{[\"Total for 3 tickets\",\"Cost of 3 tickets\",\"3 tickets cost\",\"Price for 3 people\"][p0]}}:\", total)",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "def ticket_price(age)",
+          "fix": "def ticket_price(age):"
+        },
+        {
+          "kind": "logic",
+          "line": "    if age > 16:",
+          "fix": "    if age < 16:"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"10\",\"20\",\"40\"],[\"15\",\"16\",\"12\"]],[[\"5\",\"30\",\"9\"],[\"16\",\"17\",\"18\"]],[[\"12\",\"13\",\"14\"],[\"20\",\"3\",\"25\"]],[[\"40\",\"41\",\"2\"],[\"15\",\"15\",\"15\"]],[[\"8\",\"16\",\"50\"],[\"11\",\"70\",\"6\"]],[[\"17\",\"4\",\"15\"],[\"30\",\"30\",\"1\"]],[[\"14\",\"22\",\"9\"],[\"16\",\"16\",\"16\"]],[[\"1\",\"2\",\"60\"],[\"13\",\"35\",\"18\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L10b",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L10b",
+    "derived": true,
+    "level": 10,
+    "type": "write",
+    "title": "Stop at -1",
+    "description": "int() turns the text typed into a whole number: this is called casting. The program should read marks until -1, then print their average (or {{[\"No marks entered\",\"No scores entered\",\"No times entered\",\"No points entered\"][p0]}}). It has two errors: one syntax error and one logic error. Fix both in the editor.",
+    "starter": "total = 0\ncount = 0\nmark = int(input(\"{{[\"Mark\",\"Score\",\"Time\",\"Points\"][p0]}} (-1 to stop): \"))\nwhile mark != -1\n    total = total + mark\n    count = count + 2\n    mark = int(input(\"{{[\"Mark\",\"Score\",\"Time\",\"Points\"][p0]}} (-1 to stop): \"))\nif count > 0:\n    print(\"{{[\"Average\",\"Mean score\",\"Average time\",\"Mean points\"][p0]}}:\", total / count)\nelse:\n    print(\"{{[\"No marks entered\",\"No scores entered\",\"No times entered\",\"No points entered\"][p0]}}\")",
+    "solution": "total = 0\ncount = 0\nmark = int(input(\"{{[\"Mark\",\"Score\",\"Time\",\"Points\"][p0]}} (-1 to stop): \"))\nwhile mark != -1:\n    total = total + mark\n    count = count + 1\n    mark = int(input(\"{{[\"Mark\",\"Score\",\"Time\",\"Points\"][p0]}} (-1 to stop): \"))\nif count > 0:\n    print(\"{{[\"Average\",\"Mean score\",\"Average time\",\"Mean points\"][p0]}}:\", total / count)\nelse:\n    print(\"{{[\"No marks entered\",\"No scores entered\",\"No times entered\",\"No points entered\"][p0]}}\")",
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "Fix the line Python refuses to run first.",
+      "Then try 10 and 20: what should the average be, and how many marks were counted?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error",
+      "logic error"
+    ],
+    "skills": [
+      "two-errors",
+      "syntax-error",
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "both",
+      "bug": "total = 0\ncount = 0\nmark = int(input(\"{{[\"Mark\",\"Score\",\"Time\",\"Points\"][p0]}} (-1 to stop): \"))\nwhile mark != -1\n    total = total + mark\n    count = count + 2\n    mark = int(input(\"{{[\"Mark\",\"Score\",\"Time\",\"Points\"][p0]}} (-1 to stop): \"))\nif count > 0:\n    print(\"{{[\"Average\",\"Mean score\",\"Average time\",\"Mean points\"][p0]}}:\", total / count)\nelse:\n    print(\"{{[\"No marks entered\",\"No scores entered\",\"No times entered\",\"No points entered\"][p0]}}\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "while mark != -1",
+          "fix": "while mark != -1:"
+        },
+        {
+          "kind": "logic",
+          "line": "    count = count + 2",
+          "fix": "    count = count + 1"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"10\",\"20\",\"-1\"],[\"-1\"]],[[\"5\",\"-1\"],[\"8\",\"9\",\"10\",\"-1\"]],[[\"-1\"],[\"3\",\"3\",\"-1\"]],[[\"12\",\"8\",\"4\",\"-1\"],[\"-1\"]],[[\"7\",\"-1\"],[\"1\",\"2\",\"-1\"]],[[\"-1\"],[\"9\",\"-1\"]],[[\"6\",\"6\",\"6\",\"-1\"],[\"2\",\"-1\"]],[[\"20\",\"-1\"],[\"-1\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L10c",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L10c",
+    "derived": true,
+    "level": 10,
+    "type": "write",
+    "title": "{{[\"Stock\",\"Seats\",\"Tickets\",\"Pens\"][p0]}} orders",
+    "description": "int() turns the text typed into a whole number: this is called casting. Each order is sent if there is enough stock: that includes taking the very last of it. It has two errors: one syntax error and one logic error. Fix both in the editor.",
+    "starter": "stock = int(input(\"{{[\"Stock\",\"Seats\",\"Tickets\",\"Pens\"][p0]}}: \"))\norders = int(input(\"Orders: \"))\nfor i in range(orders):\n    wanted = int(input(\"Wanted: \"))\n    if wanted < stock:\n        stock = stock - wanted\n        print(\"{{[\"Sent\",\"Booked\",\"Sold\",\"Given out\"][p0]}}\", wanted\n    else:\n        print(\"{{[\"Not enough stock\",\"Not enough seats\",\"Not enough tickets\",\"Not enough pens\"][p0]}}\")\nprint(\"{{[\"Stock\",\"Seats\",\"Tickets\",\"Pens\"][p0]}} left:\", stock)",
+    "solution": "stock = int(input(\"{{[\"Stock\",\"Seats\",\"Tickets\",\"Pens\"][p0]}}: \"))\norders = int(input(\"Orders: \"))\nfor i in range(orders):\n    wanted = int(input(\"Wanted: \"))\n    if wanted <= stock:\n        stock = stock - wanted\n        print(\"{{[\"Sent\",\"Booked\",\"Sold\",\"Given out\"][p0]}}\", wanted)\n    else:\n        print(\"{{[\"Not enough stock\",\"Not enough seats\",\"Not enough tickets\",\"Not enough pens\"][p0]}}\")\nprint(\"{{[\"Stock\",\"Seats\",\"Tickets\",\"Pens\"][p0]}} left:\", stock)",
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "Fix the line Python refuses to run first.",
+      "Then try a stock of 5 and an order for 5: should it be sent?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error",
+      "logic error"
+    ],
+    "skills": [
+      "two-errors",
+      "syntax-error",
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "both",
+      "bug": "stock = int(input(\"{{[\"Stock\",\"Seats\",\"Tickets\",\"Pens\"][p0]}}: \"))\norders = int(input(\"Orders: \"))\nfor i in range(orders):\n    wanted = int(input(\"Wanted: \"))\n    if wanted < stock:\n        stock = stock - wanted\n        print(\"{{[\"Sent\",\"Booked\",\"Sold\",\"Given out\"][p0]}}\", wanted\n    else:\n        print(\"{{[\"Not enough stock\",\"Not enough seats\",\"Not enough tickets\",\"Not enough pens\"][p0]}}\")\nprint(\"{{[\"Stock\",\"Seats\",\"Tickets\",\"Pens\"][p0]}} left:\", stock)",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "        print(\"{{[\"Sent\",\"Booked\",\"Sold\",\"Given out\"][p0]}}\", wanted",
+          "fix": "        print(\"{{[\"Sent\",\"Booked\",\"Sold\",\"Given out\"][p0]}}\", wanted)"
+        },
+        {
+          "kind": "logic",
+          "line": "    if wanted < stock:",
+          "fix": "    if wanted <= stock:"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"10\",\"2\",\"4\",\"6\"],[\"5\",\"1\",\"5\"]],[[\"8\",\"1\",\"8\"],[\"6\",\"2\",\"2\",\"9\"]],[[\"12\",\"3\",\"5\",\"7\",\"1\"],[\"3\",\"1\",\"2\"]],[[\"4\",\"1\",\"4\"],[\"9\",\"2\",\"5\",\"3\"]],[[\"6\",\"2\",\"3\",\"3\"],[\"2\",\"1\",\"1\"]],[[\"7\",\"1\",\"7\"],[\"10\",\"3\",\"2\",\"2\",\"2\"]],[[\"9\",\"2\",\"9\",\"1\"],[\"5\",\"1\",\"6\"]],[[\"15\",\"2\",\"10\",\"5\"],[\"1\",\"1\",\"1\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "d-bug-L10d",
+    "units": [
+      "debugging-gcse"
+    ],
+    "source": "bug-L10d",
+    "derived": true,
+    "level": 10,
+    "type": "write",
+    "title": "Four-digit codes",
+    "description": "A code must be 4 digits. The program asks until a valid code is typed, then says how many wrong tries there were. It has two errors: one syntax error and one logic error. Fix both in the editor.",
+    "starter": "def is_valid(code):\n    if len(code) != 4:\n        return False\n    if not code.isdigit()\n        return False\n    return True\n\ntries = 0\ncode = input(\"{{[\"Code\",\"PIN\",\"Door code\",\"Locker code\"][p0]}}: \")\nwhile not is_valid(code):\n    tries = tries + 2\n    print(\"{{[\"Invalid code\",\"Invalid PIN\",\"Invalid door code\",\"Invalid locker code\"][p0]}}\")\n    code = input(\"{{[\"Code\",\"PIN\",\"Door code\",\"Locker code\"][p0]}}: \")\nprint(\"{{[\"Code accepted\",\"PIN accepted\",\"Door code accepted\",\"Locker code accepted\"][p0]}} after\", tries, \"wrong tries\")",
+    "solution": "def is_valid(code):\n    if len(code) != 4:\n        return False\n    if not code.isdigit():\n        return False\n    return True\n\ntries = 0\ncode = input(\"{{[\"Code\",\"PIN\",\"Door code\",\"Locker code\"][p0]}}: \")\nwhile not is_valid(code):\n    tries = tries + 1\n    print(\"{{[\"Invalid code\",\"Invalid PIN\",\"Invalid door code\",\"Invalid locker code\"][p0]}}\")\n    code = input(\"{{[\"Code\",\"PIN\",\"Door code\",\"Locker code\"][p0]}}: \")\nprint(\"{{[\"Code accepted\",\"PIN accepted\",\"Door code accepted\",\"Locker code accepted\"][p0]}} after\", tries, \"wrong tries\")",
+    "tests": [
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][0]"
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "list": "TS[ts][1]"
+          }
+        ]
+      }
+    ],
+    "hints": [
+      "Fix the line Python refuses to run first.",
+      "Then try two wrong codes: how many wrong tries should it say?"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error",
+      "logic error"
+    ],
+    "skills": [
+      "two-errors",
+      "syntax-error",
+      "logic-error"
+    ],
+    "error_kind": {
+      "ask": "both",
+      "bug": "def is_valid(code):\n    if len(code) != 4:\n        return False\n    if not code.isdigit()\n        return False\n    return True\n\ntries = 0\ncode = input(\"{{[\"Code\",\"PIN\",\"Door code\",\"Locker code\"][p0]}}: \")\nwhile not is_valid(code):\n    tries = tries + 2\n    print(\"{{[\"Invalid code\",\"Invalid PIN\",\"Invalid door code\",\"Invalid locker code\"][p0]}}\")\n    code = input(\"{{[\"Code\",\"PIN\",\"Door code\",\"Locker code\"][p0]}}: \")\nprint(\"{{[\"Code accepted\",\"PIN accepted\",\"Door code accepted\",\"Locker code accepted\"][p0]}} after\", tries, \"wrong tries\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "line": "    if not code.isdigit()",
+          "fix": "    if not code.isdigit():"
+        },
+        {
+          "kind": "logic",
+          "line": "    tries = tries + 2",
+          "fix": "    tries = tries + 1"
+        }
+      ]
+    },
+    "where": "(p0 !== 0 || ts !== 0)",
+    "params": {
+      "p0": {
+        "int": [
+          0,
+          3
+        ]
+      },
+      "ts": {
+        "int": [
+          0,
+          7
+        ]
+      }
+    },
+    "values": {
+      "TS": "[[[\"12\",\"abcd\",\"4321\"],[\"9876\"]],[[\"1234\"],[\"x\",\"55555\",\"2468\"]],[[\"abc\",\"1111\"],[\"0000\"]],[[\"4444\"],[\"12a4\",\"99\",\"7777\"]],[[\"1\",\"22\",\"333\",\"4444\"],[\"5678\"]],[[\"8765\"],[\"code\",\"1357\"]],[[\"9999\"],[\"123\",\"2222\"]],[[\"a1b2\",\"3333\"],[\"6543\"]]]"
+    },
+    "fingerprintVars": [
+      "p0",
+      "ts"
+    ]
+  },
+  {
+    "id": "comb-auth-bug-login",
+    "units": [
+      "authentication",
+      "debugging-gcse"
+    ],
+    "source": "bug-L7a",
+    "level": 7,
+    "type": "write",
+    "title": "Fix the login",
+    "params": {
+      "user": {
+        "choice": [
+          "sam",
+          "ria",
+          "leo",
+          "kit",
+          "ola",
+          "ben"
+        ]
+      },
+      "pw": {
+        "choice": [
+          "sunset",
+          "maple",
+          "harbour",
+          "pebble",
+          "comet"
+        ]
+      },
+      "bad": {
+        "choice": [
+          "guess",
+          "123",
+          "password",
+          "qwerty"
+        ]
+      },
+      "msg": {
+        "choice": [
+          [
+            "Logged in",
+            "Access denied"
+          ],
+          [
+            "Welcome",
+            "Wrong details"
+          ],
+          [
+            "You're in",
+            "Login failed"
+          ],
+          [
+            "Hello again",
+            "Try again"
+          ]
+        ]
+      }
+    },
+    "values": {
+      "ok": "msg[0]",
+      "no": "msg[1]"
+    },
+    "description": "Only {{user}} with the password {{pw}} can log in. The program prints {{ok}} or {{no}}. It has an error. Fix it in the editor.",
+    "solution": "username = input(\"Username: \")\npassword = input(\"Password: \")\nif username == \"{{user}}\" and password == \"{{pw}}\":\n    print(\"{{ok}}\")\nelse:\n    print(\"{{no}}\")",
+    "tests": [
+      {
+        "inputs": [
+          "{{user}}",
+          "{{pw}}"
+        ],
+        "expected": "{{ok}}"
+      },
+      {
+        "inputs": [
+          "{{user}}",
+          "{{bad}}"
+        ],
+        "expected": "{{no}}"
+      }
+    ],
+    "hints": [
+      "Every if and else line needs the same ending.",
+      "Ask: would Python run this program at all?"
+    ],
+    "skills": [
+      "both-match",
+      "syntax-error"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error",
+      "authentication"
+    ],
+    "starter": "username = input(\"Username: \")\npassword = input(\"Password: \")\nif username == \"{{user}}\" and password == \"{{pw}}\"\n    print(\"{{ok}}\")\nelse:\n    print(\"{{no}}\")",
+    "error_kind": {
+      "ask": "kind",
+      "bug": "username = input(\"Username: \")\npassword = input(\"Password: \")\nif username == \"{{user}}\" and password == \"{{pw}}\"\n    print(\"{{ok}}\")\nelse:\n    print(\"{{no}}\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "fix": "if username == \"{{user}}\" and password == \"{{pw}}\":",
+          "line": "if username == \"{{user}}\" and password == \"{{pw}}\""
+        }
+      ]
+    },
+    "worked_example": {
+      "skill": "both-match",
+      "problem": "A games console signs a player in only when the gamer tag and the secret word both match. The user types rio, then Pass99.",
+      "code": "stored_tag = \"rio\"\nstored_secret = \"Cloud6\"\ntag = input(\"Gamer tag: \")\nsecret = input(\"Secret word: \")\nif tag == stored_tag and secret == stored_secret:\n    print(\"Signed in\")\nelse:\n    print(\"Sign-in refused\")",
+      "inputs": [
+        "rio",
+        "Pass99"
+      ],
+      "output": "Sign-in refused",
+      "key_idea": "Join the two comparisons with and: both must be True. With or, the right gamer tag alone would be enough to get in."
+    }
+  },
+  {
+    "id": "comb-auth-bug-or",
+    "units": [
+      "authentication",
+      "debugging-gcse"
+    ],
+    "source": "bug-L8b",
+    "level": 8,
+    "type": "write",
+    "title": "Both must match",
+    "params": {
+      "user": {
+        "choice": [
+          "sam",
+          "ria",
+          "leo",
+          "kit",
+          "ola",
+          "ben"
+        ]
+      },
+      "pw": {
+        "choice": [
+          "sunset",
+          "maple",
+          "harbour",
+          "pebble",
+          "comet"
+        ]
+      },
+      "bad": {
+        "choice": [
+          "guess",
+          "123",
+          "password",
+          "qwerty"
+        ]
+      },
+      "msg": {
+        "choice": [
+          [
+            "Logged in",
+            "Access denied"
+          ],
+          [
+            "Welcome",
+            "Wrong details"
+          ],
+          [
+            "You're in",
+            "Login failed"
+          ],
+          [
+            "Hello again",
+            "Try again"
+          ]
+        ]
+      }
+    },
+    "values": {
+      "ok": "msg[0]",
+      "no": "msg[1]"
+    },
+    "description": "Only {{user}} with the password {{pw}} can log in: both must match. The program prints {{ok}} or {{no}}. It has an error. Fix it in the editor.",
+    "solution": "username = input(\"Username: \")\npassword = input(\"Password: \")\nif username == \"{{user}}\" and password == \"{{pw}}\":\n    print(\"{{ok}}\")\nelse:\n    print(\"{{no}}\")",
+    "tests": [
+      {
+        "inputs": [
+          "{{user}}",
+          "{{bad}}"
+        ],
+        "expected": "{{no}}"
+      },
+      {
+        "inputs": [
+          "{{user}}",
+          "{{pw}}"
+        ],
+        "expected": "{{ok}}"
+      }
+    ],
+    "hints": [
+      "The program runs. Try the right username with a wrong password.",
+      "Both the username and the password must be right."
+    ],
+    "skills": [
+      "both-match",
+      "logic-error",
+      "error-definitions"
+    ],
+    "tags": [
+      "debugging",
+      "logic error",
+      "authentication"
+    ],
+    "starter": "username = input(\"Username: \")\npassword = input(\"Password: \")\nif username == \"{{user}}\" or password == \"{{pw}}\":\n    print(\"{{ok}}\")\nelse:\n    print(\"{{no}}\")",
+    "error_kind": {
+      "ask": "definition",
+      "bug": "username = input(\"Username: \")\npassword = input(\"Password: \")\nif username == \"{{user}}\" or password == \"{{pw}}\":\n    print(\"{{ok}}\")\nelse:\n    print(\"{{no}}\")",
+      "errors": [
+        {
+          "kind": "logic",
+          "fix": "if username == \"{{user}}\" and password == \"{{pw}}\":",
+          "line": "if username == \"{{user}}\" or password == \"{{pw}}\":"
+        }
+      ]
+    },
+    "worked_example": {
+      "skill": "both-match",
+      "problem": "A games console signs a player in only when the gamer tag and the secret word both match. The user types rio, then Pass99.",
+      "code": "stored_tag = \"rio\"\nstored_secret = \"Cloud6\"\ntag = input(\"Gamer tag: \")\nsecret = input(\"Secret word: \")\nif tag == stored_tag and secret == stored_secret:\n    print(\"Signed in\")\nelse:\n    print(\"Sign-in refused\")",
+      "inputs": [
+        "rio",
+        "Pass99"
+      ],
+      "output": "Sign-in refused",
+      "key_idea": "Join the two comparisons with and: both must be True. With or, the right gamer tag alone would be enough to get in."
+    }
+  },
+  {
+    "id": "comb-bug-trace-loop",
+    "units": [
+      "debugging-gcse",
+      "trace-tables"
+    ],
+    "source": "bug-L7b",
+    "level": 7,
+    "type": "write",
+    "title": "Trace to find it",
+    "params": {
+      "a": {
+        "int": [
+          3,
+          9
+        ]
+      },
+      "b": {
+        "int": [
+          2,
+          9
+        ]
+      }
+    },
+    "where": "a !== b",
+    "description": "The program should add up the numbers from 1 to n. Trace the loop for a small n to find the error. It has an error. Fix it in the editor.",
+    "solution": "n = int(input(\"How many numbers? \"))\ntotal = 0\nfor i in range(1, n + 1):\n    total = total + i\nprint(\"Total:\", total)",
+    "tests": [
+      {
+        "inputs": [
+          "{{a}}"
+        ],
+        "expected": "Total: {{a * (a + 1) / 2}}"
+      },
+      {
+        "inputs": [
+          "{{b}}"
+        ],
+        "expected": "Total: {{b * (b + 1) / 2}}"
+      }
+    ],
+    "hints": [
+      "The program runs. Trace it for n = 3: the total should be 6.",
+      "Each time round the loop, add the loop's number i."
+    ],
+    "skills": [
+      "logic-error",
+      "trace-loop"
+    ],
+    "tags": [
+      "debugging",
+      "logic error",
+      "trace table"
+    ],
+    "starter": "n = int(input(\"How many numbers? \"))\ntotal = 0\nfor i in range(1, n + 1):\n    total = total + n\nprint(\"Total:\", total)",
+    "error_kind": {
+      "ask": "kind",
+      "bug": "n = int(input(\"How many numbers? \"))\ntotal = 0\nfor i in range(1, n + 1):\n    total = total + n\nprint(\"Total:\", total)",
+      "errors": [
+        {
+          "kind": "logic",
+          "fix": "    total = total + i",
+          "line": "    total = total + n"
+        }
+      ]
+    },
+    "worked_example": {
+      "skill": "write",
+      "problem": "This library program had two errors. The if line had no colon: a syntax error, so Python would not run it. Then it used books < 5, so 7 books were allowed: a logic error, because it ran but gave the wrong answer. Both lines are fixed here. The user types 7.",
+      "code": "books = int(input(\"Books borrowed: \"))\nif books > 5:\n    print(\"That is too many books\")\nelse:\n    print(\"Enjoy your reading\")",
+      "inputs": [
+        "7"
+      ],
+      "output": "That is too many books",
+      "key_idea": "Fix the syntax error first, so Python runs the program. Then test it with a value you can check in your head: a wrong result shows a logic error."
+    }
+  },
+  {
+    "id": "comb-bug-trace-select",
+    "units": [
+      "debugging-gcse",
+      "trace-tables"
+    ],
+    "source": "bug-L8a",
+    "level": 8,
+    "type": "write",
+    "title": "Odd or even",
+    "params": {
+      "h": {
+        "int": [
+          1,
+          20
+        ]
+      },
+      "k": {
+        "int": [
+          0,
+          20
+        ]
+      }
+    },
+    "values": {
+      "e": "2 * h",
+      "o": "2 * k + 1"
+    },
+    "description": "The program should say whether a number is even or odd. Trace it with one even and one odd number. It has an error. Fix it in the editor.",
+    "solution": "x = int(input(\"Number: \"))\nif x % 2 == 0:\n    print(x, \"is even\")\nelse:\n    print(x, \"is odd\")",
+    "tests": [
+      {
+        "inputs": [
+          "{{e}}"
+        ],
+        "expected": "{{e}} is even"
+      },
+      {
+        "inputs": [
+          "{{o}}"
+        ],
+        "expected": "{{o}} is odd"
+      }
+    ],
+    "hints": [
+      "Look at the end of the if line.",
+      "Ask: would Python run this program at all?"
+    ],
+    "skills": [
+      "syntax-error",
+      "error-definitions",
+      "trace-selection"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error",
+      "trace table"
+    ],
+    "starter": "x = int(input(\"Number: \"))\nif x % 2 == 0\n    print(x, \"is even\")\nelse:\n    print(x, \"is odd\")",
+    "error_kind": {
+      "ask": "definition",
+      "bug": "x = int(input(\"Number: \"))\nif x % 2 == 0\n    print(x, \"is even\")\nelse:\n    print(x, \"is odd\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "fix": "if x % 2 == 0:",
+          "line": "if x % 2 == 0"
+        }
+      ]
+    },
+    "worked_example": {
+      "skill": "write",
+      "problem": "This library program had two errors. The if line had no colon: a syntax error, so Python would not run it. Then it used books < 5, so 7 books were allowed: a logic error, because it ran but gave the wrong answer. Both lines are fixed here. The user types 7.",
+      "code": "books = int(input(\"Books borrowed: \"))\nif books > 5:\n    print(\"That is too many books\")\nelse:\n    print(\"Enjoy your reading\")",
+      "inputs": [
+        "7"
+      ],
+      "output": "That is too many books",
+      "key_idea": "Fix the syntax error first, so Python runs the program. Then test it with a value you can check in your head: a wrong result shows a logic error."
+    }
+  },
+  {
+    "id": "comb-bug-trace-swap",
+    "units": [
+      "debugging-gcse",
+      "trace-tables"
+    ],
+    "source": "bug-L9a",
+    "level": 9,
+    "type": "write",
+    "title": "Swap two numbers",
+    "params": {
+      "p": {
+        "int": [
+          1,
+          50
+        ]
+      },
+      "q": {
+        "int": [
+          1,
+          50
+        ]
+      },
+      "r": {
+        "int": [
+          1,
+          50
+        ]
+      },
+      "s": {
+        "int": [
+          1,
+          50
+        ]
+      }
+    },
+    "where": "p !== q && r !== s && p !== r",
+    "description": "The program should swap two numbers, using temp. Trace a, b and temp line by line. It has two errors: one syntax error and one logic error. Fix both in the editor.",
+    "solution": "a = int(input(\"First: \"))\nb = int(input(\"Second: \"))\ntemp = a\na = b\nb = temp\nprint(\"First is now\", a)\nprint(\"Second is now\", b)",
+    "tests": [
+      {
+        "inputs": [
+          "{{p}}",
+          "{{q}}"
+        ],
+        "expected": "First is now {{q}}\nSecond is now {{p}}"
+      },
+      {
+        "inputs": [
+          "{{r}}",
+          "{{s}}"
+        ],
+        "expected": "First is now {{s}}\nSecond is now {{r}}"
+      }
+    ],
+    "hints": [
+      "Fix the line Python refuses to run first.",
+      "Then trace a, b and temp: after a = b, which variable still holds the first number?"
+    ],
+    "skills": [
+      "two-errors",
+      "trace-assignment"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error",
+      "logic error",
+      "trace table"
+    ],
+    "starter": "a = int(input(\"First: \"))\nb = int(input(\"Second: \"))\ntemp = a\na = b\nb = a\nprint(\"First is now\", a\nprint(\"Second is now\", b)",
+    "error_kind": {
+      "ask": "both",
+      "bug": "a = int(input(\"First: \"))\nb = int(input(\"Second: \"))\ntemp = a\na = b\nb = a\nprint(\"First is now\", a\nprint(\"Second is now\", b)",
+      "errors": [
+        {
+          "kind": "syntax",
+          "fix": "print(\"First is now\", a)",
+          "line": "print(\"First is now\", a"
+        },
+        {
+          "kind": "logic",
+          "fix": "b = temp",
+          "line": "b = a"
+        }
+      ]
+    },
+    "worked_example": {
+      "skill": "write",
+      "problem": "This library program had two errors. The if line had no colon: a syntax error, so Python would not run it. Then it used books < 5, so 7 books were allowed: a logic error, because it ran but gave the wrong answer. Both lines are fixed here. The user types 7.",
+      "code": "books = int(input(\"Books borrowed: \"))\nif books > 5:\n    print(\"That is too many books\")\nelse:\n    print(\"Enjoy your reading\")",
+      "inputs": [
+        "7"
+      ],
+      "output": "That is too many books",
+      "key_idea": "Fix the syntax error first, so Python runs the program. Then test it with a value you can check in your head: a wrong result shows a logic error."
+    }
+  },
+  {
+    "id": "comb-auth-bug-tries",
+    "units": [
+      "authentication",
+      "debugging-gcse"
+    ],
+    "source": "bug-L9d",
+    "level": 9,
+    "type": "write",
+    "title": "Three tries",
+    "params": {
+      "pw": {
+        "choice": [
+          "sunset",
+          "maple",
+          "harbour",
+          "pebble",
+          "comet"
+        ]
+      },
+      "bad": {
+        "choice": [
+          "guess",
+          "123",
+          "password",
+          "qwerty"
+        ]
+      },
+      "bad2": {
+        "choice": [
+          "hello",
+          "abc",
+          "000",
+          "secret"
+        ]
+      }
+    },
+    "description": "The user has three goes at typing the password {{pw}}. If none of the three is right, the program prints Locked out. It has two errors: one syntax error and one logic error. Fix both in the editor.",
+    "solution": "tries = 0\npassword = input(\"Password: \")\nwhile password != \"{{pw}}\" and tries < 2:\n    tries = tries + 1\n    print(\"Wrong password\")\n    password = input(\"Password: \")\nif password == \"{{pw}}\":\n    print(\"Welcome\")\nelse:\n    print(\"Locked out\")",
+    "tests": [
+      {
+        "inputs": [
+          "{{bad}}",
+          "{{bad2}}",
+          "{{pw}}"
+        ],
+        "expected": "Wrong password\nWrong password\nWelcome"
+      },
+      {
+        "inputs": [
+          "{{pw}}"
+        ],
+        "expected": "Welcome"
+      }
+    ],
+    "hints": [
+      "Fix the line Python refuses to run first.",
+      "Then try two wrong passwords and the right one: how many tries should that use?"
+    ],
+    "skills": [
+      "attempts",
+      "two-errors"
+    ],
+    "tags": [
+      "debugging",
+      "syntax error",
+      "logic error",
+      "authentication"
+    ],
+    "starter": "tries = 0\npassword = input(\"Password: \")\nwhile password != \"{{pw}}\" and tries < 2:\n    tries = tries + 2\n    print(\"Wrong password\")\n    password = input(\"Password: \")\nif password == \"{{pw}}\"\n    print(\"Welcome\")\nelse:\n    print(\"Locked out\")",
+    "error_kind": {
+      "ask": "both",
+      "bug": "tries = 0\npassword = input(\"Password: \")\nwhile password != \"{{pw}}\" and tries < 2:\n    tries = tries + 2\n    print(\"Wrong password\")\n    password = input(\"Password: \")\nif password == \"{{pw}}\"\n    print(\"Welcome\")\nelse:\n    print(\"Locked out\")",
+      "errors": [
+        {
+          "kind": "syntax",
+          "fix": "if password == \"{{pw}}\":",
+          "line": "if password == \"{{pw}}\""
+        },
+        {
+          "kind": "logic",
+          "fix": "    tries = tries + 1",
+          "line": "    tries = tries + 2"
+        }
+      ]
+    },
+    "worked_example": {
+      "skill": "attempts",
+      "problem": "A safe counts the wrong codes before the right one. The user types 1111, 2222, then 5050.",
+      "code": "safe_code = \"5050\"\nwrong = 0\ncode = input(\"Safe code: \")\nwhile code != safe_code:\n    wrong = wrong + 1\n    code = input(\"Safe code: \")\nprint(\"Safe opened after\", wrong, \"wrong tries\")",
+      "inputs": [
+        "1111",
+        "2222",
+        "5050"
+      ],
+      "output": "Safe opened after 2 wrong tries",
+      "key_idea": "Start the counter at 0 before the loop, and add 1 for each wrong try with wrong = wrong + 1. wrong + 1 on its own doesn't store anything."
+    }
   }
 ]

@@ -159,7 +159,7 @@
   // ---------- Failure classification ----------
   // Every failed attempt gets exactly one category, worked out from the run results (students never pick one).
   // Checked in this order; OTHER_ERROR covers runtime errors that aren't NAME, TYPE or TIMEOUT (e.g. ValueError).
-  const CATEGORIES = ["SYNTAX", "NAME", "TYPE", "TIMEOUT", "NO_ANSWER", "ORDER", "OTHER_ERROR", "WRONG_OUTPUT", "WRONG_CHOICE"];
+  const CATEGORIES = ["SYNTAX", "NAME", "TYPE", "TIMEOUT", "NO_ANSWER", "ORDER", "OTHER_ERROR", "WRONG_OUTPUT", "WRONG_CHOICE", "WRONG_ERROR_KIND"];
   const SYNTAX_TYPES = ["SyntaxError", "IndentationError", "TabError"];
   const NAME_TYPES = ["NameError", "UnboundLocalError"];
   const TIMEOUT_TYPES = ["Timeout", "TooMuchOutput"];
@@ -354,6 +354,12 @@
   // Returns { category, details, failedTest, output, errorType, errorKind }.
   //   failedTest is the index of the test used as evidence (the first failing one), or null.
   function classifyAttempt(a) {
+    // The error question (a task with error_kind) answered wrongly: the program isn't run. details.wrong: the parts
+    // answered wrongly (their indexes), details.answers: what was chosen.
+    if (a.errorKind && !a.errorKind.correct) {
+      return { category: "WRONG_ERROR_KIND", details: { wrong: a.errorKind.wrong, answers: a.errorKind.answers },
+        failedTest: null, output: "", errorType: "", errorKind: "" };
+    }
     if (a.type === "predict") {
       return { category: "WRONG_CHOICE", details: { chosen: a.options[a.choice], correct: a.options[a.answer] },
         failedTest: 0, output: a.options[a.choice], errorType: "", errorKind: "" };
@@ -507,6 +513,10 @@
       case "WRONG_CHOICE":
         return { message: "That's not what this program prints. Trace through it one line at a time.",
           tryNext: "Write down each variable's value after every line, and what each print() shows, before you choose." };
+      case "WRONG_ERROR_KIND":
+        return { message: (d.wrong && d.wrong.length === 2 ? "Both answers about the errors are wrong." : "Your answer about the kind of error isn't right.") +
+            " Look at the program again.",
+          tryNext: "Ask: would Python refuse to run this line at all? Then it is a syntax error. Does it run, but give the wrong result? Then it is a logic error." };
       default:
         return { message: "That's not quite right yet. Have another look.", tryNext: "Read the task again and test your program with the inputs it gives." };
     }
@@ -522,7 +532,7 @@
   // A task's buggy_variants each show one misconception. Their outputs for every test are worked out in advance
   // (tools/build-variants.js) and stored in tasks.json, so the app and recheck.py compare against the same outputs.
   // A misconception is only recorded when the student's result on the failing test equals a variant's result.
-  const NO_MATCH_CATEGORIES = ["NO_ANSWER"];
+  const NO_MATCH_CATEGORIES = ["NO_ANSWER", "WRONG_ERROR_KIND"];
 
   function sameResult(variantOut, f) {
     const kv = variantOut.errorKind || "";
@@ -545,7 +555,114 @@
     return ids;
   }
 
+  // ---------- The error question (task type part "error-kind", the Debugging (GCSE) unit) ----------
+  // A task may have error_kind = { ask, bug, errors: [{ kind, line, fix }] }:
+  //   bug     the program with the error(s), shown to the student (a write task's starter is this program too)
+  //   errors  each error: its kind ("syntax" or "logic"), the line as it is in bug (line) and as it is in the task's
+  //           solution (fix), each a whole line with its indentation. bug is the solution with each fix line replaced.
+  //   ask     "kind": one error; the two answers are "Syntax error" and "Logic error".
+  //           "definition": one error; the two answers are the definitions (shown before answering), no names.
+  //           "both": two errors, one syntax and one logic; for each line, the student says which kind it is.
+  // The answers are checked before the program part. Both must be right for the task to pass.
+  const ERROR_KINDS = ["syntax", "logic"];
+  const ERROR_KIND_NAMES = { syntax: "Syntax error", logic: "Logic error" };
+  // The GCSE definitions, as plain sentences. With the name (the "definition" question's answer, after it is answered)
+  // and without it (the two options of the "definition" question).
+  const ERROR_KIND_DEFINITIONS = {
+    syntax: "A syntax error breaks the rules of the programming language, so the program will not run.",
+    logic: "A logic error does not stop the program running, but the program gives the wrong result.",
+  };
+  const ERROR_KIND_OPTIONS = {
+    syntax: "It breaks the rules of the programming language, so the program will not run.",
+    logic: "It does not stop the program running, but the program gives the wrong result.",
+  };
+  const ERROR_KIND_ASKS = ["kind", "definition", "both"];
+
+  // What the student is asked: { prompt, parts: [{ prompt, line (the code, "both" only), options: [{ value, label }] }] }.
+  function errorKindQuestion(ek) {
+    const options = (labels) => ERROR_KINDS.map((k) => ({ value: k, label: labels[k] }));
+    if (ek.ask === "definition") {
+      return { prompt: "Which sentence describes the error in this program?", parts: [{ prompt: "The error in this program:", options: options(ERROR_KIND_OPTIONS) }] };
+    }
+    if (ek.ask === "both") {
+      return { prompt: "This program has two errors: one syntax error and one logic error. Which is which?",
+        parts: ek.errors.map((e) => ({ prompt: "The error in this line is a:", line: e.line.trim(), options: options(ERROR_KIND_NAMES) })) };
+    }
+    return { prompt: "What kind of error is in this program?", parts: [{ prompt: "The error is a:", options: options(ERROR_KIND_NAMES) }] };
+  }
+
+  // answers: one "syntax" | "logic" | null per part. -> { complete, correct, wrong: [part indexes], answers }.
+  function checkErrorKind(ek, answers) {
+    const a = ek.errors.map((e, i) => ((answers || [])[i] === "syntax" || (answers || [])[i] === "logic" ? answers[i] : null));
+    const wrong = ek.errors.map((e, i) => (a[i] !== e.kind ? i : -1)).filter((i) => i >= 0);
+    return { complete: a.every((x) => x != null), correct: wrong.length === 0, wrong, answers: a };
+  }
+
+  // The program with some of the errors put in (errors: a list of them): the solution with each one's fix line
+  // replaced by its wrong line. null if a fix line isn't in the solution exactly once.
+  function withErrors(solution, errors) {
+    const lines = String(solution).split("\n");
+    for (const e of errors) {
+      const at = lines.map((l, i) => (l === e.fix ? i : -1)).filter((i) => i >= 0);
+      if (at.length !== 1) return null;
+      lines[at[0]] = e.line;
+    }
+    return lines.join("\n");
+  }
+
+  // Problems with an error question that need no running: its shape, and its bug program.
+  function errorKindShapeProblems(ek, solution) {
+    const p = [];
+    if (!ek || typeof ek !== "object") return ["error_kind is missing"];
+    if (!ERROR_KIND_ASKS.includes(ek.ask)) p.push("error_kind.ask must be one of " + ERROR_KIND_ASKS.join(", "));
+    const errs = Array.isArray(ek.errors) ? ek.errors : [];
+    if (ek.ask === "both" ? errs.length !== 2 || errs.filter((e) => e.kind === "syntax").length !== 1 || errs.filter((e) => e.kind === "logic").length !== 1
+      : errs.length !== 1) p.push(ek.ask === "both" ? "a \"both\" question has one syntax error and one logic error" : "a \"" + ek.ask + "\" question has one error");
+    for (const e of errs) {
+      if (!ERROR_KINDS.includes(e.kind)) p.push("an error's kind must be syntax or logic");
+      if (typeof e.line !== "string" || typeof e.fix !== "string" || e.line === e.fix || /\n/.test(e.line + e.fix)) p.push("each error has one wrong line and its fix, which differ");
+    }
+    const built = p.length ? null : withErrors(solution, errs);
+    if (!p.length && built == null) p.push("each error's fix must be a whole line of the solution, there exactly once");
+    else if (!p.length && built !== ek.bug) p.push("error_kind.bug must be the solution with each fix line replaced by its wrong line");
+    if (!p.length && errs.length === 2 && errs[0].fix === errs[1].fix) p.push("the two errors must be on different lines");
+    return p;
+  }
+
+  // Programs to run to check an error question: the bug, and (two errors) the bug with only one of them put in.
+  // tests: the task's tests (inputs). -> [{ code, inputs, role }].
+  function errorKindJobs(ek, solution, tests) {
+    const jobs = [];
+    const add = (code, role) => (tests || []).forEach((t, k) => jobs.push({ code, inputs: t.inputs, role, test: k }));
+    add(ek.bug, "bug");
+    if (ek.errors.length === 2) ek.errors.forEach((e) => add(withErrors(solution, [e]), e.kind));
+    return jobs;
+  }
+
+  // Problems found by running errorKindJobs (results in the same order; expected: each test's expected output).
+  //   A syntax error: Python refuses to run the program (SyntaxError, IndentationError or TabError).
+  //   A logic error: the program runs with no error on every test, and prints something wrong on at least one.
+  function errorKindRunProblems(ek, jobs, results, expected) {
+    const p = [];
+    const runs = (role) => jobs.map((j, i) => (j.role === role ? { r: results[i] || {}, k: j.test } : null)).filter(Boolean);
+    const isSyntax = (x) => !!(x.r.error && SYNTAX_TYPES.includes(x.r.error.type));
+    const showsLogic = (xs) => xs.every((x) => !x.r.error) && xs.some((x) => normalise(x.r.output) !== normalise(expected[x.k]));
+    const bug = runs("bug");
+    if (ek.errors.length === 1) {
+      const e = ek.errors[0];
+      if (e.kind === "syntax" && !bug.every(isSyntax)) p.push("the syntax error must stop Python running the program");
+      if (e.kind === "logic" && !showsLogic(bug)) p.push("the logic error must let the program run but print something wrong on at least one test");
+    } else {
+      if (!bug.every(isSyntax)) p.push("with both errors, Python must refuse to run the program (it has a syntax error)");
+      if (!runs("syntax").every(isSyntax)) p.push("the syntax error on its own must stop the program running");
+      if (!showsLogic(runs("logic"))) p.push("the logic error on its own must let the program run but print something wrong on at least one test");
+    }
+    return p;
+  }
+
   return {
+    ERROR_KINDS, ERROR_KIND_NAMES, ERROR_KIND_DEFINITIONS, ERROR_KIND_OPTIONS, ERROR_KIND_ASKS,
+    errorKindQuestion, checkErrorKind, withErrors, errorKindShapeProblems, errorKindJobs, errorKindRunProblems,
     normalise, outputsMatch, explainError, mismatchHint,
     CATEGORIES, isNoAnswer, errorKind, classifyAttempt, failureParts, failureMessage, matchMisconceptions,
     RECURSION_TASKS, functionsIn, recursiveFunctions, recursionProblem,
