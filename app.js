@@ -2166,7 +2166,10 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     if (!PasteFlag.flags(text, t)) return;
     const units = unitsOf(t);
     const homework = !inAssignment && self.Homework ? Homework.activeFor(Store.homework(student.id), units, Date.now()) : [];
-    Store.logPasteFlag({ studentId: student.id, unit: units[0], units, taskId: t.id, lines: PasteFlag.lineCount(text), homework: homework.length > 0 });
+    // Where the student is, and the homework it is in (the soonest due, as student-api lists them), for the teacher.
+    const phase = cur().placement ? "placement" : inAssignment ? "assignment" : endless ? "endless" : "practice";
+    Store.logPasteFlag({ studentId: student.id, unit: units[0], units, taskId: t.id, lines: PasteFlag.lineCount(text), homework: homework.length > 0,
+      phase, homeworkId: homework.length ? homework[0].id : null });
     if (homework.length) { moveOnAfterPaste(); return; }
     // The message goes straight under the editor, where the student is looking (not below the buttons).
     const at = $("editor-help");

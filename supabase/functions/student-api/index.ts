@@ -7,7 +7,9 @@
 //   add_attempts { rows }              -> { saved, rejected, homework? }  rows use the attempts table's (the export's) column names.
 //                                           After a pass, the student's homework progress is worked out again and sent back.
 //   add_events { rows }                -> { saved, rejected, homework? }  also a flagged paste (record_type paste_flag, paste-flag.js),
-//                                           after which the homework progress is worked out again and sent back
+//                                           after which the homework progress is worked out again and sent back. A paste flag
+//                                           may carry paste_phase, paste_lines and paste_homework_id (migration 0019; the
+//                                           homework must be one of the student's own class's, or that row is rejected)
 //   mark_passed { unit, fingerprint }
 //   rename_me { pin, nickname }        -> { nickname }  the student changes their own nickname, after typing their PIN
 //   leaderboard                        -> { boards: { overall, improving }, me: { secured, level, total, gain }, max }  their own class only:
@@ -23,6 +25,8 @@ import { checkAttempts, checkEvents, insertRows, PROGRESS_UNITS, Rejected, UNITS
 // (tests/backend-client.js runs the same files in Node): they set globalThis.Homework and globalThis.HomeworkServer.
 import "../../../homework.js";
 import "../_shared/homework-server.js";
+// keepOwnHomework: a paste flag's homework id (migration 0019) must be a homework of the student's own class.
+import "../_shared/paste-flags-server.js";
 
 // deno-lint-ignore no-explicit-any
 const G = globalThis as any;
@@ -143,11 +147,16 @@ const actions: Record<string, (sid: string, body: Record<string, unknown>) => Pr
   async add_events(sid, body) {
     const checked = checkEvents(body.rows, STUDENT_EVENT_TYPES);
     if (!checked) throw bad();
-    for (const r of checked.ok) r.student_id = sid;
     const rejected: Rejected[] = checked.rejected;
-    const saved = await insertRows("events", checked.ok, rejected);
+    // A paste flag's details (phase, lines, homework id; migration 0019) pass straight through, once its homework id
+    // (if any) is known to be one of the student's own class's homework.
+    const ok = checked.ok.some((r) => r.paste_homework_id != null)
+      ? await G.PasteFlagsServer.keepOwnHomework(db(), await classOf(sid), checked.ok, rejected) as Record<string, unknown>[]
+      : checked.ok;
+    for (const r of ok) r.student_id = sid;
+    const saved = await insertRows("events", ok, rejected);
     // A flagged paste: that task can no longer count towards homework.
-    if (checked.ok.some((r) => r.record_type === "paste_flag")) {
+    if (ok.some((r) => r.record_type === "paste_flag")) {
       const homework = await myHomework(sid);
       if (homework) return { saved, rejected, homework };
     }

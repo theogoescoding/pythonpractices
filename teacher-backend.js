@@ -642,6 +642,16 @@
   const deleteHomework = (homeworkId) => homeworkCall("delete_homework", { homework_id: homeworkId });
   const homeworkReport = (homeworkId) => homeworkCall("homework_report", { homework_id: homeworkId });
 
+  // Large paste flags for the Students page (teacher-api paste_flags_for_class, migrations 0018 and 0019): each
+  // student's flags per unit, with their details (paste-details.js). -> the reply's body, or { error }.
+  const OLD_SERVER_PASTE = "Paste flags need the newest version of the server. They will show once it has been updated.";
+  async function pasteFlagsForClass(classId) {
+    const r = await teacherApi("paste_flags_for_class", { class_id: classId });
+    if (r.status === 400 && /Something went wrong/.test(r.body.error || "")) return { error: OLD_SERVER_PASTE };
+    if (r.status !== 200) return { error: r.body.error || "Couldn't load the paste flags. Please try again." };
+    return r.body;
+  }
+
   const leaderboards = () => (current ? boardsCall("leaderboards", { class_id: current.id }) : Promise.resolve({ error: "Choose a class first." }));
   const leaderboardsAll = () => boardsCall("leaderboards_all", {});
 
@@ -708,7 +718,7 @@
     allClasses: () => classes.map((c) => ({ id: c.id, name: c.name })),
     teacherName: () => myName,
     certificatesForClass, certificatesForStudent,
-    listHomework, createHomework, deleteHomework, homeworkReport,
+    listHomework, createHomework, deleteHomework, homeworkReport, pasteFlagsForClass,
     copy, resetPin, removeStudent, renameStudent, changePassword, compareClasses, leaderboards, leaderboardsAll,
   };
 })();

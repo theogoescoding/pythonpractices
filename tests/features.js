@@ -3132,7 +3132,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "Paste flag on the practice page: both editors (CodeMirror and the plain box) report a paste; it is recorded, then in homework the task is set aside for a new one, and outside homework only the message shows (no level or progress change); teacher practice records nothing");
     const Rows = require(path.join(ROOT, "backend-rows.js"));
     const row = Rows.pasteFlagToRow({ id: "f-abc-123", at: "2026-11-18T10:00:00.000Z", unit: "maths", taskId: "maths-L9b", studentId: "s1", lines: 12 });
-    check(JSON.stringify(row) === JSON.stringify({ record_id: "f-abc-123", record_type: "paste_flag", timestamp: "2026-11-18T10:00:00.000Z", unit: "maths", task_id: "maths-L9b" }) &&
+    check(JSON.stringify(row) === JSON.stringify({ record_id: "f-abc-123", record_type: "paste_flag", timestamp: "2026-11-18T10:00:00.000Z", unit: "maths", task_id: "maths-L9b",
+      paste_phase: null, paste_lines: 12, paste_homework_id: null }) &&
       Rows.rowToEvent(row, "s1") === null && /logPasteFlag: Store\.logPasteFlag/.test(read("backend.js")),
       "Paste flag: sent to the server as an event (record_type paste_flag, an f- id, the task id); it isn't part of the teacher's export (the homework report shows it)");
 
@@ -3167,6 +3168,101 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       !/grant[^;]*(insert|update|delete)[^;]*homework_progress to authenticated/.test(mig) && /using \(class_id in \(select private\.my_class_ids\(\)\)\)/.test(mig) &&
       /using \(student_id in \(select private\.my_student_ids\(\)\)\)/.test(mig) && !/^grant[^;]*\banon\b/m.test(mig) && !/for \w+ to anon/.test(mig),
       "0018: in one transaction; the paste_flag event type (f- ids); homework and homework_progress, read by teachers on the class (owner or co-teacher), homework added by them, progress written only by the server, nothing for anon (students)");
+  }
+
+  // ===================== Prompt 6 (2026-11): large paste flags on the Students page =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const PD = require(path.join(ROOT, "paste-details.js"));
+    const TDp = require(path.join(ROOT, "teacher-data.js"));
+    const T0 = Date.parse("2026-11-16T09:00:00Z"), M = 60000;
+    const at = (min) => new Date(T0 + min * M).toISOString();
+    const placedAt = (level) => Object.assign(App.freshUnitState(level), { placement: { status: "done", taskIds: [], step: 4, results: [], startLevel: level, used: [] } });
+    const data = { students: { s1: { name: "Ada" }, s2: { name: "Bo" } }, progress: { s1: { units: { maths: placedAt(8), selection: placedAt(5) } }, s2: { units: { maths: placedAt(3) } } },
+      attempts: [
+        // Ada, maths-L9b: a pass before the first paste, a hint and a check on another task after it, then a failed check, then a pass.
+        { studentId: "s1", kind: "attempt", at: at(1), unit: "maths", taskId: "maths-L9b", result: "pass", phase: "practice" },
+        { studentId: "s1", kind: "hint", at: at(12), unit: "maths", taskId: "maths-L9b", result: "show-me-how", phase: "practice" },
+        { studentId: "s1", kind: "attempt", at: at(13), unit: "maths", taskId: "maths-L9a", result: "fail", phase: "practice", code: "print('other task')" },
+        { studentId: "s1", kind: "attempt", at: at(15), unit: "maths", taskId: "maths-L9b", result: "fail", phase: "practice", code: "x = int(input())\nprint(x * 2)" },
+        { studentId: "s1", kind: "attempt", at: at(20), unit: "maths", taskId: "maths-L9b", result: "pass", phase: "practice" },
+        // Ada, if-L9a: skipped in placement after an older paste.
+        { studentId: "s1", kind: "skip", at: at(40), unit: "selection", taskId: "if-L9a", result: "skipped", phase: "placement" },
+      ], buttonLog: [] };
+    const log = [
+      { id: "f-1", studentId: "s1", at: at(10), unit: "maths", taskId: "maths-L9b", lines: 12, homework: false, phase: "practice", homeworkId: null },
+      { id: "f-2", studentId: "s1", at: at(18), unit: "maths", taskId: "maths-L9b", lines: 9, homework: false, phase: "practice", homeworkId: null },
+      { id: "f-3", studentId: "s1", at: at(30), unit: "maths", taskId: "maths-L10a", lines: 20, homework: false, phase: "endless", homeworkId: null },
+      { id: "f-old", studentId: "s1", at: at(35), unit: "selection", taskId: "if-L9a", lines: 10, homework: false }, // before phase was kept
+    ];
+    const flags = TDp.pasteFlagsFor(data, log);
+    const maths = flags.s1.maths, sel = flags.s1.selection;
+
+    // Newest first; the next check is the earliest check (attempt or skip) on the same task after the flag.
+    check(maths.map((f) => f.id).join() === "f-3,f-2,f-1" && !flags.s2 &&
+      maths[2].next.result === "failed" && maths[2].next.at === at(15) && maths[2].next.code === "x = int(input())\nprint(x * 2)" &&
+      maths[1].next.result === "passed" && maths[1].next.code === null && maths[1].next.codeNote === PD.CODE_NOTES.passed && maths[1].next.at === at(20),
+      "Paste flags: listed newest first; each one's next check is the earliest Check or skip on the same task after the paste (not a hint, another task or an earlier check); a failed check shows its saved code, a passed one says its code isn't kept");
+    check(maths[0].next === null && PD.NO_CHECK === "No check since the paste yet." && /PD\.NO_CHECK/.test(read("teacher.js")),
+      "Paste flags: with no check on the task since the paste, the dialog says \"No check since the paste yet.\"");
+    // An older flag (before phase, lines and homework were stored): Not recorded, and the phase from the next check.
+    check(sel.length === 1 && sel[0].lines === null && !sel[0].homework.recorded && sel[0].phase === "placement" && sel[0].phaseFrom === "next-check" &&
+      PD.whereText(sel[0]) === "Placement (worked out from the next check)" && sel[0].next.result === "skipped" && sel[0].next.codeNote === PD.CODE_NOTES.skipped &&
+      PD.whereText(PD.describe({ id: "x", at: at(0), unit: "maths", taskId: "none", recorded: false }, [], {})) === "Not recorded" &&
+      PD.NOT_RECORDED === "Not recorded" && /row\("Homework", PD\.NOT_RECORDED\)/.test(read("teacher.js")) && /row\("Lines pasted", f\.lines == null \? PD\.NOT_RECORDED/.test(read("teacher.js")),
+      "Paste flags: an older flag shows \"Not recorded\" for lines and homework, and its phase is worked out from the next check (\"Not recorded\" when there is none)");
+    // A recorded flag in homework: the homework's due date; server-cleared code says so.
+    const hwFlag = PD.describe({ id: "h", at: at(0), unit: "maths", taskId: "t", phase: "practice", lines: 9, homeworkId: "hw1", recorded: true },
+      [{ at: at(5), taskId: "t", kind: "attempt", result: "fail", phase: "practice", code: null, codeDeleted: true }], { hw1: "2026-11-27" });
+    check(hwFlag.homework.inHomework && hwFlag.homework.dueOn === "2026-11-27" && PD.whereText(hwFlag) === "Homework (practice)" && hwFlag.lines === 9 &&
+      hwFlag.next.code === null && hwFlag.next.codeNote === PD.CODE_NOTES.deleted && PD.countText(1) === "1 flag" && PD.countText(3) === "3 flags",
+      "Paste flags: a flag in homework shows \"Homework\" and the homework's due date; code the server cleared after 30 days says so");
+
+    // The Students page: the flag is in the Level cell of that unit only; several show a count; sorting is unchanged.
+    const unitIds = Curriculum.UNITS.map((u) => u.id);
+    const rows = TDp.sortScoreTable(TDp.scoreTable(data, unitIds).rows, "maths", -1);
+    const opts = { rows, unitIds, unitGroups: Curriculum.UNIT_GROUPS, unitTitle: Curriculum.unitTitle, sortKey: "maths", sortDir: -1, when: () => "–" };
+    const plain = TDp.overviewTablesHtml(opts);
+    const html = TDp.overviewTablesHtml(Object.assign({}, opts, { pasteHtml: (sid, u) => TDp.pasteFlagHtml(sid, u, (flags[sid] || {})[u]) }));
+    const cellsWithFlag = [...html.matchAll(/<tr class="(ov-fresh|ov-level)">([\s\S]*?)<\/tr>/g)].flatMap((m) =>
+      [...m[2].matchAll(/<td class="unit-cell" data-label="([^"]+)">([\s\S]*?)<\/td>/g)].filter((c) => /paste-flag-btn/.test(c[2])).map((c) => m[1] + ":" + c[1]));
+    const buttons = [...html.matchAll(/<button type="button" class="paste-flag-btn"[^>]*>[\s\S]*?<\/button>/g)].map((m) => m[0]);
+    check(cellsWithFlag.sort().join() === "ov-level:Maths in Python,ov-level:Selection" && buttons.length === 2 &&
+      buttons.some((b) => /data-paste-student="s1" data-paste-unit="maths"/.test(b) && /aria-label="Large paste flagged, 3 flags\. Open the details"/.test(b) && />3 flags<\/span>/.test(b)) &&
+      buttons.some((b) => /data-paste-unit="selection"/.test(b) && /aria-label="Large paste flagged\. Open the details"/.test(b) && !/paste-flag-count/.test(b)),
+      "Students page: a red flag appears only in the Level cell of the unit the paste was in (never the Freshness cell or another unit), labelled \"Large paste flagged\"; several show one flag with the count (\"3 flags\")");
+    const order = (h) => [...new Set([...h.matchAll(/href="#student=(\w+)"/g)].map((m) => m[1]))].join(); // each table lists every student
+    check(order(html) === order(plain) && html.replace(/ <button type="button" class="paste-flag-btn"[\s\S]*?<\/button>/g, "") === plain && order(plain) === "s1,s2",
+      "Students page: the flags don't change the sort order (it still uses the level) or anything else in the table");
+    const tj = read("teacher.js");
+    check(/self\.openDialog\(document, \{/.test(tj) && /id: "paste-flags"/.test(tj) && /e\.target\.closest\("button\[data-paste-student\]"\)/.test(tj) &&
+      /tb\.pasteFlagsForClass\(c\.id\)/.test(tj) && /TD\.pasteFlagsFor\(data, Store\.pasteLog\(\)\)/.test(tj) && !/innerHTML/.test(tj.slice(tj.indexOf("function pasteDialogBody"), tj.indexOf("async function openPasteDialog"))) &&
+      /<script src="paste-details\.js"><\/script>/.test(read("teacher.html")),
+      "Paste flag dialog: the shared openDialog (a button, so Enter opens it too), filled as text only; backend mode asks teacher-api, local mode uses this browser's own record");
+    // The code block wraps inside the dialog: no sideways scroll at 390px.
+    const css = read("styles.css");
+    const rule = (sel) => { const i = css.indexOf("\n" + sel + " {"); return i < 0 ? "" : css.slice(i, css.indexOf("}", i)); };
+    check(/white-space: pre-wrap;/.test(rule(".paste-code")) && /overflow-wrap: anywhere;/.test(rule(".paste-code")) && /max-width: 100%;/.test(rule(".paste-code")) &&
+      /overflow: auto;/.test(rule(".paste-code")) && /monospace/.test(rule(".paste-code")) && /width: 100%; max-width: 28rem;/.test(rule(".modal")) &&
+      /minmax\(0, 1fr\)/.test(rule(".paste-flag-facts")) && /\.modal\.modal-wide \{ max-width: 44rem; \}/.test(css),
+      "Paste flag dialog: the code is in a monospace block that wraps long lines (and scrolls up and down inside itself), within a dialog no wider than the screen, so the page never scrolls sideways at 390px");
+
+    // Recording and sending the details; the server's checks; 0019.
+    const appS = read("app.js"), rowsTs = read("supabase/functions/_shared/rows.ts"), sapi = read("supabase/functions/student-api/index.ts");
+    const tapi = read("supabase/functions/teacher-api/index.ts"), mig = read("supabase/migrations/0019_paste_flag_details.sql"), pfs = read("supabase/functions/_shared/paste-flags-server.js");
+    check(/const phase = cur\(\)\.placement \? "placement" : inAssignment \? "assignment" : endless \? "endless" : "practice";/.test(appS) &&
+      /phase, homeworkId: homework\.length \? homework\[0\]\.id : null \}\);/.test(appS) &&
+      /paste_phase: orNull\(f\.phase\), paste_lines: orNull\(f\.lines\), paste_homework_id: orNull\(f\.homeworkId\)/.test(read("backend-rows.js")),
+      "Paste flag details: the phase, the line count and the open homework's id are recorded with each flag (this browser too) and sent with it; the pasted text never is");
+    check(/if \(r\.record_type !== "paste_flag"\) \{\s*const extra = PASTE_FIELDS\.find/.test(rowsTs) && /"bad paste_phase"/.test(rowsTs) && /"bad paste_lines"/.test(rowsTs) &&
+      /PasteFlagsServer\.keepOwnHomework\(db\(\), await classOf\(sid\), checked\.ok, rejected\)/.test(sapi) &&
+      /async paste_flags_for_class\(tid, body\)/.test(tapi) && /deps\.Sharing\.requireClass\(sb, tid, classId, false\)/.test(pfs) && !/pin_hash|login_code/.test(pfs),
+      "Paste flag details on the server: only paste flags may carry them; the homework must be the student's own class's; teacher-api paste_flags_for_class needs a teacher on the class");
+    check(/^begin;$/m.test(mig) && /^commit;$/m.test(mig) && /add column paste_phase text check \(paste_phase in \('practice', 'placement', 'endless', 'assignment'\)\)/.test(mig) &&
+      /add column paste_lines int check \(paste_lines > 0\)/.test(mig) && /add column paste_homework_id uuid references public\.homework \(id\) on delete set null/.test(mig) &&
+      /check \(record_type = 'paste_flag' or \(paste_phase is null and paste_lines is null and paste_homework_id is null\)\)/.test(mig) &&
+      !/^\s*(grant|revoke|create policy|alter policy|drop)/im.test(mig),
+      "0019: three optional columns on events in one transaction, null unless the row is a paste flag; no grant or policy changes");
   }
 
   // ===================== Selection, trimmed =====================

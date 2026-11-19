@@ -66,7 +66,13 @@ const EVENT: Spec = {
   button: { kind: "text" },
   placement_start_level: { kind: "int" },
   placement_results: { kind: "json" },
+  // A paste flag's details (migration 0019): paste flags only (checkEvents).
+  paste_phase: { kind: "text", max: 20 },
+  paste_lines: { kind: "int" },
+  paste_homework_id: { kind: "text", max: 40 },
 };
+const PASTE_PHASES = ["practice", "placement", "endless", "assignment"];
+const PASTE_FIELDS = ["paste_phase", "paste_lines", "paste_homework_id"];
 
 const clip = (s: string) => (s.length > MAX_STORED_TEXT ? s.slice(0, MAX_STORED_TEXT) + "\n…(cut short)" : s);
 
@@ -136,12 +142,21 @@ export async function insertRows(table: "attempts" | "events", rows: Record<stri
 }
 
 // Events: students may send every record type except placement_reset, which only a teacher makes.
-// A paste flag (record_type paste_flag, migration 0018) must name its task.
+// A paste flag (record_type paste_flag, migration 0018) must name its task. Its details (0019) are optional, and only a
+// paste flag may have them: a phase from the list, a line count above 0, a homework id (checked against the student's
+// class by student-api, with paste-flags-server.js keepOwnHomework, and by the database's 0019 trigger).
 export function checkEvents(rows: unknown, allowedTypes: string[]) {
   return checkRows(EVENT, rows, (r) => {
     if (!UNITS.includes(r.unit as string)) return "bad unit";
     if (!allowedTypes.includes(r.record_type as string)) return "bad record_type";
-    if (r.record_type === "paste_flag" && (typeof r.task_id !== "string" || !r.task_id)) return "bad task_id";
+    if (r.record_type !== "paste_flag") {
+      const extra = PASTE_FIELDS.find((k) => r[k] !== undefined && r[k] !== null);
+      return extra ? "bad " + extra : null;
+    }
+    if (typeof r.task_id !== "string" || !r.task_id) return "bad task_id";
+    if (r.paste_phase != null && !PASTE_PHASES.includes(r.paste_phase as string)) return "bad paste_phase";
+    if (r.paste_lines != null && !((r.paste_lines as number) > 0)) return "bad paste_lines";
+    if (r.paste_homework_id != null && !UUID.test(r.paste_homework_id as string)) return "bad paste_homework_id";
     return null;
   });
 }

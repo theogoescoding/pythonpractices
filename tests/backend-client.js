@@ -515,6 +515,69 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
       "Homework: its creator or a co-teacher can delete it; then the students no longer see it, and other classes' homework stays");
   }
 
+  // ---------- Large paste flags on the Students page (teacher-api paste_flags_for_class: _shared/paste-flags-server.js) ----------
+  // The real module teacher-api runs, with the site's rule (paste-details.js), against an in-memory database.
+  {
+    const Sharing = require(path.join(ROOT, "supabase", "functions", "_shared", "class-sharing.js"));
+    const PFS = require(path.join(ROOT, "supabase", "functions", "_shared", "paste-flags-server.js"));
+    const deps = { Sharing, PasteDetails: require(path.join(ROOT, "paste-details.js")) };
+    const sb = fakeDb();
+    const T = sb.t;
+    const id = (n) => "0000000" + n + "-0000-0000-0000-000000000001";
+    const [O, K, X] = [id("a"), id("b"), id("c")];
+    const CLA = "0000000a-0000-0000-0000-00000000c1a5", CLX = "0000000c-0000-0000-0000-00000000c1a5";
+    const ADA = "0000000a-0000-0000-0000-0000000057d1", BEN = "0000000a-0000-0000-0000-0000000057d2", XAVI = "0000000c-0000-0000-0000-0000000057d1";
+    const HWA = "0000000a-0000-0000-0000-0000000000a1", HWX = "0000000c-0000-0000-0000-0000000000a1";
+    T.teachers.push({ id: O, name: "Owner O" }, { id: K, name: "Co-teacher K" }, { id: X, name: "Stranger X" });
+    T.classes.push({ id: CLA, name: "7A", teacher_id: O }, { id: CLX, name: "8X", teacher_id: X });
+    T.class_teachers.push({ class_id: CLA, teacher_id: O }, { class_id: CLA, teacher_id: K }, { class_id: CLX, teacher_id: X });
+    T.students.push({ id: ADA, class_id: CLA, nickname: "Ada", pin_hash: "SECRET-PIN", login_code_enc: "SECRET-CODE" }, { id: BEN, class_id: CLA, nickname: "Ben" },
+      { id: XAVI, class_id: CLX, nickname: "Xavi" });
+    T.homework.push({ id: HWA, class_id: CLA, task_count: 5, due_on: "2026-11-27", units: [] }, { id: HWX, class_id: CLX, task_count: 5, due_on: "2026-11-30", units: [] });
+    const t = (min) => new Date(Date.parse("2026-11-18T10:00:00Z") + min * 60000).toISOString();
+    let n = 0;
+    const ev = (sid, min, task, unit, extra) => T.events.push(Object.assign({ id: ++n, student_id: sid, record_id: "f-" + n, record_type: "paste_flag", timestamp: t(min), unit, task_id: task,
+      paste_phase: null, paste_lines: null, paste_homework_id: null }, extra));
+    const at = (sid, min, task, type, result, code, phase) => T.attempts.push({ id: ++n, student_id: sid, record_type: type, timestamp: t(min), task_id: task, unit: "maths",
+      phase: phase || "practice", result, student_code: code, code_deleted_at: null });
+    ev(ADA, 0, "maths-L9b", "maths", { paste_phase: "practice", paste_lines: 12, paste_homework_id: HWA });
+    ev(ADA, 30, "maths-L10a", "maths", { paste_phase: "endless", paste_lines: 9 });
+    ev(ADA, 40, "if-L9a", "selection");                                  // an older flag: no details stored
+    ev(XAVI, 5, "maths-L9b", "maths", { paste_phase: "practice", paste_lines: 15 });
+    T.events.push({ id: ++n, student_id: ADA, record_id: "l-1", record_type: "level_change", timestamp: t(1), unit: "maths" }); // not a flag
+    at(ADA, -5, "maths-L9b", "attempt", "fail", "print('before the paste')");
+    at(ADA, 3, "maths-L9b", "attempt", "fail", "x = int(input())\nprint(x * 2)");
+    at(ADA, 6, "maths-L9b", "attempt", "pass", null);
+    at(ADA, 7, "maths-L8a", "attempt", "fail", "print('ANOTHER TASK, never sent')");
+    at(ADA, 45, "if-L9a", "skip", "skipped", null, "placement");
+    at(XAVI, 8, "maths-L9b", "attempt", "fail", "print('XAVI CODE')");
+    const problem = async (f) => { try { await f(); return null; } catch (e) { return e instanceof Sharing.Problem ? { status: e.status } : { thrown: String(e) }; } };
+
+    const owner = await PFS.forClass(sb, deps, O, CLA);
+    const ada = owner.students.find((s) => s.student_name === "Ada");
+    const maths = ada.units.find((u) => u.unit === "maths").flags, sel = ada.units.find((u) => u.unit === "selection").flags;
+    check(owner.students.length === 1 && ada.student_id === ADA && maths.map((f) => f.taskId).join() === "maths-L10a,maths-L9b" &&
+      maths[1].lines === 12 && maths[1].phase === "practice" && maths[1].homework.inHomework && maths[1].homework.dueOn === "2026-11-27" &&
+      maths[1].next.result === "failed" && maths[1].next.code === "x = int(input())\nprint(x * 2)" && maths[0].next === null &&
+      sel[0].lines === null && !sel[0].homework.recorded && sel[0].phase === "placement" && sel[0].phaseFrom === "next-check" && sel[0].next.result === "skipped",
+      "Paste flags: a teacher on the class gets each student's flags per unit (newest first), with the phase, lines, homework due date and the next check; older flags are \"not recorded\"");
+    const json = JSON.stringify(owner);
+    check(!/SECRET|Xavi|XAVI|ANOTHER TASK|before the paste/.test(json) && !/"attempts"|student_code|pin/.test(json) &&
+      (json.match(/"code":"/g) || []).length === 1,
+      "Paste flags: the reply has no PIN or login code, no other class's student, and only the one next check per flag (not the attempt log: no other task's code, no earlier check)");
+    const co = await PFS.forClass(sb, deps, K, CLA);
+    check(JSON.stringify(co) === json, "Paste flags: a co-teacher gets exactly what the owner gets");
+    check((await problem(() => PFS.forClass(sb, deps, X, CLA))).status === 404 && (await PFS.forClass(sb, deps, X, CLX)).students.map((s) => s.student_name).join() === "Xavi",
+      "Paste flags: a teacher who isn't on the class gets none (the same 404 as a class that doesn't exist); their own class shows only their own students");
+    // student-api add_events: a homework id from another class is refused; the class's own is kept.
+    const rejected = [];
+    const rows = [{ record_id: "f-a", record_type: "paste_flag", paste_homework_id: HWA }, { record_id: "f-b", record_type: "paste_flag", paste_homework_id: HWX },
+      { record_id: "f-c", record_type: "paste_flag", paste_homework_id: null }];
+    const kept = await PFS.keepOwnHomework(sb, CLA, rows, rejected);
+    check(kept.map((r) => r.record_id).join() === "f-a,f-c" && rejected.length === 1 && rejected[0].record_id === "f-b" && rejected[0].reason === "bad paste_homework_id",
+      "Paste flags: a paste flag naming another class's homework is refused (the student's own class's homework, or none, is kept)");
+  }
+
   // ---------- Homework and paste flags in the student's browser (backend.js) ----------
   {
     const server = fakeServer();
@@ -526,13 +589,15 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
     p = openPage(server, p.storage);
     await p.Backend.ready();
     check(JSON.stringify(p.Store.homework(hid)) === JSON.stringify(hwList), "Homework: the student's page gets their class's homework with the rest of their data");
-    p.Store.logPasteFlag({ studentId: hid, unit: "selection", units: ["selection"], taskId: "if-L9a", lines: 12, homework: true });
+    p.Store.logPasteFlag({ studentId: hid, unit: "selection", units: ["selection"], taskId: "if-L9a", lines: 12, homework: true, phase: "practice", homeworkId: "hw-1" });
     server.homework[hid] = [Object.assign({}, hwList[0], { done: 1 })];
     attempt(p.Store, hid, { taskId: "if-L8a" });
     await p.Backend.flush();
     const flag = server.events[hid].find((r) => r.record_type === "paste_flag");
-    check(flag && flag.task_id === "if-L9a" && flag.unit === "selection" && /^f-/.test(flag.record_id) && Object.keys(flag).sort().join() === "record_id,record_type,task_id,timestamp,unit",
-      "Paste flag: sent to student-api as an event with the task id (and nothing else: no code, no line count)");
+    check(flag && flag.task_id === "if-L9a" && flag.unit === "selection" && /^f-/.test(flag.record_id) &&
+      Object.keys(flag).sort().join() === "paste_homework_id,paste_lines,paste_phase,record_id,record_type,task_id,timestamp,unit" &&
+      flag.paste_phase === "practice" && flag.paste_lines === 12 && flag.paste_homework_id === "hw-1",
+      "Paste flag: sent to student-api as an event with the task id, the phase, the line count and the homework id (migration 0019), and nothing else: no code or pasted text");
     check(p.Store.homework(hid)[0].done === 1, "Homework: after a pass is sent, the new \"x of y done\" from the server is kept for the home page");
   }
 

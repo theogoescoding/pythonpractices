@@ -254,8 +254,11 @@
   const saveHomework = (studentId, list) => writeJson(HOMEWORK_PREFIX + studentId, Array.isArray(list) ? list : []);
 
   // ---------- Large paste flags (paste-flag.js) ----------
-  // entry = { studentId, unit, units, taskId, lines, homework (true when it was in homework) }. In backend mode it is
-  // also sent to the server as an event (record_type paste_flag), where homework and the teacher's report use it.
+  // entry = { studentId, unit, units, taskId, lines, homework (true when it was in homework), phase (practice, placement,
+  // endless or assignment), homeworkId (the open homework's id, or null; always null in local mode) }. phase and
+  // homeworkId are kept from 2026-11 (migration 0019); older entries have neither. The pasted text is never kept. In
+  // backend mode it is also sent to the server as an event (record_type paste_flag), where homework, the homework
+  // report and the Students page use it; in local mode the teacher view reads it from here.
   const PASTE_LOG_KEY = "pyPractice.pasteLog.v1";
   function logPasteFlag(entry) {
     return appendLog(PASTE_LOG_KEY, Object.assign({ id: newRecordId("f"), at: new Date().toISOString() }, entry), MAX_LOG_ENTRIES);

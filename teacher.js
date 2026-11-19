@@ -149,9 +149,87 @@
     // columns share the page width with no sideways scrolling.
     // Each group of units is a collapsible block (open unless this teacher closed it on this device), wired by
     // Collapse.enhance's handler on <main>.
+    loadPasteFlags(data);
     $("overview-tables").innerHTML = TD.overviewTablesHtml({ rows: scoreRows(data), unitIds, unitGroups: self.Curriculum.UNIT_GROUPS, unitTitle,
-      sortKey, sortDir, when, flagsHtml: buttonFlagsHtml, buttonHtml: Collapse.buttonHtml, collapsed: Collapse.collapsedIds(OVERVIEW_KEY) });
+      sortKey, sortDir, when, flagsHtml: buttonFlagsHtml, buttonHtml: Collapse.buttonHtml, collapsed: Collapse.collapsedIds(OVERVIEW_KEY),
+      pasteHtml: (sid, u) => TD.pasteFlagHtml(sid, u, (pasteFlags[sid] || {})[u]) });
   }
+
+  // ---------- Large paste flags (the Students page's Level cells) ----------
+  // A red flag next to a unit's level when the student had a large paste flagged in it (paste-flag.js), with the count
+  // when there are several. Selecting it opens the details (paste-details.js: when, the task, where, lines, homework,
+  // and the code of the student's next check on that task). Backend mode: teacher-api paste_flags_for_class (any
+  // teacher on the class, owner or co-teacher). Local mode: this browser's own record of them (Store.pasteLog).
+  const PD = self.PasteDetails;
+  let pasteFlags = {};   // { studentId: { unit: [details, newest first] } } for the class on show
+  let pasteFor = null;   // the class data they were loaded for
+  function loadPasteFlags(data) {
+    if (pasteFor === data) return;
+    pasteFor = data;
+    if (!tb) { pasteFlags = TD.pasteFlagsFor(data, Store.pasteLog()); return; }
+    pasteFlags = {};
+    const c = currentClass();
+    if (!c) return;
+    tb.pasteFlagsForClass(c.id).then((r) => {
+      if (pasteFor !== data) return; // another class was chosen meanwhile
+      $("st-paste-status").textContent = r.error || "";
+      pasteFlags = r.error ? {} : TD.pasteFlagsFromServer(r);
+      if (page() === "students" && Object.keys(pasteFlags).length) render();
+    });
+  }
+  const ukTime = (iso) => new Date(iso).toLocaleString("en-GB", { timeZone: "Europe/London", weekday: "short", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  const RESULT_WORDS = { passed: "Passed", failed: "Failed", skipped: "Skipped" };
+  // The dialog's body: every flag, newest first. Text only (textContent): nothing here is read as HTML.
+  function pasteDialogBody(make, flags) {
+    const wrap = make("div", "paste-dialog");
+    wrap.appendChild(make("p", "small", PD.countText(flags.length) + ", newest first. The pasted text is never stored: the code shown is from the student's next check on the same task."));
+    const list = make("ol", "paste-flag-list");
+    for (const f of flags) {
+      const li = make("li", "paste-flag-item");
+      const dl = make("dl", "paste-flag-facts");
+      const row = (k, v) => { dl.appendChild(make("dt", null, k)); dl.appendChild(make("dd", null, v)); };
+      row("When", ukTime(f.at));
+      row("Task", taskName(f.taskId));
+      row("Where", PD.whereText(f));
+      if (!f.homework.recorded) row("Homework", PD.NOT_RECORDED);
+      else if (f.homework.inHomework) row("Homework due", f.homework.dueOn ? HW.longDate(f.homework.dueOn) : "Not known");
+      row("Lines pasted", f.lines == null ? PD.NOT_RECORDED : String(f.lines));
+      li.appendChild(dl);
+      if (!f.next) li.appendChild(make("p", "paste-next paste-next-none", PD.NO_CHECK));
+      else {
+        li.appendChild(make("p", "paste-next", "Next check: " + RESULT_WORDS[f.next.result] + ", " + ukTime(f.next.at) + "."));
+        if (f.next.code != null) {
+          const pre = make("pre", "paste-code");
+          pre.setAttribute("tabindex", "0");
+          pre.setAttribute("aria-label", "Code from the next check");
+          pre.appendChild(make("code", null, f.next.code === "" ? "(no code)" : f.next.code));
+          li.appendChild(pre);
+        } else li.appendChild(make("p", "small", f.next.codeNote));
+      }
+      list.appendChild(li);
+    }
+    wrap.appendChild(list);
+    return wrap;
+  }
+  async function openPasteDialog(sid, unit) {
+    const flags = (pasteFlags[sid] || {})[unit] || [];
+    if (!flags.length) return;
+    if (flags.some((f) => String(f.taskId).includes("#"))) await loadTemplateTitles();
+    const name = ((collect() || { students: {} }).students[sid] || { name: "Student" }).name;
+    const sel = 'button[data-paste-student="' + CSS.escape(sid) + '"][data-paste-unit="' + CSS.escape(unit) + '"]';
+    const api = self.openDialog(document, {
+      id: "paste-flags", title: "Large paste flagged: " + name + ", " + unitTitle(unit),
+      inert: [document.querySelector(".site-header"), document.querySelector("main"), document.querySelector(".skip-link")],
+      returnFocus: () => { const b = $("overview-tables").querySelector(sel); if (b) b.focus(); },
+      body: (make) => pasteDialogBody(make, flags),
+      buttons: [{ label: "Close", action: (a) => a.close() }],
+    });
+    api.element.querySelector(".modal").classList.add("modal-wide");
+  }
+  $("overview-tables").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-paste-student]");
+    if (b) openPasteDialog(b.dataset.pasteStudent, b.dataset.pasteUnit);
+  });
 
   // Any table's column heading sorts every table; focus goes back to the same heading in the same table.
   $("overview-tables").addEventListener("click", (e) => {
@@ -306,6 +384,11 @@
 
   const unitNames = (units) => (units && units.length ? units.map((u) => unitTitle(u)).join(", ") : "Any unit");
   const plural = (n, word) => n + " " + word + (n === 1 ? "" : "s");
+  // The templates' titles (templates.json), loaded once, the first time a template variant needs naming.
+  async function loadTemplateTitles() {
+    if (!templateTitles) templateTitles = await fetch("templates.json").then((x) => x.json()).then((list) => Object.fromEntries(list.map((t) => [t.id, t.title]))).catch(() => ({}));
+    return templateTitles;
+  }
   // A task's name: its title, then its id. A template variant ("template#seed") is named by its template.
   function taskName(id) {
     const tpl = String(id).split("#")[0];
@@ -440,8 +523,8 @@
     const r = await tb.homeworkReport(id);
     if (!hwReport || hwReport.id !== id) return; // another report was opened meanwhile
     if (r.error) { $("hw-report-meta").textContent = r.error; return; }
-    if (!templateTitles && r.students.some((s) => s.flagged.some((f) => String(f.task_id).includes("#")))) {
-      templateTitles = await fetch("templates.json").then((x) => x.json()).then((list) => Object.fromEntries(list.map((t) => [t.id, t.title]))).catch(() => ({}));
+    if (r.students.some((s) => s.flagged.some((f) => String(f.task_id).includes("#")))) {
+      await loadTemplateTitles();
       if (!hwReport || hwReport.id !== id) return;
     }
     hwReport.data = r;

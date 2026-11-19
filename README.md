@@ -114,7 +114,8 @@ A class can have more than one teacher. Its owner (the teacher who made it, `cla
 | Sharing a class: `class_teachers`, the policies that let a co-teacher use a class as its owner does, and two service-role functions (`teacher_by_email`, `class_teacher_list`) | `supabase/migrations/0016_class_sharing.sql` |
 | Certificates: one row per student per block, read by the student's teachers, written only by teacher-api | `supabase/migrations/0017_certificates.sql` |
 | Homework: `homework` (read, added and deleted by teachers on the class) and `homework_progress` (read by them, written only by the server), and the `paste_flag` event type (`f-` ids, a task id) | `supabase/migrations/0018_homework.sql` |
-| `teacher-api` (teacher's Supabase sign-in): reveal codes, reset PIN, reset placement, rename a student, the class's leaderboards and All my classes, add, remove and list a class's teachers, certificates, homework (list, create, delete, report), import | `supabase/functions/teacher-api/` |
+| Paste flag details: `events.paste_phase`, `paste_lines` and `paste_homework_id` (null unless the row is a paste flag; the homework must be the student's own class's) | `supabase/migrations/0019_paste_flag_details.sql` |
+| `teacher-api` (teacher's Supabase sign-in): reveal codes, reset PIN, reset placement, rename a student, the class's leaderboards and All my classes, add, remove and list a class's teachers, certificates, homework (list, create, delete, report), the class's large paste flags (`paste_flags_for_class`), import | `supabase/functions/teacher-api/` |
 | Shared function code: CORS, crypto, nickname filter, row checks, points and leaderboards (`points.ts`, which loads `curriculum.js` and `secured.js` themselves), class sharing (`class-sharing.js`), certificates (`certificates-server.js`) and homework (`homework-server.js`, with `homework.js`), plain scripts the Node tests run too | `supabase/functions/_shared/` |
 | Student side | `backend.js`, with `backend-rows.js` (local records ⇄ table rows) |
 | Teacher side | `teacher-backend.js`, with `backend-import.js` (reading a full export) |
@@ -940,6 +941,14 @@ A **single paste of more than 8 lines** into the code editor of a write or write
 - **In homework** (an open homework of the class, not complete or past due, covers the task's unit): the student sees "Your teacher has been told. This task doesn't count towards your homework. Here is a new task." and gets a new task. In practice and endless mode the old task is set aside (no skip, fail or level change); in a placement question it is skipped, as the Skip button does.
 - **Anywhere else** (no homework, local mode, a class assignment, which is a fixed list): the student sees "Your teacher has been told this code was pasted in. Try writing it yourself." under the editor. Nothing else changes: their progress is as it was.
 - Teacher practice never flags anything (nothing is recorded there).
+- **Details kept with each flag** (from migration 0019, and in this browser's store from then): the phase the student was in (practice, placement, endless or assignment), the number of lines pasted, and the open homework's id (the soonest due, or none). The pasted text is never kept. Older flags have none of these.
+
+#### On the teacher's Students page
+
+- A **small red flag** next to the level, in the unit's **Level** cell only, when the student had a large paste flagged in that unit; several show one flag with the count ("3 flags"). Its label is "Large paste flagged". The Freshness cell and the sort order don't change. Owners and co-teachers see the same.
+- **Selecting it** (or Enter) opens a dialog (the shared `openDialog`) with each flag, newest first: the date and time (UK time), the task's name, where it happened (practice, placement, endless, assignment or homework, with the homework's due date), the lines pasted, and the student's **next check** on that task: the earliest Check or skip on the same task after the paste, with its result and time. Older flags show "Not recorded" for lines and homework, and their phase is worked out from the next check where there is one.
+- **The code shown** is that next check's own saved code. The site keeps code only for a **failed** check (for 30 days on the server), so a passed check, a skip or cleared code says why there is no code. No new code is ever stored. "No check since the paste yet." when there is none. The code block wraps long lines, so the page never scrolls sideways.
+- **Backend mode:** teacher-api `paste_flags_for_class` (any teacher on the class), with the rule in `paste-details.js` and `_shared/paste-flags-server.js`. It reads only the class's students' flags and, per flag, the one next check: never the attempt log, a PIN or a login code. **Local mode:** the same rule on this browser's own record (`Store.pasteLog`).
 
 ### Class stage
 
@@ -1131,6 +1140,7 @@ The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, n
 | `certificate.html`, `certificate.js` | One printable certificate (A4 landscape, no buttons), opened by the teacher view's Print button |
 | `homework.js` | The homework counting rule, the teacher's form check and the dates (shared by the student pages, the teacher view and the server; see [Homework](#homework)) |
 | `paste-flag.js` | The large paste flag: more than 8 lines into the editor, never the expected output (see [Large paste flag](#large-paste-flag)) |
+| `paste-details.js` | Each paste flag's details for the teacher's Students page: the next check on the task, the phase, lines and homework (shared by the teacher view's local mode and teacher-api) |
 | `tour.js` | The student app's tutorial: the walkthrough, the reminders and Help (see [Tutorial](#tutorial-tourjs)) |
 | `collapse.js` | Collapsible sections, shared by the student view's unit groups and the teacher view's sections (each remembered under its own localStorage key) |
 | `task-view.js` | The Expected output box and example test (practice page and Task browser), and the task search |
@@ -1151,6 +1161,7 @@ The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, n
 | `tests/sql/a-level-data-structures-units.sql` | SQL test for migration 0012 (the five data structures units in every unit check) |
 | `tests/sql/class-sharing.sql` | SQL test for migration 0016: what a co-teacher, a removed co-teacher and a teacher with no membership can see and do |
 | `tests/sql/certificates.sql` | SQL test for migration 0017: a teacher (owner or co-teacher) reads their class's certificates, a teacher outside the class reads none, and no teacher or anon can write them |
+| `tests/sql/paste-flag-details.sql` | SQL test for migration 0019: the three paste details are null for every other event, only good values are kept, a teacher outside the class (or anon) can't read them, and no teacher can write them |
 | `tests/sql/homework.sql` | SQL test for migration 0018: teachers on the class (owner or co-teacher) read its homework and progress and add or delete its homework; a teacher outside the class sees none; no teacher writes progress; anon can't read or write either; the paste_flag event |
 | `tools/archive/print-commas.js`, `tools/archive/print-commas-templates.js`, `tools/archive/casting-words.js`, `tools/archive/replace-sep-end.js`, `tools/archive/replace-types-round-if.js` | Archived: one-off rewrites that were each run once (the printing rule's commas and casting, `sep=`/`end=`, and the Data types tasks that used `round()` or `if`), kept as a record. Nothing needs them to rebuild anything |
 | `teacher-data.js` | Teacher view sums, filters, the secured score table and flags, the student page, the exports and data dictionary (no DOM, so it's tested in Node) |

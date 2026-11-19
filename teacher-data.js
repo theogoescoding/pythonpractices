@@ -2,9 +2,9 @@
 // No DOM here, so tests/features.js can check it. Works in the browser (window.TeacherData) and in Node.
 
 (function (root, factory) {
-  if (typeof module === "object" && module.exports) module.exports = factory(require("./secured.js"), require("./certificates.js"));
-  else root.TeacherData = factory(root.Secured, root.Certificates); // teacher.html loads secured.js and certificates.js first
-})(typeof self !== "undefined" ? self : this, function (Secured, Certificates) {
+  if (typeof module === "object" && module.exports) module.exports = factory(require("./secured.js"), require("./certificates.js"), require("./paste-details.js"));
+  else root.TeacherData = factory(root.Secured, root.Certificates, root.PasteDetails); // teacher.html loads these first
+})(typeof self !== "undefined" ? self : this, function (Secured, Certificates, PasteDetails) {
 
   const FAILS_IN_A_ROW_ALERT = 2;
   const TOP_FAILED_TASKS = 10;
@@ -443,15 +443,18 @@
   }
 
   // One unit's two cells, { fresh, level }, from scoreTable's cell. flagsHtml(c): the Too easy / Way too hard flags.
-  function overviewCell(c, flagsHtml) {
-    if (!c || !c.started) return { fresh: NOT_STARTED_HTML, level: NOT_STARTED_HTML };
+  // pasteHtml: the unit's large paste flag button (pasteFlagHtml), in the Level cell only; the Freshness cell and the
+  // sort order never change because of it.
+  function overviewCell(c, flagsHtml, pasteHtml) {
+    const paste = pasteHtml ? " " + pasteHtml : "";
+    if (!c || !c.started) return { fresh: NOT_STARTED_HTML, level: NOT_STARTED_HTML + paste };
     const placement = c.placementStatus === "done" ? "Placement: started at " + c.placementStart : "Placement: " + PLACEMENT_STATUS[c.placementStatus];
     const fresh = !c.placed ? NOT_PLACED_HTML
       : c.secured ? '<span class="rag rag-' + c.band.cls + '">' + c.score + "% · " + htmlEsc(c.band.label) + "</span>"
       : '<span class="small">Not secured yet</span>';
     const flags = flagsHtml && (c.tooEasy || c.tooHard) ? flagsHtml(c) : "";
     const level = (c.placed && !c.secured ? '<span class="rag rag-' + c.levelBand.cls + '">' + htmlEsc(c.levelBand.label) + "</span>" : '<span class="lvl">Level ' + c.level + "</span>") +
-      (c.complete ? ' <span class="badge-complete" title="Passed a level 10 task">★ Complete</span>' : "") +
+      paste + (c.complete ? ' <span class="badge-complete" title="Passed a level 10 task">★ Complete</span>' : "") +
       '<br><span class="small">' + htmlEsc(placement) + "</span>" + (flags ? "<br>" + flags : "");
     return { fresh, level };
   }
@@ -464,8 +467,19 @@
     return { fresh: NOT_PLACED_HTML, level: "" };
   }
 
+  // A unit's large paste flag button for the Level cell: a small red flag, "Large paste flagged" (with the count when
+  // there are several, "3 flags"), which opens the details (teacher.js). "" when the unit has no flag.
+  const PASTE_ICON = '<svg class="paste-flag-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M3 1v14h1.6V9.4h3.2l.6 1.4H14V2.6H9.2L8.6 1.2H4.6V1z" fill="currentColor"/></svg>';
+  function pasteFlagHtml(studentId, unit, flags) {
+    const n = (flags || []).length;
+    if (!n) return "";
+    const label = "Large paste flagged" + (n > 1 ? ", " + PasteDetails.countText(n) : "") + ". Open the details";
+    return '<button type="button" class="paste-flag-btn" data-paste-student="' + htmlEsc(studentId) + '" data-paste-unit="' + htmlEsc(unit) + '" aria-label="' + htmlEsc(label) + '" title="' + htmlEsc(label) + '">' +
+      PASTE_ICON + (n > 1 ? '<span class="paste-flag-count">' + htmlEsc(PasteDetails.countText(n)) + "</span>" : "") + "</button>";
+  }
+
   // o = { rows (scoreTable rows, sorted and filtered), unitIds, unitGroups (Curriculum.UNIT_GROUPS), unitTitle, sortKey,
-  // sortDir, when (a time as the page shows it), flagsHtml, buttonHtml, collapsed }. Every table has the same first three
+  // sortDir, when (a time as the page shows it), flagsHtml, pasteHtml (studentId, unit) -> the paste flag button, buttonHtml, collapsed }. Every table has the same first three
   // columns (Name, Shows, Average) with fixed widths, and its unit columns share the rest of the width.
   // buttonHtml (Collapse.buttonHtml) and collapsed (the collapsed ids, Collapse.collapsedIds): each group of units, with its
   // "(continued)" tables, is one collapsible block, open unless its id ("ov-" and the group's id) is collapsed.
@@ -498,7 +512,7 @@
       const titles = g.units.map((u) => o.unitTitle(u));
       const body = o.rows.map((r) => {
         const avg = overviewAverage(r);
-        const cells = g.units.map((u) => overviewCell(r.cells[u], o.flagsHtml));
+        const cells = g.units.map((u) => overviewCell(r.cells[u], o.flagsHtml, o.pasteHtml ? o.pasteHtml(r.studentId, u) : ""));
         return '<tbody class="ov-student">' +
           '<tr class="ov-fresh"><th scope="rowgroup" rowspan="2" class="ov-name"><a href="#student=' + encodeURIComponent(r.studentId) + '">' + htmlEsc(r.name) + "</a>" +
             '<br><span class="small">Last active ' + htmlEsc(o.when(r.lastActive)) + "</span></th>" +
@@ -720,13 +734,35 @@
     return rows;
   }
 
+  // ---------- Large paste flags (local mode; paste-details.js holds the rule, teacher-api uses the same) ----------
+  // This browser's paste flags (Store.pasteLog) with their details, for the Students page: { studentId: { unit:
+  // [details, newest first] } }. An entry from before phase and homeworkId were kept is an older flag ("Not recorded").
+  // Local mode has no homework, so a flag here is never in homework.
+  function pasteFlagsFor(data, log) {
+    const out = {};
+    for (const id of Object.keys(data.students)) {
+      const mine = (log || []).filter((f) => f.studentId === id && f.taskId);
+      if (!mine.length) continue;
+      const flags = mine.map((f) => ({ id: f.id, at: f.at, unit: f.unit, taskId: f.taskId, phase: f.phase || null, lines: f.lines,
+        homeworkId: f.homeworkId || null, recorded: typeof f.phase === "string" }));
+      const checks = data.attempts.filter((a) => a.studentId === id).map((a) => ({ at: a.at, taskId: a.taskId, kind: a.kind || "attempt",
+        result: a.kind === "skip" ? "skipped" : a.result, phase: a.phase, code: typeof a.code === "string" ? a.code : null, codeDeleted: false }));
+      out[id] = PasteDetails.byUnit(flags, checks, {});
+    }
+    return out;
+  }
+  // The server's answer (teacher-api paste_flags_for_class) in the same shape: { studentId: { unit: [details] } }.
+  const pasteFlagsFromServer = (reply) => Object.fromEntries(((reply && reply.students) || []).map((s) =>
+    [s.student_id, Object.fromEntries(s.units.map((u) => [u.unit, u.flags]))]));
+
   return {
+    pasteFlagsFor, pasteFlagsFromServer,
     certificatesFor, certificateRows,
     pointsByStudent, leaderboardStudents,
     FAILS_IN_A_ROW_ALERT, TOP_FAILED_TASKS, BUTTON_NAMES, PLACEMENT_STATUS, FULL_COLUMNS,
     collect, overviewRows, sortOverview, filterByName, taskStats, misconceptionStats, quickLook,
     detailRows, filterDetail, mostFailedTasks, workshop, BUILDER_MAX_TASKS, spreadLevels, buildSpread, swapOptions, addOptions, toCsv, fullExportRows, fullExportCsv, dataDictionaryCsv, assignmentStats,
     lastButtonPresses, ragOf, levelBand, SUMMARY_TILES, summaryTileOf, scoreTable, sortScoreTable, studentDetail, classScoresCsv,
-    OVERVIEW_MAX_UNITS, overviewGroups, overviewCell, overviewAverage, overviewTablesHtml,
+    OVERVIEW_MAX_UNITS, overviewGroups, overviewCell, overviewAverage, overviewTablesHtml, pasteFlagHtml,
   };
 });
