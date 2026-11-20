@@ -187,13 +187,14 @@
         <li><span class="flag flag-easy">Too easy</span> the student pressed "This is too easy" in this unit, which moved them up one level: check that their level is right</li>
         <li><span class="flag flag-hard">Way too hard</span> the student pressed "This is way too hard" in this unit, which moved them down one level: check that their level is right</li>
         <li><span class="paste-flag-key" aria-hidden="true"><svg class="paste-flag-icon" viewBox="0 0 16 16" width="14" height="14" focusable="false"><path d="M3 1v14h1.6V9.4h3.2l.6 1.4H14V2.6H9.2L8.6 1.2H4.6V1z" fill="currentColor"/></svg></span>
-          Large paste flagged: the student pasted more than 8 lines of code into a task in this unit (with the count if there are several). Select the flag to see when, which task, and the code of their next check on it.</li>
+          Large paste flagged in a task in this unit (with the count if there are several). A paste is flagged when the editor is empty and the paste is 3 lines or more, or when a single paste is more than 8 lines. Select the flag to see when, which task, and the code of their next check on it.</li>
       </ul>
       <p id="st-paste-status" class="small" role="status"></p>
       <div class="teacher-controls">
         <label>Filter by name <input type="search" id="name-filter" class="text-input" style="width:auto" autocomplete="off"></label>
       </div>
       <p class="small">Each student has two rows: <strong>Freshness</strong> (the secured score and its band) and <strong>Level</strong> (the current level, the placement result and the flags).
+        Averages and the tiles count only the units for the class's stage; other units still show as columns.
         The units are in one table per group. Select a column heading to sort. Select it again to reverse the order. Unit columns sort by secured score, and every table follows the same order. Select a name to open that student.</p>
       <div id="overview-tables" class="overview-tables"></div>
       <p class="small rag-key">Colour key: <span class="rag rag-none">grey: Not placed yet</span>.
@@ -296,13 +297,11 @@
       <p class="small">Set a number of tasks for a class to do by a due date. Every task type counts, placement questions too.
         A task counts the first time a student passes it, from when you set the homework to the end of the due date.
         Each student sees a Homework card on their home page with "x of y done", then "Complete".
-        A paste of more than 8 lines of code into the editor is flagged: in homework that task doesn't count, and the student gets a new one.
-        The report is the only place you see these flags.</p>
+        A paste is flagged when the editor is empty and the paste is 3 lines or more, or when a single paste is more than 8 lines.
+        In homework a flagged task doesn't count, and the student gets a new one. The report lists these flags as "Possible AI use".</p>
       <p id="hw-local" class="notice notice-down" hidden>Homework needs backend mode (the class server), because students must be able to see it on their own computers.</p>
       <div id="hw-main">
-        <div class="teacher-controls">
-          <label>Class <select id="hw-class"></select></label>
-        </div>
+        <!-- The class is the one chosen at the top of the page, as on every other page. -->
         <form id="hw-form" class="task-card" novalidate aria-labelledby="hw-form-h">
           <h3 id="hw-form-h" tabindex="-1">Set homework</h3>
           <div class="teacher-controls hw-fields">
@@ -322,7 +321,8 @@
         <section id="hw-report" class="task-card" hidden aria-labelledby="hw-report-h">
           <h3 id="hw-report-h" tabindex="-1">Homework report</h3>
           <p id="hw-report-meta" class="small"></p>
-          <p class="small">Select a column heading to sort by it. "Possible AI use" means the student pasted more than 8 lines of code into a task; that task didn't count.</p>
+          <p class="small">Select a column heading to sort by it. "Possible AI use" lists the student's flagged tasks, which didn't count.
+            A paste is flagged when the editor is empty and the paste is 3 lines or more, or when a single paste is more than 8 lines.</p>
           <div id="hw-report-table"></div>
         </section>
       </div>

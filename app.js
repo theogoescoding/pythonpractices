@@ -1033,7 +1033,6 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     document.getElementById("reset-area").hidden = true;
     document.getElementById("side-heading").textContent = inAssignment ? "Assignment" : "Your levels";
   }
-  if (inAssignment) document.getElementById("level-help").hidden = true;
 
   // ---------- Python runner (Web Worker + timeout) ----------
   const pyStatus = document.getElementById("py-status");

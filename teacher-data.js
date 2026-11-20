@@ -345,10 +345,13 @@
   //   - a secured unit: score (its secured score) and band (its freshness band);
   //   - a placed unit that isn't secured yet: score null and levelBand (the level's colour), never 0%;
   //   - not started, or not placed yet (grey): score, band and levelBand null.
-  // A student's average is of their secured units only, and their RAG comes from it. A student with placed units but
-  // none secured gets the RAG of their average level instead (averageLevel); one with no placed unit has none.
-  // The class average per unit is of the students who have secured it.
-  function scoreTable(data, unitIds, now) {
+  // A student's average (studentAverage, below) counts only averageUnitIds: the units of the class's stage. The table
+  // can show more units than that (the Students page shows every unit): those still have their cells, but they never
+  // change an average, a tile or the RAG. averageUnitIds left out: every unit in unitIds counts.
+  // The class average per unit is of the students who have secured it; a unit outside averageUnitIds has none
+  // (counted false).
+  function scoreTable(data, unitIds, now, averageUnitIds) {
+    const avgUnits = averageUnitIds || unitIds;
     const by = attemptsByStudentUnit(data);
     const pressed = lastButtonPresses(data);
     const rows = Object.entries(data.students).map(([id, s]) => {
@@ -369,25 +372,36 @@
           tooHardAt: base.tooHard ? pressed[id + "|" + u + "|too-hard"] || null : null,
         });
       }
-      const scored = unitIds.map((u) => cells[u].score).filter((x) => x != null);
-      const average = scored.length ? Math.round(scored.reduce((a, b) => a + b, 0) / scored.length) : null;
-      const levels = unitIds.filter((u) => cells[u].placed).map((u) => cells[u].level).filter((x) => typeof x === "number");
-      const averageLevel = average == null && levels.length ? Math.round(levels.reduce((a, b) => a + b, 0) / levels.length) : null;
-      const levelColour = averageLevel == null ? null : levelBand(averageLevel);
       const times = data.attempts.filter((a) => a.studentId === id).map((a) => a.at).sort();
-      return { studentId: id, name: s.name, cells, average, band: average == null ? null : Secured.band(average), averageLevel, levelBand: levelColour,
-        rag: average != null ? ragOf(average) : levelColour ? levelColour.rag : null, lastActive: times[times.length - 1] || null };
+      return Object.assign({ studentId: id, name: s.name, cells }, studentAverage(cells, avgUnits), { lastActive: times[times.length - 1] || null });
     });
     // green, amber, red and notPlaced: the RAG counts (as the class scores export's RAG column). tiles: the summary
     // tiles' counts (SUMMARY_TILES), each student in one tile.
     const summary = { green: 0, amber: 0, red: 0, notPlaced: 0, tiles: Object.fromEntries(SUMMARY_TILES.map((t) => [t.key, 0])) };
     for (const r of rows) { summary[r.rag || "notPlaced"] += 1; r.summaryTile = summaryTileOf(r); summary.tiles[r.summaryTile] += 1; }
     const unitAverages = unitIds.map((u) => {
-      const xs = rows.map((r) => r.cells[u].score).filter((x) => x != null);
+      const counted = avgUnits.includes(u);
+      const xs = counted ? rows.map((r) => r.cells[u].score).filter((x) => x != null) : [];
       const average = xs.length ? Math.round(xs.reduce((a, b) => a + b, 0) / xs.length) : null;
-      return { unit: u, average, band: average == null ? null : Secured.band(average), students: xs.length };
+      return { unit: u, counted, average, band: average == null ? null : Secured.band(average), students: xs.length };
     });
     return { rows, summary, unitAverages };
+  }
+
+  // The one rule for a student's average, used everywhere an average is shown (scoreTable: the Students table, its
+  // tiles and Average column, the teacher's student page and the Class scores export). cells: scoreTable's cells;
+  // unitIds: the units that count, the class's stage's (Curriculum.stageUnits). The average of their secured units;
+  // with none secured, their average level over their placed units instead (averageLevel, in the level's colour); with
+  // no placed unit, neither. -> { average, band, averageLevel, levelBand, rag }
+  function studentAverage(cells, unitIds) {
+    const own = unitIds.filter((u) => cells[u]);
+    const scored = own.map((u) => cells[u].score).filter((x) => x != null);
+    const average = scored.length ? Math.round(scored.reduce((a, b) => a + b, 0) / scored.length) : null;
+    const levels = own.filter((u) => cells[u].placed).map((u) => cells[u].level).filter((x) => typeof x === "number");
+    const averageLevel = average == null && levels.length ? Math.round(levels.reduce((a, b) => a + b, 0) / levels.length) : null;
+    const levelColour = averageLevel == null ? null : levelBand(averageLevel);
+    return { average, band: average == null ? null : Secured.band(average), averageLevel, levelBand: levelColour,
+      rag: average != null ? ragOf(average) : levelColour ? levelColour.rag : null };
   }
 
   // key: "name", "average" or a unit id: not started or not placed first, then not secured yet by level, then
@@ -404,9 +418,10 @@
   }
 
   // One student's page: their row of scoreTable, and their newest attempts (Check presses, skips and "Show me how").
-  function studentDetail(data, studentId, unitIds, now, max) {
+  // averageUnitIds: the units their average counts (the class's stage's), as scoreTable.
+  function studentDetail(data, studentId, unitIds, now, max, averageUnitIds) {
     const row = scoreTable({ students: { [studentId]: data.students[studentId] || { name: "(removed)" } }, progress: data.progress,
-      attempts: data.attempts.filter((a) => a.studentId === studentId), buttonLog: (data.buttonLog || []).filter((b) => b.studentId === studentId) }, unitIds, now).rows[0];
+      attempts: data.attempts.filter((a) => a.studentId === studentId), buttonLog: (data.buttonLog || []).filter((b) => b.studentId === studentId) }, unitIds, now, averageUnitIds).rows[0];
     const recent = data.attempts.filter((a) => a.studentId === studentId).sort(byTimeDesc).slice(0, max || 30).map((a) => ({
       at: a.at, unit: a.unit, taskId: a.taskId, phase: a.phase || "", level: a.taskLevel,
       result: a.kind === "skip" ? "skipped" : a.kind === "hint" ? "Show me how" : a.result, hints: a.hints || 0,
@@ -755,7 +770,7 @@
     FAILS_IN_A_ROW_ALERT, TOP_FAILED_TASKS, BUTTON_NAMES, PLACEMENT_STATUS, FULL_COLUMNS,
     collect, overviewRows, sortOverview, filterByName, taskStats, misconceptionStats, quickLook,
     detailRows, filterDetail, mostFailedTasks, workshop, BUILDER_MAX_TASKS, spreadLevels, buildSpread, swapOptions, addOptions, toCsv, fullExportRows, fullExportCsv, dataDictionaryCsv, assignmentStats,
-    lastButtonPresses, ragOf, levelBand, SUMMARY_TILES, summaryTileOf, scoreTable, sortScoreTable, studentDetail, classScoresCsv,
+    lastButtonPresses, ragOf, levelBand, SUMMARY_TILES, summaryTileOf, scoreTable, studentAverage, sortScoreTable, studentDetail, classScoresCsv,
     overviewGroups, overviewCell,overviewAverage, overviewTablesHtml, pasteFlagHtml,
   };
 });

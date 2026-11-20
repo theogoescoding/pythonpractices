@@ -102,7 +102,7 @@
     $("pw-form").hidden = !tb;
     document.querySelectorAll("[data-backend]").forEach((b) => { b.hidden = !tb; });
     if (p === "tasks") renderTaskBrowser(arg); // needs no class
-    renderHomework(); // its own class list; does nothing unless the page is showing
+    renderHomework(); // the class chosen at the top; does nothing unless the page is showing
     const data = collect();
     if (!data) return; // backend mode: no class loaded yet
     if (p === "students") renderStudents(data);
@@ -119,7 +119,9 @@
   // collapsible block. The stage still decides which groups open first on the students' home page.
   const OVERVIEW_KEY = "pythonPractice.teacherCollapsedSections"; // the same key as the page's other sections (collapse.js)
   const studentsPageUnitIds = () => UNITS.map((u) => u.id);
-  const scoreRows = (data) => TD.sortScoreTable(TD.filterByName(TD.scoreTable(data, studentsPageUnitIds()).rows, $("name-filter").value), sortKey, sortDir);
+  // Every unit is a column, but only the class's stage's units count in an average (TD.studentAverage), here as on the
+  // student's page and in the Class scores export.
+  const scoreRows = (data) => TD.sortScoreTable(TD.filterByName(TD.scoreTable(data, studentsPageUnitIds(), null, stageUnitIds()).rows, $("name-filter").value), sortKey, sortDir);
 
   function renderCodeCards() {
     const c = currentClass();
@@ -133,7 +135,7 @@
     $("st-stage").textContent = (c ? c.name + ", " : "") + self.Curriculum.stageOf(stage()).label + " class. Every unit is shown below, in groups you can close." +
       (c ? " The stage sets which groups open first on your students' home page. Change it on the Classes page." : " (In this browser every student is shown.)");
     renderCodeCards();
-    const table = TD.scoreTable(data, unitIds);
+    const table = TD.scoreTable(data, unitIds, null, stageUnitIds()); // the tiles and class averages: the stage's units only
     const s = table.summary;
     // One tile per group (TD.SUMMARY_TILES), each student in exactly one: by their secured average, or with nothing
     // secured yet by their average level, or Not placed yet. Each tile's label is a chip in the colour the unit cards
@@ -379,7 +381,7 @@
   // no homework: its menu link is hidden (data-backend) and the page says why.
   const HW = self.Homework;
   const HW_BLOCKS = self.Certificates.BLOCKS; // the six blocks of the Students page, with their units
-  let hwClassId = null;      // the class on the Homework page (its own choice, starting with the class chosen above)
+  let hwClassId = null;      // the class on the Homework page: always the class chosen at the top (currentClass)
   let hwLoadedFor = null;    // the class its list was loaded for
   let hwList = [];
   let hwOnPage = false;      // the page was showing at the last render (coming back to it loads the list again)
@@ -433,17 +435,14 @@
     $("hw-main").hidden = !tb;
     if (!tb || !on) return;
     if (!$("hw-blocks").children.length) buildUnitPicker();
-    const classes = tb.allClasses();
-    if (!classes.some((c) => c.id === hwClassId)) hwClassId = (currentClass() || classes[0] || {}).id || null;
-    const options = classes.map((c) => '<option value="' + esc(c.id) + '">' + esc(c.name) + "</option>").join("");
-    if ($("hw-class").innerHTML !== options) $("hw-class").innerHTML = options;
-    $("hw-class").value = hwClassId || "";
+    // The class chosen at the top of the page, as every other page uses: its homework is listed and set here.
+    const chosen = (currentClass() || {}).id || null;
+    if (chosen !== hwClassId) { hwClassId = chosen; closeHomeworkReport(); }
     $("hw-form").hidden = !hwClassId;
     $("hw-due").min = HW.ukDate(Date.now());
     if (!hwClassId) { $("hw-status").textContent = "Make a class first (Classes page)."; $("hw-list").innerHTML = ""; return; }
     if (fresh || hwLoadedFor !== hwClassId) loadHomework();
   }
-  $("hw-class").addEventListener("change", () => { hwClassId = $("hw-class").value; closeHomeworkReport(); loadHomework(); });
 
   async function loadHomework() {
     const id = hwClassId;
@@ -589,7 +588,7 @@
     }
     $("sd-actions").hidden = false;
     const unitIds = stageUnitIds();
-    const d = TD.studentDetail(data, studentId, unitIds, null, RECENT_ATTEMPTS);
+    const d = TD.studentDetail(data, studentId, unitIds, null, RECENT_ATTEMPTS, stageUnitIds());
     $("student-title").textContent = s.name;
     $("sd-meta").textContent = "Last active " + when(d.lastActive) + (d.average == null ? "" : " · average secured score " + d.average + "% (" + d.band.label + ")");
     const keepUnit = $("reset-unit").value;
@@ -787,9 +786,11 @@
       $("compare").innerHTML = '<p class="small">Loading your classes…</p>';
       const r = await tb.compareClasses();
       if (r.error) { $("compare").innerHTML = '<p class="problem">' + esc(r.error) + "</p>"; return; }
-      classes = r.classes.map((c) => ({ name: c.name + " (" + self.Curriculum.stageOf(c.stage).label + ")", averages: TD.scoreTable(c.data, unitIds).unitAverages }));
+      // Each class counts only its own stage's units (as every average does); its other units say so.
+      classes = r.classes.map((c) => ({ name: c.name + " (" + self.Curriculum.stageOf(c.stage).label + ")",
+        averages: TD.scoreTable(c.data, unitIds, null, self.Curriculum.stageUnits(self.Curriculum.stageOf(c.stage).id)).unitAverages }));
     } else {
-      classes = [{ name: "This browser", averages: TD.scoreTable(collect(), unitIds).unitAverages }];
+      classes = [{ name: "This browser", averages: TD.scoreTable(collect(), unitIds, null, stageUnitIds()).unitAverages }];
     }
     const used = unitIds.filter((u) => classes.some((c) => c.averages.find((a) => a.unit === u).average != null));
     // Only students who have secured the unit count in its average (an unsecured unit has no score, never 0%).
@@ -797,7 +798,7 @@
       '<div class="table-wrap"><table><thead><tr><th scope="col">Unit</th>' + classes.map((c) => '<th scope="col">' + esc(c.name) + "</th>").join("") + "</tr></thead><tbody>" +
       used.map((u) => '<tr><th scope="row">' + esc(unitTitle(u)) + "</th>" + classes.map((c) => {
         const a = c.averages.find((x) => x.unit === u);
-        return "<td>" + (a.average == null ? '<span class="rag rag-none">None secured yet</span>' : '<span class="rag rag-' + a.band.cls + '">' + a.average + "% · " + esc(a.band.label) + '</span> <span class="small">(' + a.students + ")</span>") + "</td>";
+        return "<td>" + (!a.counted ? '<span class="small">Not in this class\'s stage</span>' : a.average == null ? '<span class="rag rag-none">None secured yet</span>' : '<span class="rag rag-' + a.band.cls + '">' + a.average + "% · " + esc(a.band.label) + '</span> <span class="small">(' + a.students + ")</span>") + "</td>";
       }).join("") + "</tr>").join("") + "</tbody></table></div>" +
       (tb ? "" : '<p class="small">In local mode there is only this browser to show. In backend mode each of your classes has its own column.</p>');
   });
@@ -1134,7 +1135,7 @@
     "export-scores": { title: "Class scores (CSV)",
       text: "One row per student. It has the student's average secured score, then for each unit of the class's stage: the secured score, its label and the student's level.",
       build: () => { const data = collect(); if (!data) return null;
-        return [{ name: "python-practice-class-scores-" + today() + ".csv", text: TD.classScoresCsv(TD.scoreTable(data, stageUnitIds()), stageUnitIds(), unitTitle) }]; } },
+        return [{ name: "python-practice-class-scores-" + today() + ".csv", text: TD.classScoresCsv(TD.scoreTable(data, stageUnitIds(), null, stageUnitIds()), stageUnitIds(), unitTitle) }]; } },
     "export-full": { title: "Full attempt log (CSV)",
       text: "Everything recorded for the class, one row each: every check, skip and use of \"Show me how\", every level change, button press and placement result. The data dictionary comes with it, as a second file that explains every column. Your browser may ask you to allow two downloads.",
       build: () => { const data = collect(); if (!data) return null;

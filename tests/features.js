@@ -2797,7 +2797,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       (open.match(/button type="button" data-sort=/g) || []).length === (plain.match(/button type="button" data-sort=/g) || []).length,
       "Students page: each group of units is one collapsible block (one table each), all open at first, a closed one stays closed; the A-level groups (Programming techniques, Data structures) are blocks too; the sort buttons are unchanged");
     const tJs = read("teacher.js");
-    check(/const studentsPageUnitIds = \(\) => UNITS\.map\(\(u\) => u\.id\);/.test(tJs) && /TD\.scoreTable\(data, studentsPageUnitIds\(\)\)/.test(tJs) &&
+    check(/const studentsPageUnitIds = \(\) => UNITS\.map\(\(u\) => u\.id\);/.test(tJs) && /TD\.scoreTable\(data, studentsPageUnitIds\(\), null, stageUnitIds\(\)\)/.test(tJs) &&
       /buttonHtml: Collapse\.buttonHtml, collapsed: Collapse\.collapsedIds\(OVERVIEW_KEY\)/.test(tJs) && /const OVERVIEW_KEY = "pythonPractice\.teacherCollapsedSections";/.test(tJs) &&
       /Collapse\.enhance\(document\.querySelector\("main"\), "pythonPractice\.teacherCollapsedSections"\)/.test(tJs) && /\$\("overview-tables"\)\.addEventListener\("click"/.test(tJs),
       "Students page: every class sees every unit (A-level too) in blocks; each teacher's closed blocks are remembered under pythonPractice.teacherCollapsedSections (collapse.js, storage in try/catch); a column heading still sorts");
@@ -3147,11 +3147,11 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(cols.join() === "Student,Done,Units,Possible AI use" && /data-hw-sort="' \+ c\.key \+ '"/.test(tj) && /aria-sort="' \+ \(hwSort\.dir === 1 \? "ascending" : "descending"\)/.test(tj) &&
       /<span class="flag flag-alert">Possible AI use<\/span> ' \+ esc\(taskName\(f\.task_id\)\)/.test(tj) && /hwSort = hwSort\.key === b\.dataset\.hwSort \? \{ key: hwSort\.key, dir: -hwSort\.dir \}/.test(tj),
       "Homework report: one row per student with the columns Student, Done (x of y), Units and Possible AI use (each flagged task by name); every column sorts, both ways");
-    check(/<a href="#homework" data-page="homework" data-backend>Homework<\/a>/.test(th) && ["page-homework", "hw-local", "hw-main", "hw-class", "hw-count", "hw-due", "hw-blocks", "hw-list", "hw-report"].every((id) => th.includes('id="' + id + '"')) &&
+    check(/<a href="#homework" data-page="homework" data-backend>Homework<\/a>/.test(th) && ["page-homework", "hw-local", "hw-main", "hw-count", "hw-due", "hw-blocks", "hw-list", "hw-report"].every((id) => th.includes('id="' + id + '"')) &&
       /\$\("hw-local"\)\.hidden = !!tb;/.test(tj) && /\$\("hw-main"\)\.hidden = !tb;/.test(tj) && /data-hw-block=/.test(tj) && /for \(const b of HW_BLOCKS\)/.test(tj) &&
       /const HW_BLOCKS = self\.Certificates\.BLOCKS;/.test(tj) && /tb\.createHomework\(hwClassId, c\.homework\)/.test(tj) && /tb\.deleteHomework\(/.test(tj) && /tb\.homeworkReport\(id\)/.test(tj) &&
-      /tb\.allClasses\(\)/.test(tj.slice(tj.indexOf("function renderHomework"))),
-      "Homework page: backend mode only (hidden in local mode); any of the teacher's classes (own and shared); number of tasks, due date and units from the six blocks with Select all; delete and a report");
+      /const chosen = \(currentClass\(\) \|\| \{\}\)\.id \|\| null;/.test(tj.slice(tj.indexOf("function renderHomework"))),
+      "Homework page: backend mode only (hidden in local mode); the class chosen at the top (own or shared); number of tasks, due date and units from the six blocks with Select all; delete and a report");
 
     // The server: one rule (homework.js) for both functions; only the server writes progress; 0018 as asked.
     const hs = read("supabase/functions/_shared/homework-server.js"), sapi = read("supabase/functions/student-api/index.ts"), tapi = read("supabase/functions/teacher-api/index.ts");
@@ -3819,6 +3819,82 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       /if \(c\.pasteFlagged && self\.PasteFlag\) showPasteMessage\(PasteFlag\.ASSIGNMENT_MESSAGE, true\);/.test(appP),
       "Paste flag: both editors (the plain box and CodeMirror) pass the text that stays outside the pasted-over selection; a flagged assignment task shows Clear code again when it is opened again");
     delete global.runTests;
+  }
+
+  // ===================== Prompt 15 (2026-11): review fixes B1, B2, B4, N4 =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const TD15 = require(path.join(ROOT, "teacher-data.js"));
+    const HW15 = require(path.join(ROOT, "homework.js"));
+    const tj = read("teacher.js"), th = read("teacher.html");
+
+    // B1: every average counts only the class's stage's units. A GCSE class student with Output secured at 70% and
+    // Recursion (A-level) at 100%: 70% on the Students table and tiles, the teacher's student page and the export.
+    const DAY = 86400000, NOW = Date.parse("2026-11-20T12:00:00Z");
+    const st15 = (level) => ({ level, placement: { status: "done", startLevel: level }, buttonsUsed: {}, failsInARow: 0 });
+    const pass15 = (unit, d) => ({ studentId: "a", kind: "attempt", result: "pass", hints: 0, phase: "practice", taskLevel: 10, unit, units: [unit], at: new Date(NOW - d * DAY).toISOString() });
+    const data15 = { students: { a: { name: "Ada" } }, progress: { a: { units: { output: st15(10), recursion: st15(10) } } },
+      attempts: [pass15("output", 26), pass15("output", 25), pass15("recursion", 2), pass15("recursion", 1)], buttonLog: [], levelLog: [], placementLog: [], units: Curriculum.UNITS };
+    const all15 = Curriculum.UNITS.map((u) => u.id), gcse15 = Curriculum.stageUnits("gcse");
+    const studentsTable = TD15.scoreTable(data15, all15, NOW, gcse15);
+    const row15 = studentsTable.rows[0];
+    const detail15 = TD15.studentDetail(data15, "a", gcse15, NOW, 30, gcse15);
+    const csv15 = TD15.classScoresCsv(TD15.scoreTable(data15, gcse15, NOW, gcse15), gcse15, Curriculum.unitTitle).split("\n");
+    const avgCell = TD15.overviewAverage(row15).fresh;
+    check(row15.cells.recursion.score === 100 && row15.cells.output.score === 70 && row15.average === 70 && row15.band.label === "Revisit soon" && row15.summaryTile === "soon" &&
+      studentsTable.summary.tiles.soon === 1 && studentsTable.summary.tiles.gold === 0 && detail15.average === 70 && csv15[1].split(",")[1] === "70" && />70% · Revisit soon</.test(avgCell) &&
+      TD15.scoreTable(data15, all15, NOW).rows[0].average === 85,
+      "B1: a GCSE class student with a secured unit at 70% and an A-level unit at 100% has the same average, 70%, on the Students table (and its tile), the teacher's student page and the Class scores export (the A-level unit still shows as a column)");
+    const recAvg = studentsTable.unitAverages.find((u) => u.unit === "recursion");
+    check(TD15.studentAverage(row15.cells, gcse15).average === 70 && TD15.studentAverage(row15.cells, all15).average === 85 && recAvg.counted === false && recAvg.average === null &&
+      studentsTable.unitAverages.find((u) => u.unit === "output").average === 70 &&
+      (tj.match(/TD\.scoreTable\(/g) || []).length === 5 && (tj.match(/TD\.scoreTable\([^;]*?, null, (stageUnitIds\(\)|self\.Curriculum\.stageUnits\()/g) || []).length === 5 &&
+      /TD\.studentDetail\(data, studentId, unitIds, null, RECENT_ATTEMPTS, stageUnitIds\(\)\)/.test(tj) && /Object\.assign\(\{ studentId: id, name: s\.name, cells \}, studentAverage\(cells, avgUnits\)/.test(read("teacher-data.js")),
+      "B1: one rule for averages (TD.studentAverage), and every place that shows one passes the class's stage's units: the Students table, its tiles and class averages, the student page, the Class scores export and Compare classes");
+    check(/Averages and the tiles count only the units for the class's stage; other units still show as columns\./.test(th) && /Not in this class\\'s stage/.test(tj),
+      "B1: the Students page says, in one sentence, that only the stage's units count in averages; Compare classes says when a unit isn't in a class's stage");
+
+    // B2: the Homework page follows the class chosen at the top: the real renderHomework, loadHomework and the form's
+    // submit on a stand-in page; the top choice changes from class 1 to class 2.
+    const strip = (s) => s.replace(/\basync /g, "").replace(/\bawait /g, "");
+    const cut = (from, to) => strip(tj.slice(tj.indexOf(from), tj.indexOf(to)));
+    const hwSrc = cut("  function renderHomework() {", "  function renderHomeworkList() {") + cut('  $("hw-form").addEventListener("submit"', '  $("hw-list").addEventListener("click"');
+    const els = {}, listeners = {};
+    const el = (id) => els[id] || (els[id] = { id, hidden: false, textContent: "", value: "", min: "", innerHTML: "", disabled: false, className: "", children: [1],
+      focus() {}, reset() {}, querySelectorAll: () => [], addEventListener: (t, f) => { listeners[id + ":" + t] = f; } });
+    let chosen15 = { id: "c1", name: "10X" };
+    const calls15 = [];
+    const tb15 = { allClasses: () => [{ id: "c1", name: "10X" }, { id: "c2", name: "11Y" }], listHomework: (id) => { calls15.push("list " + id); return { homework: [] }; },
+      createHomework: (id) => { calls15.push("create " + id); return { homework: [] }; } };
+    const run15 = new Function("page", "tb", "currentClass", "$", "HW", "UNITS", "buildUnitPicker", "closeHomeworkReport", "renderHomeworkList", "hwBlockStates", "plural",
+      "let hwClassId = null, hwLoadedFor = null, hwList = [], hwOnPage = false, hwReport = null;\n" + hwSrc + "\nreturn { renderHomework, classId: () => hwClassId };");
+    let closed15 = 0;
+    const api15 = run15(() => "homework", tb15, () => chosen15, el, HW15, Curriculum.UNITS, () => {}, () => { closed15++; }, () => {}, () => {}, (n, w) => n + " " + w);
+    api15.renderHomework();
+    const first15 = api15.classId();
+    chosen15 = { id: "c2", name: "11Y" }; // the teacher picks the second class at the top
+    api15.renderHomework();
+    el("hw-count").value = "4";
+    el("hw-due").value = HW15.ukDate(Date.now() + 3 * DAY);
+    listeners["hw-form:submit"]({ preventDefault() {} });
+    check(first15 === "c1" && api15.classId() === "c2" && calls15.join() === "list c1,list c2,create c2" && closed15 === 2 && // a class change closes an open report
+
+      !/id="hw-class"/.test(th) && !/\$\("hw-class"\)/.test(tj),
+      "B2: the Homework page follows the class picker at the top: after switching to the second class it lists that class's homework and sets new homework for it (no separate Homework class picker)");
+
+    // B4: no level-by-task-type breakdown on the practice page (or the home page); each task still shows its type.
+    check(!/1–2 predict|8–10 write the code|id="level-help"/.test(read("practice.html")) && !/level-help/.test(read("app.js")) &&
+      /Each unit has its own level, from 1 to 10\.<\/p>/.test(read("app.html")) && !/from 1 \(predict the output\) to 10/.test(read("app.html")) &&
+      /type-banner/.test(read("app.js")) && /<span class="type-label">/.test(read("app.js")),
+      "B4: the practice page no longer shows \"1–2 predict … 8–10 write the code\" (wrong for many units), and the home page no longer ties levels to task types; the task type on each task is unchanged");
+
+    // N4: the three places describe the current paste rule in the same sentence.
+    const RULE = "A paste is flagged when the editor is empty and the paste is 3 lines or more, or when a single paste is more than 8 lines.";
+    const flat = th.replace(/\s+/g, " ");
+    const at15 = (from, to) => flat.slice(flat.indexOf(from), flat.indexOf(to, flat.indexOf(from)));
+    check(flat.split(RULE).length - 1 === 3 && at15('class="small flag-key"', "</ul>").includes(RULE) && at15('id="homework-title"', "</p>").includes(RULE) &&
+      at15('id="hw-report-h"', 'id="hw-report-table"').includes(RULE) && !/more than 8 lines of code/.test(flat),
+      "N4: the Students page flag key, the Homework intro and the Homework report note all give the current rule in the same sentence (empty editor and 3 lines or more, or more than 8 lines at once)");
   }
 
   // ===================== Selection, trimmed =====================
