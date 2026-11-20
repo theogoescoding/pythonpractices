@@ -344,7 +344,8 @@ function newPlacement(used) {
 }
 
 const isPlacementTask = (t) => (t.tags || []).includes(PLACEMENT_TAG);
-const needsPlacement = (state) => !!(state && state.placement && ["pending", "in-progress"].includes(state.placement.status));
+// The one rule, in secured.js (placementToDo): a placement still pending or in progress.
+const needsPlacement = (state) => securedLib().placementToDo(state);
 
 // A task's kind, for a placement retry: its type, except that in an A-level unit Parsons and partial-Parsons are one
 // kind (a retry at level 5 can be either).
@@ -1488,6 +1489,9 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     const shown = endless ? progress.endless.units : [unitId];
     $("unit-levels").innerHTML = shown.map((u) => {
       const level = us(u).level;
+      // A unit whose quick check isn't finished shows "Placement to do", never a level (secured.js placementToDo).
+      if (needsPlacement(us(u))) return '<li class="unit-progress">' + (endless ? '<span class="unit-name">' + esc(unitTitle(u)) + "</span>" : "") +
+        '<span class="unit-level">' + esc(securedLib().PLACEMENT_TO_DO) + "</span></li>";
       return '<li class="unit-progress" aria-label="' + esc(unitTitle(u) + ": level " + level + " of 10, " + levelName(level, u)) + '">' +
         (endless ? '<span class="unit-name">' + esc(unitTitle(u)) + "</span>" : "") +
         '<span class="unit-level">Level ' + level + "</span>" +

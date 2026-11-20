@@ -74,10 +74,10 @@
   // A unit's colour on the student's unit card: blue "Placement to do" until the placement is done, then the level
   // ramp, then the freshness ramp once secured. u = { started, placed, level, secured, score }. Returns
   // { cls, label, ramp: "placement" | "level" | "freshness", band? } or null (not started: no colour).
-  // The teacher view uses the same band and levelBand, and grey "Not placed yet" before the placement is done.
+  // The teacher view uses the same band and levelBand, and "Placement to do" (grey for Freshness) before it is done.
   function unitColour(u) {
     if (!u || !u.started) return null;
-    if (!u.placed) return { cls: "placement", label: "Placement to do", ramp: "placement" };
+    if (!u.placed) return { cls: "placement", label: PLACEMENT_TO_DO, ramp: "placement" };
     if (u.secured) { const b = band(u.score); return { cls: b.cls, label: u.score + "% · " + b.label, ramp: "freshness", band: b }; }
     const lb = levelBand(u.level);
     return { cls: lb.cls, label: lb.label, ramp: "level" };
@@ -119,6 +119,14 @@
   // A unit's saved state (the app's, or the server's progress row: { level, placement }) is placed unless its
   // placement test is still to do (pending or in progress). A unit with no placement record counts as placed.
   const placedNow = (state) => !!state && !(state.placement && ["pending", "in-progress"].includes(state.placement.status));
+  // Display only (review finding B3): a started unit whose quick check (placement) isn't finished shows PLACEMENT_TO_DO
+  // wherever a level would show (the unit card's chip, My progress, Endless mode, the practice page, the teacher's
+  // Students table and student page, and the exports' level cells), never "Level 1". The same rule as placedNow and app.js
+  // needsPlacement. A unit with no placement record (an older student) shows its level, as before.
+  const PLACEMENT_TO_DO = "Placement to do";
+  const placementToDo = (state) => !!state && !placedNow(state);
+  // "Level 6", PLACEMENT_TO_DO, or null for a unit not started.
+  const levelText = (state) => (!state ? null : placementToDo(state) ? PLACEMENT_TO_DO : "Level " + state.level);
 
   // A unit's placed level at time `at` (ms), from the history: placements [{ unit, at, kind: "result" | "reset",
   // startLevel }] and level changes [{ unit, at, to }]. A unit with a placement test is placed from its last placement
@@ -191,6 +199,6 @@
   }
 
   return { DAY_MS, WEEK_MS, DROP_PER_WEEK, keepByDate, studentDate, studentNote, PASSES_TO_SECURE, FLOOR_START, FLOOR_STEP, FLOOR_CAP, BANDS, band, levelBand, unitColour, isTopPass, score,
-    SECURED_POINTS_PER_PERCENT, LEVEL_POINTS_PER_LEVEL, UNIT_POINTS_MAX, IMPROVING_DAYS, securedPoints, levelPoints, unitPoints, placedNow, levelAt, studentPoints,
+    SECURED_POINTS_PER_PERCENT, LEVEL_POINTS_PER_LEVEL, UNIT_POINTS_MAX, IMPROVING_DAYS, securedPoints, levelPoints, unitPoints, placedNow, PLACEMENT_TO_DO, placementToDo, levelText, levelAt, studentPoints,
     maxPoints, normalised, ranked, boards };
 });

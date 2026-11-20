@@ -54,7 +54,7 @@
   --lvl-amber: #f5a524;     /* levels 4-6 */
   --lvl-green: #4fcb7d;     /* levels 7-9 */
   --lvl-top: #a8f0c4;       /* level 10: light green */
-  --rag-none: #d0d4dc;      /* grey: not placed yet (teacher view) */
+  --rag-none: #d0d4dc;      /* grey: placement to do (teacher view's Freshness) */
   --placement-bg: #ffffff;  /* "Placement to do" (student cards): a dashed blue outline, blue text */
   --placement-ink: #1f4fd1;
   color-scheme: light;

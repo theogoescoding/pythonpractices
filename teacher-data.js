@@ -41,6 +41,7 @@
     return {
       started: true,
       level: st.level,
+      placementToDo: Secured.placementToDo(st), // the quick check isn't finished: "Placement to do", never a level
       placementStatus: status,
       placementStart: status === "done" ? st.placement.startLevel : null,
       complete: !!(st.passedTop || st.completedTop),
@@ -300,7 +301,10 @@
 
   // A unit is placed once its placement test is done: the same rule as app.js needsPlacement (a placement still
   // pending or in progress). A unit with no placement test, or started before placement existed, counts as placed.
-  const placed = (c) => c.started && !["pending", "in-progress"].includes(c.placementStatus);
+  const placed = (c) => c.started && !c.placementToDo; // secured.js placementToDo, the one rule
+  // A unit's level as every teacher page and export shows it: "Placement to do" while its quick check isn't finished,
+  // otherwise the level (a number). Not started: "".
+  const levelShown = (c) => (!c || !c.started ? "" : c.placementToDo ? Secured.PLACEMENT_TO_DO : c.level);
 
   // The newest press of each level button ("This is too easy", "This is way too hard"), by student and unit, from
   // the button log (store.js logButton; button_use events in backend mode). unitCell's tooEasy and tooHard say
@@ -335,7 +339,7 @@
     { key: "lv-amber", cls: "lv-amber", label: "Levels 4 to 6: still learning", note: "nothing secured yet, average level 4 to 6" },
     { key: "lv-green", cls: "lv-green", label: "Levels 7 to 9: still learning", note: "nothing secured yet, average level 7 to 9" },
     { key: "lv-top", cls: "lv-top", label: "Level 10: not secured yet", note: "nothing secured yet, average level 10" },
-    { key: "none", cls: "none", label: "Not placed yet", note: "no unit placed yet" },
+    { key: "none", cls: "none", label: Secured.PLACEMENT_TO_DO, note: "no quick check finished yet, or no unit started" }, // review finding N2: one phrase
   ];
   // A secured average is at least 50% (every secured score is), so anything under 80% is Revisit soon.
   const summaryTileOf = (r) => (r.average != null ? Secured.band(r.average).cls : r.levelBand ? r.levelBand.cls : "none");
@@ -344,7 +348,7 @@
   // pressed that button in the unit), plus tooEasyAt and tooHardAt (the newest press), placed, and:
   //   - a secured unit: score (its secured score) and band (its freshness band);
   //   - a placed unit that isn't secured yet: score null and levelBand (the level's colour), never 0%;
-  //   - not started, or not placed yet (grey): score, band and levelBand null.
+  //   - not started, or placement to do (grey): score, band and levelBand null.
   // A student's average (studentAverage, below) counts only averageUnitIds: the units of the class's stage. The table
   // can show more units than that (the Students page shows every unit): those still have their cells, but they never
   // change an average, a tile or the RAG. averageUnitIds left out: every unit in unitIds counts.
@@ -392,7 +396,9 @@
   // tiles and Average column, the teacher's student page and the Class scores export). cells: scoreTable's cells;
   // unitIds: the units that count, the class's stage's (Curriculum.stageUnits). The average of their secured units;
   // with none secured, their average level over their placed units instead (averageLevel, in the level's colour); with
-  // no placed unit, neither. -> { average, band, averageLevel, levelBand, rag }
+  // no placed unit, neither. startedAny: whether any of those units is started, so a student with no placed unit reads
+  // "Not started" (nothing started yet) or "Placement to do" (started, no quick check finished).
+  // -> { average, band, averageLevel, levelBand, rag, startedAny }
   function studentAverage(cells, unitIds) {
     const own = unitIds.filter((u) => cells[u]);
     const scored = own.map((u) => cells[u].score).filter((x) => x != null);
@@ -401,10 +407,10 @@
     const averageLevel = average == null && levels.length ? Math.round(levels.reduce((a, b) => a + b, 0) / levels.length) : null;
     const levelColour = averageLevel == null ? null : levelBand(averageLevel);
     return { average, band: average == null ? null : Secured.band(average), averageLevel, levelBand: levelColour,
-      rag: average != null ? ragOf(average) : levelColour ? levelColour.rag : null };
+      rag: average != null ? ragOf(average) : levelColour ? levelColour.rag : null, startedAny: own.some((u) => cells[u].started) };
   }
 
-  // key: "name", "average" or a unit id: not started or not placed first, then not secured yet by level, then
+  // key: "name", "average" or a unit id: not started or placement to do first, then not secured yet by level, then
   // secured by score (a secured score is at least 50, so 10 + score is always above a level).
   function sortScoreTable(rows, key, dir) {
     const cellVal = (c) => (!c ? -1 : c.score != null ? 10 + c.score : c.levelBand ? c.level : -1);
@@ -438,7 +444,10 @@
   // the group. A table wider than its block scrolls sideways inside its own wrapper (styles.css .overview-wrap), with
   // the Name and Shows columns fixed on the left; the page itself never scrolls sideways.
   const htmlEsc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const NOT_PLACED_HTML = '<span class="rag rag-none">Not placed yet</span>';
+  // A unit whose quick check isn't finished: "Placement to do" in both rows (review finding N2), grey in the Freshness
+  // row (and the Average column, for a student with no unit placed), blue in the Level row as the student's unit card.
+  const PLACEMENT_GREY_HTML = '<span class="rag rag-none">' + Secured.PLACEMENT_TO_DO + "</span>";
+  const PLACEMENT_TO_DO_HTML = '<span class="rag rag-placement">' + Secured.PLACEMENT_TO_DO + "</span>"; // as the student's unit card
   const NOT_STARTED_HTML = '<span class="small">Not started</span>';
 
   // [{ id, title, units, block }]: unitIds in the curriculum's groups, in order (the order of UNITS); units in no
@@ -460,11 +469,13 @@
     const paste = pasteHtml ? " " + pasteHtml : "";
     if (!c || !c.started) return { fresh: NOT_STARTED_HTML, level: NOT_STARTED_HTML + paste };
     const placement = c.placementStatus === "done" ? "Placement: started at " + c.placementStart : "Placement: " + PLACEMENT_STATUS[c.placementStatus];
-    const fresh = !c.placed ? NOT_PLACED_HTML
+    const fresh = !c.placed ? PLACEMENT_GREY_HTML
       : c.secured ? '<span class="rag rag-' + c.band.cls + '">' + c.score + "% · " + htmlEsc(c.band.label) + "</span>"
       : '<span class="small">Not secured yet</span>';
     const flags = flagsHtml && (c.tooEasy || c.tooHard) ? flagsHtml(c) : "";
-    const level = (c.placed && !c.secured ? '<span class="rag rag-' + c.levelBand.cls + '">' + htmlEsc(c.levelBand.label) + "</span>" : '<span class="lvl">Level ' + c.level + "</span>") +
+    // While the quick check isn't finished: the student's own blue "Placement to do" chip, never a level.
+    const level = (c.placementToDo ? PLACEMENT_TO_DO_HTML
+      : c.placed && !c.secured ? '<span class="rag rag-' + c.levelBand.cls + '">' + htmlEsc(c.levelBand.label) + "</span>" : '<span class="lvl">Level ' + c.level + "</span>") +
       paste + (c.complete ? ' <span class="badge-complete" title="Passed a level 10 task">★ Complete</span>' : "") +
       '<br><span class="small">' + htmlEsc(placement) + "</span>" + (flags ? "<br>" + flags : "");
     return { fresh, level };
@@ -475,7 +486,8 @@
   function overviewAverage(r) {
     if (r.band) return { fresh: '<span class="rag rag-' + r.band.cls + '">' + r.average + "% · " + htmlEsc(r.band.label) + "</span>", level: "" };
     if (r.levelBand) return { fresh: '<span class="small">No unit secured yet</span>', level: '<span class="rag rag-' + r.levelBand.cls + '">Average ' + htmlEsc(r.levelBand.label.toLowerCase()) + "</span>" };
-    return { fresh: NOT_PLACED_HTML, level: "" };
+    // No unit placed: "Placement to do" if they have started one, "Not started" if they haven't started any.
+    return { fresh: r.startedAny ? PLACEMENT_GREY_HTML : NOT_STARTED_HTML, level: "" };
   }
 
   // A unit's large paste flag button for the Level cell: a small red flag, "Large paste flagged" (with the count when
@@ -543,12 +555,14 @@
       cols.push({ key: u + "_score", label: t + ": secured score" }, { key: u + "_label", label: t + ": label" }, { key: u + "_level", label: t + ": level" });
     }
     const rows = table.rows.map((r) => {
-      const out = { name: r.name, average: r.average != null ? r.average : r.averageLevel != null ? "not secured yet" : "not placed yet", rag: r.rag || "" };
+      // "Placement to do" where the screen shows it (review finding N2), so the file reads the same as the page.
+      const TO_DO = Secured.PLACEMENT_TO_DO;
+      const out = { name: r.name, average: r.average != null ? r.average : r.averageLevel != null ? "not secured yet" : r.startedAny ? TO_DO : "not started", rag: r.rag || "" };
       for (const u of unitIds) {
         const c = r.cells[u];
-        out[u + "_score"] = !c.started ? "not started" : !c.placed ? "not placed yet" : c.secured ? c.score : "not secured yet";
-        out[u + "_label"] = !c.started ? "" : !c.placed ? "Not placed yet" : c.secured ? c.band.label : c.levelBand.label + " (not secured yet)";
-        out[u + "_level"] = c.started ? c.level : "";
+        out[u + "_score"] = !c.started ? "not started" : !c.placed ? TO_DO : c.secured ? c.score : "not secured yet";
+        out[u + "_label"] = !c.started ? "" : !c.placed ? TO_DO : c.secured ? c.band.label : c.levelBand.label + " (not secured yet)";
+        out[u + "_level"] = levelShown(c); // "Placement to do" while the quick check isn't finished, as on the screen
       }
       return out;
     });
@@ -771,6 +785,6 @@
     collect, overviewRows, sortOverview, filterByName, taskStats, misconceptionStats, quickLook,
     detailRows, filterDetail, mostFailedTasks, workshop, BUILDER_MAX_TASKS, spreadLevels, buildSpread, swapOptions, addOptions, toCsv, fullExportRows, fullExportCsv, dataDictionaryCsv, assignmentStats,
     lastButtonPresses, ragOf, levelBand, SUMMARY_TILES, summaryTileOf, scoreTable, studentAverage, sortScoreTable, studentDetail, classScoresCsv,
-    overviewGroups, overviewCell,overviewAverage, overviewTablesHtml, pasteFlagHtml,
+    overviewGroups, overviewCell, overviewAverage, overviewTablesHtml, pasteFlagHtml, levelShown,
   };
 });

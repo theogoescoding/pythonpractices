@@ -21,10 +21,12 @@ Store.whenReady(function () {
       const s = progress.units[u.id];
       const open = !!(s && s.completedTop);
       const name = self.Curriculum.studentUnitTitle(u.id);
-      const level = s ? "Level " + s.level + " – " + levelName(s.level, u.id) : "Not started";
-      const msg = s && s.level === 10
+      // A unit whose quick check isn't finished shows "Placement to do", never a level (secured.js placementToDo).
+      const toDo = self.Secured.placementToDo(s);
+      const level = !s ? "Not started" : toDo ? self.Secured.PLACEMENT_TO_DO : "Level " + s.level + " – " + levelName(s.level, u.id);
+      const msg = s && !toDo && s.level === 10
         ? "Get 2 strong passes in a row at Level 10 in " + name + " to unlock."
-        : "Complete Level 10 in " + name + " to unlock." + (s ? " You're at Level " + s.level + "." : "");
+        : "Complete Level 10 in " + name + " to unlock." + (s && !toDo ? " You're at Level " + s.level + "." : "");
       return '<li class="' + (open ? "" : "locked") + '"><label><input type="checkbox" name="unit" value="' + u.id + '"' +
         (open ? (ticked.includes(u.id) || !ticked.length ? " checked" : "") : " disabled") +
         (open ? "" : ' aria-describedby="lock-' + u.id + '"') + "> " + esc(name) +

@@ -1603,8 +1603,9 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       byStudent.Bo.average === null && byStudent.Bo.averageLevel === 6 && byStudent.Bo.rag === "amber" && byStudent.Ed.rag === "red" &&
       tab.unitAverages[0].average === 100 && tab.unitAverages[0].students === 1 && tab.unitAverages[1].average === null && tab.unitAverages[2].students === 0 && tab.unitAverages[2].average === null,
       "Students page: a student counts by their secured units' average, or (none secured) their average level's colour; the class average per unit is of the students who secured it (a student with no placed unit is in none of them)");
-    check(/rag-none[^<]*>grey: Not placed yet</.test(teacher) && /--rag-none:/.test(read("styles.css")) && /NOT_PLACED = '<span class="rag rag-none">Not placed yet<\/span>'/.test(teacherSrc),
-      "Colour key: grey means Not placed yet");
+    check(/rag-none[^<]*>grey: Placement to do</.test(teacher) && /--rag-none:/.test(read("styles.css")) &&
+      /const PLACEMENT_GREY = '<span class="rag rag-none">' \+ esc\(self\.Secured\.PLACEMENT_TO_DO\) \+ "<\/span>";/.test(teacherSrc),
+      "Colour key: grey means Placement to do (called Not placed yet until review finding N2)");
 
     // Fix 3: a placed unit that isn't secured shows its level in the level's colour, never "0% · Revisit now".
     const lv = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((l) => TD.levelBand(l).cls + "/" + TD.levelBand(l).rag + "/" + TD.levelBand(l).label);
@@ -1636,9 +1637,9 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(TD.SUMMARY_TILES.length === 9 && TD.SUMMARY_TILES.map((t) => t.key + "/" + t.cls + "/" + t.label).join("|") ===
       "gold/gold/Secured (100%)|fresh/fresh/Fresh (90%)|fading/fading/Fading (80%)|soon/soon/Revisit soon (under 80%)|" +
       "lv-red/lv-red/Levels 1 to 3: still learning|lv-amber/lv-amber/Levels 4 to 6: still learning|lv-green/lv-green/Levels 7 to 9: still learning|" +
-      "lv-top/lv-top/Level 10: not secured yet|none/none/Not placed yet" && TD.SUMMARY_TILES.every((t) => t.note && t.note.length > 10) &&
+      "lv-top/lv-top/Level 10: not secured yet|none/none/Placement to do" && TD.SUMMARY_TILES.every((t) => t.note && t.note.length > 10) &&
       ["Ava:gold", "Ben:soon", "Cal:lv-red", "Eve:lv-amber", "Fay:lv-green", "Gil:lv-top", "Nia:none", "Max:none"].every((x) => tileOf(x.split(":")[0]) === x.split(":")[1]),
-      "Summary tiles: nine, in order (Secured gold, Fresh light blue, Fading blue, Revisit soon indigo, the four level bands in their level colours, Not placed yet grey), each label saying what it counts");
+      "Summary tiles: nine, in order (Secured gold, Fresh light blue, Fading blue, Revisit soon indigo, the four level bands in their level colours, Placement to do grey), each label saying what it counts");
     // Students averaging 100, 95, 90, 85 and 75% (two units each, scores from days since each unit's last pass), with the
     // level and Not placed yet students: each in the tile of their average's band (an average between bands takes the one below).
     const NOW = D + 400 * Secured.DAY_MS;
@@ -1740,7 +1741,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const studentKey = keyOf(appHtml), teacherKey = keyOf(teacher);
     const ramps = (k) => ["rag-gold\">100% Secured", "rag-fresh\">90% Fresh", "rag-fading\">80% Fading", "rag-soon\">50–70% Revisit soon",
       "rag-lv-red\">Level 1–3", "rag-lv-amber\">Level 4–6", "rag-lv-green\">Level 7–9", "rag-lv-top\">Level 10"].every((x) => k.includes(x));
-    check(ramps(studentKey) && ramps(teacherKey) && studentKey.includes('rag-placement">Placement to do') && teacherKey.includes('rag-none">grey: Not placed yet'),
+    check(ramps(studentKey) && ramps(teacherKey) && studentKey.includes('rag-placement">Placement to do') && teacherKey.includes('rag-none">grey: Placement to do'),
       "Colour key: the student's page and the teacher's Students page each show the level ramp and the freshness ramp (and the placement colour)");
     // Contrast: every chip's text against its own background, at least 4.5:1 (the chips are small bold text).
     const lum = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)))
@@ -1785,8 +1786,9 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "Task browser: the practice frame has no fixed height (it is set to the task view's height, and follows it), and fits the width with its border");
     const csv = TD.classScoresCsv(tab, ["selection"], (u) => u);
     check(csv.split("\r\n")[0] === "Name,Average secured score,RAG,selection: secured score,selection: label,selection: level" && /Ann,100,green,100,Secured,10/.test(csv) &&
-      /Di,not placed yet,,not placed yet,Not placed yet,3/.test(csv) && /Bo,not secured yet,amber,not secured yet,Level 6 \(not secured yet\),6/.test(csv) && !/,0,red,0,/.test(csv),
-      "Reports: the class scores export has each student's average and each unit's secured score, label and level (Not placed yet for a unit still to be placed, the level for one not secured yet, never 0)");
+      /Di,Placement to do,,Placement to do,Placement to do,Placement to do\r?\n?/.test(csv) && /Bo,not secured yet,amber,not secured yet,Level 6 \(not secured yet\),6/.test(csv) && !/,0,red,0,/.test(csv) &&
+      !/not placed yet/i.test(csv),
+      "Reports: the class scores export has each student's average and each unit's secured score, label and level (\"Placement to do\" for a unit still to be placed, as on the screen; the level for one not secured yet, never 0)");
     const detail = TD.studentDetail(sd, "a", ["selection"], D + 3 * H, 5);
     check(detail.name === "Ann" && detail.recent.length === 2 && detail.recent[0].at > detail.recent[1].at && detail.cells.selection.score === 100 && detail.cells.selection.tooEasyAt,
       "Student page: the secured score per unit, the flags with their time, and the newest attempts, newest first");
@@ -2576,17 +2578,19 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const escO = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     const bandO = (c) => (c.band ? '<span class="rag rag-' + c.band.cls + '">' + c.score + "% · " + escO(c.band.label) + "</span>"
       : c.levelBand ? '<span class="rag rag-' + c.levelBand.cls + '">' + escO(c.levelBand.label) + "</span>" : "");
-    const NP = '<span class="rag rag-none">Not placed yet</span>';
+    const NP = '<span class="rag rag-none">Placement to do</span>'; // "Not placed yet" until prompt 17 (review finding N2)
     const oldCell = (c) => {
       if (!c.started) return '<span class="small">Not started</span>';
       const placement = c.placementStatus === "done" ? "Placement: started at " + c.placementStart : "Placement: " + TD.PLACEMENT_STATUS[c.placementStatus];
+      // (Since prompt 16, review finding B3: a unit still to be placed shows "Placement to do", not its level.)
       return (c.placed ? bandO(c) + (c.secured ? "" : '<br><span class="small">Not secured yet</span>') : NP) +
-        (c.secured || !c.placed ? '<br><span class="lvl">Level ' + c.level + "</span>" : "") +
+        (c.secured ? '<br><span class="lvl">Level ' + c.level + "</span>" : !c.placed ? '<br><span class="rag rag-placement">Placement to do</span>' : "") +
         (c.complete ? ' <span class="badge-complete" title="Passed a level 10 task">★ Complete</span>' : "") +
         '<br><span class="small">' + escO(placement) + "</span>" + (c.tooEasy || c.tooHard ? "<br>" + flagsFn(c) : "");
     };
     const oldAvg = (r) => (r.band ? '<span class="rag rag-' + r.band.cls + '">' + r.average + "% · " + escO(r.band.label) + "</span>"
-      : r.levelBand ? '<span class="rag rag-' + r.levelBand.cls + '">Average ' + escO(r.levelBand.label.toLowerCase()) + '</span><br><span class="small">No unit secured yet</span>' : NP);
+      : r.levelBand ? '<span class="rag rag-' + r.levelBand.cls + '">Average ' + escO(r.levelBand.label.toLowerCase()) + '</span><br><span class="small">No unit secured yet</span>'
+      : r.startedAny ? NP : '<span class="small">Not started</span>'); // nothing started: "Not started" (after review finding N2)
     // Pieces: each element's class list and text (order kept within a row), so the split must lose and add nothing.
     const pieces = (h) => (h.match(/<span class="[^"]+"[^>]*>[^<]*/g) || []).map((s) => s.replace(/ title="[^"]*"/, "")).concat((h.replace(/<[^>]+>/g, " ").match(/\S+/g) || []).join(" ")).sort();
     const words = (h) => (h.replace(/<[^>]+>/g, " ").match(/\S+/g) || []).sort().join(" ");
@@ -2600,7 +2604,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       if (c.complete) kinds.complete++;
       const both = c.started ? now.fresh + now.level : now.fresh; // "Not started" is in both rows
       const freshRight = !c.started || (c.secured ? now.fresh.includes('class="rag rag-' + c.band.cls + '"') && !/rag-lv-/.test(now.fresh) : !c.placed ? now.fresh === NP : /Not secured yet/.test(now.fresh));
-      const levelRight = !c.started || (c.placed && !c.secured ? now.level.startsWith('<span class="rag rag-' + c.levelBand.cls + '">' + c.levelBand.label) : now.level.startsWith('<span class="lvl">Level ' + c.level));
+      const levelRight = !c.started || (!c.placed ? now.level.startsWith('<span class="rag rag-placement">Placement to do</span>') && !/Level \d/.test(now.level)
+        : c.placed && !c.secured ? now.level.startsWith('<span class="rag rag-' + c.levelBand.cls + '">' + c.levelBand.label) : now.level.startsWith('<span class="lvl">Level ' + c.level));
       return words(both) === words(old) &&
         JSON.stringify(pieces(both).filter((p) => p.startsWith("<"))) === JSON.stringify(pieces(old).filter((p) => p.startsWith("<"))) && freshRight && levelRight;
     });
@@ -3895,6 +3900,76 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(flat.split(RULE).length - 1 === 3 && at15('class="small flag-key"', "</ul>").includes(RULE) && at15('id="homework-title"', "</p>").includes(RULE) &&
       at15('id="hw-report-h"', 'id="hw-report-table"').includes(RULE) && !/more than 8 lines of code/.test(flat),
       "N4: the Students page flag key, the Homework intro and the Homework report note all give the current rule in the same sentence (empty editor and 3 lines or more, or more than 8 lines at once)");
+  }
+
+  // ===================== Prompt 16 (2026-11): review fix B3, "Placement to do" instead of a level =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const S16 = require(path.join(ROOT, "secured.js"));
+    const TD16 = require(path.join(ROOT, "teacher-data.js"));
+    const pl = (status, level, start) => ({ level, placement: { status, taskIds: [], step: 0, results: [], startLevel: start == null ? null : start, used: [] }, buttonsUsed: {} });
+    const pending = pl("pending", 1), taking = pl("in-progress", 1), done = pl("done", 6, 6), noRecord = { level: 4, buttonsUsed: {} }, notTaken = pl("not-taken", 3);
+    // The one rule (secured.js), the same as the home page's (app.js needsPlacement) and the teacher view's (placed).
+    check(S16.PLACEMENT_TO_DO === "Placement to do" && S16.placementToDo(pending) && S16.placementToDo(taking) && !S16.placementToDo(done) && !S16.placementToDo(noRecord) && !S16.placementToDo(null) &&
+      S16.levelText(pending) === "Placement to do" && S16.levelText(taking) === "Placement to do" && S16.levelText(done) === "Level 6" && S16.levelText(noRecord) === "Level 4" &&
+      S16.levelText(notTaken) === "Level 3" && S16.levelText(null) === null &&
+      [pending, taking, done, noRecord, notTaken, null].every((s) => App.needsPlacement(s) === S16.placementToDo(s)) &&
+      S16.unitColour({ started: true, placed: false }).label === S16.PLACEMENT_TO_DO,
+      "B3: one rule for \"Placement to do\" (secured.js placementToDo, the home page's needsPlacement): a quick check pending or being taken shows it, whatever the level; a finished one shows the level; a unit with no quick check on record (an older student) shows its level, as before");
+    // The teacher's Students table (Level row), the Class scores export and the Levels table export (TD.levelShown).
+    const cell16 = (st) => TD16.scoreTable({ students: { a: { name: "Ann" } }, progress: { a: { units: { selection: st } } }, attempts: [], buttonLog: [] }, ["selection"]).rows[0].cells.selection;
+    const lvRow = (st) => TD16.overviewCell(cell16(st), () => "").level;
+    const csv16 = (st) => TD16.classScoresCsv(TD16.scoreTable({ students: { a: { name: "Ann" } }, progress: { a: { units: { selection: st } } }, attempts: [], buttonLog: [] }, ["selection"]), ["selection"], (u) => u).split(/\r?\n/)[1];
+    check(lvRow(pending).startsWith('<span class="rag rag-placement">Placement to do</span>') && !/Level \d/.test(lvRow(pending)) && !/Level \d/.test(lvRow(taking)) &&
+      /Level 6/.test(lvRow(done)) && /Level 4/.test(lvRow(noRecord)) &&
+      /,Placement to do$/.test(csv16(pending)) && /,6$/.test(csv16(done)) && /,4$/.test(csv16(noRecord)) &&
+      TD16.levelShown(cell16(pending)) === "Placement to do" && TD16.levelShown(cell16(done)) === 6 && TD16.levelShown(cell16(noRecord)) === 4 && TD16.levelShown({ started: false }) === "" &&
+      /\[u\.id \+ "_level"\]: TD\.levelShown\(c\)/.test(read("teacher.js")),
+      "B3: the teacher's Students table (Level row, the student's blue \"Placement to do\" chip), the Class scores export and the Levels table export show \"Placement to do\" for a unit still to be placed, and the level once it is placed (or with no quick check on record); the columns are unchanged");
+    // Each page that shows a level uses the rule: My progress, Endless mode, the practice page, the teacher's student page.
+    const prog = read("progress.js"), endl = read("endless.js"), appP = read("app.js"), tj16 = read("teacher.js");
+    check(/const level = self\.Secured\.levelText\(x\.s\) \|\| "Not started";/.test(prog) && /self\.Secured\.placementToDo\(x\.s\) \? self\.Secured\.PLACEMENT_TO_DO/.test(prog) &&
+      /const toDo = self\.Secured\.placementToDo\(s\);/.test(endl) && /toDo \? self\.Secured\.PLACEMENT_TO_DO : "Level " \+ s\.level/.test(endl) &&
+      /<script src="secured\.js"><\/script>\s*<script src="endless\.js">/.test(read("endless.html")) &&
+      /if \(needsPlacement\(us\(u\)\)\) return '<li class="unit-progress">'/.test(appP) && /const needsPlacement = \(state\) => securedLib\(\)\.placementToDo\(state\);/.test(appP) &&
+      /'<span class="small">' \+ \(c\.placementToDo \? "" :/.test(tj16) &&
+      !/"Level " \+ x\.s\.level : "Not started"/.test(prog) && !/const level = s \? "Level " \+ s\.level/.test(endl),
+      "B3: My progress, Endless mode, the practice page's side panel and the teacher's student page show \"Placement to do\" instead of a level while the quick check isn't finished (the same rule and wording), and the level once it is");
+  }
+
+  // ===================== Prompt 17 (2026-11): review fix N2, one phrase "Placement to do" on the teacher side =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const TD17 = require(path.join(ROOT, "teacher-data.js"));
+    const pl17 = (status, level) => ({ level, placement: { status, taskIds: [], step: 0, results: [], startLevel: status === "done" ? level : null, used: [] }, buttonsUsed: {} });
+    const data17 = { students: { a: { name: "Ann" }, b: { name: "Bo" }, c: { name: "Cy" } }, buttonLog: [], attempts: [],
+      progress: { a: { units: { selection: pl17("in-progress", 1) } }, b: { units: {} }, c: { units: { selection: pl17("done", 6) } } } };
+    const t17 = TD17.scoreTable(data17, ["selection"]);
+    const row = (n) => t17.rows.find((r) => r.name === n);
+    const cellA = TD17.overviewCell(row("Ann").cells.selection, () => "");
+    check(cellA.fresh === '<span class="rag rag-none">Placement to do</span>' && cellA.level.startsWith('<span class="rag rag-placement">Placement to do</span>') &&
+      TD17.overviewAverage(row("Ann")).fresh === '<span class="rag rag-none">Placement to do</span>' &&
+      TD17.overviewAverage(row("Bo")).fresh === '<span class="small">Not started</span>' && /Level 6/.test(TD17.overviewCell(row("Cy").cells.selection, () => "").level),
+      "N2: an unfinished quick check shows \"Placement to do\" in both the Freshness cell (grey) and the Level row (blue) on the Students page; the Average column says it for a student who has started a unit but placed none, and \"Not started\" for one who has started nothing");
+    const tj17 = read("teacher.js");
+    check(/\(c\.placed \? bandHtml\(c\) : PLACEMENT_GREY\) \+ " " \+ '<span class="small">' \+ \(c\.placementToDo \? "" :/.test(tj17) && !/PLACEMENT_BLUE/.test(tj17),
+      "N2: the teacher's student page shows one grey \"Placement to do\" chip for an unfinished quick check (not a level, and not a second chip)");
+    const teacherSide = read("teacher.html") + read("teacher.js") + read("teacher-data.js") + read("teacher-backend.js");
+    check(!/[Nn]ot placed yet/.test(teacherSide) && !/[Nn]ot placed/.test(read("teacher.html")),
+      "N2: \"Not placed yet\" no longer appears anywhere on the teacher side (pages, tiles, the colour key, the Leaderboards help or the exports)");
+    const tile = TD17.SUMMARY_TILES.find((x) => x.key === "none");
+    check(tile.label === "Placement to do" && TD17.SUMMARY_TILES.indexOf(tile) === 8 && TD17.SUMMARY_TILES.length === 9 && t17.summary.tiles.none === 2 &&
+      row("Ann").summaryTile === "none" && row("Bo").summaryTile === "none" && row("Cy").summaryTile === "lv-amber",
+      "N2: the summary tile is called \"Placement to do\" (last of the nine, as before), and it still counts the students with no unit placed (here 2)");
+    const csv17 = TD17.classScoresCsv(t17, ["selection"], (u) => u).split(/\r?\n/);
+    check(csv17[0] === "Name,Average secured score,RAG,selection: secured score,selection: label,selection: level" &&
+      csv17.find((l) => l.startsWith("Ann,")) === "Ann,Placement to do,,Placement to do,Placement to do,Placement to do" &&
+      csv17.find((l) => l.startsWith("Bo,")) === "Bo,not started,,not started,," && tile.note === "no quick check finished yet, or no unit started",
+      "N2: the Class scores export says \"Placement to do\" in the same cells as the screen (average, secured score, label and level), and \"not started\" as the average of a student who has started nothing; the same columns");
+    const home17 = read("home.js"), app17 = read("app.html"), prog17 = read("progress.js");
+    check(/levelText = "Quick check to finish"/.test(home17) && /rag-placement">Placement to do<\/span> until you finish the quick check/.test(app17) &&
+      /self\.Secured\.levelText\(x\.s\) \|\| "Not started"/.test(prog17) && !/[Nn]ot placed yet/.test(home17 + app17 + prog17 + read("endless.js")),
+      "N2: the student side is unchanged (the home card's \"Quick check to finish\" and its \"Placement to do\" chip, My progress's wording)");
   }
 
   // ===================== Selection, trimmed =====================

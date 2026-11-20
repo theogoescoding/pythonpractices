@@ -37,7 +37,9 @@
       (c.tooEasyAt ? '<span class="small">pressed ' + esc(when(c.tooEasyAt)) + "</span>" : "") + "</span>" : "") +
     (c.tooHard ? '<span class="flag-block"><span class="flag flag-hard" title="' + esc(WAY_TOO_HARD_TIP) + '">Way too hard</span>' +
       (c.tooHardAt ? '<span class="small">pressed ' + esc(when(c.tooHardAt)) + "</span>" : "") + "</span>" : "");
-  const NOT_PLACED = '<span class="rag rag-none">Not placed yet</span>';
+  // A unit whose quick check isn't finished (review finding N2): one grey "Placement to do" chip on the student's page
+  // (the Students table has it in grey for Freshness and in blue in the Level row).
+  const PLACEMENT_GREY = '<span class="rag rag-none">' + esc(self.Secured.PLACEMENT_TO_DO) + "</span>";
 
   Store.setupDisplaySettings();
   // Each section heading opens and closes its section (collapse.js, the same as the student view's unit groups).
@@ -138,7 +140,7 @@
     const table = TD.scoreTable(data, unitIds, null, stageUnitIds()); // the tiles and class averages: the stage's units only
     const s = table.summary;
     // One tile per group (TD.SUMMARY_TILES), each student in exactly one: by their secured average, or with nothing
-    // secured yet by their average level, or Not placed yet. Each tile's label is a chip in the colour the unit cards
+    // secured yet by their average level, or Placement to do. Each tile's label is a chip in the colour the unit cards
     // use for that band, so the label says what it counts and the colour matches the cells.
     $("st-summary").innerHTML = TD.SUMMARY_TILES.map((t) => '<div class="rag-tile rag-tile-' + t.cls + '" title="' + esc(t.label + ": " + t.note) + '"><span class="rag rag-' + t.cls + '">' + esc(t.label) + "</span><strong>" +
       s.tiles[t.key] + '</strong><span class="small">' + esc(t.note) + "</span></div>").join("");
@@ -600,8 +602,9 @@
       const width = c.score != null ? c.score : c.levelBand ? c.level * 10 : 0;
       const barCls = c.band ? c.band.cls : c.levelBand ? c.levelBand.cls : "";
       return '<div class="score-bar"><div class="score-bar-head"><strong>' + esc(unitTitle(u)) + "</strong> " +
-        (c.started ? (c.placed ? bandHtml(c) : NOT_PLACED) + ' <span class="small">' +
-          (c.placed && !c.secured ? "Not secured yet (" + c.levelTenPasses + " of 2 level 10 passes with no hints)" : "Level " + c.level) +
+        // Placement to do: one grey chip (the teacher colour key's), not a level as well.
+        (c.started ? (c.placed ? bandHtml(c) : PLACEMENT_GREY) + " " + '<span class="small">' + (c.placementToDo ? "" :
+          c.placed && !c.secured ? "Not secured yet (" + c.levelTenPasses + " of 2 level 10 passes with no hints)" : "Level " + c.level) +
           (c.failsInARow ? " · " + c.failsInARow + " fail" + (c.failsInARow === 1 ? "" : "s") + " in a row" : "") + "</span> " + buttonFlagsHtml(c)
           : '<span class="small">Not started</span>') +
         '</div><div class="bar" aria-hidden="true"><span class="' + (barCls ? "rag-" + barCls : "") + '" style="width:' + width + '%"></span></div></div>';
@@ -1214,7 +1217,7 @@
         const c = r.cells[u.id];
         if (!c.started) { out[u.id + "_level"] = "not started"; continue; }
         Object.assign(out, {
-          [u.id + "_level"]: c.level, [u.id + "_placement"]: c.placementStatus === "done" ? "started at " + c.placementStart : TD.PLACEMENT_STATUS[c.placementStatus],
+          [u.id + "_level"]: TD.levelShown(c), [u.id + "_placement"]: c.placementStatus === "done" ? "started at " + c.placementStart : TD.PLACEMENT_STATUS[c.placementStatus],
           [u.id + "_complete"]: c.complete ? "yes" : "no", [u.id + "_too_easy"]: c.tooEasy ? "yes" : "no", [u.id + "_too_hard"]: c.tooHard ? "yes" : "no",
           [u.id + "_fails"]: c.failsInARow,
         });
