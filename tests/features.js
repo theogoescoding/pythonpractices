@@ -3125,7 +3125,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     // recorded as skipped (prompt 10: tested in full below); never in teacher practice.
     const appS = read("app.js"), on = appS.slice(appS.indexOf("  function onPaste("), appS.indexOf("  // ---------- Predict ----------"));
     check(/ta\.addEventListener\("paste"/.test(appS) && /change\.origin !== "paste"/.test(appS) && /if \(preview \|\| !self\.PasteFlag/.test(on) &&
-      /Store\.logPasteFlag\(\{ at: [^,]+, studentId: student\.id, unit: units\[0\], units, taskId: t\.id/.test(on) && /Homework\.activeFor\(Store\.homework\(student\.id\), units, Date\.now\(\)\)/.test(on) &&
+      /Store\.logPasteFlag\(\{ at: [^,]+, studentId: student\.id, unit: units\[0\], units, taskId: t\.id/.test(on) && /const homework = homeworkFor\(t\);/.test(on) && /Homework\.activeFor\(Store\.homework\(student\.id\), unitsOf\(t\), Date\.now\(\)\)/.test(appS) &&
       /if \(!serving\) moveOnFrom\(c, o\.message\);/.test(on) && /if \(lead\) notice = \{ kind: "down", text: lead/.test(appS) &&
       !/applyOutcome/.test(on) && ["logPasteFlag", "saveHomework"].every((f) => App.RECORDING_FUNCTIONS.includes(f)) &&
       /<script src="homework\.js"><\/script>\s*<script src="paste-flag\.js"><\/script>/.test(read("practice.html")),
@@ -3582,12 +3582,12 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       const st = { level: o.level || 5, failStreak: o.failStreak || 0,
         current: { taskId: "sel-L5a", placement: !!o.placement, started: true, hints: 0, attempts: 0, finished: false, passed: false, draft: { code: "" } } };
       const work = { tried: {} };
-      const task = { id: "sel-L5a", type: o.type || "write", unit: UNIT, level: 5, skills: [], starter: "# Write your program here\n", tests: wt.tests };
+      const task = Object.assign({ id: "sel-L5a", type: o.type || "write", unit: UNIT, level: 5, skills: [], starter: "# Write your program here\n", tests: wt.tests }, o.task);
       const dom = { msg: null, clear: null };
       const editor = { value: "", history: true, setValue(v) { this.value = v; }, clearHistory() { this.history = false; }, focus() {} };
       const env = {
         preview: false, self: { PasteFlag: PF, Homework: HW }, PasteFlag: PF, Homework: HW, setTimeout: (f) => log.timers.push(f),
-        cur: () => (o.assignment ? work.current || (work.current = st.current) : st.current), task: () => task, unitsOf: (t) => [t.unit], inAssignment: !!o.assignment, endless: !!o.endless,
+        cur: () => (o.assignment ? work.current || (work.current = st.current) : st.current), task: () => task, unitsOf: (t) => t.units || [t.unit], inAssignment: !!o.assignment, endless: !!o.endless,
         student: { id: "s1" }, assignmentId: o.assignment ? "as-1" : null, work, unitId: UNIT, serving: false, busy: false, notice: null, skipArmed: false, resetArmed: false,
         activeEditor: editor, openAssignmentTask: () => {},
         Store: { homework: () => o.homework || [], logPasteFlag: (f) => { log.flags.push(f); }, logAttempt: (sid, r) => { const x = Object.assign({ id: "a-" + log.attempts.length, at: new Date().toISOString(), studentId: sid }, r); log.attempts.push(x); return x; }, attempts: () => log.attempts },
@@ -3603,7 +3603,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
           const { change, reason, ...fields } = App.applyOutcome(st, { passed, hints: c.hints, skills: [], showHow: false });
           Object.assign(st, fields);
           setNotice(change < 0 ? { kind: "down", text: "Down to level " + st.level + "." } : null);
-          return { [UNIT]: { from: before, to: st.level } };
+          return { [(task.units || [task.unit])[0]]: { from: before, to: st.level } }; // keyed by the task's unit, as finishTask does
         },
         finishPlacementStep: (passed) => { const c = env.cur(); c.finished = true; log.placementSteps.push(passed); },
         eachLog: () => {}, save: () => {}, renderButtons: () => {}, renderSide: () => {}, renderTask: () => {},
@@ -3688,12 +3688,81 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "Paste flag in homework: it doesn't count towards the homework (not even if the task is passed later); the flag keeps its details (phase, lines, homework id)");
     check(homeworkRun.log.served === 1 && homeworkRun.st.current.taskId === "next-task" && homeworkRun.api.notice().text === PF.HOMEWORK_MESSAGE,
       "Paste flag in homework: the student moves on to a new task with the homework message (and no level message)");
+    // The Skip button (prompt 13): on a homework task it keeps the level too (skipKeepingLevel, as the paste flag);
+    // anywhere else, and in placement, it is unchanged. press: Skip, then Skip again to confirm (once armed, one press).
+    const skipPress = (p) => { const n = p.log.attempts.length; p.api.nextTask(); if (p.log.attempts.length === n) p.api.nextTask(); };
     const hwSkip = page({ homework: hwList, level: 9, failStreak: 1 });
-    hwSkip.api.nextTask();
-    hwSkip.api.nextTask();
+    skipPress(hwSkip);
     const hs = hwSkip.log.attempts[0] || {};
-    check(hs.kind === "skip" && hs.levelBefore === 9 && hs.levelAfter === 8 && hwSkip.st.level === 8 && hwSkip.log.finishTask === 1 && hwSkip.log.served === 1 && keys(hs) === keys(skipped.log.attempts[0]),
-      "Skip button in homework: unchanged, the same as in practice (a second fail or skip in a row moves the level down, 9 to 8)");
+    check(hs.kind === "skip" && hs.result === "skipped" && hs.phase === "practice" && hs.levelBefore === 9 && hs.levelAfter === 9 && hwSkip.st.level === 9 && hwSkip.st.failStreak === 1 &&
+      hwSkip.log.finishTask === 0 && keys(hs) === keys(ha),
+      "Skip button on a homework task: the level is unchanged (9, with a fail already in a row, stays 9; the fail streak doesn't go up), and the skip record shows the same level before and after, the same record as a homework paste flag");
+    skipPress(hwSkip);
+    check(hwSkip.log.attempts.length === 2 && hwSkip.log.attempts.every((a) => a.kind === "skip" && a.levelBefore === 9 && a.levelAfter === 9) && hwSkip.st.level === 9 && hwSkip.log.finishTask === 0 &&
+      HW.progress(hwList[0], hwSkip.log.attempts, []).done === 0,
+      "Skip button on homework tasks: two skips in a row don't lower the level, and skips never count towards the homework");
+    check(hwSkip.log.served === 2 && hwSkip.st.current.taskId === "next-task" && hwSkip.api.notice() === null && hwSkip.log.flags.length === 0,
+      "Skip button on a homework task: the student moves on to a new task, with no homework message (and no flag)");
+    const plainSkip = page({ level: 9 });
+    skipPress(plainSkip);
+    const afterOne = plainSkip.st.level;
+    skipPress(plainSkip);
+    check(afterOne === 9 && plainSkip.st.level === 8 && plainSkip.log.attempts.map((a) => a.levelBefore + "-" + a.levelAfter).join() === "9-9,9-8" && plainSkip.log.finishTask === 2,
+      "Skip button outside homework: unchanged, two skips in a row lower the level (9, then 8)");
+    const placeSkip = page({ placement: true, homework: hwList });
+    skipPress(placeSkip);
+    check(JSON.stringify(placeSkip.log.placementSteps) === "[false]" && (placeSkip.log.attempts[0] || {}).phase === "placement" && (placeSkip.log.attempts[0] || {}).kind === "skip" &&
+      placeSkip.log.placementServed === 1 && /if \(!c\.placement && homeworkFor\(t\)\.length\) skipKeepingLevel\(t, c\);\s*else skipTask\(t, c\);/.test(appP) &&
+      /const homework = homeworkFor\(t\);/.test(appP.slice(appP.indexOf("  function flagPaste("))),
+      "Skip button in placement (even during homework): unchanged, the question ends as not passed; the Skip button and the paste flag find the homework with the same function (homeworkFor)");
+
+    // Prompt 14: the homework's units. A homework covering unit A (Selection) keeps the level only on tasks in A; a task
+    // in unit B (Maths) follows the usual rules. A homework with no units covers every unit.
+    const hwA = [Object.assign({}, hwList[0], { units: [UNIT] })];
+    const hwAny = [Object.assign({}, hwList[0], { id: "hw-any", units: [] })];
+    const mathsTask = { id: "maths-L5a", unit: "maths" };
+    const twoSkips = (o) => { const p = page(Object.assign({ level: 9 }, o)); skipPress(p); skipPress(p); return p; };
+    const twoFlags = (o) => { const p = flow(Object.assign({ level: 9 }, o), lines(3), ""); p.api.onPaste(lines(4), ""); p.log.timers.slice(1).forEach((f) => f()); return p; };
+    const lv = (p) => p.log.attempts.map((a) => a.levelBefore + "-" + a.levelAfter).join() + " at " + p.st.level;
+    const inA = twoSkips({ homework: hwA }), inB = twoSkips({ homework: hwA, task: mathsTask }), anyUnit = twoSkips({ homework: hwAny, task: mathsTask });
+    check(lv(inA) === "9-9,9-9 at 9" && inA.log.finishTask === 0,
+      "Homework with units (Selection): Skip on a Selection task keeps the level (two skips in a row: still 9)");
+    check(lv(inB) === "9-9,9-8 at 8" && inB.log.finishTask === 2 && lv(inB) === lv(twoSkips({ task: mathsTask })),
+      "Homework with units (Selection): Skip on a Maths task lowers the level after two skips in a row (9, then 8), the same as with no homework");
+    check(lv(anyUnit) === "9-9,9-9 at 9" && lv(twoSkips({ homework: hwAny })) === "9-9,9-9 at 9",
+      "Homework with no units: Skip keeps the level in any unit (Maths and Selection)");
+    const flagB = twoFlags({ homework: hwA, task: mathsTask }), flagA = twoFlags({ homework: hwA });
+    check(lv(flagB) === "9-9,9-8 at 8" && flagB.log.flags.every((f) => f.homework === false && f.homeworkId === null) && flagB.api.notice().text === PF.MESSAGE + " Down to level 8.",
+      "Paste flag on a Maths task under a homework covering Selection: a practice flag (the usual message, no homework id), so two flags in a row lower the level (9, then 8), as Skip does");
+    check(lv(flagA) === "9-9,9-9 at 9" && flagA.log.flags.every((f) => f.homework === true && f.homeworkId === "hw-1") && flagA.api.notice().text === PF.HOMEWORK_MESSAGE,
+      "Paste flag on a Selection task under that homework: a homework flag, the level is kept (two flags: still 9), with the homework message");
+    // Template variants carry their template's units (templates.js baseTask), never their source task's: a variant of a
+    // Selection template whose source is a Maths task is a Selection task; a combined endless variant counts if either
+    // of its two units is covered.
+    const tplJson = JSON.parse(read("templates.json")), bankById = Object.fromEntries(tasks.map((t) => [t.id, t]));
+    const derived = tplJson.filter((x) => x.derived && x.source && bankById[x.source]);
+    const comb = tplJson.find((x) => x.units.length === 2);
+    const variant = (tpl, over) => Object.assign({ id: tpl.id + "#7", templateId: tpl.id, generated: true, unit: tpl.units[0], units: tpl.units.slice(), source: tpl.source }, over);
+    const selVariantMathsSource = variant({ id: "d-test", units: [UNIT], source: "maths-L5a" });
+    const mathsVariantSelSource = variant({ id: "d-test2", units: ["maths"], source: "sel-L5a" });
+    const combVariant = variant(comb);
+    check(/unit: tpl\.units\[0\],\s*units: tpl\.units\.slice\(\),/.test(read("templates.js")) && /const unitsOf = \(t\) => t\.units \|\| \[t\.unit\];/.test(appP) &&
+      derived.length > 1000 && derived.every((x) => x.units.includes(bankById[x.source].unit)) &&
+      lv(twoSkips({ homework: hwA, task: selVariantMathsSource })) === "9-9,9-9 at 9" && lv(twoSkips({ homework: hwA, task: mathsVariantSelSource })) === "9-9,9-8 at 8" &&
+      lv(twoSkips({ homework: [Object.assign({}, hwList[0], { units: [comb.units[1]] })], task: combVariant, endless: true })) === "9-9,9-9 at 9" &&
+      lv(twoSkips({ homework: hwA, task: combVariant, endless: true })) === (comb.units.includes(UNIT) ? "9-9,9-9 at 9" : "9-9,9-8 at 8"),
+      "Homework units: a template variant uses its own template's units (unitsOf: t.units), not its source task's; a combined endless variant (" + comb.id + ": " + comb.units.join(", ") + ") counts if either unit is covered");
+    // Placement and assignments: unchanged. A task already passed in a covered unit: still homework (the unit decides).
+    const placeA = page({ placement: true, homework: hwA });
+    skipPress(placeA);
+    const asgA = flow({ assignment: true, homework: hwA }, lines(3), "");
+    const passedBefore = page({ homework: hwA, level: 9, failStreak: 1 });
+    passedBefore.log.attempts.push({ kind: "attempt", result: "pass", taskId: "sel-L5a", unit: UNIT, at: "2026-11-01T10:00:00Z" });
+    skipPress(passedBefore);
+    check(JSON.stringify(placeA.log.placementSteps) === "[false]" && placeA.log.finishTask === 0 &&
+      (asgA.log.attempts[0] || {}).phase === "assignment" && asgA.env.cur().pasteFlagged && asgA.log.shown[0] === PF.ASSIGNMENT_MESSAGE + " " + PF.CLEAR_LABEL && asgA.log.flags[0].homeworkId === null &&
+      passedBefore.st.level === 9 && passedBefore.log.attempts[1].levelBefore === 9 && passedBefore.log.attempts[1].levelAfter === 9,
+      "Homework units: placement (the question ends as not passed) and assignments (Clear code, no homework) are unchanged; a task already passed in a covered unit still keeps the level on Skip");
     const hwPlacement = flow({ homework: hwList, placement: true }, lines(3), "");
     check(JSON.stringify(hwPlacement.log.placementSteps) === "[false]" && hwPlacement.log.placementServed === 1 && (hwPlacement.log.attempts[0] || {}).phase === "placement",
       "Paste flag in a placement question during homework: unchanged, it ends the question as not passed, as the Skip button does");

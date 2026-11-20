@@ -1829,9 +1829,24 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     }
     if (!c.finished) {
       if (!skipArmed) { skipArmed = true; resetArmed = false; renderButtons(); return; }
-      skipTask(t, c);
+      // A homework task (practice or endless, with an open homework): the skip keeps the level, as a homework paste
+      // flag does (skipKeepingLevel). Anywhere else, and every placement question, the usual skip.
+      if (!c.placement && homeworkFor(t).length) skipKeepingLevel(t, c);
+      else skipTask(t, c);
     }
     await moveOnFrom(c);
+  }
+
+  // The open homework that this task counts for (Homework.activeFor: not complete, not past due, covering its unit;
+  // the soonest due first, as student-api lists them), from the student's homework in this browser's store (sent by
+  // student-api in backend mode). Never in an assignment. Used by the Skip button and the paste flag alike.
+  // The unit check (Homework.coversUnits): a homework with no units covers every unit; one with units covers only
+  // those. The task's units are unitsOf(t), the units the rest of the app uses for it: a bank task's own unit, or a
+  // template variant's template's units (templates.js baseTask), never its source task's. A combined endless task has
+  // two units and counts if either is covered, as homework.js counts its passes. It depends only on the unit, not on
+  // whether the task was passed before.
+  function homeworkFor(t) {
+    return !inAssignment && self.Homework ? Homework.activeFor(Store.homework(student.id), unitsOf(t), Date.now()) : [];
   }
 
   // The Skip button's record and its effect, also used for a flagged paste (flagPaste), so the two always match.
@@ -2243,7 +2258,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   function flagPaste(text, t, c) {
     if (cur() !== c || c.pasteFlagged) return; // moved on meanwhile
     const units = unitsOf(t);
-    const homework = !inAssignment && self.Homework ? Homework.activeFor(Store.homework(student.id), units, Date.now()) : [];
+    const homework = homeworkFor(t);
     // Where the student is, and the homework it is in (the soonest due, as student-api lists them), for the teacher.
     const phase = c.placement ? "placement" : inAssignment ? "assignment" : endless ? "endless" : "practice";
     const o = PasteFlag.outcome(phase, homework.length > 0);
@@ -2268,12 +2283,14 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     showPasteMessage(o.message, true);
   }
 
-  // A homework flag: the task ends, skipped, with the Skip button's record (kind skip, result skipped), but finishTask
-  // isn't run, so the level, the fail streak, the stats and the task's history stay as they were. With no levels given,
-  // recordAttempt notes the current level as both the level before and after.
+  // A homework flag, or the Skip button on a homework task (nextTask): the task ends, skipped, with the Skip button's
+  // record (kind skip, result skipped), but finishTask isn't run, so the level, the fail streak, the stats and the
+  // task's history stay as they were. With no levels given, recordAttempt notes the current level as both the level
+  // before and after.
   function skipKeepingLevel(t, c) {
     c.finished = true;
     c.passed = false;
+    notice = null; // no level message (finishTask sets or clears it the same way)
     recordAttempt(t, c, { kind: "skip", result: "skipped" });
     eachLog((entry) => { if (entry.lastResult === "in progress") entry.lastResult = "set aside"; });
   }
