@@ -970,13 +970,24 @@ A teacher sets a **number of tasks** for a class to do by a **due date**, from s
 
 ### Large paste flag
 
-A **single paste of more than 8 lines** into the code editor of a write or write-from-scratch task is flagged (`paste-flag.js`, everywhere on the site). It isn't compared with earlier attempts.
+A paste into the code editor of a write or write-from-scratch task is flagged (`paste-flag.js` `reason`, everywhere on the site) when either is true:
 
-- **Expected output is never flagged.** A paste whose lines appear, in order and together, in one of the task's tests' expected output (the text the Expected output box and a failed test show, as `Checker.normalise` compares it; blank lines at the ends and spaces at each end of a line ignored) counts as expected output. That match is exact, so code can't pass as output by accident.
+- **It is the whole program** (since 2026-11, any length, even one line): just before the paste, the editor held nothing else. It was empty, or held only the task's starter comment ("# Write your program here"). "Nothing else" means the text that stays when the paste goes in, so pasting over the whole selected program counts too. Blank lines count as empty. The student's own comment or code doesn't.
+- **It is long**: a single paste of more than 8 lines, even into a program the student had already started.
+
+It isn't compared with earlier attempts.
+
+- **Expected output is never flagged.** A paste whose lines appear, in order and together, in one of the task's tests' expected output (the text the Expected output box and a failed test show, as `Checker.normalise` compares it; blank lines at the ends and spaces at each end of a line ignored) counts as expected output. That match is exact, so code can't pass as output by accident. A paste of only blank lines isn't flagged either.
 - **Recorded** as an event (`record_type` `paste_flag`, an `f-` id, the unit and the task id; migration 0018), sent through student-api `add_events` in backend mode, and kept in this browser in local mode (`Store.pasteLog`). It isn't in the full export.
-- **In homework** (an open homework of the class, not complete or past due, covers the task's unit): the student sees "Your teacher has been told. This task doesn't count towards your homework. Here is a new task." and gets a new task. In practice and endless mode the old task is set aside (no skip, fail or level change); in a placement question it is skipped, as the Skip button does.
-- **Anywhere else** (no homework, local mode, a class assignment, which is a fixed list): the student sees "Your teacher has been told this code was pasted in. Try writing it yourself." under the editor. Nothing else changes: their progress is as it was.
+- **The task is recorded as skipped** (since 2026-11): the Skip button's record (an attempt with kind `skip`, result `skipped`), timed just after the flag. It is never a pass or a fail, and it never counts for the secured score or for homework. The student's code isn't run against the tests: the paste is judged as it happens, and Check does nothing while the flag is being recorded, or on a flagged task. No code is stored with it.
+  - **Practice and endless:** no level change (the level, streaks and stats stay as they were; this differs from the Skip button, which counts as a failed task towards the level rules). The student gets a new task.
+  - **Placement:** the question ends as not passed, exactly as the Skip button does, so it can lower the starting level. The next question comes.
+  - **Homework:** the same as practice, and the task doesn't count (homework.js already ignores a task flagged before its pass).
+  - **Assignment** (a fixed list): the task is marked as tried (not done) and the student stays on it. Check on it never runs the code again; it shows the message. The task can't be completed, so the assignment can't be either.
+  - A task already passed: only the flag is recorded, with the message.
+- **The message**: in homework, "Your teacher has been told. This task doesn't count towards your homework. Here is a new task." Anywhere else, "Your teacher has been told this code was pasted in. Try writing it yourself." It shows above the new task, or under the editor in an assignment.
 - Teacher practice never flags anything (nothing is recorded there).
+- **No migration or server change**: the server already accepts a skip record in every phase (including assignment), and a paste flag of any number of lines above 0.
 - **Details kept with each flag** (from migration 0019, and in this browser's store from then): the phase the student was in (practice, placement, endless or assignment), the number of lines pasted, and the open homework's id (the soonest due, or none). The pasted text is never kept. Older flags have none of these.
 
 #### On the teacher's Students page
@@ -1176,7 +1187,7 @@ The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, n
 | `certificates.js` | The certificate rule: the six blocks, when a unit's floor reached 100%, and when a block is earned (shared by the teacher view and the server; see [Certificates](#certificates)) |
 | `certificate.html`, `certificate.js` | One printable certificate (A4 landscape, no buttons), opened by the teacher view's Print button |
 | `homework.js` | The homework counting rule, the teacher's form check and the dates (shared by the student pages, the teacher view and the server; see [Homework](#homework)) |
-| `paste-flag.js` | The large paste flag: more than 8 lines into the editor, never the expected output (see [Large paste flag](#large-paste-flag)) |
+| `paste-flag.js` | The paste flag: a whole-program paste (any length) or more than 8 lines into the editor, never the expected output; what a flagged task records (a skip) in each phase (see [Large paste flag](#large-paste-flag)) |
 | `rules-review.json`, `review-rules.js`, `tools/review-rules.js`, `misconception-changes.md` | Newer misconception rules (added each term, after Theo approves them), the Needs review matching, the tool that works out each example's outputs and checks every rule, and the list of rules added (see [Adding misconception rules each term](#adding-misconception-rules-each-term)) |
 | `supabase/functions/_shared/review-server.js` | teacher-api `review_candidates_for_class`: the class's failed checks from the last 30 days on the rules' tasks |
 | `paste-details.js` | Each paste flag's details for the teacher's Students page: the next check on the task, the phase, lines and homework (shared by the teacher view's local mode and teacher-api) |

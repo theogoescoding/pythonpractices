@@ -686,6 +686,59 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
       "Debugging (GCSE): an attempt in the new unit (a wrong answer to the error question) is sent to student-api like any other");
   }
 
+  // ---------- A flagged paste is a skip (prompt 10) ----------
+  // The page records the flag (an event) and then the Skip button's record (an attempt: kind skip, result skipped), with
+  // app.js's own attemptRecord. Both go to student-api as they always have: no new column, type or value.
+  {
+    const fs = require("fs");
+    const App = require(path.join(ROOT, "app.js"));
+    const Homework = require(path.join(ROOT, "homework.js"));
+    const Curriculum = require(path.join(ROOT, "curriculum.js"));
+    const rowsTs = fs.readFileSync(path.join(ROOT, "supabase", "functions", "_shared", "rows.ts"), "utf8");
+    const specKeys = (name) => [...rowsTs.slice(rowsTs.indexOf("const " + name + ": Spec = {"), rowsTs.indexOf("};", rowsTs.indexOf("const " + name + ": Spec = {"))).matchAll(/^\s+(\w+): \{ kind:/gm)].map((m) => m[1]);
+    const ATTEMPT_KEYS = specKeys("ATTEMPT"), EVENT_KEYS = specKeys("EVENT");
+    const PASTE_PHASES = JSON.parse(rowsTs.match(/const PASTE_PHASES = (\[[^\]]*\])/)[1]);
+    const m1 = fs.readFileSync(path.join(ROOT, "supabase", "migrations", "0001_schema.sql"), "utf8"), m5 = fs.readFileSync(path.join(ROOT, "supabase", "migrations", "0005_assignments.sql"), "utf8");
+    const phases = m5.match(/check \(phase in \(([^)]*)\)\)/)[1].replace(/'/g, "").split(/,\s*/);
+    const server = fakeServer();
+    const p = openPage(server);
+    await p.Backend.join("ABCDEF", "Pat");
+    const sid = p.Backend.session().sid;
+    const ASG = "0000000a-0000-0000-0000-0000000000a5";
+    const task = { id: "if-L5a", unit: "selection", type: "write", level: 5, skills: [] };
+    const flagged = (phase, extra) => {
+      p.Store.logPasteFlag(Object.assign({ at: new Date(Date.now() - 1).toISOString(), studentId: sid, unit: "selection", units: ["selection"], taskId: task.id, lines: 1, homework: false, phase, homeworkId: null }, extra));
+      p.Store.logAttempt(sid, App.attemptRecord({ task, unit: "selection", phase, kind: "skip", result: "skipped", attemptNumber: 0, hints: 0, levelBefore: 5, levelAfter: 5,
+        assignmentId: phase === "assignment" ? ASG : undefined }));
+    };
+    flagged("practice");
+    flagged("placement");
+    flagged("practice", { lines: 3, homework: true, homeworkId: "0000000a-0000-0000-0000-0000000000b1" });
+    flagged("assignment");
+    await p.Backend.flush();
+    const sentA = server.attempts[sid], sentE = server.events[sid].filter((r) => r.record_type === "paste_flag");
+    check(sentA.length === 4 && sentA.every((r) => r.record_type === "skip" && r.result === "skipped" && r.student_level_before === 5 && r.student_level_after === 5 &&
+      Object.keys(r).every((k) => ATTEMPT_KEYS.includes(k)) && phases.includes(r.phase) && (r.student_code == null) && r.failure_category == null) &&
+      sentA.map((r) => r.phase).join() === "practice,placement,practice,assignment" && sentA[3].assignment_id === ASG &&
+      /\(record_type = 'skip' and result = 'skipped'\)/.test(m1) && !p.Backend.pending(),
+      "Paste flag: the flagged skip is sent to student-api as the Skip button's record (record_type skip, result skipped, the same level before and after) in practice, placement, homework and an assignment; every column is one the server already accepts (rows.ts), and no code is sent");
+    check(sentE.length === 4 && sentE.every((r) => Object.keys(r).every((k) => EVENT_KEYS.includes(k)) && r.paste_lines > 0 && PASTE_PHASES.includes(r.paste_phase)) &&
+      sentE.map((r) => r.paste_phase + ":" + r.paste_lines + ":" + r.paste_homework_id).join() ===
+        "practice:1:null,placement:1:null,practice:3:0000000a-0000-0000-0000-0000000000b1,assignment:1:null" &&
+      sentE.every((r, i) => Date.parse(r.timestamp) < Date.parse(sentA[i].timestamp) + 1),
+      "Paste flag: the flag's details are stored as before (phase, line count, homework id), a one-line paste too (the server only needs more than 0 lines); the flag comes just before its skip");
+    // Neither the secured score nor homework counts a skip: the same as with no record at all.
+    const records = p.Store.attempts(sid);
+    const now = Date.now();
+    const hw = { created_at: new Date(now - 86400000).toISOString(), due_on: Homework.ukDate(now + 7 * 86400000), units: [], task_count: 2 };
+    const flags = p.Store.pasteLog().filter((f) => f.studentId === sid);
+    check(JSON.stringify(Secured.score(records, "selection", now)) === JSON.stringify(Secured.score([], "selection", now)) && !Secured.score(records, "selection", now).secured &&
+      Homework.progress(hw, records, flags).done === 0 &&
+      Homework.progress(hw, records.concat([Object.assign({}, records[0], { kind: "attempt", result: "pass", at: new Date(now + 60000).toISOString() })]), flags).done === 0 &&
+      Curriculum.UNITS.some((u) => u.id === "selection"),
+      "Paste flag: a flagged skip doesn't count towards the secured score (the same as no record) or homework (and the task can't count later either)");
+  }
+
   // ---------- Students page (prompt 9): one table per block, the same data ----------
   // The class's rows (as teacher-backend.js loads them) go through BackendRows.teacherData, TD.scoreTable and
   // TD.overviewTablesHtml unchanged: every student of the class is in every block's table, every unit is a column

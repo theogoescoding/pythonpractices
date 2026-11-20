@@ -3121,15 +3121,15 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       PF.HOMEWORK_MESSAGE === "Your teacher has been told. This task doesn't count towards your homework. Here is a new task.",
       "Paste flag: the student is told exactly what happened, in short sentences (in homework, that the task doesn't count and a new one is given)");
 
-    // The practice page: both editors report a paste; a flag is recorded (an event in backend mode); in homework the
-    // student gets a new task; elsewhere nothing changes; never in teacher practice.
+    // The practice page: both editors report a paste; a flag is recorded (an event in backend mode) and the task is
+    // recorded as skipped (prompt 10: tested in full below); never in teacher practice.
     const appS = read("app.js"), on = appS.slice(appS.indexOf("  function onPaste("), appS.indexOf("  // ---------- Predict ----------"));
-    check(/ta\.addEventListener\("paste"/.test(appS) && /change\.origin === "paste"/.test(appS) && /if \(preview \|\| !self\.PasteFlag/.test(on) &&
-      /Store\.logPasteFlag\(\{ studentId: student\.id, unit: units\[0\], units, taskId: t\.id/.test(on) && /Homework\.activeFor\(Store\.homework\(student\.id\), units, Date\.now\(\)\)/.test(on) &&
-      /if \(homework\.length\) \{ moveOnAfterPaste\(\); return; \}/.test(on) && /PasteFlag\.MESSAGE/.test(on) && /notice = \{ kind: "down", text \};/.test(on) &&
-      !/applyOutcome|finishTask\(/.test(on) && ["logPasteFlag", "saveHomework"].every((f) => App.RECORDING_FUNCTIONS.includes(f)) &&
+    check(/ta\.addEventListener\("paste"/.test(appS) && /change\.origin !== "paste"/.test(appS) && /if \(preview \|\| !self\.PasteFlag/.test(on) &&
+      /Store\.logPasteFlag\(\{ at: [^,]+, studentId: student\.id, unit: units\[0\], units, taskId: t\.id/.test(on) && /Homework\.activeFor\(Store\.homework\(student\.id\), units, Date\.now\(\)\)/.test(on) &&
+      /if \(o\.moveOn\) moveOnAfterPaste\(o\.message\);/.test(on) && /notice = \{ kind: "down", text \};/.test(on) &&
+      !/applyOutcome/.test(on) && ["logPasteFlag", "saveHomework"].every((f) => App.RECORDING_FUNCTIONS.includes(f)) &&
       /<script src="homework\.js"><\/script>\s*<script src="paste-flag\.js"><\/script>/.test(read("practice.html")),
-      "Paste flag on the practice page: both editors (CodeMirror and the plain box) report a paste; it is recorded, then in homework the task is set aside for a new one, and outside homework only the message shows (no level or progress change); teacher practice records nothing");
+      "Paste flag on the practice page: both editors (CodeMirror and the plain box) report a paste; it is recorded, the task is recorded as skipped and the student moves on (no level change outside placement); teacher practice records nothing");
     const Rows = require(path.join(ROOT, "backend-rows.js"));
     const row = Rows.pasteFlagToRow({ id: "f-abc-123", at: "2026-11-18T10:00:00.000Z", unit: "maths", taskId: "maths-L9b", studentId: "s1", lines: 12 });
     check(JSON.stringify(row) === JSON.stringify({ record_id: "f-abc-123", record_type: "paste_flag", timestamp: "2026-11-18T10:00:00.000Z", unit: "maths", task_id: "maths-L9b",
@@ -3250,7 +3250,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     // Recording and sending the details; the server's checks; 0019.
     const appS = read("app.js"), rowsTs = read("supabase/functions/_shared/rows.ts"), sapi = read("supabase/functions/student-api/index.ts");
     const tapi = read("supabase/functions/teacher-api/index.ts"), mig = read("supabase/migrations/0019_paste_flag_details.sql"), pfs = read("supabase/functions/_shared/paste-flags-server.js");
-    check(/const phase = cur\(\)\.placement \? "placement" : inAssignment \? "assignment" : endless \? "endless" : "practice";/.test(appS) &&
+    check(/const phase = c\.placement \? "placement" : inAssignment \? "assignment" : endless \? "endless" : "practice";/.test(appS) &&
       /phase, homeworkId: homework\.length \? homework\[0\]\.id : null \}\);/.test(appS) &&
       /paste_phase: orNull\(f\.phase\), paste_lines: orNull\(f\.lines\), paste_homework_id: orNull\(f\.homeworkId\)/.test(read("backend-rows.js")),
       "Paste flag details: the phase, the line count and the open homework's id are recorded with each flag (this browser too) and sent with it; the pasted text never is");
@@ -3521,6 +3521,136 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       /data-paste-student="s2" data-paste-unit="[^"]+" aria-label="Large paste flagged, 2 flags\. Open the details"/.test(flagged) && />2 flags<\/span>/.test(flagged) &&
       /e\.target\.closest\("button\[data-paste-student\]"\)/.test(tj9),
       "Students page: the red paste flag is still in the Level cell of the unit it was raised in (the last column of its block), with its count, and opens the dialog");
+  }
+
+  // ===================== Prompt 10 (2026-11): whole-program pastes, and a flagged task is skipped =====================
+  // A paste is flagged when it is the whole program (the editor held nothing else, or only the starter comment), at any
+  // length, or when it is more than 8 lines; never when it is expected output. A flagged task is recorded as skipped
+  // (the Skip button's record) and the student's code is never run.
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const PF = require(path.join(ROOT, "paste-flag.js"));
+    const HW = require(path.join(ROOT, "homework.js"));
+    const lines = (n, w) => Array.from({ length: n }, (_, i) => (w || "x") + i + " = " + i).join("\n");
+    const wt = { type: "write", starter: "# Write your program here\n", tests: [{ inputs: ["5"], expected: "Total: 5\nDone\n" }] };
+    const half = "n = int(input())\nif n > 3:\n";
+    check(PF.reason(lines(2), wt, "") === "whole-program" && PF.reason("print('hi')", wt, "") === "whole-program" && PF.reason("print('hi')", wt, "\n  \n") === "whole-program",
+      "Paste flag: a paste into an empty editor is flagged as the whole program: 2 lines, and 1 line too (whatever its length; blank lines count as empty)");
+    check(PF.reason(lines(2), wt, "# Write your program here\n") === "whole-program" && PF.reason(lines(2), wt, "  # Write your program here  ") === "whole-program" &&
+      PF.reason(lines(2), wt, "") === "whole-program" && PF.reason(lines(2), wt, "# my own note") === null && PF.reason(lines(2), { type: "write", tests: [] }, "# Write your program here") === null,
+      "Paste flag: an editor holding only the starter comment counts as empty (and so does one where the comment was cleared); the student's own comment, or a task with no starter comment, doesn't");
+    check(PF.reason(lines(9), wt, half) === "long" && PF.reason(lines(8), wt, half) === null && PF.reason(lines(3), wt, half) === null && PF.reason(lines(9), wt, "") === "whole-program",
+      "Paste flag: 9 lines pasted into a half-written program are flagged (more than 8); 8 lines are not");
+    check(PF.reason("Total: 5", wt, "") === null && PF.reason("Total: 5\nDone", wt, half) === null && PF.reason("  Done  ", wt, "") === null && PF.reason("\n \n", wt, "") === null &&
+      PF.reason("print('Total: 5')", wt, "") === "whole-program",
+      "Paste flag: pasted expected output is never flagged (even a single line into an empty editor), nor a paste of only blank lines; code that prints it is");
+    check(PF.reason(lines(2), wt, "") && PF.reason(lines(2), { type: "scratch", tests: [] }, "") === "whole-program" &&
+      ["fill", "predict", "parsons", "trace"].every((type) => PF.reason(lines(20), { type, tests: [] }, "") === null) &&
+      PF.flags(lines(9), wt) && !PF.flags(lines(2), wt) && PF.isWholeProgram("", wt) && !PF.isWholeProgram("x = 1", wt),
+      "Paste flag: only write and write-from-scratch tasks' editors are checked; without the editor's text, only the more-than-8-lines rule applies");
+    // The outcome: always the Skip button's record; a level effect only in placement; a fixed list doesn't move on.
+    const oc = (phase, hw) => JSON.stringify(PF.outcome(phase, hw));
+    const skip = '{"kind":"skip","result":"skipped"}';
+    check(oc("practice", false) === '{"record":' + skip + ',"levelChange":"none","moveOn":true,"message":"' + PF.MESSAGE + '"}' &&
+      oc("endless", false) === oc("practice", false) && oc("placement", false) === '{"record":' + skip + ',"levelChange":"placement-skip","moveOn":true,"message":"' + PF.MESSAGE + '"}' &&
+      oc("practice", true) === '{"record":' + skip + ',"levelChange":"none","moveOn":true,"message":"' + PF.HOMEWORK_MESSAGE + '"}' &&
+      oc("assignment", false) === '{"record":' + skip + ',"levelChange":"none","moveOn":false,"message":"' + PF.MESSAGE + '"}' && oc("assignment", true) === oc("assignment", false),
+      "Paste flag outcome: a skip record everywhere; no level change except placement (a skip there, as the Skip button); a new task except in an assignment; the homework message in homework");
+
+    // The real app.js code (onPaste, flagPaste, showPasteMessage, moveOnAfterPaste, recordAttempt and the start of
+    // check()) on a stand-in page.
+    // The checks here run synchronously: "async" and "await" are taken out of the copied code (the stand-ins answer at
+    // once), which changes nothing else about it.
+    const appP = read("app.js");
+    const slice = (from, to) => appP.slice(appP.indexOf(from), appP.indexOf(to)).replace(/\basync /g, "").replace(/\bawait /g, "");
+    const pasteSrc = slice("  let pasteFlagPending = false;", "  // ---------- The error question");
+    const recordSrc = slice("  function recordAttempt(", "  // The dialogs after a pass");
+    const checkHead = slice("  async function check() {", "    if (t.error_kind && !c.finished");
+    const UNIT = "selection";
+    const page = (o) => {
+      const log = { attempts: [], flags: [], finishTask: 0, placementSteps: [], served: 0, placementServed: 0, ran: 0, shown: [], timers: [] };
+      const st = { level: 5, current: { taskId: "sel-L5a", placement: !!o.placement, started: true, hints: 1, attempts: 0, finished: false, passed: false, draft: { code: "" } } };
+      const work = { tried: {} };
+      const task = { id: "sel-L5a", type: o.type || "write", unit: UNIT, level: 5, skills: [], starter: "# Write your program here\n", tests: wt.tests };
+      const env = {
+        preview: false, self: { PasteFlag: PF, Homework: HW }, PasteFlag: PF, Homework: HW, setTimeout: (f) => log.timers.push(f),
+        cur: () => (o.assignment ? work.current || (work.current = st.current) : st.current), task: () => task, unitsOf: (t) => [t.unit], inAssignment: !!o.assignment, endless: !!o.endless,
+        student: { id: "s1" }, assignmentId: o.assignment ? "as-1" : null, work, unitId: UNIT, serving: false, busy: false, notice: null,
+        Store: { homework: () => o.homework || [], logPasteFlag: (f) => { log.flags.push(f); }, logAttempt: (sid, r) => { const x = Object.assign({ id: "a-" + log.attempts.length, at: new Date().toISOString(), studentId: sid }, r); log.attempts.push(x); return x; }, attempts: () => log.attempts },
+        attemptRecord: App.attemptRecord, levelIn: () => st.level, us: () => st, noteFailedAttempt: () => {}, practiceTaskInPlacement: () => false, reachedFullSecure: () => false, securedDue: false,
+        finishTask: () => { log.finishTask++; const c = env.cur(); c.finished = true; if (o.assignment) work.tried[task.id] = work.tried[task.id] || "tried"; return {}; },
+        finishPlacementStep: (passed) => { const c = env.cur(); c.finished = true; log.placementSteps.push(passed); },
+        eachLog: () => {}, save: () => {}, renderButtons: () => {}, renderSide: () => {}, renderTask: () => {},
+        inPlacement: () => true, servePlacementTask: () => { log.placementServed++; st.current = { taskId: "next-placement", placement: true, finished: false }; },
+        serveNewTask: () => { log.served++; st.current = { taskId: "next-task", finished: false }; return true; }, placementResultText: () => "",
+        $: (id) => (id === "editor-help" ? { insertAdjacentHTML: (_, h) => { log.shown.push(h.replace(/<[^>]+>/g, "")); } } : { focus() {} }),
+        document: { querySelector: () => null }, esc: (s) => s,
+      };
+      const names = Object.keys(env);
+      const run = new Function(...names, pasteSrc + recordSrc + checkHead + "    runTests();\n  }\n" +
+        "return { onPaste, check, pending: () => pasteFlagPending, notice: () => notice };");
+      env.runTests = () => { log.ran++; };
+      const api = run(...names.map((n) => (n === "runTests" ? undefined : env[n])).concat([]));
+      return { api, log, st, work, env };
+    };
+    // new Function gets runTests as a free name: give it through a global for the check() slice.
+    global.runTests = () => {};
+    const flow = (o, text, rest) => {
+      const p = page(o);
+      global.runTests = () => { p.log.ran++; };
+      p.api.onPaste(text, rest);
+      const pendingThen = p.api.pending();
+      p.api.check();                // pressed while the flag is being handled: nothing runs
+      const ranWhilePending = p.log.ran;
+      p.log.timers.forEach((f) => f()); // the editor has taken the paste
+      return Object.assign(p, { pendingThen, ranWhilePending });
+    };
+    const practice = flow({}, "print('hi')", "");
+    const pa = practice.log.attempts[0] || {};
+    check(practice.pendingThen && practice.ranWhilePending === 0 && practice.log.ran === 0 && practice.log.attempts.length === 1 && !practice.log.attempts.some((a) => a.result === "pass"),
+      "Paste flag: a flagged attempt never runs the tests (Check pressed straight after the paste does nothing) and no pass is shown or recorded");
+    check(pa.kind === "skip" && pa.result === "skipped" && pa.phase === "practice" && pa.levelBefore === 5 && pa.levelAfter === 5 && practice.log.finishTask === 0 && pa.code === undefined &&
+      practice.log.flags.length === 1 && practice.log.flags[0].phase === "practice" && practice.log.flags[0].lines === 1 && Date.parse(practice.log.flags[0].at) < Date.parse(pa.at) + 1,
+      "Paste flag in practice: recorded as a skip (kind skip, result skipped, the Skip button's record) with no level change (level 5 before and after; the level rules aren't run) and no code stored; the flag is recorded just before it");
+    check(practice.log.served === 1 && practice.st.current.taskId === "next-task" && practice.api.notice().text === PF.MESSAGE,
+      "Paste flag in practice: the student moves on to a new task, with the message");
+    const endlessRun = flow({ endless: true }, lines(9), half);
+    const ea = endlessRun.log.attempts[0] || {};
+    check(ea.kind === "skip" && ea.phase === "endless" && ea.levelBefore === ea.levelAfter && endlessRun.log.finishTask === 0 && endlessRun.log.served === 1 && endlessRun.log.flags[0].lines === 9,
+      "Paste flag in endless mode: a 9-line paste into a started program is recorded as a skip, with no level change, and a new task comes");
+    const placementRun = flow({ placement: true }, lines(3), "");
+    const pl = placementRun.log.attempts[0] || {};
+    const nextSrc = slice("  async function nextTask() {", "  function openAssignmentTask(");
+    check(pl.kind === "skip" && pl.result === "skipped" && pl.phase === "placement" && JSON.stringify(placementRun.log.placementSteps) === "[false]" && placementRun.log.placementServed === 1 &&
+      /if \(c\.placement\) \{\s*recordAttempt\(t, c, \{ kind: "skip", result: "skipped" \}\);\s*finishPlacementStep\(false\);/.test(nextSrc),
+      "Paste flag in placement: recorded as a skip and the question ends as not passed, exactly as the Skip button does (so it can lower the starting level); the next question comes");
+    const hwList = [{ id: "hw-1", task_count: 3, due_on: "2099-12-31", units: [UNIT], created_at: "2026-01-01T00:00:00Z", done: 0, complete: false }];
+    const homeworkRun = flow({ homework: hwList }, "x = 1\nprint(x)", "");
+    const ha = homeworkRun.log.attempts[0] || {};
+    const hwFlags = homeworkRun.log.flags.map((f) => ({ at: f.at, unit: f.unit, units: f.units, taskId: f.taskId }));
+    check(ha.kind === "skip" && ha.result === "skipped" && homeworkRun.log.flags[0].homeworkId === "hw-1" && homeworkRun.log.flags[0].homework === true &&
+      homeworkRun.log.served === 1 && homeworkRun.api.notice().text === PF.HOMEWORK_MESSAGE &&
+      HW.progress(hwList[0], homeworkRun.log.attempts, hwFlags).done === 0 && HW.progress(hwList[0], homeworkRun.log.attempts.concat([Object.assign({}, ha, { kind: "attempt", result: "pass", at: new Date(Date.now() + 1000).toISOString() })]), hwFlags).done === 0,
+      "Paste flag in homework: recorded as a skip, not a pass; the task never counts (not even if passed later); the homework id is kept; the student moves on with the homework message");
+    const asg = flow({ assignment: true }, lines(2), "");
+    const aa = asg.log.attempts[0] || {};
+    asg.api.check();
+    check(aa.kind === "skip" && aa.result === "skipped" && aa.phase === "assignment" && aa.assignmentId === "as-1" && asg.work.tried["sel-L5a"] === "tried" &&
+      asg.log.served === 0 && asg.log.ran === 0 && asg.log.shown.length === 2 && asg.log.shown.every((s) => s === PF.MESSAGE) && asg.env.cur().pasteFlagged,
+      "Paste flag in an assignment: recorded as a skip, the task is marked tried (not done) and the student stays on it (a fixed list); Check on it later never runs the code, it shows the message again");
+    // Not flagged: expected output, and a normal typed program, both run as before.
+    const outRun = flow({}, "Total: 5", ""); // flow presses Check straight after the paste
+    const typed = page({});
+    global.runTests = () => { typed.log.ran++; };
+    typed.api.check();
+    check(outRun.log.flags.length === 0 && outRun.log.attempts.length === 0 && !outRun.pendingThen && outRun.ranWhilePending === 1 && typed.log.ran === 1 && typed.log.attempts.length === 0,
+      "Paste flag: pasted expected output isn't flagged or skipped (Check runs the code as usual), and a typed program is checked as before");
+    // Both editors give the editor's text just before the paste; the decision is made as the paste happens.
+    check(/onPaste\(text, ta\.value\.slice\(0, ta\.selectionStart\) \+ ta\.value\.slice\(ta\.selectionEnd\)\);/.test(appP) &&
+      /cm\.on\("beforeChange", \(_, change\) => \{/.test(appP) && /cm\.getRange\(CodeMirror\.Pos\(0, 0\), change\.from\) \+ cm\.getRange\(change\.to, end\)/.test(appP) &&
+      /if \(busy \|\| pasteFlagPending\) return;/.test(appP) && /if \(c\.pasteFlagged\) \{ showPasteMessage\(PasteFlag\.MESSAGE\); return; \}/.test(appP),
+      "Paste flag: both editors (the plain box and CodeMirror) pass the text that stays outside the pasted-over selection, so pasting over the whole program counts as a whole-program paste");
+    delete global.runTests;
   }
 
   // ===================== Selection, trimmed =====================
