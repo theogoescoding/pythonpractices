@@ -1027,7 +1027,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
 
   Store.setupDisplaySettings();
   const pageTitle = preview ? "Teacher practice" : inAssignment ? "Assignment: " + (assignment ? assignment.title : "not found") : endless ? "Endless mode" : studentUnitTitle(unit.id); // "Validation (old version)" for the old unit
-  document.title = pageTitle + " – Python Practice";
+  document.title = pageTitle + " – Pythons and Ladders";
   document.getElementById("unit-title").textContent = pageTitle;
   document.getElementById("student-name").textContent = student.name;
   if (endless || inAssignment) {

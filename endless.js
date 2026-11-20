@@ -25,8 +25,8 @@ Store.whenReady(function () {
       const toDo = self.Secured.placementToDo(s);
       const level = !s ? "Not started" : toDo ? self.Secured.PLACEMENT_TO_DO : "Level " + s.level + " – " + levelName(s.level, u.id);
       const msg = s && !toDo && s.level === 10
-        ? "Get 2 strong passes in a row at Level 10 in " + name + " to unlock."
-        : "Complete Level 10 in " + name + " to unlock." + (s && !toDo ? " You're at Level " + s.level + "." : "");
+        ? "Pass 2 level 10 tasks in a row, with 1 hint or fewer each time, to unlock " + name + "."
+        : "Reach level 10 in " + name + ", then pass 2 tasks there in a row with 1 hint or fewer." + (s && !toDo ? " You're at Level " + s.level + "." : "");
       return '<li class="' + (open ? "" : "locked") + '"><label><input type="checkbox" name="unit" value="' + u.id + '"' +
         (open ? (ticked.includes(u.id) || !ticked.length ? " checked" : "") : " disabled") +
         (open ? "" : ' aria-describedby="lock-' + u.id + '"') + "> " + esc(name) +

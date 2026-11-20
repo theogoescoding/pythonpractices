@@ -6,7 +6,7 @@ Store.whenReady(function () {
   const { UNITS, unitById, levelName } = self.Curriculum;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const STATUS_TEXT = { secured: "Secured", "in-progress": "In progress", "not-started": "Not started" };
+  const STATUS_TEXT = { secured: "Mastered", "in-progress": "In progress", "not-started": "Not started" };
 
   const student = Store.currentStudent();
   if (!student) { location.replace("app.html"); return; }
@@ -39,12 +39,12 @@ Store.whenReady(function () {
       const toDo = self.Secured.placementToDo(x.s);
       const level = self.Secured.levelText(x.s) || "Not started";
       return '<li><button type="button" class="unit-card" data-unit="' + u.id + '" aria-label="' +
-        esc(self.Curriculum.studentUnitTitle(u.id) + ": " + level + ", " + x.percent + "% of tasks passed, " + x.secured + " of " + u.skills.length + " skills secured. " + x.note + " Show skills.") + '">' +
+        esc(self.Curriculum.studentUnitTitle(u.id) + ": " + level + ", " + x.percent + "% of tasks passed, " + x.secured + " of " + u.skills.length + " skills mastered. " + x.note + " Show skills.") + '">' +
         "<h3>" + esc(self.Curriculum.studentUnitTitle(u.id)) + "</h3>" +
         '<div class="stat-row">' +
           '<span class="stat"><strong>' + esc(level) + "</strong>" + (x.s && !toDo ? esc(levelName(x.s.level, u.id)) : "&nbsp;") + "</span>" +
           '<span class="stat"><strong>' + x.percent + "%</strong>tasks passed (" + x.passed + " of " + x.total + ")</span>" +
-          '<span class="stat"><strong>' + x.secured + " / " + u.skills.length + "</strong>skills secured</span>" +
+          '<span class="stat"><strong>' + x.secured + " / " + u.skills.length + "</strong>skills mastered</span>" +
         "</div>" +
         (x.s && x.s.completedTop ? '<p class="unit-meta"><span class="status status-secured">Unit completed – endless mode unlocked</span></p>' : "") +
         '<p class="score-note">' + esc(x.note) + "</p>" +
@@ -56,7 +56,7 @@ Store.whenReady(function () {
     const x = summary(u);
     $("detail-h").textContent = self.Curriculum.studentUnitTitle(u.id);
     $("detail-summary").textContent = (!x.s ? "Not started yet" : self.Secured.placementToDo(x.s) ? self.Secured.PLACEMENT_TO_DO : "Level " + x.s.level + " (" + levelName(x.s.level, u.id) + ")") +
-      " · " + x.percent + "% of tasks passed · " + x.secured + " of " + u.skills.length + " skills secured. " + x.note;
+      " · " + x.percent + "% of tasks passed · " + x.secured + " of " + u.skills.length + " skills mastered. " + x.note;
     $("skill-list").innerHTML = x.skills.map(({ skill, state }) => {
       const status = skillStatus(state);
       const detail = state && state.attempts ? state.passes + " passed of " + state.attempts + " tried" : "";

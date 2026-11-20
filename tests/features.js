@@ -891,8 +891,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const teacher = read("teacher.html");
     const teacherSrc = read("teacher.js");
     const sections = [...teacher.matchAll(/<section class="[^"]*teacher-section[^"]*" data-collapse="([^"]+)"[^>]*>\s*<h3[^>]*>([^<]+)<\/h3>/g)].map((m) => m[2]);
-    check(sections.join() === "Teachers,Name and stage,Student logins,Delete this class,Secured score per unit,This class,All my classes,Exports,Compare classes,Needs review,Misconception table,Failed attempts with no match, by task,Not matched yet",
-      "Teacher view: every section (the class's teachers, class name and stage, student logins, delete class, the score table, the two leaderboard sections, exports, compare classes, and the Misconceptions page's Needs review list, table, unmatched attempts and not-matched-yet list) is collapsible");
+    check(sections.join() === "Teachers,Name and stage,Student logins,Import a full export,Delete this class,Secured score per unit,This class,All my classes,Compare classes,Exports,Level changes,Needs review,Misconception table,Failed attempts with no match, by task,Not matched yet",
+      "Teacher view: every section (the class's teachers, class name and stage, student logins, import a full export, delete class, the score table, the two leaderboard sections and Compare classes (on Leaderboards since review findings L6 and T4), exports, level changes, and the Misconceptions page's Needs review list, table, unmatched attempts and not-matched-yet list) is collapsible");
     const key = (teacherSrc.match(/Collapse\.enhance\(document\.querySelector\("main"\), "([^"]+)"\)/) || [])[1];
     check(key && key !== "pythonPractice.collapsedGroups" && /<script src="collapse\.js"><\/script>\s*<script src="teacher\.js">/.test(teacher) && !/localStorage\./.test(teacherSrc),
       "Teacher view: sections open and close with collapse.js, remembered under their own key (not the student view's)");
@@ -954,9 +954,9 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const keptOpen = !c2.body.hidden;
     c2.press();
     check(startsClosed && openedSaved && keptOpen && c2.body.hidden && mem2.k === '["other"]' &&
-      (teacher.match(/data-collapse-default="closed"/g) || []).length === 3 &&
-      ["ws-misconceptions", "ws-unmatched", "ws-unseen"].every((id) => new RegExp('data-collapse="' + id + '" data-collapse-default="closed"').test(teacher)),
-      "Misconceptions page: the misconception table, unmatched attempts and not-matched-yet sections start collapsed, and each one's open or closed state is remembered in this browser");
+      (teacher.match(/data-collapse-default="closed"/g) || []).length === 6 &&
+      ["mc-review", "ws-misconceptions", "ws-unmatched", "ws-unseen", "class-import", "level-log"].every((id) => new RegExp('data-collapse="' + id + '" data-collapse-default="closed"').test(teacher)),
+      "Misconceptions page: Needs review (since review finding S5), the misconception table, unmatched attempts and not-matched-yet sections start collapsed, as do Import a full export and Level changes (review findings L3 and L6), and each one's open or closed state is remembered in this browser");
     check(!/Haven't started a unit/.test(teacherSrc + teacher), "Teacher overview: the \"Haven't started a unit\" box is gone (the student table still shows Not started cells)");
   }
 
@@ -1208,8 +1208,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const text = (id) => Tour.STEPS.find((s) => s.id === id).text;
     const maxHints = Math.max(...tasks.map((t) => (t.hints || []).length));
     check(/four questions/.test(text("placement")) && App.PLACEMENT_LEVELS.length === 4 && /once in each unit/.test(text("placement")) &&
-      /up to three/.test(text("hints")) && maxHints === 3 && /not towards your freshness/.test(text("hints")) &&
-      /After two failed tries/.test(text("show-how")) && App.SHOW_HOW_AFTER_FAILS === 2 && /doesn't count towards your freshness/.test(text("show-how")) &&
+      /up to three/.test(text("hints")) && maxHints === 3 && /but not towards your score\./.test(text("hints")) &&
+      /After two failed tries/.test(text("show-how")) && App.SHOW_HOW_AFTER_FAILS === 2 && /doesn't count towards your score\./.test(text("show-how")) &&
       /up one level/.test(text("level-buttons")) && /down one level/.test(text("level-buttons")) && App.BUTTON_JUMP_LEVELS === 1 &&
       /two programs with no hints/.test(text("freshness")) && /After a week it drops to 90%, then 10 points more each week, down to 50%/.test(text("freshness")) &&
       SecuredT.DROP_PER_WEEK === 10 && SecuredT.FLOOR_START === 50 && SecuredT.PASSES_TO_SECURE === 2 &&
@@ -1272,7 +1272,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const newUnit = Tour.planHome(stillFading.state, ctx({ units: [{ id: "maths", title: "Maths" }, { id: "selection", title: "Selection" }, { id: "recursion", title: "Recursion" }], bands: { maths: { cls: "fading", label: "Fading", score: 85 } } }), true);
     const placingNew = Tour.planHome(newUnit.state, ctx({ placing: ["selection"], started: ["maths", "selection"] }), true);
     const placingAgain = Tour.planHome(placingNew.state, ctx({ placing: ["selection"], started: ["maths", "selection"] }), true);
-    check(withNew.reminders.map((r) => r.key).join() === "assignment:a2" && /new practice set: Lists/.test(withNew.reminders[0].text) && withNew.reminders[0].href === "practice.html?assignment=a2" &&
+    check(withNew.reminders.map((r) => r.key).join() === "assignment:a2" && /new assignment: Lists\./.test(withNew.reminders[0].text) && withNew.reminders[0].href === "practice.html?assignment=a2" &&
       !sameAgain.reminders.length && dropped.reminders.map((r) => r.key).join() === "band:maths:fading" && /faded to Fading \(85%\)/.test(dropped.reminders[0].text) &&
       !stillFading.reminders.length && newUnit.reminders.map((r) => r.key).join() === "unit:recursion" && placingNew.reminders.map((r) => r.key).join() === "placement:selection" &&
       !placingAgain.reminders.length && [withNew, dropped, newUnit, placingNew].every((p) => p.reminders.every((r) => r.go && r.href && sentences(r.text) <= 2)),
@@ -1348,27 +1348,27 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
 
     // The side menu, in order, with Students as the default page; old addresses still open the right page.
     const nav = [...teacher.matchAll(/<a href="#(\w+)" data-page="\w+"( data-backend)?>([^<]+)<\/a>/g)].map((m) => m[3]);
-    check(nav.join() === "Classes,Students,Leaderboards,Certificates,Homework,Assignments,Reports,Misconceptions,Task browser,Settings" && !/tab-nav/.test(teacher) &&
+    check(nav.join() === "Students,Homework,Assignments,Misconceptions,Leaderboards,Certificates,Reports,Task browser,Classes,Settings" && !/tab-nav/.test(teacher) &&
       ["classes", "students", "leaderboards", "certificates", "homework", "student", "assignments", "reports", "misconceptions", "tasks", "settings"].every((p) => teacher.includes('id="page-' + p + '"')) &&
       /\["students", null\]/.test(teacherSrc) && /overview: "students", log: "reports", workshop: "misconceptions"/.test(teacherSrc) && /"#students"\)/.test(backendSrc),
-      "Teacher view: a side menu (Classes, Students, Leaderboards, Certificates, Homework, Assignments, Reports, Misconceptions, Task browser, Settings) replaces the tabs; Students is the default page, and #overview, #log and #workshop still open Students, Reports or Misconceptions");
+      "Teacher view: a side menu (Students, Homework, Assignments, Misconceptions, Leaderboards, Certificates, Reports, Task browser, Classes, Settings; the order since review finding L1) replaces the tabs; Students is the default page, and #overview, #log and #workshop still open Students, Reports or Misconceptions");
 
     // The Misconceptions page (the workshop, moved from Reports).
     const pageOf = (id) => { const i = teacher.indexOf('<section id="page-' + id + '"'); return teacher.slice(i, teacher.indexOf("<!-- =====", i + 10)); };
     const mcPage = pageOf("misconceptions"), reportsPage = pageOf("reports");
-    check(/<a href="#reports" data-page="reports">Reports<\/a>\s*<a href="#misconceptions" data-page="misconceptions">Misconceptions<\/a>\s*<a href="#tasks"/.test(teacher) &&
+    check(/<a href="#assignments" data-page="assignments" data-backend>Assignments<\/a>\s*<a href="#misconceptions" data-page="misconceptions">Misconceptions<\/a>\s*<a href="#leaderboards"/.test(teacher) &&
       /const PAGES = \[[^\]]*"reports", "misconceptions", "tasks"/.test(teacherSrc) && /else if \(p === "misconceptions"\) renderMisconceptions\(data\);/.test(teacherSrc),
-      "Misconceptions: its own side menu item, between Reports and Task browser (#misconceptions)");
+      "Misconceptions: its own side menu item, between Assignments and Leaderboards since review finding L1 (#misconceptions)");
     // The old address: route() maps #workshop to the new page (run on its own).
     const routeSrc = teacherSrc.slice(teacherSrc.indexOf("const route = () =>"), teacherSrc.indexOf("const page = () =>"));
     const routeFor = (hash) => new Function("location", "PAGES", "OLD_PAGES", routeSrc + "; return route();")({ hash },
       JSON.parse(teacherSrc.match(/const PAGES = (\[[^\]]*\])/)[1]), { overview: "students", log: "reports", workshop: "misconceptions" });
     check(routeFor("#workshop")[0] === "misconceptions" && routeFor("#misconceptions")[0] === "misconceptions" && routeFor("#log")[0] === "reports" && routeFor("#nothing")[0] === "students",
       "Misconceptions: the old workshop address (#workshop) opens the new page; #log still opens Reports");
-    check(/if \(mcUnit !== "all" && !unitIds\.includes\(mcUnit\)\) mcUnit = unitIds\[0\];/.test(teacherSrc) && /const stageUnitIds = \(\) => self\.Curriculum\.stageUnits\(stage\(\)\);/.test(teacherSrc) &&
+    check(/if \(mcUnit !== "all" && !unitIds\.includes\(mcUnit\)\) mcUnit = "all";/.test(teacherSrc) && /let mcUnit = null;/.test(teacherSrc) && /const stageUnitIds = \(\) => self\.Curriculum\.stageUnits\(stage\(\)\);/.test(teacherSrc) &&
       /function renderMisconceptions\(data\) \{\s*const unitIds = stageUnitIds\(\);/.test(teacherSrc) && /<option value="all">All units<\/option>/.test(teacherSrc) &&
       ["ks3", "gcse", "a-level"].every((st) => Curriculum.stageUnits(st).length > 0) && /<select id="mc-unit">/.test(mcPage),
-      "Misconceptions: the unit picker lists the class's stage's units and starts at the first one (then All units, the old class-wide list)");
+      "Misconceptions: the unit picker lists the class's stage's units, then All units (the class-wide list), which it opens on since review finding L7");
     const mcAttempt = (result, dt, extra) => Object.assign({ kind: "attempt", result, hints: 0, phase: "practice", taskLevel: 6, at: new Date(Date.parse("2026-01-05T09:00:00Z") + dt).toISOString() }, extra);
     const mcData = { students: { a: { name: "Ann" }, b: { name: "Bo" } }, levelLog: [], buttonLog: [], progress: {}, attempts: [
       mcAttempt("fail", 0, { studentId: "a", taskId: "if-L6a", unit: "selection", category: "WRONG_OUTPUT", misconceptions: ["M1"] }), mcAttempt("fail", 3600000, { studentId: "b", taskId: "if-L6a", unit: "selection", category: "WRONG_OUTPUT" }),
@@ -1386,10 +1386,10 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       /if \(p === "tasks"\) renderTaskBrowser\(arg\);/.test(teacherSrc) && (mcSrc.match(/taskLink\(/g) || []).length >= 3,
       "Misconceptions: each task name (most-failed, misconception table, unmatched table) opens that task in the Task browser, ready to try; a unit with no failed attempts says so");
     check(["mc-failed", "ws-misconceptions", "ws-tasks", "ws-unmatched", "ws-unseen"].every((id) => mcPage.includes('id="' + id + '"')) &&
-      !/id="(ws-|quick-look|mc-)/.test(reportsPage) && /<a href="#misconceptions">Misconceptions<\/a>/.test(reportsPage) && reportsPage.includes('id="export-workshop"') &&
+      !/id="(ws-|quick-look|mc-)/.test(reportsPage) && !/<a href="#misconceptions">/.test(reportsPage) && reportsPage.includes('id="export-workshop"') && /the Misconceptions page/.test(reportsPage) &&
       /data-unmatched="' \+ esc\(t\.taskId\) \+ '">View ' \+ t\.unmatched/.test(mcSrc) && /\$\("ws-tasks"\)\.addEventListener\("click"/.test(teacherSrc) &&
       /<th scope="col">Students<\/th>/.test(mcPage) && /m\.studentNames\.join\(", "\)/.test(mcSrc) && /unseen\.map\(\(m\) => "<li>" \+ esc\(m\.name\)/.test(mcSrc),
-      "Misconceptions: the misconception table (with its Students column), the unmatched table with View, and the not-matched-yet list are on the new page; Reports keeps the workshop export and links to it");
+      "Misconceptions: the misconception table (with its Students column), the unmatched table with View, and the not-matched-yet list are on the new page; Reports keeps the workshop export, which says it is the Misconceptions page's tables (the link line was removed, review finding S12)");
     const wsExport = teacherSrc.slice(teacherSrc.indexOf('"export-workshop": {'), teacherSrc.indexOf('"export-workshop": {') + 600) +
       teacherSrc.slice(teacherSrc.indexOf("function workshopCsv(data)"), teacherSrc.indexOf("function workshopCsv(data)") + 600);
     const wsOut = TD.workshop(mcData, [{ id: "M1", name: "Mistake one" }], {});
@@ -1525,7 +1525,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(noteNumbersOk && /<p id="score-rule">A unit's score goes down a little each week unless you pass its level 10 challenge with no hints\.<\/p>/.test(progHtml) &&
       /<script src="secured\.js"><\/script>\s*<script src="progress\.js"><\/script>/.test(progHtml) &&
       /self\.Secured\.score\(attempts, u\.id\)/.test(progSrc) && /note: self\.Secured\.studentNote\(sec\)/.test(progSrc) && /<p class="score-note">' \+ esc\(x\.note\)/.test(progSrc) &&
-      /skills secured\. " \+ x\.note \+ " Show skills\./.test(progSrc) && !/DROP_PER_WEEK|WEEK_MS|FLOOR_/.test(progSrc) &&
+      /skills mastered\. " \+ x\.note \+ " Show skills\./.test(progSrc) && !/DROP_PER_WEEK|WEEK_MS|FLOOR_/.test(progSrc) &&
       !/freshness|decay|floor/i.test(allNotes.join(" ") + progHtml.replace(/<!--[\s\S]*?-->/g, "")),
       "My progress: the sentence's numbers are the score the unit cards show (both from secured.js, no rule copied), the page has its one-line rule at the top, and none of it says freshness, decay or floor");
     // No secured unit can show red: the floor is at least 50%, every band below 80% is Revisit soon (indigo), and
@@ -2817,7 +2817,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     // Item 5: every export opens a popup first: what it contains, a sample row, and Download (the same file as before).
     const html = read("teacher.html");
     const ids = ["export-scores", "export-full", "export-dictionary", "export-levels", "export-log", "export-workshop"];
-    check(ids.every((id) => new RegExp('"' + id + '": \\{ title: "[^"]+",\\s*text: "(?:[^"\\\\]|\\\\.){40,}",\\s*build: ').test(tJs)) &&
+    check(ids.every((id) => new RegExp('"' + id + '": \\{ title: "[^"]+",\\s*text: "(?:[^"\\\\]|\\\\.){40,}",\\s*(?:\\/\\/[^\\n]*\\n\\s*note: [^\\n]*\\n\\s*)?build: ').test(tJs)) &&
       /Object\.keys\(EXPORTS\)\.forEach\(\(id\) => \$\(id\)\.addEventListener\("click", \(\) => openExport\(id\)\)\);/.test(tJs) &&
       /files\.forEach\(\(f, i\) => setTimeout\(\(\) => download\(f\.name, f\.text\), i \* 400\)\);/.test(tJs) && /\$\("export-dialog"\)\.showModal\(\);/.test(tJs) &&
       ["export-dialog", "export-dialog-h", "export-dialog-text", "export-dialog-sample", "export-dialog-download", "export-dialog-close"].every((id) => html.includes('id="' + id + '"')) &&
@@ -3149,9 +3149,10 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "Homework card: on the student's home page in backend mode only, one card per homework with the due date, the units (or \"Any unit\") and \"x of y done\", then \"Complete\"");
     const th = read("teacher.html"), tj = read("teacher.js");
     const cols = [...tj.slice(tj.indexOf("const HW_COLUMNS = ["), tj.indexOf("function drawHomeworkReport")).matchAll(/key: "(\w+)", label: "([^"]+)"/g)].map((m) => m[2]);
-    check(cols.join() === "Student,Done,Units,Possible AI use" && /data-hw-sort="' \+ c\.key \+ '"/.test(tj) && /aria-sort="' \+ \(hwSort\.dir === 1 \? "ascending" : "descending"\)/.test(tj) &&
-      /<span class="flag flag-alert">Possible AI use<\/span> ' \+ esc\(taskName\(f\.task_id\)\)/.test(tj) && /hwSort = hwSort\.key === b\.dataset\.hwSort \? \{ key: hwSort\.key, dir: -hwSort\.dir \}/.test(tj),
-      "Homework report: one row per student with the columns Student, Done (x of y), Units and Possible AI use (each flagged task by name); every column sorts, both ways");
+    const hwCols = [...tj.slice(tj.indexOf("const HW_COLUMNS = ["), tj.indexOf("function drawHomeworkReport")).matchAll(/key: "(\w+)", label: (?:"([^"]+)"|(TD\.PASTE_FLAGGED))/g)].map((m) => m[2] || "Paste flagged");
+    check(hwCols.join() === "Student,Done,Units,Paste flagged" && TD.PASTE_FLAGGED === "Paste flagged" && /data-hw-sort="' \+ c\.key \+ '"/.test(tj) && /aria-sort="' \+ \(hwSort\.dir === 1 \? "ascending" : "descending"\)/.test(tj) &&
+      /<span class="flag flag-alert">' \+ esc\(TD\.PASTE_FLAGGED\) \+ "<\/span> " \+ esc\(taskName\(f\.task_id\)\)/.test(tj) && /hwSort = hwSort\.key === b\.dataset\.hwSort \? \{ key: hwSort\.key, dir: -hwSort\.dir \}/.test(tj),
+      "Homework report: one row per student with the columns Student, Done (x of y), Units and Paste flagged (each flagged task by name; the flag's one name since review finding N3); every column sorts, both ways");
     check(/<a href="#homework" data-page="homework" data-backend>Homework<\/a>/.test(th) && ["page-homework", "hw-local", "hw-main", "hw-count", "hw-due", "hw-blocks", "hw-list", "hw-report"].every((id) => th.includes('id="' + id + '"')) &&
       /\$\("hw-local"\)\.hidden = !!tb;/.test(tj) && /\$\("hw-main"\)\.hidden = !tb;/.test(tj) && /data-hw-block=/.test(tj) && /for \(const b of HW_BLOCKS\)/.test(tj) &&
       /const HW_BLOCKS = self\.Certificates\.BLOCKS;/.test(tj) && /tb\.createHomework\(hwClassId, c\.homework\)/.test(tj) && /tb\.deleteHomework\(/.test(tj) && /tb\.homeworkReport\(id\)/.test(tj) &&
@@ -3233,9 +3234,9 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       [...m[2].matchAll(/<td class="unit-cell" data-label="([^"]+)">([\s\S]*?)<\/td>/g)].filter((c) => /paste-flag-btn/.test(c[2])).map((c) => m[1] + ":" + c[1]));
     const buttons = [...html.matchAll(/<button type="button" class="paste-flag-btn"[^>]*>[\s\S]*?<\/button>/g)].map((m) => m[0]);
     check(cellsWithFlag.sort().join() === "ov-level:Maths in Python,ov-level:Selection" && buttons.length === 2 &&
-      buttons.some((b) => /data-paste-student="s1" data-paste-unit="maths"/.test(b) && /aria-label="Large paste flagged, 3 flags\. Open the details"/.test(b) && />3 flags<\/span>/.test(b)) &&
-      buttons.some((b) => /data-paste-unit="selection"/.test(b) && /aria-label="Large paste flagged\. Open the details"/.test(b) && !/paste-flag-count/.test(b)),
-      "Students page: a red flag appears only in the Level cell of the unit the paste was in (never the Freshness cell or another unit), labelled \"Large paste flagged\"; several show one flag with the count (\"3 flags\")");
+      buttons.some((b) => /data-paste-student="s1" data-paste-unit="maths"/.test(b) && /aria-label="Paste flagged, 3 flags\. Open the details"/.test(b) && />3 flags<\/span>/.test(b)) &&
+      buttons.some((b) => /data-paste-unit="selection"/.test(b) && /aria-label="Paste flagged\. Open the details"/.test(b) && !/paste-flag-count/.test(b)),
+      "Students page: a red flag appears only in the Level cell of the unit the paste was in (never the Freshness cell or another unit), labelled \"Paste flagged\" (its one name since review finding N3); several show one flag with the count (\"3 flags\")");
     const order = (h) => [...new Set([...h.matchAll(/href="#student=(\w+)"/g)].map((m) => m[1]))].join(); // each table lists every student
     check(order(html) === order(plain) && html.replace(/ <button type="button" class="paste-flag-btn"[\s\S]*?<\/button>/g, "") === plain && order(plain) === "s1,s2",
       "Students page: the flags don't change the sort order (it still uses the level) or anything else in the table");
@@ -3406,7 +3407,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     // The Workshop per-task table and its CSV: a "Needs review" column.
     const w = TDr.workshop(data, misconceptions, byId, RR.countsByTask(list));
     const th = read("teacher.html");
-    check(w.tasks.find((t) => t.taskId === t0.id).needsReview === 2 && /<th scope="col">Has buggy variants<\/th><th scope="col">Needs review<\/th><th scope="col">Unmatched attempts<\/th>/.test(th) &&
+    check(w.tasks.find((t) => t.taskId === t0.id).needsReview === 2 && /<th scope="col">Has buggy programs<\/th><th scope="col">Needs review<\/th><th scope="col">Unmatched attempts<\/th>/.test(th) &&
       /"has_buggy_variants", "needs_review"\]/.test(read("teacher.js")) && /needs_review: t\.needsReview/.test(read("teacher.js")),
       "Workshop: the per-task table (and its CSV export) has a \"Needs review\" column: how many unmatched attempts a newer rule now matches");
     // The rules file, its tool and the page.
@@ -3419,7 +3420,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       misconceptions.length === 79 && /\| Rule id \| Name \| Date added \| Term/.test(read("misconception-changes.md")),
       "Rules file: rules-review.json (empty until Theo approves the first rules) is checked like misconceptions.json (rev- ids, 3+ examples on 3+ bank tasks, outputs worked out by tools/review-rules.js); the 79 misconceptions are unchanged; misconception-changes.md lists the rules");
     const tj = read("teacher.js");
-    check(/<section class="teacher-section" data-collapse="mc-review" aria-labelledby="mc-review-h">/.test(th) && /<script src="review-rules\.js"><\/script>/.test(th) &&
+    check(/<section class="teacher-section" data-collapse="mc-review" data-collapse-default="closed" aria-labelledby="mc-review-h">/.test(th) && /<script src="review-rules\.js"><\/script>/.test(th) &&
       /loadJson\("rules-review\.json"\)/.test(tj) && /tb\.reviewCandidates\(c\.id, ids\)/.test(tj) && /RR\.candidatesFromRecords\(data\)/.test(tj) &&
       /RR\.matches\(reviewRules, r\.candidates, Date\.now\(\)\)/.test(tj) && /Adding misconception rules each term/.test(read("README.md")),
       "Misconceptions page: a Needs review section, worked out when the page opens (local mode from this browser's records; backend mode from teacher-api's candidates), with the same rules and window; README has the termly steps");
@@ -3473,8 +3474,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       blocks9.reduce((n, b) => n + b.units.length, 0) === all.length && valUnits[valUnits.indexOf(authId) + 1] === "debugging-gcse" && !/\(continued\)/.test(html9),
       "Students page: one table per block (the six blocks, in the curriculum's order), each with every unit of its block as a column; Debugging (GCSE) comes after Authentication in Validation");
     check(blocks9.every((b) => b.students.join() === "s1,s2,s3" && (b.html.match(/<tr class="ov-fresh">/g) || []).length === 3 && (b.html.match(/<tr class="ov-level">/g) || []).length === 3 &&
-      /<th scope="col" class="ov-shows">Shows<\/th>/.test(b.html) && /data-sort="average"/.test(b.html)),
-      "Students page: every student in the class is a row (Freshness and Level) in every block's table, with the Shows and Average columns kept");
+      /<th scope="col" class="ov-shows">Row<\/th>/.test(b.html) && /data-sort="average"/.test(b.html)),
+      "Students page: every student in the class is a row (Freshness and Level) in every block's table, with the Row (\"Shows\" until review finding N17) and Average columns kept");
     check(blocks9.every((b) => /<th scope="col" class="ov-name" aria-sort="ascending"><button type="button" data-sort="name">Name<\/button><\/th>/.test(b.html) && (b.html.match(/<th scope="rowgroup" rowspan="2" class="ov-name">/g) || []).length === 3) &&
       /position: sticky; left: 0;/.test(rule9(".overview-table .ov-name")) && /position: sticky; left: var\(--ov-name\);/.test(rule9(".overview-table .ov-shows")) &&
       /top: auto;/.test(rule9(".overview-table tbody th")) && /z-index: 3;/.test(rule9(".overview-table thead .ov-name, .overview-table thead .ov-shows")),
@@ -3523,7 +3524,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       [...m[2].matchAll(/<td class="unit-cell" data-label="([^"]+)">([\s\S]*?)<\/td>/g)].filter((c) => /paste-flag-btn/.test(c[2])).map((c) => m[1] + ":" + c[1]));
     const flagBlock = flagged.split('<section class="overview-block"').slice(1).findIndex((b) => /paste-flag-btn/.test(b));
     check(flagCells.join() === "ov-level:" + Curriculum.unitTitle(lastFund) && flagBlock === 0 &&
-      /data-paste-student="s2" data-paste-unit="[^"]+" aria-label="Large paste flagged, 2 flags\. Open the details"/.test(flagged) && />2 flags<\/span>/.test(flagged) &&
+      /data-paste-student="s2" data-paste-unit="[^"]+" aria-label="Paste flagged, 2 flags\. Open the details"/.test(flagged) && />2 flags<\/span>/.test(flagged) &&
       /e\.target\.closest\("button\[data-paste-student\]"\)/.test(tj9),
       "Students page: the red paste flag is still in the Level cell of the unit it was raised in (the last column of its block), with its count, and opens the dialog");
   }
@@ -3854,7 +3855,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(TD15.studentAverage(row15.cells, gcse15).average === 70 && TD15.studentAverage(row15.cells, all15).average === 85 && recAvg.counted === false && recAvg.average === null &&
       studentsTable.unitAverages.find((u) => u.unit === "output").average === 70 &&
       (tj.match(/TD\.scoreTable\(/g) || []).length === 5 && (tj.match(/TD\.scoreTable\([^;]*?, null, (stageUnitIds\(\)|self\.Curriculum\.stageUnits\()/g) || []).length === 5 &&
-      /TD\.studentDetail\(data, studentId, unitIds, null, RECENT_ATTEMPTS, stageUnitIds\(\)\)/.test(tj) && /Object\.assign\(\{ studentId: id, name: s\.name, cells \}, studentAverage\(cells, avgUnits\)/.test(read("teacher-data.js")),
+      /const inStage = stageUnitIds\(\);/.test(tj) && /TD\.studentDetail\(data, studentId, unitIds, null, RECENT_ATTEMPTS, inStage\)/.test(tj) && /Object\.assign\(\{ studentId: id, name: s\.name, cells \}, studentAverage\(cells, avgUnits\)/.test(read("teacher-data.js")),
       "B1: one rule for averages (TD.studentAverage), and every place that shows one passes the class's stage's units: the Students table, its tiles and class averages, the student page, the Class scores export and Compare classes");
     check(/Averages and the tiles count only the units for the class's stage; other units still show as columns\./.test(th) && /Not in this class\\'s stage/.test(tj),
       "B1: the Students page says, in one sentence, that only the stage's units count in averages; Compare classes says when a unit isn't in a class's stage");
@@ -3865,8 +3866,9 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const cut = (from, to) => strip(tj.slice(tj.indexOf(from), tj.indexOf(to)));
     const hwSrc = cut("  function renderHomework() {", "  function renderHomeworkList() {") + cut('  $("hw-form").addEventListener("submit"', '  $("hw-list").addEventListener("click"');
     const els = {}, listeners = {};
-    const el = (id) => els[id] || (els[id] = { id, hidden: false, textContent: "", value: "", min: "", innerHTML: "", disabled: false, className: "", children: [1],
-      focus() {}, reset() {}, querySelectorAll: () => [], addEventListener: (t, f) => { listeners[id + ":" + t] = f; } });
+    const el = (id) => els[id] || (els[id] = { id, hidden: false, textContent: "", value: "", min: "", innerHTML: "", disabled: false, className: "", children: [1], attrs: {},
+      focus() {}, reset() {}, querySelectorAll: () => [], querySelector: () => null, appendChild() {}, setAttribute(n, v) { this.attrs[n] = v; },
+      addEventListener: (t, f) => { listeners[id + ":" + t] = f; } });
     let chosen15 = { id: "c1", name: "10X" };
     const calls15 = [];
     const tb15 = { allClasses: () => [{ id: "c1", name: "10X" }, { id: "c2", name: "11Y" }], listHomework: (id) => { calls15.push("list " + id); return { homework: [] }; },
@@ -3897,7 +3899,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const RULE = "A paste is flagged when the editor is empty and the paste is 3 lines or more, or when a single paste is more than 8 lines.";
     const flat = th.replace(/\s+/g, " ");
     const at15 = (from, to) => flat.slice(flat.indexOf(from), flat.indexOf(to, flat.indexOf(from)));
-    check(flat.split(RULE).length - 1 === 3 && at15('class="small flag-key"', "</ul>").includes(RULE) && at15('id="homework-title"', "</p>").includes(RULE) &&
+    check(flat.split(RULE).length - 1 === 3 && at15('class="small flag-key"', "</ul>").includes(RULE) && at15('id="homework-title"', 'id="hw-local"').includes(RULE) && at15('id="hw-how"', "</details>").includes(RULE) &&
       at15('id="hw-report-h"', 'id="hw-report-table"').includes(RULE) && !/more than 8 lines of code/.test(flat),
       "N4: the Students page flag key, the Homework intro and the Homework report note all give the current rule in the same sentence (empty editor and 3 lines or more, or more than 8 lines at once)");
   }
@@ -3970,6 +3972,248 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(/levelText = "Quick check to finish"/.test(home17) && /rag-placement">Placement to do<\/span> until you finish the quick check/.test(app17) &&
       /self\.Secured\.levelText\(x\.s\) \|\| "Not started"/.test(prog17) && !/[Nn]ot placed yet/.test(home17 + app17 + prog17 + read("endless.js")),
       "N2: the student side is unchanged (the home card's \"Quick check to finish\" and its \"Placement to do\" chip, My progress's wording)");
+  }
+
+  // ===================== Prompt 19 (2026-11): the approved "Fix soon" findings =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const TD19 = require(path.join(ROOT, "teacher-data.js"));
+    const S19 = require(path.join(ROOT, "secured.js"));
+    const th = read("teacher.html"), tj = read("teacher.js"), tdSrc = read("teacher-data.js");
+    const flat = th.replace(/\s+/g, " ");
+    // N1: skills are "mastered" on My progress; units keep "Secured".
+    const progJs = read("progress.js"), progHtml = read("progress.html");
+    check(/A skill is <strong>mastered<\/strong> when you pass/.test(progHtml) && (progJs.match(/skills mastered/g) || []).length === 3 && !/skills secured/.test(progJs) &&
+      /const STATUS_TEXT = \{ secured: "Mastered",/.test(progJs) && /see the skills you've mastered\./.test(read("tour.js")) && S19.BANDS[0].label === "Secured",
+      "N1: on My progress a skill is \"mastered\" (the intro, the unit cards, a unit's page and its skill list, and the tour); units keep the band name \"Secured\"");
+    // N3: one name for the flag, "Paste flagged".
+    const flagBtn = TD19.pasteFlagHtml("s1", "maths", [{}, {}]);
+    check(!/Large paste flagged|Possible AI use/.test(th + tj + tdSrc) && TD19.PASTE_FLAGGED === "Paste flagged" && /aria-label="Paste flagged, 2 flags\. Open the details"/.test(flagBtn) &&
+      /Paste flagged in a task in this unit/.test(flat) && /The report lists these flags as "Paste flagged"\./.test(flat) && /"Paste flagged" lists the student's flagged tasks, which didn't count\./.test(flat) &&
+      /title: TD\.PASTE_FLAGGED \+ ": " \+ name/.test(tj) && /label: TD\.PASTE_FLAGGED/.test(tj),
+      "N3: the flag is called \"Paste flagged\" everywhere on the teacher side (the Students key, the flag's label, its dialog, the Homework intro, report column and note); \"Large paste flagged\" and \"Possible AI use\" are gone");
+    // N5 and N12.
+    check(/The stage decides which units count in averages, and which sections of the unit menu open by default for your students/.test(flat) &&
+      /Every unit still shows on the Students page\./.test(flat) && !/The stage decides which units the Students page shows/.test(flat),
+      "N5: the Classes page's stage help says the stage decides which units count in averages (and which sections open first), and that every unit still shows on the Students page");
+    check(!/Theo/.test(th) && /\(added each term, after each one has been checked\)/.test(flat),
+      "N12: the Needs review help no longer names a person (\"added each term, after each one has been checked\")");
+    // N7: the site's name.
+    const pages = ["index.html", "app.html", "practice.html", "progress.html", "leaderboard.html", "endless.html", "teacher.html", "certificate.html"].map(read).join("") + read("app.js");
+    check(!/Python Practice/.test(pages) && /<title>Pythons and Ladders<\/title>/.test(read("index.html")) && /alt="Pythons and Ladders"/.test(read("app.html")) &&
+      /Welcome to Pythons and Ladders/.test(read("app.html")) && /document\.title = pageTitle \+ " – Pythons and Ladders";/.test(read("app.js")) &&
+      /<title>Teacher View – Pythons and Ladders<\/title>/.test(th) && /"python-practice-class-scores-"/.test(tj) && /"python-practice-full-data-"/.test(tj),
+      "N7: tab titles, the logo's alt text, the page headers and the landing heading say \"Pythons and Ladders\"; the export file names (python-practice-….csv) are unchanged");
+    // L2: the homework list first, Set homework opens the form, a report opens under its own homework.
+    const hwPage = th.slice(th.indexOf('<section id="page-homework"'), th.indexOf("<!-- ===== Assignments"));
+    check(hwPage.indexOf('id="hw-list"') < hwPage.indexOf('id="hw-new"') && hwPage.indexOf('id="hw-new"') < hwPage.indexOf('id="hw-form"') &&
+      /<form id="hw-form" class="task-card" novalidate aria-labelledby="hw-form-h" hidden>/.test(hwPage) && /id="hw-new" class="primary" aria-expanded="false" aria-controls="hw-form">Set homework</.test(hwPage) &&
+      /data-hw-item="' \+ esc\(h\.id\) \+ '"/.test(tj) && /if \(card\) card\.appendChild\(\$\("hw-report"\)\); else parkHomeworkReport\(\);/.test(tj) &&
+      /closeHomeworkForm\(\);\s*hwList = r\.homework;/.test(tj),
+      "L2: the Homework page lists the class's homework first, then Set homework, which opens the form (closed again once it is set, or with Cancel); a report opens inside its own homework's card");
+    // L4 and S1: one help paragraph, the colour key under the tiles, the long rules folded away.
+    const stPage = th.slice(th.indexOf('<section id="page-students"'), th.indexOf("<!-- ===== Leaderboards"));
+    const stFlat = stPage.replace(/\s+/g, " ");
+    check(stPage.indexOf('id="st-summary"') < stPage.indexOf('class="small rag-key"') && stPage.indexOf('class="small rag-key"') < stPage.indexOf('data-collapse="students"') &&
+      /<details class="rag-more">\s*<summary>More about the colours<\/summary>/.test(stPage) && !/Each student has two rows/.test(stPage) &&
+      (stFlat.match(/Averages and the tiles count only the units for the class's stage; other units still show as columns\./g) || []).length === 1 &&
+      (stFlat.match(/A paste is flagged when the editor is empty and the paste is 3 lines or more, or when a single paste is more than 8 lines\./g) || []).length === 1 &&
+      /drops 10 points for each full week/.test(stFlat.slice(stFlat.indexOf("rag-more"))) && (stPage.match(/Two rows per student/g) || []).length === 1,
+      "L4 and S1: the Students page has one help paragraph (no repeated \"Each student has two rows\"), the colour key right under the tiles, and the longer rules in a closed \"More about the colours\"; the averages and paste-rule sentences are kept once each");
+    // S2: a class with no students.
+    check(/<p id="st-empty" class="notice" hidden><\/p>\s*<div id="st-body">/.test(stPage) &&
+      /const none = !Object\.keys\(data\.students\)\.length;\s*\$\("st-empty"\)\.hidden = !none;\s*\$\("st-body"\)\.hidden = none;/.test(tj) &&
+      /"No students yet\. They join with the class code " \+ c\.class_code \+ "\."/.test(tj) && /"No students yet\. Students appear here once they use this browser\."/.test(tj) &&
+      /No students to show yet\./.test(tdSrc),
+      "S2: a class with no students shows one short line (\"No students yet. They join with the class code …\"), not the tiles, help and tables; a name filter that matches nobody still says \"No students to show yet.\"");
+    // L5: Change nickname in the header.
+    const appHtml = read("app.html"), homeJs = read("home.js");
+    check(/<span id="rename-link-area" hidden> · <a href="#delete-area" id="rename-link">Change nickname<\/a><\/span>/.test(appHtml) &&
+      /\$\("rename-link-area"\)\.hidden = false;/.test(homeJs) && /\$\("rename-link"\)\.addEventListener\("click", \(e\) => \{ e\.preventDefault\(\); \$\("rename-mine"\)\.click\(\); \}\);/.test(homeJs) &&
+      /<div class="delete-zone">\s*<p><button type="button" id="delete-mine"/.test(appHtml) && /\.delete-zone \{ margin-top: 2rem;/.test(read("styles.css")),
+      "L5: in backend mode the home page's header has a \"Change nickname\" link that opens the same form; Delete everything saved for me sits apart from it, below a line");
+    // L7.
+    check(/if \(mcUnit !== "all" && !unitIds\.includes\(mcUnit\)\) mcUnit = "all";/.test(tj),
+      "L7: the Misconceptions page opens on All units");
+    // T1: unchanged.
+    check(TD19.summaryTileOf({ average: 85 }) === "fading" && TD19.summaryTileOf({ average: 100 }) === "gold" && TD19.SUMMARY_TILES.length === 9,
+      "T1: the summary tiles are unchanged: each student still counts by their average (85% is Fading)");
+    // T2: "630 of 12,000".
+    const lbJs = read("leaderboard.js");
+    check((12000).toLocaleString("en-GB") === "12,000" && /const outOf = \(points, max\) => thousands\(points\) \+ " of " \+ thousands\(max\);/.test(tj) &&
+      /const num = \(r\) => \(gain \? signed\(r\.points\) : outOf\(r\.points, boardMax\)\);/.test(tj) && /boardsHtml\(r\.boards, false, r\.max\)/.test(tj) && /boardsHtml\(r\.boards, true, r\.max\)/.test(tj) &&
+      /const total = \(n\) => \(max \? thousands\(n\) \+ " of " \+ thousands\(max\) : thousands\(n\)\);/.test(lbJs) && /\$\("me-total"\)\.textContent = total\(me\.total\);/.test(lbJs) &&
+      /field === "Points gained" \? plus\(r\.points\) : total\(r\.points\)/.test(lbJs),
+      "T2: the leaderboards (teacher and student) show each total as \"630 of 12,000\" (the points out of the most possible, from the same rule; display only)");
+    // T3: the student page's bars, reset menu and points line.
+    check(/const startedUnits = UNITS\.map\(\(u\) => u\.id\)\.filter\(\(u\) => \(\(data\.progress\[studentId\] \|\| \{\}\)\.units \|\| \{\}\)\[u\]\);/.test(tj) &&
+      /const unitIds = UNITS\.map\(\(u\) => u\.id\)\.filter\(\(u\) => inStage\.includes\(u\) \|\| startedUnits\.includes\(u\)\);/.test(tj) &&
+      /\(inStage\.includes\(u\) \? "" : '<span class="small">\(not in this class\\'s stage\)<\/span> '\)/.test(tj) &&
+      /\$\("reset-unit"\)\.innerHTML = startedUnits\.length \? startedUnits\.map/.test(tj) && /'<option value="">No unit started yet<\/option>'/.test(tj) &&
+      /Points count every unit, as on the Leaderboards page\./.test(tj),
+      "T3: the teacher's student page shows any started unit outside the class's stage (tagged, not in the average), lists only started units for Reset placement, and says points count every unit");
+    const gcse19 = Curriculum.stageUnits("gcse");
+    const d19 = TD19.studentDetail({ students: { a: { name: "Ada" } }, progress: { a: { units: { output: { level: 4 }, recursion: { level: 3 } } } }, attempts: [], buttonLog: [] },
+      "a", Curriculum.UNITS.map((u) => u.id).filter((u) => gcse19.includes(u) || ["output", "recursion"].includes(u)), null, 5, gcse19);
+    check(d19.cells.recursion && d19.cells.recursion.level === 3 && d19.averageLevel === 4,
+      "T3: an A-level unit a GCSE student started has its own bar on the student page, but their average (here their average level, 4) counts only the GCSE units");
+  }
+
+  // ===================== Prompt 21 (2026-11): the approved "Later" findings =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const TD21 = require(path.join(ROOT, "teacher-data.js"));
+    const App21 = require(path.join(ROOT, "app.js"));
+    const th = read("teacher.html"), tj = read("teacher.js"), tb = read("teacher-backend.js"), css = read("styles.css");
+    const app = read("app.html"), tour = read("tour.js"), endless = read("endless.js"), home = read("home.js");
+    const flat = th.replace(/\s+/g, " ");
+    const pageOf = (id) => { const i = th.indexOf('<section id="page-' + id + '"'); return th.slice(i, th.indexOf("<!-- =====", i + 10)); };
+    const between = (src, from, to) => { const i = src.indexOf(from); return i < 0 ? "" : src.slice(i, src.indexOf(to, i + from.length)); };
+    const Tour21 = require(path.join(ROOT, "tour.js"));
+
+    // Theme A: wording and naming.
+    const scoreStep = Tour21.STEPS.find((s) => s.id === "freshness");
+    check(scoreStep.title === "Your score" && !/freshness score/.test(tour) && !/title: "Freshness"/.test(tour) &&
+      /but not towards your score\./.test(tour) && /doesn't count towards your score\./.test(tour),
+      "N6: the tour says \"score\", not \"freshness score\" (the Hints and Show me how steps), and the step is called \"Your score\"");
+    check(/<h2 id="assignments-h">Assignments<\/h2>/.test(app) && !/From your teacher/.test(app) && /"Your teacher has set a new assignment: "/.test(tour) && !/new practice set/.test(tour) &&
+      /Practice set for your class\. It doesn't change your level or progress/.test(app),
+      "N8: the student home page's heading is \"Assignments\" and the tour's reminder says \"a new assignment\"; the card's \"Practice set for your class\" note stays");
+    check(/made with "Full attempt log \(CSV\)" before the class used the server/.test(tb) && !/Export full data/.test(tb) &&
+      /<button type="button" id="export-full" class="secondary">Full attempt log \(CSV\)<\/button>/.test(th) && /"python-practice-full-data-" \+ today\(\) \+ "\.csv"/.test(tj),
+      "N9: the Import help (and its error) names the export by its button, \"Full attempt log (CSV)\"; the export's file name is unchanged");
+    const logins = between(tb, "function renderStudents()", "function wireClasses()");
+    check(/'">Remove<\/button>'/.test(logins) && /hidden> Remove ' \+ esc\(s\.nickname\) \+ " and all their data for good\? "/.test(logins) && /'">Yes, remove<\/button> '/.test(logins) &&
+      !/Delete|delete<\/button>/.test(logins.replace(/data-delete[-\w]*/g, "")),
+      "N10: the Student logins table says Remove (\"Remove Ada and all their data for good?\", \"Yes, remove\"), as the student's page does");
+    const codes = [...TD21.dataDictionaryCsv([]).matchAll(/^value of failure_category,([A-Z_]+),/gm)].map((m) => m[1]);
+    const plain = { WRONG_OUTPUT: "Wrong output", SYNTAX: "Syntax error", NAME: "Name error", TYPE: "Type error", TIMEOUT: "Took too long", NO_ANSWER: "No answer",
+      ORDER: "Lines in the wrong order", OTHER_ERROR: "Other error", WRONG_CHOICE: "Wrong choice", WRONG_ERROR_KIND: "Wrong kind of error" };
+    check(Object.keys(plain).every((c) => TD21.failureName(c) === plain[c]) && Object.keys(TD21.FAILURE_NAMES).length === 10 && codes.length === 10 &&
+      codes.every((c) => TD21.FAILURE_NAMES[c]) && TD21.failureName("NEW_CODE") === "NEW_CODE" && TD21.failureName("") === "" && TD21.failureName(undefined) === "",
+      "N11: every failure category in the data dictionary has a plain name (Wrong output, Syntax error, … Wrong kind of error); an unknown code shows as it is");
+    const rec = between(tj, '$("sd-recent").innerHTML = d.recent.length', '$("reset-placement")');
+    check(/esc\(TD\.failureName\(a\.category\)\)/.test(rec) && /esc\(TD\.failureName\(t\.topCategory\) \|\| "–"\)/.test(tj) &&
+      /failure_category: r\.category,/.test(tj) && TD21.FULL_COLUMNS.some((c) => (Array.isArray(c) ? c[0] : c) === "failure_category") && /"failure_category", "WRONG_OUTPUT"/.test(read("teacher-data.js")),
+      "N11: Recent attempts (\"fail (Wrong output)\") and the Most-failed table's most common failure type show the plain name; the exports keep the codes");
+    check(/\? "Pass 2 level 10 tasks in a row, with 1 hint or fewer each time, to unlock " \+ name \+ "\."/.test(endless) &&
+      /: "Reach level 10 in " \+ name \+ ", then pass 2 tasks there in a row with 1 hint or fewer\." \+ \(s && !toDo \? " You're at Level " \+ s\.level \+ "\." : ""\)/.test(endless) &&
+      !/strong passes|Complete Level 10/.test(endless) && App21.PASSES_IN_A_ROW_TO_LEVEL_UP === 2,
+      "N13: Endless mode's lock says what unlocks it (\"Pass 2 level 10 tasks in a row, with 1 hint or fewer each time, to unlock X.\", or \"Reach level 10 in X, then pass 2 tasks there in a row with 1 hint or fewer.\"); no \"You're at Level\" while the quick check is to do; the rule is unchanged");
+    check(/id="change-name">Not you\? Switch student<\/a>/.test(app) && /\$\("change-name"\)\.textContent = "Not you\? Sign out";/.test(home) && !/Change name/.test(app),
+      "N14: local mode's header link says \"Not you? Switch student\"; backend mode still says \"Not you? Sign out\"");
+    check(!/Every export is free/.test(th) && /Each button shows what is in the file, with a sample row, before you download it\./.test(flat),
+      "N15: \"Every export is free.\" is gone from Reports; the rest of the help stays");
+    check(/<th scope="col">Share unmatched<\/th>/.test(th) && /<th scope="col">Has buggy programs<\/th>/.test(th) && !/Unmatched rate|Has buggy variants|>Shows</.test(th + read("teacher-data.js")) &&
+      /'<th scope="col" class="ov-shows">Row<\/th>'/.test(read("teacher-data.js")) && /"has_buggy_variants", "needs_review"\]/.test(tj) && /RAG/.test(TD21.classScoresCsv({ rows: [] }, [], (u) => u)),
+      "N17: on screen the Students table's column is \"Row\" and the unmatched table says \"Share unmatched\" and \"Has buggy programs\"; the export columns (has_buggy_variants, RAG) are unchanged");
+
+    // Theme B: layout and order.
+    const classes = pageOf("classes");
+    const at = (x) => classes.indexOf(x);
+    const importSection = between(classes, 'data-collapse="class-import"', "</section>");
+    check(at('id="tb-class-info"') > 0 && at('id="tb-class-info"') < at('data-collapse="class-import"') && at('data-collapse="class-import"') < at('id="tb-delete-section"') &&
+      at('id="tb-delete-section"') < at('id="tb-new-class"') && at('id="tb-new-class"') < at('class="retention-note"') &&
+      /data-collapse-default="closed">\s*<h3>Import a full export<\/h3>\s*<div id="tb-import"><\/div>/.test(importSection) &&
+      !/id="tb-import"/.test(between(classes, 'data-collapse="class-students"', "</section>")) && !/Import full export<\/h3>/.test(tb),
+      "L3: the Classes page has the chosen class first, then Import a full export (its own closed section, out of Student logins), Delete this class, Create class and What is kept");
+    const reports = pageOf("reports"), boards = pageOf("leaderboards");
+    check(/data-collapse="level-log" data-collapse-default="closed">\s*<h3>Level changes<\/h3>/.test(reports) && /id="level-log"/.test(between(reports, 'data-collapse="level-log"', "</section>")) &&
+      !/All level changes|<details style/.test(reports) && !/id="compare/.test(reports) &&
+      boards.indexOf('data-collapse="compare"') > boards.indexOf('data-collapse="lb-all"') && ["compare-load", "compare"].every((id) => boards.includes('id="' + id + '"')) &&
+      /\$\("compare-load"\)\.addEventListener\("click"/.test(tj),
+      "L6 and T4: Reports has Exports and its own closed Level changes section; Compare classes is on the Leaderboards page, under All my classes");
+    // L8: the phone menu, run on stand-ins.
+    check(/<button type="button" id="nav-toggle" class="secondary nav-toggle" aria-expanded="false" aria-controls="side-nav-links">Menu: <span id="nav-current">Students<\/span><\/button>/.test(th) &&
+      /<div id="side-nav-links" class="side-nav-links">/.test(th) && /\.nav-toggle \{ display: none; \}/.test(css) &&
+      /@media \(max-width: 700px\) \{[^@]*\.nav-toggle \{ display: block;[^}]*\}[^@]*\.side-nav:not\(\.nav-open\) \.side-nav-links \{ display: none; \}/.test(css) &&
+      /if \(on\) \$\("nav-current"\)\.textContent = a\.textContent;/.test(tj),
+      "L8: under 700px the teacher menu is one closed \"Menu: <page name>\" button (the page on show beside \"Menu\"); wider screens always show the list");
+    const navSrc = between(tj, "function setNavOpen(open)", "// ---------- Page switching");
+    const el21 = () => { const e = { attrs: {}, classes: new Set(), on: {}, focused: false,
+      classList: { toggle: (c, v) => (v ? e.classes.add(c) : e.classes.delete(c)) }, setAttribute: (k, v) => { e.attrs[k] = v; }, getAttribute: (k) => (k in e.attrs ? e.attrs[k] : null),
+      addEventListener: (t, f) => { e.on[t] = f; }, focus: () => { e.focused = true; } }; return e; };
+    const navEls = { "side-nav": el21(), "nav-toggle": el21(), "side-nav-links": el21() };
+    navEls["nav-toggle"].attrs["aria-expanded"] = "false";
+    new Function("$", navSrc)((id) => navEls[id]);
+    const isOpen = () => navEls["side-nav"].classes.has("nav-open") && navEls["nav-toggle"].attrs["aria-expanded"] === "true";
+    navEls["nav-toggle"].on.click();
+    const opened = isOpen();
+    navEls["side-nav-links"].on.click({ target: { closest: () => ({}) } });
+    const closedByLink = !isOpen() && navEls["nav-toggle"].attrs["aria-expanded"] === "false";
+    navEls["nav-toggle"].on.click();
+    navEls["side-nav"].on.keydown({ key: "Escape" });
+    check(opened && closedByLink && !isOpen() && navEls["nav-toggle"].focused,
+      "L8: the menu button opens the list and says so (aria-expanded); choosing a page closes it, and Esc closes it and puts focus back on the button");
+    const boardSrc = between(tj, "function boardHtml(", "function boardsHtml(");
+    const boardHtml21 = new Function("esc", "signed", "outOf", "boardMax", boardSrc + "; return boardHtml;")(String, (n) => (n > 0 ? "+" : "") + n, (p, m) => p + " of " + m, 600);
+    const heads = (h) => [...h.matchAll(/<th scope="col"[^>]*>([^<]+)<\/th>/g)].map((m) => m[1]).join();
+    const allB = boardHtml21("Most points", "", [{ rank: 1, nickname: "Ann", class_name: "7A", points: 300, percent: 50 }], false, true);
+    const oneB = boardHtml21("Most points", "", [{ rank: 1, nickname: "Ann", points: 300, percent: 50 }], false, false);
+    check(heads(allB) === "Place,Nickname,Class,Points,%" && heads(oneB) === "Place,Nickname,Points,%" && /<td>7A<\/td><td class="num">300 of 600<\/td><td class="num">50%<\/td>/.test(allB) &&
+      /localBoards\(collect\(\), \{ class_name: "This browser" \}, true\)/.test(tj) && /Ranked by percentage of the most possible/.test(tj),
+      "L9: the All my classes boards show Points, then %, as This class does; they are still ranked by %");
+
+    // Theme C: help text.
+    check(/data-collapse="mc-review" data-collapse-default="closed"/.test(th) && /"No newer rules have been added yet\."/.test(tj),
+      "S5: Needs review starts closed, like the other Misconceptions sections; opened, it still says \"No newer rules have been added yet.\"");
+    check(/: sharedLabel\(current\) \+ "\.";/.test(tb) && !/You can do everything with it except delete it or change its teachers/.test(tb) &&
+      /<label>Add a teacher <input type="email" id="tb-add-teacher-email"/.test(th) && /id="tb-add-teacher-save">Add<\/button>/.test(th),
+      "S8: a shared class's note is just \"Shared with you by Ms Owen.\"; the add-a-teacher form's button says \"Add\" (its label stays \"Add a teacher\")");
+    const how = (id) => between(th, '<details class="how-it-works" id="' + id + '">', "</details>").replace(/\s+/g, " ");
+    const shortOf = (page, id) => pageOf(page).replace(/\s+/g, " ").split('<details class="how-it-works" id="' + id + '">')[0];
+    const RULE21 = "A paste is flagged when the editor is empty and the paste is 3 lines or more, or when a single paste is more than 8 lines.";
+    check(["lb-how", "cert-how", "hw-how", "export-how"].every((id) => /^<details class="how-it-works" id="[\w-]+"> <summary>How it works<\/summary>/.test(how(id))) &&
+      (th.match(/<details class="how-it-works"/g) || []).length === 4 && !/<details class="how-it-works"[^>]* open/.test(th) &&
+      /<p class="small">Each unit gives up to 300 points: up to 200 for its secured score and up to 100 for its level\. Most improved is the points gained in the last 14 days\.<\/p>/.test(shortOf("leaderboards", "lb-how")) &&
+      /Secured points: up to 200, 2 for each percent/.test(how("lb-how")) && /Students with the same points share a place\. Students see their own class's boards, with nicknames only\./.test(how("lb-how")) &&
+      /<p class="small">A student earns a certificate for a block of units when every unit in the block has its floor at 100%\. Select Print to print one\.<\/p>/.test(shortOf("certificates", "cert-how")) &&
+      /A unit's floor is the lowest its secured score can drop to\./.test(how("cert-how")) && /ready to print on one A4 landscape sheet\./.test(how("cert-how")) &&
+      /<p class="small">Set a number of tasks for the class to do by a due date\. A task counts the first time a student passes it\.<\/p>/.test(shortOf("homework", "hw-how")) &&
+      how("hw-how").includes(RULE21) && /The report lists these flags as "Paste flagged"\./.test(how("hw-how")) && !shortOf("homework", "hw-how").includes(RULE21) &&
+      /<p class="small">Each button shows what is in the file, with a sample row, before you download it\.<\/p>/.test(shortOf("reports", "export-how")) &&
+      /<strong>Workshop tables<\/strong>: the misconception table and the per-task unmatched table from the Misconceptions page\./.test(how("export-how")) &&
+      /\.how-it-works summary \{/.test(css),
+      "S11: Leaderboards, Certificates, Homework and Reports each have a short help line and a closed \"How it works\" with the rest, word for word (the paste rule too)");
+    check(!/The misconceptions workshop \(most-failed tasks/.test(flat) && !/Its tables are in the Workshop tables export above/.test(flat),
+      "S12: the Reports line pointing to the Misconceptions page is gone");
+
+    // Theme D: empty states.
+    const empty = { students: { a: { name: "Ann" } }, progress: {}, attempts: [], levelLog: [], buttonLog: [], placementLog: [], units: Curriculum.UNITS };
+    check(TD21.workshop(empty, [], {}, {}).tasks.length === 0 && /\$\("ws-unseen"\)\.innerHTML = !w\.tasks\.length \? '<p class="small">No failed attempts yet\.<\/p>' : unseen\.length \?/.test(tj),
+      "S6: Not matched yet says \"No failed attempts yet.\" for a class with no failed attempts, instead of listing every misconception");
+    const navLinks = [...th.matchAll(/<a href="#(\w+)" data-page="\w+"( data-backend)?>/g)].map((m) => m[1] + (m[2] ? "*" : ""));
+    check(navLinks.join() === "students,homework*,assignments*,misconceptions,leaderboards,certificates,reports,tasks,classes*,settings*" &&
+      /document\.querySelectorAll\("\[data-backend\]"\)\.forEach\(\(b\) => \{ b\.hidden = !tb; \}\);/.test(tj) && ["cl-local", "as-local", "set-local", "hw-local"].every((id) => th.includes('id="' + id + '"')),
+      "S10: local mode's menu hides Homework, Assignments, Classes and Settings (data-backend); their pages still say why they need backend mode");
+    const certHtml = read("certificate.html"), certJs = read("certificate.js");
+    check(/<p class="cert-missing" id="cert-missing" hidden>This certificate couldn't be shown\. Open it again from the teacher view's Print button\.<\/p>/.test(certHtml) &&
+      /if \(!name \|\| !block \|\| !date\) \{ \$\("cert-missing"\)\.hidden = false; return; \}/.test(certJs),
+      "B8: certificate.html opened with nothing in its address shows one line (\"This certificate couldn't be shown. Open it again from the teacher view's Print button.\"), not a blank page");
+
+    // Theme E: student side.
+    const sel = tasks.filter((t) => t.unit === "selection");
+    const practice = sel.filter((t) => !App21.isPlacementTask(t)).length;
+    check(/const count = tasks\.filter\(\(t\) => t\.unit === u\.id && !isPlacementTask\(t\)\)\.length;/.test(home) &&
+      /const mine = tasks\.filter\(\(t\) => t\.unit === u\.id && !isPlacementTask\(t\)\);/.test(read("progress.js")) && practice < sel.length && practice > 0,
+      "B5: the home page's unit cards count practice tasks only (Selection: " + practice + ", not " + sel.length + "), as My progress does");
+    check(/@media \(max-width: 600px\) \{\s*\.tour-card \{ max-height: 33vh; \}\s*body\.tour-open \{ padding-bottom: 38vh; \}\s*\}/.test(css) &&
+      /\.tour-card \{[^}]*overflow: auto;/.test(css),
+      "B10: at phone width the tour card is at most a third of the screen tall, and its text scrolls inside it (the steps don't change)");
+
+    // Theme F: exports.
+    const noteSrc = (tj.match(/note: (\(\) => \{[^\n]*\}),\r?\n/) || [])[1];
+    const noteFor = (v) => new Function("$", "return (" + noteSrc + ")();")(() => ({ value: v }));
+    check(noteSrc && noteFor("ada") === "Only students whose name matches \"ada\" are in this file, because of the name filter on the Students page." && noteFor("") === "" && noteFor("   ") === "" &&
+      /const note = e\.note \? e\.note\(\) : "";\s*\$\("export-dialog-text"\)\.textContent = e\.text \+ \(note \? " " \+ note : ""\);/.test(tj) &&
+      /TD\.filterByName\(TD\.overviewRows\(data\), \$\("name-filter"\)\.value\)/.test(tj) && /"python-practice-overview-" \+ today\(\) \+ "\.csv"/.test(tj),
+      "B7: with a name in the Students page's filter, the Levels table popup says only matching students are in the file; with none it says nothing extra; the file is unchanged");
+
+    // The decisions.
+    check(/<h3 id="cert-all-h" data-backend>All your classes<\/h3>\s*<div id="cert-list"><\/div>/.test(th) && /const certHeading = \(title\) => \(tb \? "<h4>"/.test(tj),
+      "L10 (decision): the Certificates page has the heading \"All your classes\" above the class lists (each class under it as h4; local mode's one list keeps its own heading)");
+    check(/id="st-averages"/.test(between(th, '<details class="rag-more">', "</details>")) && (th.match(/id="st-averages"/g) || []).length === 1,
+      "S4 (decision): the class averages line is inside \"More about the colours\" on the Students page, with its wording unchanged");
   }
 
   // ===================== Selection, trimmed =====================

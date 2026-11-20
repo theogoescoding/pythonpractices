@@ -219,7 +219,7 @@
     say("tb-status", "");
     // A shared class: who owns it. Deleting it, and adding or removing teachers, are for its owner only.
     $("tb-shared-note").hidden = current.owned;
-    $("tb-shared-note").textContent = current.owned ? "" : sharedLabel(current) + ". You can do everything with it except delete it or change its teachers.";
+    $("tb-shared-note").textContent = current.owned ? "" : sharedLabel(current) + ".";
     $("tb-delete-section").hidden = !current.owned;
     $("tb-add-teacher").hidden = !current.owned;
     $("tb-add-teacher-help").hidden = !current.owned;
@@ -323,9 +323,9 @@
         (codes ? '<span class="class-code">' + esc((codes[s.id] || "").replace(/(\d{4})(\d{4})/, "$1 $2")) + "</span>" : '<span class="small">hidden</span>') +
         "</td><td>" + (s.imported ? "Imported from an export" : "Joined with the class code") + "</td><td>" + (locked ? '<span class="flag flag-alert">Locked (too many wrong PINs)</span>' : "Set") +
         '</td><td><button type="button" class="secondary" data-pin="' + s.id + '">Reset PIN</button> ' +
-        '<button type="button" class="secondary" data-delete="' + s.id + '">Delete</button>' +
-        '<span data-confirm="' + s.id + '" hidden> Delete ' + esc(s.nickname) + " and all their data? " +
-        '<button type="button" class="danger" data-delete-yes="' + s.id + '">Yes, delete</button> ' +
+        '<button type="button" class="secondary" data-delete="' + s.id + '">Remove</button>' +
+        '<span data-confirm="' + s.id + '" hidden> Remove ' + esc(s.nickname) + " and all their data for good? " +
+        '<button type="button" class="danger" data-delete-yes="' + s.id + '">Yes, remove</button> ' +
         '<button type="button" class="secondary" data-delete-no="' + s.id + '">Cancel</button></span></td></tr>';
     }).join("") : '<tr><td colspan="5">No students yet. They join with the class code ' + esc(current.class_code) + ".</td></tr>";
   }
@@ -428,9 +428,9 @@
   let imp = null; // { planned, names: [{ file_id, inFile, nickname, status, message }], checkedOk }
 
   function renderImportArea() {
+    // Its heading, "Import a full export", is in teacher.html: the part has its own closed section (review finding L3).
     $("tb-import").innerHTML =
-      '<h3 style="margin-top:1.5rem">Import full export</h3>' +
-      '<p class="small">Adds a full-data export (python-practice-full-data-….csv, made with "Export full data" before the class used the server) to this class. ' +
+      '<p class="small">Adds a full-data export (python-practice-full-data-….csv, made with "Full attempt log (CSV)" before the class used the server) to this class. ' +
       "Each student in the file who isn't in the class yet gets a login code and PIN. Importing the same file twice adds nothing new.</p>" +
       '<p><label>Choose the CSV file <input type="file" id="imp-file" accept=".csv,text/csv"></label></p>' +
       '<p id="imp-status" role="status"></p><div id="imp-names"></div><div id="imp-result"></div>';
@@ -443,7 +443,7 @@
     $("imp-result").innerHTML = "";
     if (!file) return;
     const rows = BackendImport.parseCsv(await file.text());
-    if (!rows) { imp = null; $("imp-names").innerHTML = ""; return say("imp-status", "That file isn't a full-data export. Use the file made by \"Export full data\".", true); }
+    if (!rows) { imp = null; $("imp-names").innerHTML = ""; return say("imp-status", "That file isn't a full-data export. Use the file made by \"Full attempt log (CSV)\".", true); }
     const tasks = await fetch("tasks.json").then((r) => r.json()).catch(() => []);
     const planned = BackendImport.plan(rows, tasks);
     imp = { planned, checkedOk: false, names: planned.students.map((s) => ({ file_id: s.file_id, inFile: s.nickname, nickname: s.nickname })) };

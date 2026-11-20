@@ -87,6 +87,9 @@ Store.whenReady(function () {
       $("rename-nickname").focus();
     });
     $("rename-cancel").addEventListener("click", closeRename);
+    // The header's "Change nickname" link (review finding L5): opens the same form, at the bottom of the page.
+    $("rename-link-area").hidden = false;
+    $("rename-link").addEventListener("click", (e) => { e.preventDefault(); $("rename-mine").click(); });
     $("rename-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const nickname = $("rename-nickname").value.trim();
@@ -264,7 +267,8 @@ Store.whenReady(function () {
   // One unit's card: a link to practise it (every unit has tasks: tests/validate.js checks this). In a subsection
   // the card's heading is one level lower (h5), under the subsection's h4.
   function unitCard(u, progress, sub) {
-    const count = tasks.filter((t) => t.unit === u.id).length;
+    // Practice (bank) tasks only, as My progress counts them: placement tasks aren't counted (review finding B5).
+    const count = tasks.filter((t) => t.unit === u.id && !isPlacementTask(t)).length;
     const h = sub ? "h5" : "h4";
     const title = "<" + h + ">" + esc(self.Curriculum.studentUnitTitle(u.id)) + "</" + h + "><p>" + esc(u.description) + "</p>" + (u.note ? '<p class="unit-note small">' + esc(u.note) + "</p>" : "");
     const s = progress.units[u.id];

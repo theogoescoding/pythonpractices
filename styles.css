@@ -567,6 +567,11 @@ a.unit-card:hover { border-color: var(--primary); }
 .tour-buttons .tour-skip { margin-left: auto; }
 .tour-target { outline: 4px solid var(--focus); outline-offset: 4px; scroll-margin-top: 5rem; }
 body.tour-open { padding-bottom: 55vh; }
+/* Phone width (review finding B10): the card is at most a third of the screen tall, and its text scrolls inside it. */
+@media (max-width: 600px) {
+  .tour-card { max-height: 33vh; }
+  body.tour-open { padding-bottom: 38vh; }
+}
 .tour-reminders { display: grid; gap: .5rem; margin-bottom: 1rem; }
 .tour-reminder p { margin: .2rem 0; }
 .tour-reminder .teacher-controls { margin-bottom: 0; }
@@ -655,10 +660,20 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
 /* The teacher view: a side menu of pages, beside the page on show (stacked on narrow screens). */
 .teacher-shell { display: flex; flex-wrap: wrap; gap: 1.25rem; align-items: flex-start; margin-top: 1rem; }
 .side-nav { flex: 0 0 12rem; display: flex; flex-direction: column; gap: .3rem; position: sticky; top: .75rem; }
+.side-nav-links { display: flex; flex-direction: column; gap: .3rem; }
 .side-nav a { padding: .55rem .9rem; text-decoration: none; font-weight: 700; border: 2px solid transparent; border-radius: 8px; }
 .side-nav a[aria-current="page"] { background: var(--card); border-color: var(--border); color: var(--text); }
 .teacher-pages { flex: 999 1 32rem; min-width: 0; }
-@media (max-width: 700px) { .side-nav { flex-basis: 100%; flex-direction: row; flex-wrap: wrap; position: static; } }
+/* The phone menu's button (review finding L8): hidden on wider screens, where the list always shows. */
+.nav-toggle { display: none; }
+@media (max-width: 700px) {
+  .side-nav { flex-basis: 100%; position: static; }
+  .nav-toggle { display: block; width: 100%; text-align: left; }
+  .nav-toggle::after { content: " ▾" / ""; } /* the arrow isn't read out */
+  .side-nav.nav-open .nav-toggle::after { content: " ▴" / ""; }
+  .side-nav-links { flex-direction: row; flex-wrap: wrap; }
+  .side-nav:not(.nav-open) .side-nav-links { display: none; }
+}
 .class-bar .teacher-controls { margin-bottom: .5rem; }
 .code-card { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; background: var(--card); border: 2px solid var(--border); border-radius: 8px; padding: .75rem 1rem; margin: .75rem 0; }
 .big-code { font-size: 1.8rem; letter-spacing: .15em; }
@@ -856,11 +871,27 @@ td pre { white-space: pre-wrap; margin: .25rem 0; font-size: .85rem; }
 .hw-item p { margin: .25rem 0; }
 .hw-item .teacher-controls { margin: .5rem 0 0; }
 .hw-list-h { margin-top: 1.25rem; }
+/* Student home: the header's Change nickname link stays on one line (it moves down whole on a phone). */
+#rename-link { white-space: nowrap; }
+/* Student home: Delete everything saved for me, apart from Change my nickname (review finding L5). */
+.delete-zone { margin-top: 2rem; padding-top: 1rem; border-top: 2px solid var(--border); }
+/* Students page: the longer colour rules, folded away under the key (review findings L4 and S1). */
+.rag-more { margin: .25rem 0 .75rem; }
+.rag-more summary { cursor: pointer; font-size: .9rem; font-weight: 600; }
+.rag-more p { margin: .4rem 0 0; }
+/* "How it works": the longer help on Leaderboards, Certificates, Homework and Reports, closed at first (review finding S11). */
+.how-it-works { margin: .25rem 0 .75rem; }
+.how-it-works summary { cursor: pointer; font-size: .9rem; font-weight: 600; }
+.how-it-works p { margin: .4rem 0 0; }
+/* A homework's report opens inside its own card (review finding L2), under a line. */
+.hw-report { margin-top: .75rem; padding-top: .5rem; border-top: 2px solid var(--border); min-width: 0; }
+.hw-report h3 { margin: .25rem 0; font-size: 1.05rem; }
+.hw-item { min-width: 0; }
 .hw-report-table td, .hw-report-table th { vertical-align: top; }
 .hw-report-table td:nth-child(3) { min-width: 9rem; }
 .hw-flags { list-style: none; padding: 0; margin: 0; display: grid; gap: .3rem; }
 .hw-flags .flag { margin-left: 0; margin-right: .3rem; }
-/* On a phone each student's row is a block (name, then Done, Units and Possible AI use, labelled), so nothing is off
+/* On a phone each student's row is a block (name, then Done, Units and Paste flagged, labelled), so nothing is off
    to the side; the column headings stay as a row of sort buttons. */
 @media (max-width: 600px) {
   .hw-report-table, .hw-report-table thead, .hw-report-table tbody, .hw-report-table tbody tr, .hw-report-table tbody th, .hw-report-table td { display: block; width: auto; }
@@ -875,7 +906,7 @@ td pre { white-space: pre-wrap; margin: .25rem 0; font-size: .85rem; }
 /* An assignment's flagged task: Clear code under the message. */
 .paste-flag .paste-clear { margin-top: .5rem; }
 
-/* ---------- Large paste flags on the Students page (teacher view) ---------- */
+/* ---------- Paste flags on the Students page (teacher view) ---------- */
 /* A small red flag next to the level (with "3 flags" when there are several); it opens the details dialog. */
 .paste-flag-btn {
   display: inline-flex; align-items: center; gap: .2rem; vertical-align: middle; cursor: pointer;

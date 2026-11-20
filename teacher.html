@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Teacher View – Python Practice</title>
+  <title>Teacher View – Pythons and Ladders</title>
   <link rel="icon" type="image/png" href="assets/logo/icon-light.png">
   <link rel="stylesheet" href="styles.css">
   <script src="store.js"></script>
@@ -63,17 +63,23 @@
     </section>
 
     <div id="teacher-main" class="teacher-shell">
-    <nav class="side-nav" aria-label="Teacher view pages">
-      <a href="#classes" data-page="classes">Classes</a>
+    <nav class="side-nav" id="side-nav" aria-label="Teacher view pages">
+      <!-- Phone width (under 700px) only: the menu starts closed, as one button naming the page on show (review finding L8). -->
+      <button type="button" id="nav-toggle" class="secondary nav-toggle" aria-expanded="false" aria-controls="side-nav-links">Menu: <span id="nav-current">Students</span></button>
+      <!-- Homework, Assignments, Classes and Settings need backend mode, so local mode hides them (data-backend; review finding S10).
+           Their addresses still open their pages, which say why. -->
+      <div id="side-nav-links" class="side-nav-links">
       <a href="#students" data-page="students">Students</a>
+      <a href="#homework" data-page="homework" data-backend>Homework</a>
+      <a href="#assignments" data-page="assignments" data-backend>Assignments</a>
+      <a href="#misconceptions" data-page="misconceptions">Misconceptions</a>
       <a href="#leaderboards" data-page="leaderboards">Leaderboards</a>
       <a href="#certificates" data-page="certificates">Certificates</a>
-      <a href="#homework" data-page="homework" data-backend>Homework</a>
-      <a href="#assignments" data-page="assignments">Assignments</a>
       <a href="#reports" data-page="reports">Reports</a>
-      <a href="#misconceptions" data-page="misconceptions">Misconceptions</a>
       <a href="#tasks" data-page="tasks">Task browser</a>
-      <a href="#settings" data-page="settings">Settings</a>
+      <a href="#classes" data-page="classes" data-backend>Classes</a>
+      <a href="#settings" data-page="settings" data-backend>Settings</a>
+      </div>
     </nav>
     <div class="teacher-pages">
 
@@ -82,12 +88,7 @@
       <h2 id="classes-title" tabindex="-1">Classes</h2>
       <p id="cl-local" class="small" hidden>Classes need backend mode (the class server). In this browser, every student who has used it is shown on the Students page.</p>
       <div id="cl-main">
-        <form id="tb-new-class" class="teacher-controls" novalidate>
-          <label>New class name <input type="text" id="tb-new-class-name" class="text-input" style="width:auto" maxlength="100"></label>
-          <label>Stage <select id="tb-new-class-stage"><option value="ks3">KS3</option><option value="gcse" selected>GCSE</option><option value="a-level">A-level</option></select></label>
-          <button type="submit" class="secondary">Create class</button>
-        </form>
-
+        <!-- The chosen class first; Create class is near the end, above "What is kept" (review finding L3). -->
         <div id="tb-class-info" hidden>
           <div class="code-card">
             <div><span class="small">Class code: students join with it</span><br><strong id="tb-code" class="class-code big-code"></strong></div>
@@ -105,7 +106,7 @@
           <ul id="tb-teachers" class="teacher-list"></ul>
           <form id="tb-add-teacher" class="teacher-controls" novalidate hidden>
             <label>Add a teacher <input type="email" id="tb-add-teacher-email" class="text-input" autocomplete="off" spellcheck="false" maxlength="320" aria-describedby="tb-add-teacher-help"></label>
-            <button type="submit" class="secondary" id="tb-add-teacher-save">Add a teacher</button>
+            <button type="submit" class="secondary" id="tb-add-teacher-save">Add</button>
           </form>
           <p id="tb-add-teacher-help" class="small" hidden>Type their school email. They need a teacher account already. The class then appears in their own class list.</p>
           <p id="tb-teachers-status" role="status"></p>
@@ -121,9 +122,9 @@
             <label>Stage <select id="tb-stage"><option value="ks3">KS3</option><option value="gcse">GCSE</option><option value="a-level">A-level</option></select></label>
             <button type="button" id="tb-stage-save" class="secondary">Save stage</button>
           </div>
-          <p class="small">The stage decides which units the Students page shows, and which sections of the unit menu open by default for your students
+          <p class="small">The stage decides which units count in averages, and which sections of the unit menu open by default for your students
             (KS3: Programming fundamentals and Advanced programming; GCSE: those, Validation, and Searching and sorting; A-level: every section).
-            Changing it resets your students' open and closed sections the next time they open the app. They can still open any section.</p>
+            Every unit still shows on the Students page. Changing it resets your students' open and closed sections the next time they open the app. They can still open any section.</p>
           </section>
 
           <section class="teacher-section" data-collapse="class-students">
@@ -141,7 +142,11 @@
             </table>
           </div>
           <div id="tb-pin-result" role="status"></div>
+          </section>
 
+          <!-- Its own section, closed at first (review finding L3). teacher-backend.js draws the part inside. -->
+          <section class="teacher-section" data-collapse="class-import" data-collapse-default="closed">
+          <h3>Import a full export</h3>
           <div id="tb-import"></div>
           </section>
 
@@ -154,6 +159,12 @@
               <button type="button" id="tb-delete-no" class="secondary">Cancel</button></span></p>
           </section>
         </div>
+
+        <form id="tb-new-class" class="teacher-controls" novalidate>
+          <label>New class name <input type="text" id="tb-new-class-name" class="text-input" style="width:auto" maxlength="100"></label>
+          <label>Stage <select id="tb-new-class-stage"><option value="ks3">KS3</option><option value="gcse" selected>GCSE</option><option value="a-level">A-level</option></select></label>
+          <button type="submit" class="secondary">Create class</button>
+        </form>
 
         <details class="retention-note">
           <summary>What is kept, and for how long</summary>
@@ -176,49 +187,63 @@
         <div><span class="small">Class code</span><br><strong id="st-code" class="class-code big-code"></strong></div>
         <button type="button" class="secondary" data-copy-code>Copy code</button>
       </div>
+      <!-- A class with no students: one short line instead of the tiles, help and tables (review finding S2). -->
+      <p id="st-empty" class="notice" hidden></p>
+      <div id="st-body">
       <div id="st-summary" class="rag-tiles" aria-live="polite"></div>
-      <div id="st-averages" class="unit-averages"></div>
+      <!-- The colour key, under the tiles it explains; the longer rules fold away (review findings L4 and S1). -->
+      <p class="small rag-key">Colour key: <span class="rag rag-none">grey: Placement to do</span>.
+        Placed but not secured yet, the level: <span class="rag rag-lv-red">Level 1–3</span> <span class="rag rag-lv-amber">Level 4–6</span>
+        <span class="rag rag-lv-green">Level 7–9</span> <span class="rag rag-lv-top">Level 10</span>.
+        Secured, how fresh it is: <span class="rag rag-gold">100% Secured</span> <span class="rag rag-fresh">90% Fresh</span>
+        <span class="rag rag-fading">80% Fading</span> <span class="rag rag-soon">50–70% Revisit soon</span>.</p>
+      <details class="rag-more">
+        <summary>More about the colours</summary>
+        <p class="small">A secured unit never falls below 50%, so it is never red. An average of several units can fall between these bands, and takes the band below it.
+          A unit stays grey until the student has done its placement test. A placed unit that isn't secured yet shows its level in that level's colour, never 0%.
+          A student's average is of their secured units; the summary tiles count each student once, by that average or, with nothing secured yet, by their average level.
+          A unit is secured after two level 10 passes with no hints (a pass after "Show me how" doesn't count). It stays at 100% for a week after the last
+          level 10 pass, then drops 10 points for each full week (90%, 80%, 70%, 60%), never below its floor, and one more
+          level 10 pass with no hints brings it back to 100%. The floor is 50% at first and 10 points higher after each return to 100%, so after five returns it is 100% and the unit stays secured.</p>
+        <!-- The class averages line, kept here rather than under the key (the decision on review finding S4). -->
+        <div id="st-averages" class="unit-averages"></div>
+      </details>
 
       <section class="teacher-section" data-collapse="students">
       <h3>Secured score per unit</h3>
-      <p class="small">Two rows per student, one column per unit. The units are in blocks, one per group (A-level too). Select a block's heading to close or open it; this browser remembers which you closed. The Freshness row shows the secured score and its label (or Not secured yet). The Level row shows the level (in its colour while the unit isn't secured yet),
+      <p class="small">Two rows per student, one column per unit. The units are in blocks, one per group (A-level too). Select a block's heading to close or open it; this browser remembers which you closed.
+        Averages and the tiles count only the units for the class's stage; other units still show as columns.
+        Select a column heading to sort. Select it again to reverse the order. Unit columns sort by secured score, and every table follows the same order. Select a name to open that student.
+        The Freshness row shows the secured score and its label (or Not secured yet). The Level row shows the level (in its colour while the unit isn't secured yet),
         the placement result, <span class="badge-complete">★ Complete</span> once a level 10 task is passed, and these flags, with the time of the newest press:</p>
       <ul class="small flag-key">
         <li><span class="flag flag-easy">Too easy</span> the student pressed "This is too easy" in this unit, which moved them up one level: check that their level is right</li>
         <li><span class="flag flag-hard">Way too hard</span> the student pressed "This is way too hard" in this unit, which moved them down one level: check that their level is right</li>
         <li><span class="paste-flag-key" aria-hidden="true"><svg class="paste-flag-icon" viewBox="0 0 16 16" width="14" height="14" focusable="false"><path d="M3 1v14h1.6V9.4h3.2l.6 1.4H14V2.6H9.2L8.6 1.2H4.6V1z" fill="currentColor"/></svg></span>
-          Large paste flagged in a task in this unit (with the count if there are several). A paste is flagged when the editor is empty and the paste is 3 lines or more, or when a single paste is more than 8 lines. Select the flag to see when, which task, and the code of their next check on it.</li>
+          Paste flagged in a task in this unit (with the count if there are several). A paste is flagged when the editor is empty and the paste is 3 lines or more, or when a single paste is more than 8 lines. Select the flag to see when, which task, and the code of their next check on it.</li>
       </ul>
       <p id="st-paste-status" class="small" role="status"></p>
       <div class="teacher-controls">
         <label>Filter by name <input type="search" id="name-filter" class="text-input" style="width:auto" autocomplete="off"></label>
       </div>
-      <p class="small">Each student has two rows: <strong>Freshness</strong> (the secured score and its band) and <strong>Level</strong> (the current level, the placement result and the flags).
-        Averages and the tiles count only the units for the class's stage; other units still show as columns.
-        The units are in one table per group. Select a column heading to sort. Select it again to reverse the order. Unit columns sort by secured score, and every table follows the same order. Select a name to open that student.</p>
       <div id="overview-tables" class="overview-tables"></div>
-      <p class="small rag-key">Colour key: <span class="rag rag-none">grey: Placement to do</span>.
-        Placed but not secured yet, the level: <span class="rag rag-lv-red">Level 1–3</span> <span class="rag rag-lv-amber">Level 4–6</span>
-        <span class="rag rag-lv-green">Level 7–9</span> <span class="rag rag-lv-top">Level 10</span>.
-        Secured, how fresh it is: <span class="rag rag-gold">100% Secured</span> <span class="rag rag-fresh">90% Fresh</span>
-        <span class="rag rag-fading">80% Fading</span> <span class="rag rag-soon">50–70% Revisit soon</span> (a secured unit never falls below 50%, so it is never red;
-        an average of several units can fall between these, and takes the band below it).
-        A unit stays grey until the student has done its placement test. A placed unit that isn't secured yet shows its level in that level's colour, never 0%.
-        A student's average is of their secured units; the summary tiles count each student once, by that average or, with nothing secured yet, by their average level.
-        A unit is secured after two level 10 passes with no hints (a pass after "Show me how" doesn't count). It stays at 100% for a week after the last
-        level 10 pass, then drops 10 points for each full week (90%, 80%, 70%, 60%), never below its floor, and one more
-        level 10 pass with no hints brings it back to 100%. The floor is 50% at first and 10 points higher after each return to 100%, so after five returns it is 100% and the unit stays secured.</p>
       </section>
+      </div>
     </section>
 
     <!-- ===== Leaderboards (this class, and all my classes) ===== -->
     <section id="page-leaderboards" aria-labelledby="leaderboards-title" hidden>
       <h2 id="leaderboards-title" tabindex="-1">Leaderboards</h2>
-      <p class="small">Each unit gives up to 300 points, and every unit counts, whatever the class's stage.
-        Secured points: up to 200, 2 for each percent of a secured unit's score (100% gives 200, 50% gives 100; a unit that isn't secured gives 0).
-        Level points: up to 100, 10 for each level of a placed unit (level 10 gives 100; a unit not started, or with its placement to do, gives 0).
-        <strong>Most improved</strong> is the points gained in the last 14 days: today's total minus the total 14 days ago, worked out from the saved attempts and level changes.
-        Students with the same points share a place. Students see their own class's boards, with nicknames only.</p>
+      <!-- Two short sentences, then the rest in a closed fold-out (review finding S11). -->
+      <p class="small">Each unit gives up to 300 points: up to 200 for its secured score and up to 100 for its level. Most improved is the points gained in the last 14 days.</p>
+      <details class="how-it-works" id="lb-how">
+        <summary>How it works</summary>
+        <p class="small">Every unit counts, whatever the class's stage.
+          Secured points: up to 200, 2 for each percent of a secured unit's score (100% gives 200, 50% gives 100; a unit that isn't secured gives 0).
+          Level points: up to 100, 10 for each level of a placed unit (level 10 gives 100; a unit not started, or with its placement to do, gives 0).
+          <strong>Most improved</strong> is the points gained in the last 14 days: today's total minus the total 14 days ago, worked out from the saved attempts and level changes.
+          Students with the same points share a place. Students see their own class's boards, with nicknames only.</p>
+      </details>
       <section class="teacher-section" data-collapse="lb-class">
         <h3>This class</h3>
         <p id="lb-class-name"></p>
@@ -233,20 +258,32 @@
         <p id="lb-all-status" class="small" role="status"></p>
         <div id="lb-all" class="boards"></div>
       </section>
+      <!-- Moved here from Reports, beside All my classes, which is also about every class (review findings L6 and T4). -->
+      <section class="teacher-section" data-collapse="compare">
+      <h3>Compare classes</h3>
+      <p class="small">Your own classes only: each class's average secured score per unit, side by side (students who have secured the unit; the number in brackets).</p>
+      <p><button type="button" id="compare-load" class="secondary">Compare my classes</button></p>
+      <div id="compare" aria-live="polite"></div>
+      </section>
     </section>
 
     <!-- ===== Certificates (every class, every student with at least one) ===== -->
     <section id="page-certificates" aria-labelledby="certificates-title" hidden>
       <h2 id="certificates-title" tabindex="-1">Certificates</h2>
-      <p class="small">A student earns a certificate for a block of units when every unit in the block has its floor at 100%.
-        A unit's floor is the lowest its secured score can drop to. It starts at 50% and goes up by 10 each time the student brings the unit back to 100%.
-        The date on a certificate is the day the last unit in the block reached that. Once earned, a certificate is kept.
-        Select Print to open one certificate on its own page, ready to print on one A4 landscape sheet.</p>
+      <p class="small">A student earns a certificate for a block of units when every unit in the block has its floor at 100%. Select Print to print one.</p>
+      <details class="how-it-works" id="cert-how">
+        <summary>How it works</summary>
+        <p class="small">A unit's floor is the lowest its secured score can drop to. It starts at 50% and goes up by 10 each time the student brings the unit back to 100%.
+          The date on a certificate is the day the last unit in the block reached that. Once earned, a certificate is kept.
+          Select Print to open one certificate on its own page, ready to print on one A4 landscape sheet.</p>
+      </details>
       <p id="cert-local" class="small" hidden>In this browser (local mode), certificates are kept in this browser only.</p>
       <div id="cert-name-row" class="teacher-controls" hidden>
         <label>Name for "Issued by" <input type="text" id="cert-teacher-name" class="text-input" maxlength="100" autocomplete="name"></label>
       </div>
       <p id="cert-status" class="small" role="status"></p>
+      <!-- Every class the teacher is on, one list each (the decision on review finding L10). Backend mode only: local mode has only this browser. -->
+      <h3 id="cert-all-h" data-backend>All your classes</h3>
       <div id="cert-list"></div>
     </section>
 
@@ -294,15 +331,23 @@
     <!-- ===== Homework (backend mode) ===== -->
     <section id="page-homework" aria-labelledby="homework-title" hidden>
       <h2 id="homework-title" tabindex="-1">Homework</h2>
-      <p class="small">Set a number of tasks for a class to do by a due date. Every task type counts, placement questions too.
-        A task counts the first time a student passes it, from when you set the homework to the end of the due date.
-        Each student sees a Homework card on their home page with "x of y done", then "Complete".
-        A paste is flagged when the editor is empty and the paste is 3 lines or more, or when a single paste is more than 8 lines.
-        In homework a flagged task doesn't count, and the student gets a new one. The report lists these flags as "Possible AI use".</p>
+      <p class="small">Set a number of tasks for the class to do by a due date. A task counts the first time a student passes it.</p>
+      <details class="how-it-works" id="hw-how">
+        <summary>How it works</summary>
+        <p class="small">Every task type counts, placement questions too.
+          A task counts the first time a student passes it, from when you set the homework to the end of the due date.
+          Each student sees a Homework card on their home page with "x of y done", then "Complete".
+          A paste is flagged when the editor is empty and the paste is 3 lines or more, or when a single paste is more than 8 lines.
+          In homework a flagged task doesn't count, and the student gets a new one. The report lists these flags as "Paste flagged".</p>
+      </details>
       <p id="hw-local" class="notice notice-down" hidden>Homework needs backend mode (the class server), because students must be able to see it on their own computers.</p>
       <div id="hw-main">
-        <!-- The class is the one chosen at the top of the page, as on every other page. -->
-        <form id="hw-form" class="task-card" novalidate aria-labelledby="hw-form-h">
+        <!-- The class is the one chosen at the top of the page, as on every other page. Its homework comes first, then
+             Set homework, which opens the form (review finding L2). A report opens under its own homework. -->
+        <p id="hw-status" class="small" role="status"></p>
+        <div id="hw-list" aria-live="polite"></div>
+        <p><button type="button" id="hw-new" class="primary" aria-expanded="false" aria-controls="hw-form">Set homework</button></p>
+        <form id="hw-form" class="task-card" novalidate aria-labelledby="hw-form-h" hidden>
           <h3 id="hw-form-h" tabindex="-1">Set homework</h3>
           <div class="teacher-controls hw-fields">
             <label>Number of tasks <input type="number" id="hw-count" class="text-input" min="1" max="200" step="1" inputmode="numeric" required></label>
@@ -314,14 +359,12 @@
             <div id="hw-blocks"></div>
           </fieldset>
           <p id="hw-form-status" role="alert" hidden></p>
-          <p><button type="submit" class="primary" id="hw-save">Set homework</button></p>
+          <p><button type="submit" class="primary" id="hw-save">Set homework</button> <button type="button" class="secondary" id="hw-cancel">Cancel</button></p>
         </form>
-        <p id="hw-status" class="small" role="status"></p>
-        <div id="hw-list" aria-live="polite"></div>
-        <section id="hw-report" class="task-card" hidden aria-labelledby="hw-report-h">
+        <section id="hw-report" class="hw-report" hidden aria-labelledby="hw-report-h">
           <h3 id="hw-report-h" tabindex="-1">Homework report</h3>
           <p id="hw-report-meta" class="small"></p>
-          <p class="small">Select a column heading to sort by it. "Possible AI use" lists the student's flagged tasks, which didn't count.
+          <p class="small">Select a column heading to sort by it. "Paste flagged" lists the student's flagged tasks, which didn't count.
             A paste is flagged when the editor is empty and the paste is 3 lines or more, or when a single paste is more than 8 lines.</p>
           <div id="hw-report-table"></div>
         </section>
@@ -389,12 +432,16 @@
         <button type="button" id="export-log" class="secondary">Detail log (CSV)</button>
         <button type="button" id="export-workshop" class="secondary">Workshop tables (CSV)</button>
       </div>
-      <p class="small">Every export is free. <strong>Class scores</strong>: each student's secured score, label and level in every unit of the class's stage.
-        <strong>Full attempt log</strong>: every attempt, level change, button use and placement result for the whole class (with the data dictionary, which explains
-        every column in plain English; your browser may ask whether to allow two downloads). <strong>Levels table</strong>: each student's level, placement,
-        level 10 and button flags in every unit. <strong>Detail log</strong>: one row per attempt and button use, including code and output.
-        <strong>Workshop tables</strong>: the misconception table and the per-task unmatched table from the Misconceptions page.
-        Each button shows what is in the file, with a sample row, before you download it.</p>
+      <!-- The short version, then each export's description in a closed fold-out (review findings S11 and N15). -->
+      <p class="small">Each button shows what is in the file, with a sample row, before you download it.</p>
+      <details class="how-it-works" id="export-how">
+        <summary>How it works</summary>
+        <p class="small"><strong>Class scores</strong>: each student's secured score, label and level in every unit of the class's stage.
+          <strong>Full attempt log</strong>: every attempt, level change, button use and placement result for the whole class (with the data dictionary, which explains
+          every column in plain English; your browser may ask whether to allow two downloads). <strong>Levels table</strong>: each student's level, placement,
+          level 10 and button flags in every unit. <strong>Detail log</strong>: one row per attempt and button use, including code and output.
+          <strong>Workshop tables</strong>: the misconception table and the per-task unmatched table from the Misconceptions page.</p>
+      </details>
       <dialog id="export-dialog" class="export-dialog" aria-labelledby="export-dialog-h">
         <h3 id="export-dialog-h"></h3>
         <p id="export-dialog-text"></p>
@@ -404,26 +451,18 @@
         <p class="teacher-controls"><button type="button" id="export-dialog-download" class="primary">Download</button>
           <button type="button" id="export-dialog-close" class="secondary">Cancel</button></p>
       </dialog>
-      <details style="margin-top:1rem">
-        <summary>All level changes</summary>
-        <div class="table-wrap" style="margin-top:.5rem">
-          <table>
-            <thead><tr><th scope="col">Time</th><th scope="col">Name</th><th scope="col">Unit</th><th scope="col">From</th><th scope="col">To</th><th scope="col">Why</th></tr></thead>
-            <tbody id="level-log"></tbody>
-          </table>
-        </div>
-      </details>
       </section>
 
-      <section class="teacher-section" data-collapse="compare">
-      <h3>Compare classes</h3>
-      <p class="small">Your own classes only: each class's average secured score per unit, side by side (students who have secured the unit; the number in brackets).</p>
-      <p><button type="button" id="compare-load" class="secondary">Compare my classes</button></p>
-      <div id="compare" aria-live="polite"></div>
+      <!-- Its own section, closed at first as the old fold-out was (review finding L6). Compare classes is on Leaderboards. -->
+      <section class="teacher-section" data-collapse="level-log" data-collapse-default="closed">
+      <h3>Level changes</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Time</th><th scope="col">Name</th><th scope="col">Unit</th><th scope="col">From</th><th scope="col">To</th><th scope="col">Why</th></tr></thead>
+          <tbody id="level-log"></tbody>
+        </table>
+      </div>
       </section>
-
-      <p class="small">The misconceptions workshop (most-failed tasks, the misconception table and unmatched attempts) is on its own page:
-        <a href="#misconceptions">Misconceptions</a>. Its tables are in the Workshop tables export above.</p>
     </section>
 
     <!-- ===== Misconceptions ===== -->
@@ -439,9 +478,9 @@
       <div id="mc-failed" aria-live="polite"></div>
       </section>
 
-      <section class="teacher-section" data-collapse="mc-review" aria-labelledby="mc-review-h">
+      <section class="teacher-section" data-collapse="mc-review" data-collapse-default="closed" aria-labelledby="mc-review-h">
       <h3 id="mc-review-h">Needs review</h3>
-      <p class="small">Failed attempts from the last 30 days that match a newer misconception rule (added each term, after Theo has checked it). They matched no older rule, so look at each one: does the student really have this misconception? Each shows the student's code, if it is still stored (code is kept for 30 days).</p>
+      <p class="small">Failed attempts from the last 30 days that match a newer misconception rule (added each term, after each one has been checked). They matched no older rule, so look at each one: does the student really have this misconception? Each shows the student's code, if it is still stored (code is kept for 30 days).</p>
       <p id="mc-review-status" class="small" role="status"></p>
       <div id="mc-review" aria-live="polite"></div>
       </section>
@@ -466,8 +505,8 @@
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th scope="col">Task</th><th scope="col">Failed attempts</th><th scope="col">Unmatched</th><th scope="col">Unmatched rate</th>
-              <th scope="col">Has buggy variants</th><th scope="col">Needs review</th><th scope="col">Unmatched attempts</th></tr>
+            <tr><th scope="col">Task</th><th scope="col">Failed attempts</th><th scope="col">Unmatched</th><th scope="col">Share unmatched</th>
+              <th scope="col">Has buggy programs</th><th scope="col">Needs review</th><th scope="col">Unmatched attempts</th></tr>
           </thead>
           <tbody id="ws-tasks"></tbody>
         </table>

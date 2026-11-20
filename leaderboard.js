@@ -12,6 +12,10 @@ Store.whenReady(function () {
   $("student-name").textContent = student.name;
 
   const plus = (n) => (n > 0 ? "+" + n : String(n));
+  // A total as "630 of 12,000" (review finding T2): points out of the most possible. Display only.
+  const thousands = (n) => Number(n).toLocaleString("en-GB");
+  let max = 0;
+  const total = (n) => (max ? thousands(n) + " of " + thousands(max) : thousands(n));
 
   // One board as a table: place, nickname, points. The student's own row is highlighted and says "(you)".
   function table(rows, field, caption) {
@@ -19,7 +23,7 @@ Store.whenReady(function () {
     return '<table class="board-table" aria-label="' + esc(caption) + '">' +
       '<thead><tr><th scope="col" class="num">Place</th><th scope="col">Nickname</th><th scope="col" class="num">' + esc(field) + "</th></tr></thead><tbody>" +
       rows.map((r) => '<tr' + (r.me ? ' class="board-me"' : "") + '><td class="num">' + r.rank + "</td><td>" + esc(r.nickname) +
-        (r.me ? " <span class=\"small\">(you)</span>" : "") + '</td><td class="num">' + (field === "Points gained" ? plus(r.points) : r.points) + "</td></tr>").join("") +
+        (r.me ? " <span class=\"small\">(you)</span>" : "") + '</td><td class="num">' + (field === "Points gained" ? plus(r.points) : total(r.points)) + "</td></tr>").join("") +
       "</tbody></table>";
   }
 
@@ -31,7 +35,8 @@ Store.whenReady(function () {
     }
     const b = r.body.boards || { overall: [], improving: [] };
     const me = r.body.me || { secured: 0, level: 0, total: 0, gain: 0 };
-    $("me-total").textContent = me.total + (r.body.max ? " of " + r.body.max : "");
+    max = r.body.max || 0;
+    $("me-total").textContent = total(me.total);
     $("me-secured").textContent = me.secured;
     $("me-level").textContent = me.level;
     $("me-gain").textContent = plus(me.gain);

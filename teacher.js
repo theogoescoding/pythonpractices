@@ -84,6 +84,21 @@
     : c.levelBand ? '<span class="rag rag-' + c.levelBand.cls + '">' + esc(c.levelBand.label) + "</span>" : "");
   // The Students page table's cells (two rows per student) are built in teacher-data.js (overviewTablesHtml).
 
+  // ---------- The phone menu (review finding L8) ----------
+  // Under 700px wide (styles.css) the side menu is one closed button, "Menu: <page name>", that opens the list.
+  // Choosing a page, or Esc, closes it again. Wider screens always show the list, and the button is hidden.
+  function setNavOpen(open) {
+    $("side-nav").classList.toggle("nav-open", open);
+    $("nav-toggle").setAttribute("aria-expanded", String(open));
+  }
+  $("nav-toggle").addEventListener("click", () => setNavOpen($("nav-toggle").getAttribute("aria-expanded") !== "true"));
+  $("side-nav-links").addEventListener("click", (e) => { if (e.target.closest("a")) setNavOpen(false); });
+  $("side-nav").addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || $("nav-toggle").getAttribute("aria-expanded") !== "true") return;
+    setNavOpen(false);
+    $("nav-toggle").focus();
+  });
+
   // ---------- Page switching ----------
   function render() {
     const [p, arg] = route();
@@ -91,6 +106,7 @@
     document.querySelectorAll(".side-nav a").forEach((a) => {
       const on = a.dataset.page === p || (p === "student" && a.dataset.page === "students");
       if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+      if (on) $("nav-current").textContent = a.textContent; // the phone menu's button: "Menu: <page name>"
     });
     if (!tb) {
       const used = Store.storageUsed();
@@ -137,6 +153,15 @@
     $("st-stage").textContent = (c ? c.name + ", " : "") + self.Curriculum.stageOf(stage()).label + " class. Every unit is shown below, in groups you can close." +
       (c ? " The stage sets which groups open first on your students' home page. Change it on the Classes page." : " (In this browser every student is shown.)");
     renderCodeCards();
+    // A class with no students (review finding S2): one short line, and none of the tiles, help or tables.
+    const none = !Object.keys(data.students).length;
+    $("st-empty").hidden = !none;
+    $("st-body").hidden = none;
+    if (none) {
+      $("st-empty").textContent = c ? "No students yet. They join with the class code " + c.class_code + "." : "No students yet. Students appear here once they use this browser.";
+      $("overview-tables").innerHTML = "";
+      return;
+    }
     const table = TD.scoreTable(data, unitIds, null, stageUnitIds()); // the tiles and class averages: the stage's units only
     const s = table.summary;
     // One tile per group (TD.SUMMARY_TILES), each student in exactly one: by their secured average, or with nothing
@@ -164,8 +189,8 @@
     $("overview-tables").querySelectorAll(".overview-wrap").forEach((w) => { const x = scrolled[w.firstElementChild.dataset.group]; if (x) w.scrollLeft = x; });
   }
 
-  // ---------- Large paste flags (the Students page's Level cells) ----------
-  // A red flag next to a unit's level when the student had a large paste flagged in it (paste-flag.js), with the count
+  // ---------- Paste flags (the Students page's Level cells) ----------
+  // A red flag next to a unit's level when the student had a paste flagged in it (paste-flag.js), with the count
   // when there are several. Selecting it opens the details (paste-details.js: when, the task, where, lines, homework,
   // and the code of the student's next check on that task). Backend mode: teacher-api paste_flags_for_class (any
   // teacher on the class, owner or co-teacher). Local mode: this browser's own record of them (Store.pasteLog).
@@ -227,7 +252,7 @@
     const name = ((collect() || { students: {} }).students[sid] || { name: "Student" }).name;
     const sel = 'button[data-paste-student="' + CSS.escape(sid) + '"][data-paste-unit="' + CSS.escape(unit) + '"]';
     const api = self.openDialog(document, {
-      id: "paste-flags", title: "Large paste flagged: " + name + ", " + unitTitle(unit),
+      id: "paste-flags", title: TD.PASTE_FLAGGED + ": " + name + ", " + unitTitle(unit),
       inert: [document.querySelector(".site-header"), document.querySelector("main"), document.querySelector(".skip-link")],
       returnFocus: () => { const b = $("overview-tables").querySelector(sel); if (b) b.focus(); },
       body: (make) => pasteDialogBody(make, flags),
@@ -261,19 +286,25 @@
   const POINT_UNITS = UNITS.map((u) => ({ id: u.id, placement: self.Curriculum.hasPlacement(u.id) }));
   const MAX_POINTS = self.Secured.maxPoints(POINT_UNITS.length);
   const signed = (n) => (n > 0 ? "+" + n : String(n));
+  // A total as "630 of 12,000" (review finding T2): the student's points out of the most possible for the units that
+  // count (every unit, the leaderboard rule). Display only: the points themselves are the server's (or secured.js's).
+  const thousands = (n) => Number(n).toLocaleString("en-GB");
+  const outOf = (points, max) => thousands(points) + " of " + thousands(max);
+  let boardMax = MAX_POINTS; // the most possible, as the server's reply gives it (the same rule: 300 a unit)
   // One board as a table. withClass: the All my classes boards (class name, ranked by percentage).
   function boardHtml(title, note, rows, gain, withClass) {
-    const num = (r) => (gain ? signed(r.points) : String(r.points));
+    const num = (r) => (gain ? signed(r.points) : outOf(r.points, boardMax));
     const per = (r) => (gain ? signed(r.percent) : String(r.percent)) + "%";
     return '<section class="board"><h4>' + esc(title) + '</h4><p class="small">' + esc(note) + "</p>" + (!rows.length ? '<p class="small">No students yet.</p>' :
       '<table class="board-table" aria-label="' + esc(title) + '"><thead><tr><th scope="col" class="num">Place</th><th scope="col">Nickname</th>' +
-      (withClass ? '<th scope="col">Class</th><th scope="col" class="num">%</th><th scope="col" class="num">Points</th>' : '<th scope="col" class="num">Points</th><th scope="col" class="num">%</th>') +
+      // Points, then %, on every board (review finding L9). All my classes stays ranked by %.
+      (withClass ? '<th scope="col">Class</th>' : "") + '<th scope="col" class="num">Points</th><th scope="col" class="num">%</th>' +
       "</tr></thead><tbody>" + rows.map((r) => '<tr><td class="num">' + r.rank + "</td><td>" + esc(r.nickname) + "</td>" +
-        (withClass ? "<td>" + esc(r.class_name || "") + '</td><td class="num">' + per(r) + '</td><td class="num">' + num(r) + "</td>"
-          : '<td class="num">' + num(r) + '</td><td class="num">' + per(r) + "</td>") + "</tr>").join("") + "</tbody></table>") + "</section>";
+        (withClass ? "<td>" + esc(r.class_name || "") + "</td>" : "") + '<td class="num">' + num(r) + '</td><td class="num">' + per(r) + "</td></tr>").join("") + "</tbody></table>") + "</section>";
   }
-  function boardsHtml(b, withClass) {
-    return boardHtml("Most points", withClass ? "Ranked by percentage of the most possible (" + MAX_POINTS + " points)." : "Total points in all units, out of " + MAX_POINTS + ".", b.overall, false, withClass) +
+  function boardsHtml(b, withClass, max) {
+    boardMax = max || MAX_POINTS;
+    return boardHtml("Most points", withClass ? "Ranked by percentage of the most possible (" + thousands(boardMax) + " points)." : "Total points in all units, out of " + thousands(boardMax) + ".", b.overall, false, withClass) +
       boardHtml("Most improved", "Points gained in the last 14 days" + (withClass ? ", ranked by percentage." : "."), b.improving, true, withClass);
   }
   const localBoards = (data, extra, byPercent) => self.Secured.boards(TD.leaderboardStudents(data, POINT_UNITS, null, extra), byPercent);
@@ -292,7 +323,7 @@
     const r = await tb.leaderboards();
     if (lbShown !== data) return; // another class was chosen meanwhile
     $("lb-class-status").textContent = r.error || "";
-    $("lb-class").innerHTML = r.error ? "" : boardsHtml(r.boards, false);
+    $("lb-class").innerHTML = r.error ? "" : boardsHtml(r.boards, false, r.max);
   }
   $("lb-all-load").addEventListener("click", async () => {
     if (!tb) {
@@ -304,7 +335,7 @@
     $("lb-all").innerHTML = "";
     const r = await tb.leaderboardsAll();
     $("lb-all-status").textContent = r.error || (r.classes === 1 ? "Your 1 class." : "Your " + r.classes + " classes.");
-    $("lb-all").innerHTML = r.error ? "" : boardsHtml(r.boards, true);
+    $("lb-all").innerHTML = r.error ? "" : boardsHtml(r.boards, true, r.max);
   });
 
   // ---------- Certificates ----------
@@ -330,8 +361,10 @@
   });
   const certDate = (ymd) => Certs.longDate(ymd);
   // One class's certificates: a row each (student, block, date, Print), which wraps cleanly on a phone.
+  // Backend mode: each class's heading (h4) is under "All your classes" (h3). Local mode: one list, "This browser" (h3).
+  const certHeading = (title) => (tb ? "<h4>" + esc(title) + "</h4>" : "<h3>" + esc(title) + "</h3>");
   function certTableHtml(title, rows) {
-    return '<section class="cert-class"><h3>' + esc(title) + "</h3>" + (!rows.length ? '<p class="small">No certificates yet.</p>' :
+    return '<section class="cert-class">' + certHeading(title) +(!rows.length ? '<p class="small">No certificates yet.</p>' :
       '<ul class="cert-list">' + rows.map((r) => '<li class="cert-row"><span class="cert-who"><strong>' + esc(r.student_name) + "</strong> " + esc(r.block_name) +
         ' <span class="small">earned on ' + esc(certDate(r.earned_on)) + "</span></span> " + printButton(r) + "</li>").join("") + "</ul>") + "</section>";
   }
@@ -353,7 +386,7 @@
     for (const c of tb.allClasses()) {
       const r = await tb.certificatesForClass(c.id);
       if (certShown !== data) return; // the page changed meanwhile
-      parts.push(r.error ? '<section class="cert-class"><h3>' + esc(c.name) + '</h3><p class="problem">' + esc(r.error) + "</p></section>" : certTableHtml(c.name, r.certificates));
+      parts.push(r.error ? '<section class="cert-class">' + certHeading(c.name) + '<p class="problem">' + esc(r.error) + "</p></section>" : certTableHtml(c.name, r.certificates));
     }
     $("cert-status").textContent = "";
     $("cert-list").innerHTML = parts.join("") || '<p class="small">You have no classes yet.</p>';
@@ -439,8 +472,9 @@
     if (!$("hw-blocks").children.length) buildUnitPicker();
     // The class chosen at the top of the page, as every other page uses: its homework is listed and set here.
     const chosen = (currentClass() || {}).id || null;
-    if (chosen !== hwClassId) { hwClassId = chosen; closeHomeworkReport(); }
-    $("hw-form").hidden = !hwClassId;
+    if (chosen !== hwClassId) { hwClassId = chosen; closeHomeworkReport(); closeHomeworkForm(); }
+    $("hw-new").hidden = !hwClassId;
+    if (!hwClassId) closeHomeworkForm();
     $("hw-due").min = HW.ukDate(Date.now());
     if (!hwClassId) { $("hw-status").textContent = "Make a class first (Classes page)."; $("hw-list").innerHTML = ""; return; }
     if (fresh || hwLoadedFor !== hwClassId) loadHomework();
@@ -458,10 +492,32 @@
     if (hwReport && !hwList.some((h) => h.id === hwReport.id)) closeHomeworkReport();
   }
 
+  // Set homework: the button opens the form below the list; Cancel (or setting it) closes it again.
+  function openHomeworkForm() {
+    $("hw-form").hidden = false;
+    $("hw-new").setAttribute("aria-expanded", "true");
+    $("hw-form-h").focus();
+  }
+  function closeHomeworkForm() {
+    $("hw-form").hidden = true;
+    $("hw-new").setAttribute("aria-expanded", "false");
+  }
+  $("hw-new").addEventListener("click", () => ($("hw-form").hidden ? openHomeworkForm() : closeHomeworkForm()));
+  $("hw-cancel").addEventListener("click", () => { closeHomeworkForm(); $("hw-new").focus(); });
+
+  // The report sits under its own homework (review finding L2): the one report box is moved into that homework's card,
+  // and back out before the list is drawn again (so it is never lost with the old cards).
+  const parkHomeworkReport = () => $("hw-main").appendChild($("hw-report"));
+  function placeHomeworkReport() {
+    const card = hwReport && $("hw-list").querySelector('[data-hw-item="' + CSS.escape(hwReport.id) + '"]');
+    if (card) card.appendChild($("hw-report")); else parkHomeworkReport();
+  }
+
   function renderHomeworkList() {
     const cls = (tb.allClasses().find((c) => c.id === hwClassId) || { name: "" }).name;
+    parkHomeworkReport();
     $("hw-list").innerHTML = '<h3 class="hw-list-h">Homework for ' + esc(cls) + "</h3>" + (!hwList.length ? '<p class="small">No homework for this class yet.</p>' :
-      '<ul class="hw-list">' + hwList.map((h) => '<li class="task-card hw-item">' +
+      '<ul class="hw-list">' + hwList.map((h) => '<li class="task-card hw-item" data-hw-item="' + esc(h.id) + '">' +
         "<h4>" + esc(plural(h.task_count, "task")) + ", due " + esc(HW.longDate(h.due_on)) + (HW.pastDue(h) ? ' <span class="flag">Due date passed</span>' : "") + "</h4>" +
         '<p class="small">Units: ' + esc(unitNames(h.units)) + "</p>" +
         '<p class="small">Set by ' + esc(h.yours ? "you" : h.created_by_name || "another teacher") + " on " + esc(when(h.created_at)) + ". " +
@@ -471,6 +527,7 @@
           '<span data-hw-confirm="' + esc(h.id) + '" hidden>Delete this homework? Students will no longer see it. ' +
           '<button type="button" class="danger" data-hw-delete-yes="' + esc(h.id) + '">Yes, delete</button> ' +
           '<button type="button" class="secondary" data-hw-delete-no="' + esc(h.id) + '">Cancel</button></span></p></li>').join("") + "</ul>");
+    placeHomeworkReport();
   }
 
   $("hw-form").addEventListener("submit", async (e) => {
@@ -492,6 +549,7 @@
     status.hidden = true;
     $("hw-form").reset();
     hwBlockStates();
+    closeHomeworkForm();
     hwList = r.homework;
     hwLoadedFor = hwClassId;
     renderHomeworkList();
@@ -519,9 +577,10 @@
     }
   });
 
-  function closeHomeworkReport() { hwReport = null; $("hw-report").hidden = true; }
+  function closeHomeworkReport() { hwReport = null; $("hw-report").hidden = true; parkHomeworkReport(); }
   async function openHomeworkReport(id) {
     hwReport = { id, data: null };
+    placeHomeworkReport();
     $("hw-report").hidden = false;
     $("hw-report-meta").textContent = "Loading…";
     $("hw-report-table").innerHTML = "";
@@ -537,12 +596,12 @@
     drawHomeworkReport();
   }
 
-  // The report's columns, each sortable: Student, Done, Units, Possible AI use.
+  // The report's columns, each sortable: Student, Done, Units, Paste flagged (the flag's one name, review finding N3).
   const HW_COLUMNS = [
     { key: "name", label: "Student", cmp: (a, b) => a.student_name.localeCompare(b.student_name) },
     { key: "done", label: "Done", cmp: (a, b) => a.done - b.done },
     { key: "units", label: "Units", cmp: (a, b) => a.units.length - b.units.length || unitNames(a.units).localeCompare(unitNames(b.units)) },
-    { key: "flagged", label: "Possible AI use", cmp: (a, b) => a.flagged.length - b.flagged.length },
+    { key: "flagged", label: TD.PASTE_FLAGGED, cmp: (a, b) => a.flagged.length - b.flagged.length },
   ];
   function drawHomeworkReport() {
     const r = hwReport.data;
@@ -558,7 +617,7 @@
         '<tr><th scope="row">' + esc(s.student_name) + "</th>" +
         '<td class="num" data-label="Done">' + (s.complete ? '<span class="badge-complete">Complete</span> ' : "") + s.done + " of " + s.task_count + "</td>" +
         '<td data-label="Units">' + (s.units.length ? esc(unitNames(s.units)) : '<span class="small">None yet</span>') + "</td>" +
-        '<td data-label="Possible AI use">' + (s.flagged.length ? '<ul class="hw-flags">' + s.flagged.map((f) => '<li><span class="flag flag-alert">Possible AI use</span> ' + esc(taskName(f.task_id)) + "</li>").join("") + "</ul>"
+        '<td data-label="' + esc(TD.PASTE_FLAGGED) + '">' + (s.flagged.length ? '<ul class="hw-flags">' + s.flagged.map((f) => '<li><span class="flag flag-alert">' + esc(TD.PASTE_FLAGGED) + "</span> " + esc(taskName(f.task_id)) + "</li>").join("") + "</ul>"
           : '<span class="small">None</span>') + "</td></tr>").join("") + "</tbody></table></div>";
   }
   $("hw-report-table").addEventListener("click", (e) => {
@@ -589,19 +648,28 @@
       return;
     }
     $("sd-actions").hidden = false;
-    const unitIds = stageUnitIds();
-    const d = TD.studentDetail(data, studentId, unitIds, null, RECENT_ATTEMPTS, stageUnitIds());
+    // The bars (review finding T3): the class's stage's units, then any other unit the student has started, tagged as
+    // outside the stage. Only the stage's units count in the average (TD.studentAverage), as everywhere.
+    const inStage = stageUnitIds();
+    const startedUnits = UNITS.map((u) => u.id).filter((u) => ((data.progress[studentId] || {}).units || {})[u]);
+    const unitIds = UNITS.map((u) => u.id).filter((u) => inStage.includes(u) || startedUnits.includes(u));
+    const d = TD.studentDetail(data, studentId, unitIds, null, RECENT_ATTEMPTS, inStage);
     $("student-title").textContent = s.name;
     $("sd-meta").textContent = "Last active " + when(d.lastActive) + (d.average == null ? "" : " · average secured score " + d.average + "% (" + d.band.label + ")");
+    // Reset placement: only the units the student has started (a unit not started has no placement to reset).
     const keepUnit = $("reset-unit").value;
-    $("reset-unit").innerHTML = UNITS.map((u) => '<option value="' + u.id + '">' + esc(u.title) + "</option>").join("");
-    if (keepUnit) $("reset-unit").value = keepUnit;
+    $("reset-unit").innerHTML = startedUnits.length ? startedUnits.map((u) => '<option value="' + u + '">' + esc(unitTitle(u)) + "</option>").join("")
+      : '<option value="">No unit started yet</option>';
+    $("reset-unit").disabled = !startedUnits.length;
+    $("reset-placement").disabled = !startedUnits.length;
+    if (keepUnit && startedUnits.includes(keepUnit)) $("reset-unit").value = keepUnit;
     $("sd-scores").innerHTML = unitIds.map((u) => {
       const c = d.cells[u];
       // The bar: the secured score, or for a unit not secured yet its level (out of 10) in the level's colour.
       const width = c.score != null ? c.score : c.levelBand ? c.level * 10 : 0;
       const barCls = c.band ? c.band.cls : c.levelBand ? c.levelBand.cls : "";
       return '<div class="score-bar"><div class="score-bar-head"><strong>' + esc(unitTitle(u)) + "</strong> " +
+        (inStage.includes(u) ? "" : '<span class="small">(not in this class\'s stage)</span> ') +
         // Placement to do: one grey chip (the teacher colour key's), not a level as well.
         (c.started ? (c.placed ? bandHtml(c) : PLACEMENT_GREY) + " " + '<span class="small">' + (c.placementToDo ? "" :
           c.placed && !c.secured ? "Not secured yet (" + c.levelTenPasses + " of 2 level 10 passes with no hints)" : "Level " + c.level) +
@@ -616,13 +684,13 @@
       (withPoints.length ? withPoints.map((u) => { const p = pts.units[u.id]; return '<tr><th scope="row">' + esc(unitTitle(u.id)) + '</th><td class="num">' + p.secured + '</td><td class="num">' + p.level + '</td><td class="num">' + p.total + "</td></tr>"; }).join("")
         : '<tr><td colspan="4">No points yet.</td></tr>') +
       '</tbody><tfoot><tr><th scope="row">All ' + POINT_UNITS.length + " units (out of " + MAX_POINTS + ")</th><td class=\"num\">" + pts.secured + '</td><td class="num">' + pts.level + '</td><td class="num"><strong>' + pts.total + "</strong></td></tr></tfoot></table></div>" +
-      '<p class="small">Units not listed have 0 points. In the last 14 days: ' + signed(pts.gain) + " points (" + pts.before.total + " points 14 days ago).</p>";
+      '<p class="small">Points count every unit, as on the Leaderboards page. Units not listed have 0 points. In the last 14 days: ' + signed(pts.gain) + " points (" + pts.before.total + " points 14 days ago).</p>";
     renderStudentCertificates(data, studentId, s.name);
     $("sd-recent").innerHTML = d.recent.length ? '<div class="table-wrap"><table><thead><tr><th scope="col">Time</th><th scope="col">Task</th><th scope="col">Result</th>' +
       '<th scope="col">Hints</th><th scope="col">Test that failed</th><th scope="col">Misconception matched</th></tr></thead><tbody>' +
       d.recent.map((a) => "<tr" + (a.result === "fail" ? ' class="row-alert"' : "") + "><td>" + esc(when(a.at)) + "</td><td>" + taskLink(a.taskId) +
         (a.phase && a.phase !== "practice" ? ' <span class="flag">' + esc(a.phase) + "</span>" : "") +
-        '</td><td class="res-' + (a.result === "pass" ? "pass" : a.result === "fail" ? "fail" : "none") + '">' + esc(a.result) + (a.category ? ' <span class="small">(' + esc(a.category) + ")</span>" : "") +
+        '</td><td class="res-' + (a.result === "pass" ? "pass" : a.result === "fail" ? "fail" : "none") + '">' + esc(a.result) + (a.category ? ' <span class="small">(' + esc(TD.failureName(a.category)) + ")</span>" : "") +
         '</td><td class="num">' + a.hints + "</td><td>" + (a.failedTest == null ? "–" : "Test " + esc(a.failedTest)) + "</td><td>" +
         (a.misconceptions.length ? esc(a.misconceptions.map(mName).join("; ")) : a.result === "fail" ? "None matched" : "–") + "</td></tr>").join("") +
       "</tbody></table></div>" : '<p class="small">No attempts yet.</p>';
@@ -683,14 +751,14 @@
   });
 
   // ---------- Reports ----------
-  // The exports, the level changes and Compare classes. The workshop is on the Misconceptions page.
+  // The exports and the level changes. Compare classes is on the Leaderboards page; the workshop is on Misconceptions.
   function renderReports(data) {
     renderLevelLog(data);
   }
 
   // ---------- "Needs review" (review-rules.js) ----------
-  // Failed attempts from the last 30 days that match a newer rule (rules-review.json, added each term once Theo has
-  // approved it), worked out each time the page is drawn: nothing is stored, so a new rule covers this month at once.
+  // Failed attempts from the last 30 days that match a newer rule (rules-review.json, added each term once it has been
+  // checked), worked out each time the page is drawn: nothing is stored, so a new rule covers this month at once.
   // Local mode: this browser's records. Backend mode: teacher-api review_candidates_for_class gives the class's failed
   // checks on the rules' tasks (any teacher on the class, owner or co-teacher), and they are matched here.
   const RR = self.ReviewRules;
@@ -725,10 +793,11 @@
   }
 
   // ---------- Misconceptions (the workshop) ----------
-  // The unit picker lists the class's stage's units (curriculum.js stageUnits), first unit by default, then "All units".
+  // The unit picker lists the class's stage's units (curriculum.js stageUnits), then "All units", which it opens on.
   function renderMisconceptions(data) {
     const unitIds = stageUnitIds();
-    if (mcUnit !== "all" && !unitIds.includes(mcUnit)) mcUnit = unitIds[0];
+    // It opens on "All units" (review finding L7); a unit the teacher picked is kept while it is in the class's stage.
+    if (mcUnit !== "all" && !unitIds.includes(mcUnit)) mcUnit = "all";
     const options = unitIds.map((u) => '<option value="' + esc(u) + '">' + esc(unitTitle(u)) + "</option>").join("") + '<option value="all">All units</option>';
     if ($("mc-unit").dataset.options !== options) { $("mc-unit").innerHTML = options; $("mc-unit").dataset.options = options; } // keeps focus on the picker
     $("mc-unit").value = mcUnit;
@@ -738,7 +807,7 @@
       '<div class="table-wrap"><table><thead><tr><th scope="col">Task</th><th scope="col">Failed attempts</th><th scope="col">Failure rate</th>' +
       '<th scope="col">Most common failure type</th><th scope="col">Top misconception</th></tr></thead><tbody>' +
       failedTasks.map((t) => '<tr><th scope="row">' + taskLink(t.taskId) + '</th><td class="num">' + t.fails + " of " + t.attempts + '</td><td class="num">' + pct(t.failRate) +
-        "</td><td>" + esc(t.topCategory || "–") + "</td><td>" + esc(t.topMisconception ? mName(t.topMisconception) : "none matched") + "</td></tr>").join("") +
+        "</td><td>" + esc(TD.failureName(t.topCategory) || "–") + "</td><td>" + esc(t.topMisconception ? mName(t.topMisconception) : "none matched") + "</td></tr>").join("") +
       "</tbody></table></div>";
 
     const review = reviewState(data);
@@ -751,7 +820,8 @@
       : '<tr><td colspan="6">No misconceptions matched yet.</td></tr>';
     const seen = new Set(w.misconceptions.map((m) => m.id));
     const unseen = misconceptions.filter((m) => !seen.has(m.id));
-    $("ws-unseen").innerHTML = unseen.length ? '<ul class="small">' + unseen.map((m) => "<li>" + esc(m.name) + "</li>").join("") + "</ul>"
+    // A class with no failed attempts at all has nothing to compare with yet (review finding S6).
+    $("ws-unseen").innerHTML = !w.tasks.length ? '<p class="small">No failed attempts yet.</p>' : unseen.length ?'<ul class="small">' + unseen.map((m) => "<li>" + esc(m.name) + "</li>").join("") + "</ul>"
       : '<p class="small">Every misconception has been matched at least once.</p>';
 
     $("ws-tasks").innerHTML = w.tasks.length ? w.tasks.map((t) =>
@@ -1148,6 +1218,8 @@
       build: () => [{ name: "data-dictionary.csv", text: TD.dataDictionaryCsv(misconceptions) }] },
     "export-levels": { title: "Levels table (CSV)",
       text: "One row per student (the name filter on the Students page applies). For every unit: the level, the placement result, whether a level 10 task is passed, whether \"too easy\" or \"way too hard\" was used, and the fails in a row.",
+      // With a name typed in the filter, the popup says so plainly (review finding B7). The file itself is unchanged.
+      note: () => { const q = $("name-filter").value.trim(); return q ? "Only students whose name matches \"" + q + "\" are in this file, because of the name filter on the Students page." : ""; },
       build: () => { const data = collect(); return data ? [{ name: "python-practice-overview-" + today() + ".csv", text: levelsCsv(data) }] : null; } },
     "export-log": { title: "Detail log (CSV)",
       text: "One row per check and button press, newest first: the student, unit, task, result, the kind of mistake, any misconceptions matched, the hints used, and the test, output and code of each check.",
@@ -1185,7 +1257,8 @@
     const [head, first] = csvRows(files[0].text, 2);
     const cut = (v) => (v.length > 60 ? v.slice(0, 57) + "…" : v);
     $("export-dialog-h").textContent = e.title;
-    $("export-dialog-text").textContent = e.text;
+    const note = e.note ? e.note() : "";
+    $("export-dialog-text").textContent = e.text + (note ? " " + note : "");
     $("export-dialog-sample").innerHTML = first
       ? '<thead><tr><th scope="col">Column</th><th scope="col">Sample value</th></tr></thead><tbody>' +
         head.slice(0, SAMPLE_COLUMNS).map((h, i) => '<tr><th scope="row">' + esc(h) + "</th><td>" + esc(cut(first[i] || "")) + "</td></tr>").join("") + "</tbody>"

@@ -42,19 +42,19 @@
       text: "Press Run to try your program and see what it prints. When you're happy with it, press Check my answer to test it." },
     { id: "hints", page: "task", title: "Hints",
       targets: ["#hint-btn"],
-      text: "If you're stuck, press Show a hint: each task has up to three, and the button says how many are left. A pass that used a hint still counts for your level, but not towards your freshness score." },
+      text: "If you're stuck, press Show a hint: each task has up to three, and the button says how many are left. A pass that used a hint still counts for your level, but not towards your score." },
     { id: "show-how", page: "task", title: "Show me how",
       targets: ["#show-how-btn"],
-      text: "Show me how is greyed out at first. After two failed tries on the task, it shows a worked example of a similar problem, then the key step for this task. A pass after Show me how doesn't count towards your freshness score." },
+      text: "Show me how is greyed out at first. After two failed tries on the task, it shows a worked example of a similar problem, then the key step for this task. A pass after Show me how doesn't count towards your score." },
     { id: "level-buttons", page: "task", title: "Too easy or too hard",
       targets: ["#level-buttons"],
       text: "If the tasks feel far too easy, press This is too easy to move up one level. If they feel far too hard, press This is way too hard to move down one level. You can use each one once in each unit." },
-    { id: "freshness", page: "home", title: "Freshness",
+    { id: "freshness", page: "home", title: "Your score",
       targets: ["#unit-list .secured-note .rag-gold", "#unit-list .secured-note .rag-fresh", "#unit-list .secured-note .rag-fading", "#unit-list .secured-note .rag-soon", "#unit-colour-key"],
       text: "At level 10, pass two programs with no hints to secure the unit: it glows gold at 100%. After a week it drops to 90%, then 10 points more each week, down to 50%. One more level 10 pass with no hints brings it back to 100%." },
     { id: "progress", page: "home", title: "My progress",
       targets: ['a[href="progress.html"]'],
-      text: "Open My progress to see every unit and your level in each. Select a unit there to see the skills you've secured." },
+      text: "Open My progress to see every unit and your level in each. Select a unit there to see the skills you've mastered." },
     { id: "help", page: "home", title: "See this again",
       targets: ["#tour-help"],
       text: "That's the tour. Press Help on the home page or on My progress to see it again at any time." },
@@ -91,7 +91,7 @@
   // Every trigger there is now, whether or not it is new: { key, text, href, go }.
   function triggers(ctx, state) {
     const out = [];
-    for (const a of ctx.assignments || []) out.push({ key: "assignment:" + a.id, text: "Your teacher has set a new practice set: " + a.title + ".",
+    for (const a of ctx.assignments || []) out.push({ key: "assignment:" + a.id, text: "Your teacher has set a new assignment: " + a.title + ".",
       href: "practice.html?assignment=" + encodeURIComponent(a.id), go: "Open it" });
     for (const u of ctx.placing || []) out.push({ key: "placement:" + u, text: "You haven't finished the quick check in " + titleOf(ctx, u) + " yet. It finds your starting level, and you only do it once.",
       href: unitHref(u), go: "Finish the quick check" });

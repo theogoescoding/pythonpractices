@@ -490,13 +490,21 @@
     return { fresh: r.startedAny ? PLACEMENT_GREY_HTML : NOT_STARTED_HTML, level: "" };
   }
 
-  // A unit's large paste flag button for the Level cell: a small red flag, "Large paste flagged" (with the count when
+  // The flag's one name on the teacher side (review finding N3): the Students page's flag, its key and dialog, and the
+  // homework report all say it.
+  const PASTE_FLAGGED = "Paste flagged";
+  // Plain names for the failure categories, shown on screen (review finding N11). The exports keep the codes, which the
+  // data dictionary explains.
+  const FAILURE_NAMES = { WRONG_OUTPUT: "Wrong output", SYNTAX: "Syntax error", NAME: "Name error", TYPE: "Type error", TIMEOUT: "Took too long",
+    NO_ANSWER: "No answer", ORDER: "Lines in the wrong order", OTHER_ERROR: "Other error", WRONG_CHOICE: "Wrong choice", WRONG_ERROR_KIND: "Wrong kind of error" };
+  const failureName = (code) => (code && FAILURE_NAMES[code]) || code || "";
+  // A unit's paste flag button for the Level cell: a small red flag, "Paste flagged" (with the count when
   // there are several, "3 flags"), which opens the details (teacher.js). "" when the unit has no flag.
   const PASTE_ICON = '<svg class="paste-flag-icon" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false"><path d="M3 1v14h1.6V9.4h3.2l.6 1.4H14V2.6H9.2L8.6 1.2H4.6V1z" fill="currentColor"/></svg>';
   function pasteFlagHtml(studentId, unit, flags) {
     const n = (flags || []).length;
     if (!n) return "";
-    const label = "Large paste flagged" + (n > 1 ? ", " + PasteDetails.countText(n) : "") + ". Open the details";
+    const label = PASTE_FLAGGED + (n > 1 ? ", " + PasteDetails.countText(n) : "") + ". Open the details";
     return '<button type="button" class="paste-flag-btn" data-paste-student="' + htmlEsc(studentId) + '" data-paste-unit="' + htmlEsc(unit) + '" aria-label="' + htmlEsc(label) + '" title="' + htmlEsc(label) + '">' +
       PASTE_ICON + (n > 1 ? '<span class="paste-flag-count">' + htmlEsc(PasteDetails.countText(n)) + "</span>" : "") + "</button>";
   }
@@ -542,7 +550,7 @@
         '<table class="overview-table" data-group="' + htmlEsc(g.id) + '" style="--ov-units: ' + g.units.length + '">' +
         '<caption>' + htmlEsc(g.title) + "</caption>" +
         '<colgroup><col class="ov-col-name"><col class="ov-col-shows"><col class="ov-col-avg">' + g.units.map(() => '<col class="ov-col-unit">').join("") + "</colgroup>" +
-        "<thead><tr>" + head("name", "Name", "ov-name") + '<th scope="col" class="ov-shows">Shows</th>' + head("average", "Average") + g.units.map((u, i) => head(u, titles[i])).join("") + "</tr></thead>" +
+        "<thead><tr>" + head("name", "Name", "ov-name") + '<th scope="col" class="ov-shows">Row</th>' + head("average", "Average") + g.units.map((u, i) => head(u, titles[i])).join("") + "</tr></thead>" +
         body + "</table></div>";
     });
   }
@@ -785,6 +793,6 @@
     collect, overviewRows, sortOverview, filterByName, taskStats, misconceptionStats, quickLook,
     detailRows, filterDetail, mostFailedTasks, workshop, BUILDER_MAX_TASKS, spreadLevels, buildSpread, swapOptions, addOptions, toCsv, fullExportRows, fullExportCsv, dataDictionaryCsv, assignmentStats,
     lastButtonPresses, ragOf, levelBand, SUMMARY_TILES, summaryTileOf, scoreTable, studentAverage, sortScoreTable, studentDetail, classScoresCsv,
-    overviewGroups, overviewCell, overviewAverage, overviewTablesHtml, pasteFlagHtml, levelShown,
+    overviewGroups, overviewCell, overviewAverage, overviewTablesHtml, pasteFlagHtml, PASTE_FLAGGED, levelShown, FAILURE_NAMES, failureName,
   };
 });
