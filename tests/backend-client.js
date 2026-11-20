@@ -500,6 +500,58 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
       "Points on the server: the teacher's boards carry the secured, level, programme and re-secure bonus totals and the combined points (capped at 50 bonus a unit), with no PIN, code or student id");
   }
 
+  // ---------- Progress summary (teacher-api student_progress_summary: homework-server.js progressSummary, prompt 25) ----------
+  // The real module, with homework.js's rules (first passes, homework progress), against an in-memory database.
+  {
+    const Sharing = require(path.join(ROOT, "supabase", "functions", "_shared", "class-sharing.js"));
+    const HS = require(path.join(ROOT, "supabase", "functions", "_shared", "homework-server.js"));
+    const Homework = require(path.join(ROOT, "homework.js"));
+    const deps = { Sharing, Homework, unitIds: require(path.join(ROOT, "curriculum.js")).UNITS.map((u) => u.id) };
+    const sb = fakeDb();
+    const T = sb.t;
+    const id = (n) => "0000000" + n + "-0000-0000-0000-000000000001";
+    const [O, K, X] = [id("a"), id("b"), id("c")];
+    const CLA = "0000000a-0000-0000-0000-00000000c1a5", CLX = "0000000c-0000-0000-0000-00000000c1a5";
+    const ADA = "0000000a-0000-0000-0000-0000000057d1", BEN = "0000000a-0000-0000-0000-0000000057d2", NEW = "0000000a-0000-0000-0000-0000000057d3";
+    T.teachers.push({ id: O, name: "Owner O" }, { id: K, name: "Co-teacher K" }, { id: X, name: "Stranger X" });
+    T.classes.push({ id: CLA, name: "7A", teacher_id: O }, { id: CLX, name: "8X", teacher_id: X });
+    T.class_teachers.push({ class_id: CLA, teacher_id: O }, { class_id: CLA, teacher_id: K }, { class_id: CLX, teacher_id: X });
+    T.students.push({ id: ADA, class_id: CLA, nickname: "Ada", pin_hash: "SECRET-PIN", login_code_enc: "SECRET-CODE" }, { id: BEN, class_id: CLA, nickname: "Ben", pin_hash: "SECRET-PIN2" },
+      { id: NEW, class_id: CLA, nickname: "Nia" });
+    let n = 0;
+    const row = (sid, task, ts, result) => ({ id: ++n, student_id: sid, record_type: "attempt", timestamp: ts, unit: "maths", task_units: ["maths"], task_id: task, result: result || "pass",
+      student_code: "print('secret code')" });
+    // The same passes as tests/features.js: first attempt Monday 26 October, 5 first passes over 4 weeks (one empty), 2 this
+    // week, a repeat, and the last attempt at 4 pm on 17 November. Ben has lots of passes this week: none of his must show.
+    T.attempts.push(row(ADA, "t-first-try", "2026-10-26T09:00:00Z", "fail"), row(ADA, "t-a", "2026-10-27T10:00:00Z"), row(ADA, "t-e", "2026-10-28T10:00:00Z"),
+      row(ADA, "t-b", "2026-11-05T10:00:00Z"), row(ADA, "t-b", "2026-11-16T08:00:00Z"), row(ADA, "t-c", "2026-11-16T09:00:00Z"), row(ADA, "t-d", "2026-11-17T15:30:00Z"),
+      row(ADA, "t-x", "2026-11-17T16:00:00Z", "fail"), ...["b1", "b2", "b3", "b4"].map((t, i) => row(BEN, t, "2026-11-17T1" + i + ":00:00Z")));
+    T.homework.push({ id: "11111111-1111-1111-1111-111111111111", class_id: CLA, created_by: O, task_count: 3, due_on: "2026-11-08", units: [], created_at: "2026-11-02T08:00:00Z" },
+      { id: "22222222-2222-2222-2222-222222222222", class_id: CLA, created_by: K, task_count: 2, due_on: "2026-11-30", units: ["maths"], created_at: "2026-11-15T08:00:00Z" });
+    const NOW = Date.parse("2026-11-18T12:00:00Z");
+    const problem = async (f) => { try { await f(); return null; } catch (e) { return e instanceof Sharing.Problem ? { status: e.status, message: e.message } : { thrown: String(e) }; } };
+
+    const owner = await HS.progressSummary(sb, deps, O, ADA, NOW);
+    check(JSON.stringify(owner) === JSON.stringify({ first_passes_this_week: 2, average_first_passes_per_week: 1.3, average_homework_completion: 67, last_active: "2026-11-17T16:00:00.000Z" }),
+      "Progress summary: a teacher on the class gets the student's four figures (2 first passes this week, 1.3 a week, 67% homework, last active 17 November at 4 pm), by the homework rule");
+    const co = await HS.progressSummary(sb, deps, K, ADA, NOW);
+    check(JSON.stringify(co) === JSON.stringify(owner) && T.homework_progress.length === 0,
+      "Progress summary: a co-teacher gets exactly the same as the owner, and nothing is saved");
+    const stranger = await problem(() => HS.progressSummary(sb, deps, X, ADA, NOW));
+    const nobody = await problem(() => HS.progressSummary(sb, deps, O, "0000000a-0000-0000-0000-0000000099d9", NOW));
+    const notId = await problem(() => HS.progressSummary(sb, deps, O, "Ada", NOW));
+    check(stranger && stranger.status === 404 && nobody && nobody.status === 404 && stranger.message === nobody.message && notId && notId.status === 404,
+      "Progress summary: a teacher who isn't on the class gets nothing (the same 404 as a student who doesn't exist)");
+    const text = JSON.stringify(owner);
+    const fresh = await HS.progressSummary(sb, deps, O, NEW, NOW);
+    check(Object.keys(owner).sort().join() === "average_first_passes_per_week,average_homework_completion,first_passes_this_week,last_active" &&
+      !/SECRET|secret code|t-a|t-b|maths|57d|c1a5|Ben|Ada|b1/.test(text) &&
+      JSON.stringify(fresh) === JSON.stringify({ first_passes_this_week: 0, average_first_passes_per_week: 0, average_homework_completion: 0, last_active: null }),
+      "Progress summary: the reply has only the four figures (no PIN, code, task ids, ids, names, other student's data or attempt log); a student with no attempts has none (last active null)");
+    T.homework = [];
+    check((await HS.progressSummary(sb, deps, O, ADA, NOW)).average_homework_completion === null, "Progress summary: with no homework set for the class, the homework figure is null (\"No homework set yet\")");
+  }
+
   // ---------- Homework (teacher-api and student-api: supabase/functions/_shared/homework-server.js, migration 0018) ----------
   // The real module both functions run, with the site's rule (homework.js), against an in-memory database. Teachers'
   // rights come from class-sharing.js (owner or co-teacher); tests/sql/homework.sql checks the real row-level security.

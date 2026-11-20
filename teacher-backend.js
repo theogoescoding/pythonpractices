@@ -626,6 +626,15 @@
   const certificatesForClass = (classId) => certificatesCall("certificates_for_class", { class_id: classId });
   const certificatesForStudent = (studentId) => certificatesCall("certificate_for_student", { student_id: studentId });
 
+  // The Progress summary on the student page (teacher-api student_progress_summary, prompt 25): the four figures
+  // { first_passes_this_week, average_first_passes_per_week, average_homework_completion, last_active }, or { error }.
+  async function progressSummary(studentId) {
+    const r = await teacherApi("student_progress_summary", { student_id: studentId });
+    if (r.status === 400 && /Something went wrong/.test(r.body.error || "")) return { error: "The progress summary needs the newest version of the server. It will appear once the server has been updated." };
+    if (r.status !== 200) return { error: r.body.error || "Couldn't load the progress summary. Please try again." };
+    return r.body;
+  }
+
   // Homework (teacher-api list_homework, create_homework, delete_homework and homework_report, migration 0018): the
   // server works out every student's "x of y done" with the site's rule (homework.js). Each returns the reply's body,
   // or { error, problem } (a message, and for create_homework which field needs fixing).
@@ -727,7 +736,7 @@
     // Every class this teacher is on (own and shared), and their name for "Issued by" on certificates.
     allClasses: () => classes.map((c) => ({ id: c.id, name: c.name })),
     teacherName: () => myName,
-    certificatesForClass, certificatesForStudent,
+    certificatesForClass, certificatesForStudent, progressSummary,
     listHomework, createHomework, deleteHomework, homeworkReport, pasteFlagsForClass, reviewCandidates,
     copy, resetPin, removeStudent, renameStudent, changePassword, compareClasses, leaderboards, leaderboardsAll,
   };

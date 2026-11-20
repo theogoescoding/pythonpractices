@@ -14,6 +14,8 @@
 //   delete_homework { homework_id }         -> { deleted }  its creator or any other teacher on the class
 //   homework_report { homework_id }         -> { class_name, homework, students: [{ student_name, done, task_count, complete, units,
 //                                              flagged: [{ task_id, unit }] }] }  one row per student; flagged = "Possible AI use"
+//   student_progress_summary { student_id } -> { first_passes_this_week, average_first_passes_per_week, average_homework_completion,
+//                                              last_active }  only these four figures, for one student of a class the teacher is on
 //   paste_flags_for_class { class_id }      -> { class_name, students: [{ student_id, student_name, units: [{ unit, flags: [{ id, at,
 //                                              unit, taskId, phase, phaseFrom, lines, homework, next }] }] }] }  the large paste flags
 //                                              (migrations 0018 and 0019), each with its next check on the task (paste-details.js)
@@ -228,6 +230,12 @@ const actions: Record<string, (tid: string, body: Record<string, unknown>) => Pr
 
   async homework_report(tid, body) {
     return await HomeworkServer.report(db(), hwDeps(), tid, body.homework_id);
+  },
+
+  // The Progress summary on the teacher's student page (prompt 25; homework-server.js with homework.js's rules). Any
+  // teacher on the student's class. Only the four figures for that one student come back.
+  async student_progress_summary(tid, body) {
+    return await HomeworkServer.progressSummary(db(), hwDeps(), tid, body.student_id);
   },
 
   // Large paste flags for the Students page (paste-flags-server.js). Any teacher on the class, owner or co-teacher.

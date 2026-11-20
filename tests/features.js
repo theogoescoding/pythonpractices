@@ -1692,12 +1692,15 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
         } else if (ch === "}") { depth--; if (media.length && media[media.length - 1].depth === depth) media.pop(); start = i + 1; }
         else if (ch === ";" && depth === 0) start = i + 1;
       }
+      // Two rows since prompt 25: Freshness (.rag-tiles-4) and Level (.rag-tiles-5), each filling the width; under
+      // 700px each wraps two tiles to a line. The later rule that applies wins (the selectors are equally specific).
       const setsColumns = tileRules.filter((r) => /grid-template-columns/.test(r.body));
-      const at = (w) => setsColumns.filter((r) => r.media.every((m) => { const min = /min-width:\s*(\d+)px/.exec(m), max = /max-width:\s*(\d+)px/.exec(m); return (!min || w >= +min[1]) && (!max || w <= +max[1]); }));
-      const colsAt = (w) => at(w).map((r) => /grid-template-columns:\s*([^;]+)/.exec(r.body)[1].trim());
-      check(setsColumns.length === 1 && setsColumns[0].media.length === 0 && colsAt(1280).join() === "repeat(3, minmax(0, 1fr))" && colsAt(390).join() === "repeat(3, minmax(0, 1fr))" &&
-        colsAt(1000).join() === "repeat(3, minmax(0, 1fr))" && !/repeat\(9/.test(cssAll) && TD.SUMMARY_TILES.length === 9,
-        "Summary tiles: three columns at 1280px and at 390px (and 1000px): no rule for a wide screen makes them one row of nine");
+      const applies = (r, w) => r.media.every((m) => { const min = /min-width:\s*([\d.]+)px/.exec(m), max = /max-width:\s*([\d.]+)px/.exec(m); return (!min || w >= +min[1]) && (!max || w <= +max[1]); });
+      const colsFor = (row, w) => { const hit = setsColumns.filter((r) => applies(r, w) && r.sel.split(",").some((x) => x.trim() === ".rag-tiles" || x.trim() === ".rag-tiles-" + row)); return hit.length ? /grid-template-columns:\s*([^;]+)/.exec(hit[hit.length - 1].body)[1].trim() : null; };
+      const rowsOf = TD.SUMMARY_ROWS.map((row) => TD.SUMMARY_TILES.filter((t) => t.row === row.id).length);
+      check(rowsOf.join() === "4,5" && [1280, 1000, 700].every((w) => colsFor(4, w) === "repeat(4, minmax(0, 1fr))" && colsFor(5, w) === "repeat(5, minmax(0, 1fr))") &&
+        [699, 390].every((w) => colsFor(4, w) === "repeat(2, minmax(0, 1fr))" && colsFor(5, w) === "repeat(2, minmax(0, 1fr))") && !/repeat\(9/.test(cssAll) && TD.SUMMARY_TILES.length === 9,
+        "Summary tiles (prompt 25): two rows on a desktop, four freshness tiles then five level tiles, each filling the width (1280px, 1000px, 700px); under 700px (699px, 390px) two tiles to a line, so they wrap with no sideways scrolling");
     }
     const tileTotal = Object.values(tt.summary.tiles).reduce((x, y) => x + y, 0);
     check(tileTotal === Object.keys(tileData.students).length && tt.rows.every((r) => r.summaryTile in tt.summary.tiles) &&
@@ -1709,7 +1712,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const edge = (cls) => ((cssAll.match(new RegExp("\\.rag-tile-" + cls + " \\{[^}]*var\\(--([\\w-]+)\\)")) || [])[1]);
     const fill = (cls) => ((cssAll.match(new RegExp("\\.rag-" + cls + " \\{[^}]*background: var\\(--([\\w-]+)\\)")) || [])[1]);
     check(tileCls.every((c) => cardCls.includes(c)) && tileCls.every((c) => edge(c) && edge(c) === fill(c)) && !/rag-tile-(green|amber|red)\b/.test(cssAll + teacherSrc) &&
-      /TD\.SUMMARY_TILES\.map\(\(t\) => '<div class="rag-tile rag-tile-' \+ t\.cls \+ '" title="' \+ esc\(t\.label \+ ": " \+ t\.note\) \+ '"><span class="rag rag-' \+ t\.cls \+ '">' \+ esc\(t\.label\)/.test(teacherSrc) &&
+      /tiles\.map\(\(t\) => '<div class="rag-tile rag-tile-' \+ t\.cls \+ '" title="' \+ esc\(t\.label \+ ": " \+ t\.note\) \+ '"><span class="rag rag-' \+ t\.cls \+ '">' \+ esc\(t\.label\)/.test(teacherSrc) &&
       tt.rows.find((r) => r.name === "Ava").band.cls === "gold" && tt.rows.find((r) => r.name === "Ben").band.cls === "soon" && tt.rows.find((r) => r.name === "Fay").levelBand.cls === "lv-green",
       "Summary tiles and unit cards use the same colours: each tile's edge and label chip are the cells' own band and level colours (no separate green, amber and red tiles)");
     const sorted = TD.sortScoreTable(lt.rows, "selection", 1).map((r) => r.name).join();
@@ -2627,7 +2630,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "Students page: each table scrolls sideways inside its own wrapper (no tiles any more), long names wrap in their cells, and the grid around the tables can't widen the page");
     const tJs = fs.readFileSync(path.join(ROOT, "teacher.js"), "utf8");
     check(/\$\("overview-tables"\)\.innerHTML = TD\.overviewTablesHtml\(/.test(tJs) && /\$\("overview-tables"\)\.addEventListener\("click"/.test(tJs) &&
-      /\$\("st-summary"\)\.innerHTML = TD\.SUMMARY_TILES\.map/.test(tJs) && /renderCodeCards\(\);/.test(tJs) && /python-practice-overview-/.test(tJs) &&
+      /\$\("st-summary"\)\.innerHTML = TD\.SUMMARY_ROWS\.map/.test(tJs) && /renderCodeCards\(\);/.test(tJs) && /python-practice-overview-/.test(tJs) &&
       /id="overview-tables"/.test(fs.readFileSync(path.join(ROOT, "teacher.html"), "utf8")) && /id="st-summary"/.test(fs.readFileSync(path.join(ROOT, "teacher.html"), "utf8")),
       "Students page: the summary tiles, class code card and exports are unchanged; a column heading in any table sorts them all");
   }
@@ -4409,6 +4412,100 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       /Your points are all four added together\./.test(lbHtml) && /"Show me how" counts as a hint/.test(lbHtml) && /up to 50 points/.test(lbHtml) &&
       /Programme points: each level 10 writing task/.test(th) && /Most improved still counts only secured and level points\./.test(th),
       "Leaderboards: the student's page shows secured, level, programme and re-secure bonus points, then the combined total (the number only, \"12,400\", since prompt 24); its notes and the teacher's Leaderboards notes give the two new totals");
+  }
+
+  // ===================== Prompt 25 (2026-11): two rows of summary tiles; the student page's Progress summary =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const TD25 = require(path.join(ROOT, "teacher-data.js"));
+    const HW = require(path.join(ROOT, "homework.js"));
+    const tj = read("teacher.js"), th = read("teacher.html");
+    const between = (src, from, to) => { const i = src.indexOf(from); return i < 0 ? "" : src.slice(i, src.indexOf(to, i + from.length)); };
+    const escF = (x) => String(x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+    // ---------- Part A: the tiles ----------
+    // A mixed class: secured at 100% (Di), levels 2, 5 and 8 with nothing secured (Ann, Bo, Eve), and nothing started (Cy).
+    const NOW = Date.parse("2026-11-18T12:00:00Z");
+    const placedAt = (level) => ({ level, placement: { status: "done", startLevel: level } });
+    const pass10 = (sid, d) => ({ studentId: sid, kind: "attempt", result: "pass", hints: 0, phase: "practice", taskLevel: 10, unit: "maths", units: ["maths"], taskId: "maths-L10a", at: new Date(NOW - d * 86400000).toISOString() });
+    const mixed = { students: { a: { name: "Ann" }, b: { name: "Bo" }, c: { name: "Cy" }, d: { name: "Di" }, e: { name: "Eve" } },
+      progress: { a: { units: { maths: placedAt(2) } }, b: { units: { maths: placedAt(5) } }, c: { units: {} }, d: { units: { maths: placedAt(10) } }, e: { units: { maths: placedAt(8) } } },
+      attempts: [pass10("d", 2), pass10("d", 1)], levelLog: [], buttonLog: [], placementLog: [], units: Curriculum.UNITS };
+    const sum25 = TD25.scoreTable(mixed, ["maths"], NOW, ["maths"]).summary;
+    // The real drawing code from teacher.js, with a stand-in page.
+    const drawSrc = between(tj, '    $("st-summary").innerHTML = TD.SUMMARY_ROWS.map(', '    const started = table.unitAverages');
+    const page25 = { "st-summary": { innerHTML: "" } };
+    new Function("$", "TD", "esc", "s", drawSrc)((id) => page25[id], TD25, escF, sum25);
+    const html25 = page25["st-summary"].innerHTML;
+    const rowsHtml = html25.split('<div class="rag-row"').slice(1);
+    const tilesIn = (h) => [...h.matchAll(/<div class="rag-tile rag-tile-([\w-]+)" title="[^"]*"><span class="rag rag-[\w-]+">([^<]+)<\/span><strong>(\d+)<\/strong><span class="small">([^<]+)<\/span><\/div>/g)].map((m) => ({ cls: m[1], label: m[2], count: +m[3], note: m[4] }));
+    const rowTiles = rowsHtml.map(tilesIn);
+    const labels = ["Secured (100%)", "Fresh (90%)", "Fading (80%)", "Revisit soon (under 80%)", "Levels 1 to 3: still learning", "Levels 4 to 6: still learning",
+      "Levels 7 to 9: still learning", "Level 10: not secured yet", "Placement to do"];
+    check(rowsHtml.length === 2 && /<p class="rag-row-label" id="st-row-freshness">Freshness<\/p><div class="rag-tiles rag-tiles-4">/.test(html25) &&
+      /<p class="rag-row-label" id="st-row-level">Level<\/p><div class="rag-tiles rag-tiles-5">/.test(html25) && /role="group" aria-labelledby="st-row-freshness"/.test(html25) &&
+      rowTiles[0].map((t) => t.cls).join() === "gold,fresh,fading,soon" && rowTiles[1].map((t) => t.cls).join() === "lv-red,lv-amber,lv-green,lv-top,none" &&
+      rowTiles.flat().map((t) => t.label).join("|") === labels.join("|") && rowTiles.flat().every((t) => t.note === TD25.SUMMARY_TILES.find((x) => x.cls === t.cls).note) &&
+      /<div id="st-summary" class="rag-summary" aria-live="polite"><\/div>/.test(th),
+      "Summary tiles (prompt 25): two labelled rows, \"Freshness\" with four tiles (Secured, Fresh, Fading, Revisit soon) and \"Level\" with five (Levels 1 to 3, 4 to 6, 7 to 9, Level 10, Placement to do), each tile with its wording and note as before");
+    const counts = Object.fromEntries(rowTiles.flat().map((t) => [t.cls, t.count]));
+    check(counts.gold === 1 && counts["lv-red"] === 1 && counts["lv-amber"] === 1 && counts["lv-green"] === 1 && counts.none === 1 &&
+      counts.fresh === 0 && counts.fading === 0 && counts.soon === 0 && counts["lv-top"] === 0 && Object.values(counts).reduce((x, y) => x + y, 0) === 5 &&
+      Object.entries(sum25.tiles).every(([k, v]) => counts[k] === v),
+      "Summary tiles (prompt 25): for a mixed class each tile still shows its count (one secured at 100%, one each at levels 1 to 3, 4 to 6 and 7 to 9, one with Placement to do), five students in all");
+
+    // ---------- Part B: the Progress summary ----------
+    // Now: Wednesday 18 November 2026, so this week is Monday 16 to Sunday 22 November (UK time).
+    const at = (iso) => iso;
+    const A = (taskId, iso, result) => ({ kind: "attempt", taskId, unit: "maths", units: ["maths"], result: result || "pass", at: at(iso) });
+    const known = [
+      A("t-first-try", "2026-10-26T09:00:00Z", "fail"),   // Monday 26 October: the first attempt (week 1)
+      A("t-a", "2026-10-27T10:00:00Z"), A("t-e", "2026-10-28T10:00:00Z"), // week 1: two first passes
+      A("t-b", "2026-11-05T10:00:00Z"),                   // week 2 (2 to 8 November): one
+      // week 3 (9 to 15 November): none, which counts as 0
+      A("t-b", "2026-11-16T08:00:00Z"),                   // a repeat pass of t-b this week: not counted
+      A("t-c", "2026-11-16T09:00:00Z"), A("t-d", "2026-11-17T15:30:00Z"), // week 4 (this week): two first passes
+      A("t-x", "2026-11-17T16:00:00Z", "fail"),           // the last attempt: 4:00 pm, 17 November
+      { kind: "skip", taskId: "t-y", unit: "maths", result: "skipped", at: "2026-11-18T09:00:00Z" }, // a skip isn't an attempt
+    ];
+    const x = HW.progressSummary({ attempts: known, flags: [], homework: [], now: NOW });
+    check(x.firstPassesThisWeek === 2 && x.averageFirstPassesPerWeek === 1.3 && x.lastActive === "2026-11-17T16:00:00.000Z" && x.averageHomeworkCompletion === null,
+      "Progress summary: for a known set of passes, 2 first passes this week (Monday to Sunday, UK time), an average of 1.3 a week (5 first passes over 4 weeks, from the week of the first attempt to this one), and the last attempt's time");
+    const noRepeat = HW.progressSummary({ attempts: known.filter((a) => !(a.taskId === "t-b" && a.at.startsWith("2026-11-16"))), flags: [], homework: [], now: NOW });
+    check(noRepeat.firstPassesThisWeek === x.firstPassesThisWeek && noRepeat.averageFirstPassesPerWeek === x.averageFirstPassesPerWeek &&
+      Object.keys(HW.firstPasses(known)).length === 5 && HW.firstPasses(known)["t-b"].a.at === "2026-11-05T10:00:00Z",
+      "Progress summary: a repeat pass doesn't count (only each task's first pass ever, the homework rule's homework.js firstPasses)");
+    const gapWeeks = HW.progressSummary({ attempts: [A("t-a", "2026-10-27T10:00:00Z"), A("t-b", "2026-10-28T10:00:00Z")], homework: [], now: NOW });
+    check(gapWeeks.averageFirstPassesPerWeek === 0.5 && gapWeeks.firstPassesThisWeek === 0 &&
+      HW.ukWeek(Date.parse("2026-11-15T23:30:00Z")) === HW.ukWeek(Date.parse("2026-11-09T00:00:00Z")) && HW.ukWeek(Date.parse("2026-11-16T00:10:00Z")) === HW.ukWeek(NOW) &&
+      HW.ukWeek(Date.parse("2026-06-14T23:30:00Z")) === HW.ukWeek(Date.parse("2026-06-15T12:00:00Z")),
+      "Progress summary: weeks with no first passes count as zero in the average (2 first passes in the first of 4 weeks is 0.5); weeks run Monday to Sunday in UK time (00:30 on a summer Monday, 23:30 UTC on Sunday, is in Monday's week)");
+    // Homework: 1 of 3 done (33%) and 2 of 2 done (100%) average 67%; the count is homework.js progress()'s, as on the card.
+    const hw1 = { created_at: "2026-11-02T08:00:00Z", due_on: "2026-11-08", units: [], task_count: 3 };
+    const hw2 = { created_at: "2026-11-15T08:00:00Z", due_on: "2026-11-30", units: ["maths"], task_count: 2 };
+    const withHw = HW.progressSummary({ attempts: known, flags: [], homework: [hw1, hw2], now: NOW });
+    const later = { created_at: "2026-12-01T08:00:00Z", due_on: "2026-12-10", units: [], task_count: 5 }; // not set yet
+    check(HW.progress(hw1, known, []).done === 1 && HW.progress(hw2, known, []).done === 2 && withHw.averageHomeworkCompletion === 67 &&
+      HW.progressSummary({ attempts: known, flags: [], homework: [hw1, hw2, later], now: NOW }).averageHomeworkCompletion === 67 &&
+      HW.progressSummary({ attempts: known, flags: [{ at: "2026-11-16T08:30:00Z", unit: "maths", units: ["maths"], taskId: "t-c" }], homework: [hw2], now: NOW }).averageHomeworkCompletion === 50,
+      "Progress summary: the homework average is each homework's done (the homework rule: first passes in its time and units, a flagged task not counted, at most its task count) as a percentage, averaged and rounded (33% and 100% give 67%)");
+    const figuresSrc = between(tj, "  const ukWhen = ", "  // The local figures");
+    const figures = new Function("esc", figuresSrc + "; return summaryFiguresHtml;")(escF);
+    const asReply = (s) => ({ first_passes_this_week: s.firstPassesThisWeek, average_first_passes_per_week: s.averageFirstPassesPerWeek, average_homework_completion: s.averageHomeworkCompletion, last_active: s.lastActive });
+    const dl = (h) => [...h.matchAll(/<dt>([^<]+)<\/dt><dd>([^<]+)<\/dd>/g)].map((m) => m[1] + ": " + m[2]);
+    const shown = dl(figures(asReply(withHw))), none = dl(figures(asReply(HW.progressSummary({ attempts: [], homework: [], now: NOW })))),
+      local = dl(figures(asReply(HW.progressSummary({ attempts: known, homework: null, now: NOW }))));
+    check(shown.join(" | ") === "First passes this week: 2 | Average first passes per week: 1.3 | Average homework completion: 67% | Last active: 17 Nov 2026, 16:00" &&
+      none.join(" | ") === "First passes this week: 0 | Average first passes per week: 0.0 | Average homework completion: No homework set yet | Last active: Not active yet" &&
+      local[2] === "Average homework completion: Homework is not available in this browser",
+      "Progress summary: the four figures as the page shows them (one decimal place, a whole percentage, UK date and time); \"No homework set yet\" with none set, \"Not active yet\" with no attempts, and in local mode \"Homework is not available in this browser\"");
+    const sdIdx = (id) => th.indexOf(id);
+    const studentPage = between(th, '<section id="page-student"', "<!-- =====");
+    check(studentPage.indexOf('id="sd-summary-h">Progress summary</h3>') > 0 && studentPage.indexOf('id="sd-summary-h"') < studentPage.indexOf("<h3>Secured score per unit</h3>") &&
+      /<p class="small">Based on first passes\. Repeat passes are not counted\.<\/p>/.test(th) && /renderStudentSummary\(data, studentId\);/.test(tj) && /tb\.progressSummary\(studentId\)/.test(tj) &&
+      !/progressSummary|progress_summary|Based on first passes/.test(read("leaderboard.js") + read("leaderboard.html") + read("home.js") + read("progress.js") + read("app.html") + read("progress.html") + read("backend.js")) &&
+      !/progress_summary|progressSummary/.test(between(tj, "const EXPORTS = {", "// The first rows of a CSV text")),
+      "Progress summary: a section on the teacher's student page, above the secured score per unit, with its one line \"Based on first passes. Repeat passes are not counted.\"; not on the student's own pages, the leaderboards or the exports");
   }
 
   // ===================== Selection, trimmed =====================

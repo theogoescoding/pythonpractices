@@ -330,17 +330,20 @@
   // nothing secured yet (by their average level), grey for a student with no placed unit.
   // A student with a secured unit is counted by the band of their secured average (Secured.band): an average between
   // two bands takes the one below, so 95% is Fresh and 85% Fading, and only 100% is Secured.
+  // Each tile has a row (prompt 25): the Students page shows them in two labelled rows, SUMMARY_ROWS: the four freshness tiles, then
+  // the five level tiles (Placement to do last).
   const SUMMARY_TILES = [
-    { key: "gold", cls: "gold", label: "Secured (100%)", note: "secured average 100%" },
-    { key: "fresh", cls: "fresh", label: "Fresh (90%)", note: "secured average 90% to 99%" },
-    { key: "fading", cls: "fading", label: "Fading (80%)", note: "secured average 80% to 89%" },
-    { key: "soon", cls: "soon", label: "Revisit soon (under 80%)", note: "secured average under 80%" },
-    { key: "lv-red", cls: "lv-red", label: "Levels 1 to 3: still learning", note: "nothing secured yet, average level 1 to 3" },
-    { key: "lv-amber", cls: "lv-amber", label: "Levels 4 to 6: still learning", note: "nothing secured yet, average level 4 to 6" },
-    { key: "lv-green", cls: "lv-green", label: "Levels 7 to 9: still learning", note: "nothing secured yet, average level 7 to 9" },
-    { key: "lv-top", cls: "lv-top", label: "Level 10: not secured yet", note: "nothing secured yet, average level 10" },
-    { key: "none", cls: "none", label: Secured.PLACEMENT_TO_DO, note: "no quick check finished yet, or no unit started" }, // review finding N2: one phrase
+    { key: "gold", cls: "gold", row: "freshness", label: "Secured (100%)", note: "secured average 100%" },
+    { key: "fresh", cls: "fresh", row: "freshness", label: "Fresh (90%)", note: "secured average 90% to 99%" },
+    { key: "fading", cls: "fading", row: "freshness", label: "Fading (80%)", note: "secured average 80% to 89%" },
+    { key: "soon", cls: "soon", row: "freshness", label: "Revisit soon (under 80%)", note: "secured average under 80%" },
+    { key: "lv-red", cls: "lv-red", row: "level", label: "Levels 1 to 3: still learning", note: "nothing secured yet, average level 1 to 3" },
+    { key: "lv-amber", cls: "lv-amber", row: "level", label: "Levels 4 to 6: still learning", note: "nothing secured yet, average level 4 to 6" },
+    { key: "lv-green", cls: "lv-green", row: "level", label: "Levels 7 to 9: still learning", note: "nothing secured yet, average level 7 to 9" },
+    { key: "lv-top", cls: "lv-top", row: "level", label: "Level 10: not secured yet", note: "nothing secured yet, average level 10" },
+    { key: "none", cls: "none", row: "level", label: Secured.PLACEMENT_TO_DO, note: "no quick check finished yet, or no unit started" }, // review finding N2: one phrase
   ];
+  const SUMMARY_ROWS = [{ id: "freshness", label: "Freshness" }, { id: "level", label: "Level" }];
   // A secured average is at least 50% (every secured score is), so anything under 80% is Revisit soon.
   const summaryTileOf = (r) => (r.average != null ? Secured.band(r.average).cls : r.levelBand ? r.levelBand.cls : "none");
 
@@ -795,7 +798,7 @@
     FAILS_IN_A_ROW_ALERT, TOP_FAILED_TASKS, BUTTON_NAMES, PLACEMENT_STATUS, FULL_COLUMNS,
     collect, overviewRows, sortOverview, filterByName, taskStats, misconceptionStats, quickLook,
     detailRows, filterDetail, mostFailedTasks, workshop, BUILDER_MAX_TASKS, spreadLevels, buildSpread, swapOptions, addOptions, toCsv, fullExportRows, fullExportCsv, dataDictionaryCsv, assignmentStats,
-    lastButtonPresses, ragOf, levelBand, SUMMARY_TILES, summaryTileOf, scoreTable, studentAverage, sortScoreTable, studentDetail, classScoresCsv,
+    lastButtonPresses, ragOf, levelBand, SUMMARY_TILES, SUMMARY_ROWS, summaryTileOf, scoreTable, studentAverage, sortScoreTable, studentDetail, classScoresCsv,
     overviewGroups, overviewCell, overviewAverage, overviewTablesHtml, pasteFlagHtml, PASTE_FLAGGED, levelShown, FAILURE_NAMES, failureName,
   };
 });

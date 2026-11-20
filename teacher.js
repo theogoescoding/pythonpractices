@@ -169,8 +169,11 @@
     // One tile per group (TD.SUMMARY_TILES), each student in exactly one: by their secured average, or with nothing
     // secured yet by their average level, or Placement to do. Each tile's label is a chip in the colour the unit cards
     // use for that band, so the label says what it counts and the colour matches the cells.
-    $("st-summary").innerHTML = TD.SUMMARY_TILES.map((t) => '<div class="rag-tile rag-tile-' + t.cls + '" title="' + esc(t.label + ": " + t.note) + '"><span class="rag rag-' + t.cls + '">' + esc(t.label) + "</span><strong>" +
-      s.tiles[t.key] + '</strong><span class="small">' + esc(t.note) + "</span></div>").join("");
+    // Two labelled rows (prompt 25): Freshness (four tiles), then Level (five, Placement to do last).
+    $("st-summary").innerHTML = TD.SUMMARY_ROWS.map((row) => { const tiles = TD.SUMMARY_TILES.filter((t) => t.row === row.id);
+      return '<div class="rag-row" role="group" aria-labelledby="st-row-' + row.id + '"><p class="rag-row-label" id="st-row-' + row.id + '">' + esc(row.label) + "</p>" +
+        '<div class="rag-tiles rag-tiles-' + tiles.length + '">' + tiles.map((t) => '<div class="rag-tile rag-tile-' + t.cls + '" title="' + esc(t.label + ": " + t.note) + '"><span class="rag rag-' + t.cls + '">' + esc(t.label) + "</span><strong>" +
+        s.tiles[t.key] + '</strong><span class="small">' + esc(t.note) + "</span></div>").join("") + "</div></div>"; }).join("");
     const started = table.unitAverages.filter((u) => u.average != null);
     $("st-averages").innerHTML = '<p class="small">Class average secured score per unit (students who have secured it):</p>' + (started.length
       ? started.map((u) => '<span class="rag rag-' + u.band.cls + '">' + esc(unitTitle(u.unit)) + ": " + u.average + "% · " + esc(u.band.label) + "</span>").join(" ")
@@ -402,6 +405,33 @@
     $("cert-list").innerHTML = parts.join("") || '<p class="small">You have no classes yet.</p>';
   }
   $("cert-teacher-name").addEventListener("input", () => Store.saveCertificateTeacher($("cert-teacher-name").value.trim()));
+
+  // ---------- The student page's Progress summary (prompt 25) ----------
+  // Four figures, by homework.js's rules (its first-pass rule, as homework counts tasks). Backend mode: teacher-api
+  // student_progress_summary works them out on the server. Local mode: the same rule on this browser's attempts, with
+  // no homework (it needs the server).
+  const ukWhen = (iso) => new Date(iso).toLocaleString("en-GB", { timeZone: "Europe/London", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  function summaryFiguresHtml(x) {
+    const homework = x.average_homework_completion === undefined ? "Homework is not available in this browser"
+      : x.average_homework_completion === null ? "No homework set yet" : x.average_homework_completion + "%";
+    const rows = [["First passes this week", String(x.first_passes_this_week)], ["Average first passes per week", Number(x.average_first_passes_per_week).toFixed(1)],
+      ["Average homework completion", homework], ["Last active", x.last_active ? ukWhen(x.last_active) : "Not active yet"]];
+    return '<dl class="summary-figures">' + rows.map(([k, v]) => '<div class="summary-figure"><dt>' + esc(k) + "</dt><dd>" + esc(v) + "</dd></div>").join("") + "</dl>";
+  }
+  // The local figures, in the server's reply's shape (average_homework_completion undefined: no homework here).
+  const localSummary = (data, studentId) => { const x = self.Homework.progressSummary({ attempts: data.attempts.filter((a) => a.studentId === studentId), flags: [], homework: null });
+    return { first_passes_this_week: x.firstPassesThisWeek, average_first_passes_per_week: x.averageFirstPassesPerWeek, average_homework_completion: undefined, last_active: x.lastActive }; };
+  let sdSummaryFor = null;
+  function renderStudentSummary(data, studentId) {
+    if (sdSummaryFor && sdSummaryFor.data === data && sdSummaryFor.id === studentId) return;
+    const mine = (sdSummaryFor = { data, id: studentId });
+    if (!tb) { $("sd-summary").innerHTML = summaryFiguresHtml(localSummary(data, studentId)); return; }
+    $("sd-summary").innerHTML = '<p class="small">Loading…</p>';
+    tb.progressSummary(studentId).then((r) => {
+      if (sdSummaryFor !== mine) return; // another student (or new data) meanwhile
+      $("sd-summary").innerHTML = r.error ? '<p class="problem">' + esc(r.error) + "</p>" : summaryFiguresHtml(r);
+    });
+  }
 
   // The student page's Certificates panel.
   let sdCertsFor = null;
@@ -654,6 +684,8 @@
       $("sd-points").innerHTML = "";
       $("sd-certs").innerHTML = "";
       sdCertsFor = null;
+      $("sd-summary").innerHTML = "";
+      sdSummaryFor = null;
       $("sd-recent").innerHTML = "";
       return;
     }
@@ -702,6 +734,7 @@
       '<p class="small">Combined total: ' + thousands(pts.combined) + " (secured " + pts.secured + " + level " + pts.level + " + programme " + pts.programme + " + re-secure bonus " + pts.bonus + ")." +
       " Points count every unit, as on the Leaderboards page. Units not listed have 0 points. In the last 14 days: " + signed(pts.gain) + " secured and level points (" + pts.before.total + " points 14 days ago).</p>";
     renderStudentCertificates(data, studentId, s.name);
+    renderStudentSummary(data, studentId);
     $("sd-recent").innerHTML = d.recent.length ? '<div class="table-wrap"><table><thead><tr><th scope="col">Time</th><th scope="col">Task</th><th scope="col">Result</th>' +
       '<th scope="col">Hints</th><th scope="col">Test that failed</th><th scope="col">Misconception matched</th></tr></thead><tbody>' +
       d.recent.map((a) => "<tr" + (a.result === "fail" ? ' class="row-alert"' : "") + "><td>" + esc(when(a.at)) + "</td><td>" + taskLink(a.taskId) +

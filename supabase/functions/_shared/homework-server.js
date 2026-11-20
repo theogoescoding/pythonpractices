@@ -146,5 +146,23 @@
     };
   }
 
-  return { NOT_FOUND, noTable, records, refresh, forStudent, listForClass, create, remove, report };
+  // The Progress summary on the teacher's student page (prompt 25): any teacher on the student's class, owner or
+  // co-teacher (class-sharing.js requireStudent: anyone else gets the same 404 as a student who doesn't exist). The
+  // rule is homework.js's (progressSummary, with its first-pass rule and progress()), on the rows the server already
+  // keeps: the student's passes and paste flags (records above), the times of their attempts, and the class's homework.
+  // Nothing is saved. -> only the four figures: { first_passes_this_week, average_first_passes_per_week,
+  // average_homework_completion (a whole percentage, or null when no homework has been set), last_active (ISO, or null) }.
+  async function progressSummary(sb, deps, tid, studentId, now) {
+    const s = await deps.Sharing.requireStudent(sb, tid, studentId);
+    const recs = (await records(sb, [s.id]))[s.id];
+    const tries = await all(() => sb.from("attempts").select("id, timestamp").eq("student_id", s.id).eq("record_type", "attempt").order("id"), "read attempt times");
+    const r = await sb.from("homework").select(HW_COLUMNS).eq("class_id", s.class_id).order("due_on").order("created_at");
+    if (r.error && !noTable(r.error)) data(r, "homework");
+    const homework = r.error ? [] : (r.data || []).map(asHw);
+    const x = deps.Homework.progressSummary({ attempts: recs.attempts.concat(tries.map((t) => ({ kind: "attempt", at: t.timestamp }))), flags: recs.flags, homework, now });
+    return { first_passes_this_week: x.firstPassesThisWeek, average_first_passes_per_week: x.averageFirstPassesPerWeek,
+      average_homework_completion: x.averageHomeworkCompletion, last_active: x.lastActive };
+  }
+
+  return { NOT_FOUND, noTable, records, refresh, forStudent, listForClass, create, remove, report, progressSummary };
 });

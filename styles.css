@@ -720,10 +720,22 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .rag-placement { background: var(--placement-bg); color: var(--placement-ink); border: 2px dashed var(--placement-ink); }
 .rag-key .rag { margin: .1rem .1rem; }
 .flag-block { display: inline-flex; flex-direction: column; align-items: flex-start; margin-right: .3rem; vertical-align: top; }
-/* The nine summary tiles: always a three-by-three grid, on every screen. Each tile can shrink to its column, so there
-   is never sideways scrolling, and its label chip takes the tile's full width and wraps only between words (break-word
-   splits a word only if it can't fit on a line by itself, which these labels never need). */
-.rag-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; margin: .75rem 0; }
+/* The nine summary tiles, in two labelled rows (prompt 25): Freshness (four tiles), then Level (five). Each row fills
+   the page's width; under 700px each row wraps two tiles to a line, in the same order. Each tile can shrink to its
+   column, so there is never sideways scrolling, and its label chip takes the tile's full width and wraps only between
+   words (break-word splits a word only if it can't fit on a line by itself, which these labels never need). */
+.rag-summary { margin: .75rem 0; }
+/* The teacher's student page: Progress summary (prompt 25), four figures that wrap two to a line on a phone. */
+.summary-figures { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; margin: .5rem 0; }
+.summary-figure { min-width: 0; overflow-wrap: break-word; border: 2px solid var(--border); border-radius: 8px; padding: .5rem .9rem; background: var(--card); }
+.summary-figure dt { font-size: .85rem; color: var(--muted); }
+.summary-figure dd { margin: .2rem 0 0; font-size: 1.3rem; font-weight: 700; }
+@media (max-width: 699.98px) { .summary-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); } .summary-figure dd { font-size: 1.1rem; } }
+.rag-row-label { font-size: .85rem; font-weight: 700; margin: .5rem 0 .3rem; }
+.rag-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; margin: 0 0 .5rem; }
+.rag-tiles-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.rag-tiles-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+@media (max-width: 699.98px) { .rag-tiles-4, .rag-tiles-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .rag-tile { min-width: 0; overflow-wrap: break-word; border: 2px solid var(--border); border-radius: 8px; padding: .5rem .9rem; background: var(--card); }
 .rag-tile .rag { display: block; }
 .rag-tile strong { display: block; font-size: 1.8rem; }

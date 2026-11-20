@@ -39,6 +39,19 @@
   const unitsOf = (r) => (r.units && r.units.length ? r.units : [r.unit]);
   const isPass = (a) => (a.kind || "attempt") === "attempt" && a.result === "pass";
 
+  // The first pass rule: the first time the student ever passed each task (any phase), from every attempt record they
+  // have, so a repeat pass is never counted again. -> { taskId: { t (ms), a (that record) } }. Homework progress below
+  // and the teacher's Progress summary (progressSummary) both use it.
+  function firstPasses(attempts) {
+    const firstPass = {};
+    for (const a of attempts || []) {
+      if (!isPass(a) || !a.taskId) continue;
+      const t = time(a.at);
+      if (Number.isFinite(t) && (!firstPass[a.taskId] || t < firstPass[a.taskId].t)) firstPass[a.taskId] = { t, a };
+    }
+    return firstPass;
+  }
+
   // attempts: the student's attempt records ({ kind, at, unit, units, taskId, result }), every one they have (so a
   // repeat pass can be told from a first one). flags: their paste flags ({ at, unit, units, taskId }).
   // -> { done, total, complete, taskIds (the counted tasks, in order), units (the units they were done in, in that
@@ -50,13 +63,7 @@
       const t = time(f.at);
       if (f.taskId && Number.isFinite(t) && !(flaggedAt[f.taskId] <= t)) flaggedAt[f.taskId] = t;
     }
-    const firstPass = {};
-    for (const a of attempts || []) {
-      if (!isPass(a) || !a.taskId) continue;
-      const t = time(a.at);
-      if (Number.isFinite(t) && (!firstPass[a.taskId] || t < firstPass[a.taskId].t)) firstPass[a.taskId] = { t, a };
-    }
-    const counted = Object.values(firstPass)
+    const counted = Object.values(firstPasses(attempts))
       .filter(({ t, a }) => inTime(hw, t) && coversUnits(hw, unitsOf(a)) && !(flaggedAt[a.taskId] <= t))
       .sort((x, y) => x.t - y.t)
       .slice(0, total);
@@ -89,10 +96,50 @@
     return { ok: true, homework: { task_count: n, due_on: due, units: unitIds.filter((u) => units.includes(u)) } };
   }
 
+  // ---------- The teacher's Progress summary for one student (prompt 25) ----------
+  // Weeks run Monday to Sunday in the UK. A week's number counts from the week of 1 January 1970 (a Thursday, so +3
+  // makes Monday the first day): two moments are in the same week when their numbers match.
+  const ukDayNumber = (ms) => { const [y, m, d] = ukDate(ms).split("-").map(Number); return Math.floor(Date.UTC(y, m - 1, d) / 86400000); };
+  const ukWeek = (ms) => Math.floor((ukDayNumber(ms) + 3) / 7);
+  // o = { attempts (every attempt record the student has: { kind, at, taskId, result, unit, units }), flags (their paste
+  //       flags), homework (their class's homework: [{ created_at, due_on, units, task_count }], or null when it isn't
+  //       available, as in local mode), now (default now) }
+  // -> { firstPassesThisWeek, averageFirstPassesPerWeek (one decimal place), averageHomeworkCompletion (a whole
+  //      percentage; null when no homework has been set; undefined when homework isn't available), lastActive (ISO, or null) }
+  //   - First passes: firstPasses() above, the homework rule (a repeat pass never counts).
+  //   - This week: first passes in the current UK week, Monday to Sunday.
+  //   - Average a week: every first pass so far, divided by the weeks from the week of the student's first attempt
+  //     (any result) to this week, both counted; a week with no first pass counts as 0.
+  //   - Homework: for each homework set (created by now), progress()'s "done" (the number the student's card shows,
+  //     at most its task count) as a percentage of its task count; the average of those, rounded.
+  //   - Last active: the student's most recent attempt (any result).
+  function progressSummary(o) {
+    const now = o.now == null ? Date.now() : time(o.now);
+    const firsts = Object.values(firstPasses(o.attempts)).filter((x) => x.t <= now);
+    const tries = (o.attempts || []).filter((a) => (a.kind || "attempt") === "attempt").map((a) => time(a.at)).filter((t) => Number.isFinite(t) && t <= now);
+    const firstTry = tries.length ? tries.reduce((x, y) => Math.min(x, y)) : null;
+    const lastTry = tries.length ? tries.reduce((x, y) => Math.max(x, y)) : null;
+    const thisWeek = ukWeek(now);
+    const weeks = firstTry == null ? 0 : thisWeek - ukWeek(firstTry) + 1;
+    let averageHomeworkCompletion;
+    if (o.homework) {
+      const set = o.homework.filter((hw) => time(hw.created_at) <= now && hw.task_count > 0);
+      averageHomeworkCompletion = !set.length ? null : Math.round(set.map((hw) =>
+        (100 * Math.min(progress(hw, o.attempts, o.flags).done, hw.task_count)) / hw.task_count).reduce((x, y) => x + y, 0) / set.length);
+    }
+    return {
+      firstPassesThisWeek: firsts.filter((x) => ukWeek(x.t) === thisWeek).length,
+      averageFirstPassesPerWeek: weeks ? Math.round((10 * firsts.length) / weeks) / 10 : 0,
+      averageHomeworkCompletion,
+      lastActive: lastTry == null ? null : new Date(lastTry).toISOString(),
+    };
+  }
+
   // "Friday 20 November" from "2026-11-20", as the student's card and the teacher's list show it.
   const longDate = (ymd) => (isDate(ymd) ? new Date(ymd + "T12:00:00Z").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }) : "");
   // "x of y done", or "Complete".
   const doneText = (hw) => (hw.complete ? "Complete" : Math.min(hw.done || 0, hw.task_count) + " of " + hw.task_count + " done");
 
-  return { MAX_TASKS, MAX_UNITS, ukDate, isDate, inTime, pastDue, coversUnits, progress, activeFor, checkNew, longDate, doneText };
+  return { MAX_TASKS, MAX_UNITS, ukDate, isDate, inTime, pastDue, coversUnits, firstPasses, progress, activeFor, checkNew, longDate, doneText,
+    ukWeek, progressSummary };
 });
