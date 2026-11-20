@@ -1592,6 +1592,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     else if (t.type === "partial-parsons") wirePartial(t, c);
     else wireWrite(c);
     if (t.error_kind) wireErrorKind(c);
+    // An assignment task still flagged for a paste (coming back to it, or after a reload): the message and Clear code.
+    if (c.pasteFlagged && self.PasteFlag) showPasteMessage(PasteFlag.ASSIGNMENT_MESSAGE, true);
 
     if ($("run-btn")) $("run-btn").addEventListener("click", runOnce);
     $("check-btn").addEventListener("click", check);
@@ -1827,14 +1829,29 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     }
     if (!c.finished) {
       if (!skipArmed) { skipArmed = true; resetArmed = false; renderButtons(); return; }
-      if (c.placement) {
-        recordAttempt(t, c, { kind: "skip", result: "skipped" });
-        finishPlacementStep(false);
-      } else {
-        const levels = finishTask(false);
-        recordAttempt(t, c, { kind: "skip", result: "skipped", levels });
-      }
+      skipTask(t, c);
     }
+    await moveOnFrom(c);
+  }
+
+  // The Skip button's record and its effect, also used for a flagged paste (flagPaste), so the two always match.
+  //   - Placement: the question ends as not passed (finishPlacementStep), which can lower the starting level.
+  //   - Practice and endless: the task counts as failed (finishTask(false): applyOutcome with passed false, so the fail
+  //     streak goes up and enough of them in a row move the level down; the stats, history and task log count a fail),
+  //     and the skip record carries the level before and after.
+  function skipTask(t, c) {
+    if (c.placement) {
+      recordAttempt(t, c, { kind: "skip", result: "skipped" });
+      finishPlacementStep(false);
+    } else {
+      const levels = finishTask(false);
+      recordAttempt(t, c, { kind: "skip", result: "skipped", levels });
+    }
+  }
+
+  // After a skip (or a finished task): the next placement question, or a new task. lead: a message shown before the
+  // usual one (a flagged paste's), which always shows.
+  async function moveOnFrom(c, lead) {
     renderSide();
     if (c.placement && inPlacement()) await servePlacementTask();
     else {
@@ -1844,6 +1861,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       }
       if (!(await serveNewTask())) return;
     }
+    if (lead) notice = { kind: "down", text: lead + (notice && notice.text ? " " + notice.text : "") };
     renderSide();
     renderTask();
     $("task").focus();
@@ -1960,8 +1978,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     if (busy || pasteFlagPending) return; // a flagged paste is being recorded as a skip: never run it
     const t = task();
     const c = cur();
-    // A flagged task (an assignment's stays on screen) is never run against the tests.
-    if (c.pasteFlagged) { showPasteMessage(PasteFlag.MESSAGE); return; }
+    // A flagged task (an assignment's stays on screen until its code is cleared) is never run against the tests.
+    if (c.pasteFlagged) { showPasteMessage(PasteFlag.ASSIGNMENT_MESSAGE, true); return; }
     if (t.error_kind && !c.finished && !errorKindGate(t, c)) return;
     if (t.type === "predict") return checkPredict();
     if (t.type === "trace") return checkTrace();
@@ -2100,7 +2118,12 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       const ok = text ? document.execCommand("insertText", false, text) : document.execCommand("delete");
       if (!ok) ta.setRangeText(text, ta.selectionStart, ta.selectionEnd, "end");
     };
-    ta.addEventListener("input", () => { c.draft.code = ta.value; save(); });
+    ta.addEventListener("input", () => {
+      c.draft.code = ta.value;
+      save();
+      // Setting the value again (changed, then back) empties the box's Undo, so deleted pasted code can't come back.
+      pastedCodeGone(c, ta.value, () => { const v = ta.value; ta.value = v + " "; ta.value = v; });
+    });
     // A paste is checked (onPaste) as it happens, before the text goes in: the box's text outside the selection is what
     // stays (a whole-program paste when it is empty or only the starter comment).
     ta.addEventListener("paste", (e) => {
@@ -2175,7 +2198,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       },
     });
     cm.on("keydown", (_, e) => { if (!["Escape", "Tab", "Shift"].includes(e.key)) escPressed = false; });
-    cm.on("change", () => { c.draft.code = cm.getValue(); save(); });
+    cm.on("change", () => { c.draft.code = cm.getValue(); save(); pastedCodeGone(c, cm.getValue(), () => cm.clearHistory()); });
     // One paste is one change with origin "paste"; its text is the pasted lines. It is checked (onPaste) before it goes
     // in: the editor's text outside the range it replaces is what stays.
     cm.on("beforeChange", (_, change) => {
@@ -2194,15 +2217,18 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   }
 
   // ---------- Paste flag (paste-flag.js) ----------
-  // A whole-program paste, or one of more than 8 lines (not the task's expected output; PasteFlag.reason), is recorded
-  // as a paste flag (Store.logPasteFlag, with the phase, lines and homework; in backend mode it goes to the server as an
-  // event), and the task is recorded as skipped, with the Skip button's record (PasteFlag.outcome). The student's code
-  // is never run against the tests: the decision is made as the paste happens, and check() refuses while it is being
-  // handled and for a flagged task. Nothing is ever recorded in teacher practice.
-  //   - Practice and endless: no level change; a new task. Placement: the question ends as not passed, as Skip does;
-  //     the next question comes. In homework (an open homework of the class that this task's unit counts for,
-  //     Homework.activeFor) the task can't count (homework.js) and the homework message is shown.
-  //   - Assignment (a fixed list): the task is marked done as skipped and stays on screen; it can't be checked again.
+  // A whole-program paste of 3 lines or more, or one of more than 8 lines (not the task's expected output;
+  // PasteFlag.reason), is recorded as a paste flag (Store.logPasteFlag, with the phase, lines and homework; in backend
+  // mode it goes to the server as an event), and the task is skipped (PasteFlag.outcome). The student's code is never run
+  // against the tests: the decision is made as the paste happens, and check() refuses while it is being handled and
+  // while the task is flagged. Nothing is ever recorded in teacher practice.
+  //   - Practice, endless and placement: exactly the Skip button (skipTask, then moveOnFrom: the same code), so outside
+  //     placement it counts as a failed task and can move the level down.
+  //   - Homework (an open homework of the class that this task's unit counts for, Homework.activeFor; practice or
+  //     endless): the same skip record and moveOnFrom, but the level is kept (skipKeepingLevel: no level change, no fail
+  //     streak). The task can't count (homework.js) and the homework message is shown.
+  //   - Assignment (a fixed list): a skip record; the task is marked tried and stays, with a Clear code button. Once the
+  //     pasted code is cleared (the button, or the student deleting it all), they can write it themselves and pass.
   //   - A task already finished (passed): only the flag is recorded, and the message shown.
   let pasteFlagPending = false; // a flagged paste is being handled (check() waits for it)
   function onPaste(text, rest) {
@@ -2226,48 +2252,67 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     Store.logPasteFlag({ at: new Date(Date.now() - 1).toISOString(), studentId: student.id, unit: units[0], units, taskId: t.id,
       lines: PasteFlag.lineCount(text), homework: homework.length > 0, phase, homeworkId: homework.length ? homework[0].id : null });
     if (c.finished) { showPasteMessage(PasteFlag.MESSAGE); return; }
-    c.pasteFlagged = true;
-    if (c.placement) {
-      recordAttempt(t, c, o.record);
-      finishPlacementStep(false);
-    } else if (inAssignment) {
-      recordAttempt(t, c, o.record);
-      finishTask(false); // marks it done (tried, not passed); nothing else changes in an assignment
-    } else {
-      c.finished = true; // no level change: finishTask isn't run, so the levels, streaks and stats stay as they were
-      c.passed = false;
-      recordAttempt(t, c, o.record);
-      eachLog((entry) => { if (entry.lastResult === "in progress") entry.lastResult = "set aside"; });
+    if (o.skip) {
+      // In homework (practice or endless): the skip record only, with the level kept. Otherwise the Skip button's own
+      // record and effect.
+      if (o.keepLevel) skipKeepingLevel(t, c);
+      else skipTask(t, c);
+      save();
+      if (!serving) moveOnFrom(c, o.message);
+      return;
     }
+    // An assignment: the skip record (it marks the task tried); the task stays, flagged, until the code is cleared.
+    c.pasteFlagged = true;
+    recordAttempt(t, c, o.record);
     save();
-    if (o.moveOn) moveOnAfterPaste(o.message);
-    else { renderButtons(); showPasteMessage(o.message); }
+    showPasteMessage(o.message, true);
   }
 
-  // The message goes straight under the editor, where the student is looking (not below the buttons).
-  function showPasteMessage(text) {
+  // A homework flag: the task ends, skipped, with the Skip button's record (kind skip, result skipped), but finishTask
+  // isn't run, so the level, the fail streak, the stats and the task's history stay as they were. With no levels given,
+  // recordAttempt notes the current level as both the level before and after.
+  function skipKeepingLevel(t, c) {
+    c.finished = true;
+    c.passed = false;
+    recordAttempt(t, c, { kind: "skip", result: "skipped" });
+    eachLog((entry) => { if (entry.lastResult === "in progress") entry.lastResult = "set aside"; });
+  }
+
+  // The message goes straight under the editor, where the student is looking (not below the buttons). withClear: an
+  // assignment's flagged task, with the Clear code button.
+  function showPasteMessage(text, withClear) {
     const at = $("editor-help");
     if (!at) return;
     const old = document.querySelector("#task .paste-flag");
     if (old) old.remove();
-    at.insertAdjacentHTML("afterend", '<p class="notice notice-down paste-flag" role="alert">' + esc(text) + "</p>");
+    at.insertAdjacentHTML("afterend", '<div class="notice notice-down paste-flag" role="alert"><p>' + esc(text) + "</p>" +
+      (withClear ? '<button type="button" class="secondary paste-clear">' + esc(PasteFlag.CLEAR_LABEL) + "</button>" : "") + "</div>");
+    const b = document.querySelector("#task .paste-clear");
+    if (b) b.addEventListener("click", clearPastedCode);
   }
 
-  async function moveOnAfterPaste(text) {
-    if (serving) return;
+  // Clear code (an assignment's flagged task): only this task's code goes. Its "Tried" mark, its records, the flag, the
+  // other tasks' answers and the student's progress stay as they are. Undo can't bring the pasted code back.
+  function clearPastedCode() {
     const c = cur();
-    if (c.placement) {
-      renderSide();
-      if (inPlacement()) await servePlacementTask();
-      else {
-        text += " " + placementResultText(us().placement, unitId); // the placement has just finished
-        if (!(await serveNewTask())) return;
-      }
-    } else if (!(await serveNewTask())) return;
-    notice = { kind: "down", text };
-    renderSide();
-    renderTask();
-    $("task").focus();
+    if (!c || !c.pasteFlagged) return;
+    c.draft.code = "";
+    unflagPaste(c);
+    if (activeEditor) { activeEditor.setValue(""); activeEditor.clearHistory(); activeEditor.focus(); }
+    else if ($("editor")) { $("editor").value = ""; $("editor").focus(); }
+  }
+  function unflagPaste(c) {
+    c.pasteFlagged = false;
+    save();
+    const old = document.querySelector("#task .paste-flag");
+    if (old) old.remove();
+  }
+  // The student deleted all the code themselves (the editor is empty, or holds only the starter comment): that clears
+  // it too. Called from both editors' change handlers; forget() wipes Undo, so the pasted code can't come back.
+  function pastedCodeGone(c, code, forget) {
+    if (!c.pasteFlagged || !self.PasteFlag || !PasteFlag.isWholeProgram(code, task())) return;
+    forget();
+    unflagPaste(c);
   }
 
   // ---------- The error question (Debugging (GCSE): Checker.errorKindQuestion) ----------

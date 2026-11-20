@@ -870,7 +870,10 @@ td pre { white-space: pre-wrap; margin: .25rem 0; font-size: .85rem; }
   .hw-report-table tbody th, .hw-report-table td { border: 0; padding: .15rem .7rem; text-align: left; min-width: 0; }
   .hw-report-table td::before { content: attr(data-label) ": "; font-weight: 700; }
 }
-.paste-flag { margin-top: 0; }
+.paste-flag { margin-top: 0; margin-bottom: 1rem; }
+.paste-flag p { margin: 0; }
+/* An assignment's flagged task: Clear code under the message. */
+.paste-flag .paste-clear { margin-top: .5rem; }
 
 /* ---------- Large paste flags on the Students page (teacher view) ---------- */
 /* A small red flag next to the level (with "3 flags" when there are several); it opens the details dialog. */
