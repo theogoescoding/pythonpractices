@@ -4096,10 +4096,29 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(/esc\(TD\.failureName\(a\.category\)\)/.test(rec) && /esc\(TD\.failureName\(t\.topCategory\) \|\| "–"\)/.test(tj) &&
       /failure_category: r\.category,/.test(tj) && TD21.FULL_COLUMNS.some((c) => (Array.isArray(c) ? c[0] : c) === "failure_category") && /"failure_category", "WRONG_OUTPUT"/.test(read("teacher-data.js")),
       "N11: Recent attempts (\"fail (Wrong output)\") and the Most-failed table's most common failure type show the plain name; the exports keep the codes");
-    check(/\? "Pass 2 level 10 tasks in a row, with 1 hint or fewer each time, to unlock " \+ name \+ "\."/.test(endless) &&
-      /: "Reach level 10 in " \+ name \+ ", then pass 2 tasks there in a row with 1 hint or fewer\." \+ \(s && !toDo \? " You're at Level " \+ s\.level \+ "\." : ""\)/.test(endless) &&
-      !/strong passes|Complete Level 10/.test(endless) && App21.PASSES_IN_A_ROW_TO_LEVEL_UP === 2,
-      "N13: Endless mode's lock says what unlocks it (\"Pass 2 level 10 tasks in a row, with 1 hint or fewer each time, to unlock X.\", or \"Reach level 10 in X, then pass 2 tasks there in a row with 1 hint or fewer.\"); no \"You're at Level\" while the quick check is to do; the rule is unchanged");
+    // Prompt 22: the plain names on the Misconceptions page's unmatched attempts and each assignment's "Most common failure".
+    const unmatchedSrc = between(tj, '$("ws-unmatched").innerHTML', "$(\"mc-unit\").addEventListener");
+    const assignSrc = between(tj, "function renderAssignments(data)", '$("as-new").addEventListener');
+    check(/esc\(TD\.failureName\(r\.category\)\) \+ \(r\.failedTest/.test(unmatchedSrc) && /esc\(TD\.failureName\(t\.topCategory\) \|\| "–"\)/.test(assignSrc) &&
+      /<th scope="col">Most common failure<\/th>/.test(assignSrc) && !/esc\(r\.category\)|esc\(t\.topCategory|esc\(a\.category\)/.test(tj) &&
+      TD21.assignmentStats({ students: { a: { name: "Ann" } }, progress: {}, levelLog: [], buttonLog: [], placementLog: [], attempts: [{ kind: "attempt", studentId: "a", taskId: "var-L9c", unit: "variables", phase: "assignment",
+        assignmentId: "A1", result: "fail", category: "WRONG_OUTPUT", misconceptions: [], hints: 0, at: "2026-11-01T10:00:00Z" }] }, { id: "A1", task_ids: ["var-L9c"] }).tasks[0].topCategory === "WRONG_OUTPUT" &&
+      TD21.failureName("WRONG_OUTPUT") === "Wrong output",
+      "N11 (prompt 22): the Misconceptions page's unmatched attempts and each assignment's \"Most common failure\" column show the plain name (\"Wrong output\"), not the code; no failure code is put on screen as it is");
+    // The exports still carry the codes: the full attempt log (run here) and the detail log (teacher.js, run on its own).
+    const codeData = { students: { a: { name: "Ann" } }, progress: {}, levelLog: [], buttonLog: [], placementLog: [], units: Curriculum.UNITS,
+      attempts: [{ id: "x1", studentId: "a", kind: "attempt", result: "fail", hints: 0, phase: "practice", taskLevel: 6, unit: "maths", units: ["maths"], taskId: "maths-L6a",
+        category: "WRONG_OUTPUT", misconceptions: [], at: "2026-11-01T10:00:00Z", code: "print(1)", output: "1" }] };
+    const fullCsv = TD21.fullExportCsv(codeData);
+    const detailSrc = between(tj, "function detailLogCsv(data)", "// The workshop tables");
+    const detailCsv = new Function("TD", detailSrc + "; return detailLogCsv;")(TD21)(codeData);
+    check(/,fail,WRONG_OUTPUT,/.test(fullCsv) && !/Wrong output/.test(fullCsv) && /,fail,WRONG_OUTPUT,/.test(detailCsv) && !/Wrong output/.test(detailCsv) &&
+      /failure_category/.test(fullCsv.split(/\r?\n/)[0]) && /failure_category/.test(detailCsv.split(/\r?\n/)[0]),
+      "N11 (prompt 22): the exports still show the codes (the full attempt log and the detail log say WRONG_OUTPUT in failure_category, never \"Wrong output\")");
+    check(/\? "Pass 2 level 10 tasks in a row, with 1 hint or fewer each time and no \\"Show me how\\", to unlock " \+ name \+ "\."/.test(endless) &&
+      /: "Reach level 10 in " \+ name \+ ", then pass 2 tasks there in a row with 1 hint or fewer and no \\"Show me how\\"\." \+ \(s && !toDo \? " You're at Level " \+ s\.level \+ "\." : ""\)/.test(endless) &&
+      !/strong passes|Complete Level 10/.test(endless) && App21.PASSES_IN_A_ROW_TO_LEVEL_UP === 2 && /&& !outcome\.showHow;/.test(read("app.js")),
+      "N13: Endless mode's lock says what unlocks it (\"Pass 2 level 10 tasks in a row, with 1 hint or fewer each time and no \"Show me how\", to unlock X.\", or \"Reach level 10 in X, then pass 2 tasks there in a row with 1 hint or fewer and no \"Show me how\".\"), as the strong-pass rule is; no \"You're at Level\" while the quick check is to do; the rule is unchanged");
     check(/id="change-name">Not you\? Switch student<\/a>/.test(app) && /\$\("change-name"\)\.textContent = "Not you\? Sign out";/.test(home) && !/Change name/.test(app),
       "N14: local mode's header link says \"Not you? Switch student\"; backend mode still says \"Not you? Sign out\"");
     check(!/Every export is free/.test(th) && /Each button shows what is in the file, with a sample row, before you download it\./.test(flat),

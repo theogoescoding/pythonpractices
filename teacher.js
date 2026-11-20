@@ -835,7 +835,7 @@
       '<h4 id="unmatched-h" tabindex="-1">Unmatched attempts: ' + esc(taskLabel(open.taskId)) + "</h4>" +
       open.unmatchedAttempts.map((r) =>
         '<div class="table-wrap" style="padding:.5rem .9rem; margin-bottom:.75rem"><p class="small"><strong>' + esc(r.name) + "</strong> · " + esc(when(r.at)) + " · " +
-        esc(r.category) + (r.failedTest ? " · test " + r.failedTest + (r.inputs && r.inputs.length ? " (inputs: " + esc(r.inputs.join(", ")) + ")" : "") : "") + "</p>" +
+        esc(TD.failureName(r.category)) + (r.failedTest ? " · test " + r.failedTest + (r.inputs && r.inputs.length ? " (inputs: " + esc(r.inputs.join(", ")) + ")" : "") : "") + "</p>" +
         '<div class="side-by-side"><div><strong>Code</strong><pre>' + esc(r.code || "(none)") + "</pre></div>" +
         "<div><strong>Output</strong><pre>" + esc(r.output || "(nothing)") + "</pre>" +
         (r.expected !== "" ? '<span class="small">Expected:</span><pre>' + esc(r.expected || "(nothing)") + "</pre>" : "") + "</div></div></div>").join("");
@@ -1013,7 +1013,7 @@
     $("as-list").innerHTML = list.length ? list.map((a) => {
       const s = TD.assignmentStats(data, a);
       const rows = s.tasks.map((t) => "<tr><th scope=\"row\">" + taskLink(t.taskId) + '</th><td class="num">' + t.triedCount + '</td><td class="num">' + t.passedCount +
-        '</td><td class="num">' + t.checks + '</td><td class="num">' + t.fails + '</td><td class="num">' + t.showHow + "</td><td>" + esc(t.topCategory || "–") +
+        '</td><td class="num">' + t.checks + '</td><td class="num">' + t.fails + '</td><td class="num">' + t.showHow + "</td><td>" + esc(TD.failureName(t.topCategory) || "–") +
         "</td><td>" + esc(t.topMisconception ? mName(t.topMisconception) : "–") + "</td></tr>").join("");
       const hard = s.struggled.slice(0, 3).map((t) => "<li>" + esc(taskLabel(t.taskId)) + ": " + t.stuckCount + " of " + t.triedCount + " who tried haven't passed it yet, " +
         t.fails + " failed check" + (t.fails === 1 ? "" : "s") + "</li>").join("");
