@@ -894,7 +894,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(sections.join() === "Teachers,Name and stage,Student logins,Import a full export,Delete this class,Secured score per unit,This class,All my classes,Compare classes,Exports,Level changes,Needs review,Misconception table,Failed attempts with no match, by task,Not matched yet",
       "Teacher view: every section (the class's teachers, class name and stage, student logins, import a full export, delete class, the score table, the two leaderboard sections and Compare classes (on Leaderboards since review findings L6 and T4), exports, level changes, and the Misconceptions page's Needs review list, table, unmatched attempts and not-matched-yet list) is collapsible");
     const key = (teacherSrc.match(/Collapse\.enhance\(document\.querySelector\("main"\), "([^"]+)"\)/) || [])[1];
-    check(key && key !== "pythonPractice.collapsedGroups" && /<script src="collapse\.js"><\/script>\s*<script src="teacher\.js">/.test(teacher) && !/localStorage\./.test(teacherSrc),
+    check(key && key !== "pythonPractice.collapsedGroups" && /<script src="collapse\.js"><\/script>\s*<script src="tour\.js"><\/script>\s*<script src="teacher-tour\.js"><\/script>\s*<script src="teacher\.js">/.test(teacher) && !/localStorage\./.test(teacherSrc),
       "Teacher view: sections open and close with collapse.js, remembered under their own key (not the student view's)");
     // Run collapse.js on a tiny fake page: sections start expanded, a press collapses one and saves it, and a
     // "reload" keeps it collapsed. With storage blocked, every section still opens and closes.
@@ -1311,10 +1311,13 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
 
     // 6. Never on the teacher pages, or inside them (teacher practice frames practice.html?preview=<id>).
     const win = (pathname, search, framed) => { const w = { location: { pathname, search: search || "", hash: "" } }; w.parent = framed ? {} : w; return w; };
-    check(!/tour\.js/.test(read("teacher.html")) && !Tour.allowed(win("/pythonpractices/teacher.html")) && !Tour.allowed(win("/practice.html", "?preview=var-L9d")) &&
+    // The teacher page loads tour.js only for its overlay, under the teacher tour (teacher-tour.js, prompt 23): the student
+    // tutorial itself still never runs there (Tour.allowed), and the teacher page never calls Tour.home or Tour.task.
+    check(/<script src="tour\.js"><\/script>\s*<script src="teacher-tour\.js"><\/script>/.test(read("teacher.html")) && !/Tour\.(home|task)\(/.test(read("teacher.js") + read("teacher-tour.js")) &&
+      !Tour.allowed(win("/pythonpractices/teacher.html")) && !Tour.allowed(win("/practice.html", "?preview=var-L9d")) &&
       !Tour.allowed(win("/practice.html", "", true)) && Tour.allowed(win("/app.html")) && Tour.allowed(win("/practice.html", "?unit=maths")) &&
       /<script src="tour\.js"><\/script>\s*<script src="collapse\.js"><\/script>\s*<script src="home\.js">/.test(read("app.html")) && /<script src="app\.js"><\/script>\s*<script src="tour\.js"><\/script>/.test(read("practice.html")),
-      "Tutorial: the student pages load it; the teacher pages don't, and it never runs in teacher practice or in a frame");
+      "Tutorial: the student pages load it; it never runs on the teacher pages (which load tour.js only for the teacher tour's overlay), in teacher practice or in a frame");
 
     // 7. Storage blocked: nothing throws, nothing opens by itself (it couldn't be remembered), and the app still works.
     const blocked = { getItem() { throw new Error("blocked"); }, setItem() { throw new Error("blocked"); }, removeItem() { throw new Error("blocked"); } };
@@ -1525,7 +1528,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(noteNumbersOk && /<p id="score-rule">A unit's score goes down a little each week unless you pass its level 10 challenge with no hints\.<\/p>/.test(progHtml) &&
       /<script src="secured\.js"><\/script>\s*<script src="progress\.js"><\/script>/.test(progHtml) &&
       /self\.Secured\.score\(attempts, u\.id\)/.test(progSrc) && /note: self\.Secured\.studentNote\(sec\)/.test(progSrc) && /<p class="score-note">' \+ esc\(x\.note\)/.test(progSrc) &&
-      /skills mastered\. " \+ x\.note \+ " Show skills\./.test(progSrc) && !/DROP_PER_WEEK|WEEK_MS|FLOOR_/.test(progSrc) &&
+      /skills mastered\. " \+ \(x\.placed \? self\.Secured\.starsText\(x\.stars\) \+ "\. " : ""\) \+ x\.note \+ " Show skills\./.test(progSrc) && !/DROP_PER_WEEK|WEEK_MS|FLOOR_/.test(progSrc) &&
       !/freshness|decay|floor/i.test(allNotes.join(" ") + progHtml.replace(/<!--[\s\S]*?-->/g, "")),
       "My progress: the sentence's numbers are the score the unit cards show (both from secured.js, no rule copied), the page has its one-line rule at the top, and none of it says freshness, decay or floor");
     // No secured unit can show red: the floor is at least 50%, every band below 80% is Revisit soon (indigo), and
@@ -2885,13 +2888,15 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const pts = read("supabase/functions/_shared/points.ts");
     const lbSrc = sapi2.slice(sapi2.indexOf("async leaderboard(sid)"), sapi2.indexOf("async delete_my_progress"));
     const tlb = tapi2.slice(tapi2.indexOf("async leaderboards(tid, body)"), tapi2.indexOf("async rename_student"));
-    check(/classPoints\(await classOf\(sid\)\)/.test(lbSrc) && !/body\./.test(lbSrc) && /\(\{ nickname: s\.nickname, total: s\.total, gain: s\.gain, unitCount: s\.unitCount, me: s\.id === sid \}\)/.test(lbSrc) &&
-      /me: me \? \{ secured: me\.secured, level: me\.level, total: me\.total, gain: me\.gain \} : null/.test(lbSrc) &&
-      /ownClass\(tid, body\.class_id\)/.test(tlb) && /Sharing\.myClasses\(db\(\), tid\)/.test(tlb) && /\(\{ nickname: s\.nickname, total: s\.total, gain: s\.gain, unitCount: s\.unitCount \}\)/.test(tlb) &&
-      /class_name: c\.name, total: s\.total, gain: s\.gain, unitCount: s\.unitCount \}/.test(tlb) &&
-      !/pin_hash|code_hash|student_code|encrypted|login_code/.test(pts) && /import "\.\.\/\.\.\/\.\.\/secured\.js";/.test(pts) && /Secured\.studentPoints\(/.test(pts) &&
-      /import \{ boards, classPoints \} from "\.\.\/_shared\/points\.ts";/.test(sapi2) && /import \{ boards, classPoints, POINT_UNITS \} from "\.\.\/_shared\/points\.ts";/.test(tapi2),
-      "Leaderboards on the server: student-api leaderboard is always the student's own class, rows with nickname and points only; teacher-api checks the teacher is on the class, and All my classes reads only the classes they are on (own and shared); the rule is secured.js itself, and no PIN or code is read");
+    const ptsServer = read("supabase/functions/_shared/points-server.js");
+    check(/return studentBoard\(await classPoints\(await classOf\(sid\)\), sid\);/.test(lbSrc) && !/body\./.test(lbSrc) &&
+      /\(\{ nickname: s\.nickname, total: s\.combined, gain: s\.gain, unitCount: s\.unitCount, me: s\.id === sid \}\)/.test(ptsServer) &&
+      /me: me \? Object\.assign\(totals\(me\), \{ programmes: me\.programmes, total: me\.combined, gain: me\.gain \}\) : null/.test(ptsServer) &&
+      /ownClass\(tid, body\.class_id\)/.test(tlb) && /Sharing\.myClasses\(db\(\), tid\)/.test(tlb) && /return classBoard\(await classPoints\(classId\)\);/.test(tlb) &&
+      /withPoints\.push\(\{ name: c\.name, students: await classPoints\(c\.id\) \}\);\s*return allClassesBoard\(withPoints\);/.test(tlb) &&
+      !/pin_hash|code_hash|student_code|encrypted|login_code/.test(pts + ptsServer) && /import "\.\.\/\.\.\/\.\.\/secured\.js";/.test(pts) && /import "\.\/points-server\.js";/.test(pts) && /deps\.Secured\.studentPoints\(/.test(ptsServer) &&
+      /import \{ classPoints, studentBoard \} from "\.\.\/_shared\/points\.ts";/.test(sapi2) && /import \{ allClassesBoard, classBoard, classPoints \} from "\.\.\/_shared\/points\.ts";/.test(tapi2),
+      "Leaderboards on the server: student-api leaderboard is always the student's own class, rows with nickname and points only; teacher-api checks the teacher is on the class, and All my classes reads only the classes they are on (own and shared); the rule is secured.js itself (through points-server.js since prompt 23), and no PIN or code is read");
     // Pages: the student's Leaderboard button sits next to My progress (backend mode only); the teacher has a
     // Leaderboards page (this class and All my classes) and the points per unit on a student's page.
     const app = read("app.html"), th = read("teacher.html"), tj = read("teacher.js");
@@ -4038,13 +4043,14 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     // T1: unchanged.
     check(TD19.summaryTileOf({ average: 85 }) === "fading" && TD19.summaryTileOf({ average: 100 }) === "gold" && TD19.SUMMARY_TILES.length === 9,
       "T1: the summary tiles are unchanged: each student still counts by their average (85% is Fading)");
-    // T2: "630 of 12,000".
+    // T2: "630 of 12,000", until prompt 24 made the combined total the number only (it has no limit). The notes keep
+    // the maximum (from the server's max), and the % column is unchanged.
     const lbJs = read("leaderboard.js");
-    check((12000).toLocaleString("en-GB") === "12,000" && /const outOf = \(points, max\) => thousands\(points\) \+ " of " \+ thousands\(max\);/.test(tj) &&
-      /const num = \(r\) => \(gain \? signed\(r\.points\) : outOf\(r\.points, boardMax\)\);/.test(tj) && /boardsHtml\(r\.boards, false, r\.max\)/.test(tj) && /boardsHtml\(r\.boards, true, r\.max\)/.test(tj) &&
-      /const total = \(n\) => \(max \? thousands\(n\) \+ " of " \+ thousands\(max\) : thousands\(n\)\);/.test(lbJs) && /\$\("me-total"\)\.textContent = total\(me\.total\);/.test(lbJs) &&
-      /field === "Points gained" \? plus\(r\.points\) : total\(r\.points\)/.test(lbJs),
-      "T2: the leaderboards (teacher and student) show each total as \"630 of 12,000\" (the points out of the most possible, from the same rule; display only)");
+    check((12000).toLocaleString("en-GB") === "12,000" && !/const outOf =|outOf\(/.test(tj) &&
+      /const num = \(r\) => \(gain \? signed\(r\.points\) : thousands\(r\.points\)\);/.test(tj) && /boardsHtml\(r\.boards, false, r\.max\)/.test(tj) && /boardsHtml\(r\.boards, true, r\.max\)/.test(tj) &&
+      /const total = \(n\) => thousands\(n\);/.test(lbJs) && !/" of "/.test(lbJs) && /\$\("me-total"\)\.textContent = total\(me\.total\);/.test(lbJs) &&
+      /field === "Points gained" \? plus\(r\.points\) : total\(r\.points\)/.test(lbJs) && /Secured and level points give up to 300 a unit, " \+ thousands\(boardMax\) \+ " in all/.test(tj),
+      "T2 (since prompt 24): the leaderboards (teacher and student) show the combined total as a number only, \"12,400\", with no \"of 12,000\"; the notes still give the 300-a-unit maximum");
     // T3: the student page's bars, reset menu and points line.
     check(/const startedUnits = UNITS\.map\(\(u\) => u\.id\)\.filter\(\(u\) => \(\(data\.progress\[studentId\] \|\| \{\}\)\.units \|\| \{\}\)\[u\]\);/.test(tj) &&
       /const unitIds = UNITS\.map\(\(u\) => u\.id\)\.filter\(\(u\) => inStage\.includes\(u\) \|\| startedUnits\.includes\(u\)\);/.test(tj) &&
@@ -4164,14 +4170,30 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     navEls["side-nav"].on.keydown({ key: "Escape" });
     check(opened && closedByLink && !isOpen() && navEls["nav-toggle"].focused,
       "L8: the menu button opens the list and says so (aria-expanded); choosing a page closes it, and Esc closes it and puts focus back on the button");
-    const boardSrc = between(tj, "function boardHtml(", "function boardsHtml(");
-    const boardHtml21 = new Function("esc", "signed", "outOf", "boardMax", boardSrc + "; return boardHtml;")(String, (n) => (n > 0 ? "+" : "") + n, (p, m) => p + " of " + m, 600);
+    // boardHtml with its TOTALS list (prompt 23: the Most points board shows the four totals before the combined points).
+    const boardSrc = between(tj, "const TOTALS = ", "function boardsHtml(");
+    const boardHtml21 = new Function("esc", "signed", "boardMax", "thousands", boardSrc + "; return boardHtml;")(String, (n) => (n > 0 ? "+" : "") + n, 600, (n) => Number(n).toLocaleString("en-GB"));
     const heads = (h) => [...h.matchAll(/<th scope="col"[^>]*>([^<]+)<\/th>/g)].map((m) => m[1]).join();
-    const allB = boardHtml21("Most points", "", [{ rank: 1, nickname: "Ann", class_name: "7A", points: 300, percent: 50 }], false, true);
-    const oneB = boardHtml21("Most points", "", [{ rank: 1, nickname: "Ann", points: 300, percent: 50 }], false, false);
-    check(heads(allB) === "Place,Nickname,Class,Points,%" && heads(oneB) === "Place,Nickname,Points,%" && /<td>7A<\/td><td class="num">300 of 600<\/td><td class="num">50%<\/td>/.test(allB) &&
-      /localBoards\(collect\(\), \{ class_name: "This browser" \}, true\)/.test(tj) && /Ranked by percentage of the most possible/.test(tj),
-      "L9: the All my classes boards show Points, then %, as This class does; they are still ranked by %");
+    const row21 = { rank: 1, nickname: "Ann", class_name: "7A", points: 300, percent: 50, secured: 100, level: 60, programme: 90, bonus: 50 };
+    const allB = boardHtml21("Most points", "", [row21], false, true);
+    const oneB = boardHtml21("Most points", "", [row21], false, false);
+    const gainB = boardHtml21("Most improved", "", [Object.assign({}, row21, { points: 20, percent: 1 })], true, true);
+    check(heads(allB) === "Place,Nickname,Class,Secured,Level,Programme,Re-secure bonus,Combined,%" && heads(oneB) === "Place,Nickname,Secured,Level,Programme,Re-secure bonus,Combined,%" &&
+      heads(gainB) === "Place,Nickname,Class,Points,%" && /<td>7A<\/td><td class="num">100<\/td><td class="num">60<\/td><td class="num">90<\/td><td class="num">50<\/td><td class="num">300<\/td><td class="num">50%<\/td>/.test(allB) &&
+      /<div class="table-wrap"><table class="board-table"/.test(allB) && /<td class="num">–<\/td>/.test(boardHtml21("Most points", "", [{ rank: 1, nickname: "Old", points: 10, percent: 1 }], false, false)) &&
+      /localBoards\(collect\(\), \{ class_name: "This browser" \}, true\)/.test(tj) && /Ranked by percentage of " \+ thousands\(boardMax\)/.test(tj),
+      "L9: the All my classes boards show the points, then %, as This class does (since prompt 23 the Most points board shows secured, level, programme and re-secure bonus points before the combined points; a server not yet updated shows –); they are still ranked by %");
+
+    // Prompt 24: a combined total above the 300-a-unit maximum (12,000 for 40 units) shows the number only; the %
+    // column is still the combined total out of the maximum (Secured.normalised), so it goes past 100%.
+    const S24 = require(path.join(ROOT, "secured.js"));
+    const big = Object.assign({}, row21, { points: 12400, percent: S24.normalised(12400, 40) });
+    const bigBoard = new Function("esc", "signed", "boardMax", "thousands", boardSrc + "; return boardHtml;")(String, (n) => (n > 0 ? "+" : "") + n, 12000, (n) => Number(n).toLocaleString("en-GB"))("Most points", "", [big], false, false);
+    const lbSrc24 = read("leaderboard.js");
+    const lbTotal = new Function(lbSrc24.slice(lbSrc24.indexOf("  const thousands = "), lbSrc24.indexOf("  // One board as a table")) + "; return total;")();
+    check(/<td class="num">12,400<\/td><td class="num">103\.3%<\/td>/.test(bigBoard) && !/ of /.test(bigBoard) && big.percent === 103.3 && lbTotal(12400) === "12,400" &&
+      /'<p class="small">Combined total: ' \+ thousands\(pts\.combined\) \+ " \(secured "/.test(tj) && /units \(out of " \+ MAX_POINTS \+ "\)/.test(tj) && /Ranked by percentage of " \+ thousands\(boardMax\) \+ " points\. "/.test(tj),
+      "Prompt 24: a combined total above 12,000 shows the number only (\"12,400\", not \"12,400 of 12,000\") on the teacher's boards, the teacher's student page and the student's leaderboard; the % column is unchanged (103.3%); the notes keep the maximum");
 
     // Theme C: help text.
     check(/data-collapse="mc-review" data-collapse-default="closed"/.test(th) && /"No newer rules have been added yet\."/.test(tj),
@@ -4233,6 +4255,160 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "L10 (decision): the Certificates page has the heading \"All your classes\" above the class lists (each class under it as h4; local mode's one list keeps its own heading)");
     check(/id="st-averages"/.test(between(th, '<details class="rag-more">', "</details>")) && (th.match(/id="st-averages"/g) || []).length === 1,
       "S4 (decision): the class averages line is inside \"More about the colours\" on the Students page, with its wording unchanged");
+  }
+
+  // ===================== Prompt 23 (2026-11): teacher tour, stars and the re-secure bonus, endless programme points =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const S23 = require(path.join(ROOT, "secured.js"));
+    const TD23 = require(path.join(ROOT, "teacher-data.js"));
+    const th = read("teacher.html"), tj = read("teacher.js"), ttSrc = read("teacher-tour.js"), tourSrc23 = read("tour.js");
+    const fresh = (src, extra) => { const m = { exports: {} }; require("vm").runInNewContext(src, Object.assign({ module: m, URLSearchParams, console }, extra)); return m.exports; };
+    const sentences = (t) => (t.match(/[.!?](\s|$)/g) || []).length;
+    // A tiny page (as the tutorial tests'): elements, clicks, focus and the document's keydown listeners.
+    const fakeDoc = (byId) => {
+      const listeners = {};
+      const doc = { activeElement: null, byId: byId || {},
+        createElement: (tag) => mkEl(tag), querySelectorAll: () => [], querySelector: () => null, getElementById(id) { return this.byId[id] || null; },
+        addEventListener(t, f) { (listeners[t] = listeners[t] || []).push(f); }, removeEventListener(t, f) { listeners[t] = (listeners[t] || []).filter((x) => x !== f); },
+        key(k) { (listeners.keydown || []).slice().forEach((f) => f({ key: k, target: doc.activeElement, preventDefault() {} })); }, listeners };
+      function mkEl(tag) {
+        const classes = new Set();
+        const el = { tagName: tag, children: [], parent: null, attrs: {}, hidden: false, disabled: false, textContent: "", className: "", id: "", dataset: {}, handlers: {},
+          classList: { add: (c) => classes.add(c), remove: (c) => classes.delete(c), contains: (c) => classes.has(c) },
+          setAttribute(n, v) { this.attrs[n] = v; }, appendChild(c) { c.parent = this; this.children.push(c); return c; },
+          remove() { if (this.parent) { this.parent.children = this.parent.children.filter((x) => x !== this); this.parent = null; } },
+          addEventListener(t, f) { (this.handlers[t] = this.handlers[t] || []).push(f); },
+          click() { if (!this.disabled) (this.handlers.click || []).forEach((f) => f({ target: this, preventDefault() {} })); },
+          focus() { doc.activeElement = this; }, contains(x) { for (let n = x; n; n = n.parent) if (n === this) return true; return false; } };
+        return el;
+      }
+      doc.body = mkEl("body");
+      return doc;
+    };
+    const cardOf = (doc) => doc.body.children.find((c) => c.className === "tour-card");
+    const skipOf = (card) => card.children.find((c) => c.className === "tour-buttons").children[2];
+    const memStore = () => { const m = {}; return { m, getItem: (k) => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, removeItem: (k) => { delete m[k]; } }; };
+    const blocked = { getItem() { throw new Error("blocked"); }, setItem() { throw new Error("blocked"); }, removeItem() { throw new Error("blocked"); } };
+
+    // ---------- Feature 1: the teacher tour ----------
+    const TT = fresh(ttSrc), Tour23 = fresh(tourSrc23);
+    const pages = ["students", "homework", "assignments", "misconceptions", "leaderboards", "certificates", "reports", "tasks", "classes", "settings"];
+    const onServer = ["homework", "assignments", "classes", "settings"];
+    const back = TT.stepsFor(true), local = TT.stepsFor(false);
+    check(TT.STEPS.map((s) => s.id).join() === "overview," + pages.join() && back.concat(local).every((s) => sentences(s.text) === 2 && s.text.length <= 140 && s.title && s.targets.length) &&
+      pages.every((p) => TT.STEPS.find((s) => s.id === p).targets[0] === '.side-nav a[data-page="' + p + '"]' && th.includes('data-page="' + p + '"')) &&
+      local.filter((s) => onServer.includes(s.id)).every((s) => /server/.test(s.text)) && back.every((s) => !/server/.test(s.text)) &&
+      local.filter((s) => !onServer.includes(s.id)).every((s) => s.text === back.find((b) => b.id === s.id).text),
+      "Teacher tour: an overview step, then one step for each page in the menu's order (Students … Settings), each two short sentences pointing at that page's menu link; in local mode the Homework, Assignments, Classes and Settings steps say those pages need the server");
+    const store1 = memStore();
+    const d1 = fakeDoc();
+    const first = TT.start({ Tour: Tour23, doc: d1, storage: store1, backend: true, auto: true });
+    const openedFirst = !!first && !!cardOf(d1) && !TT.seen(store1);
+    skipOf(cardOf(d1)).click();
+    const closedSeen = !cardOf(d1) && store1.m[TT.KEY] === "seen";
+    const again = TT.start({ Tour: Tour23, doc: fakeDoc(), storage: store1, backend: true, auto: true });
+    const d2 = fakeDoc();
+    const replayed = TT.start({ Tour: Tour23, doc: d2, storage: store1, backend: true, auto: false });
+    const replayOpen = !!replayed && !!cardOf(d2) && replayed.index() === 0;
+    d2.key("Escape");
+    const store2 = memStore();
+    const d3 = fakeDoc();
+    const t3 = TT.start({ Tour: Tour23, doc: d3, storage: store2, backend: false, auto: true });
+    for (let k = 0; k < TT.STEPS.length; k++) t3.next(); // to the end: Finish
+    check(openedFirst && closedSeen && again === null && replayOpen && !cardOf(d2) && store2.m[TT.KEY] === "seen" && !cardOf(d3) &&
+      TT.start({ Tour: Tour23, doc: fakeDoc(), storage: blocked, backend: true, auto: true }) === null && !TT.seen(blocked) && TT.remember(blocked) === false &&
+      !!TT.start({ Tour: Tour23, doc: fakeDoc(), storage: blocked, backend: true, auto: false }),
+      "Teacher tour: it opens by itself the first time only; closing it (Skip, Escape) or finishing it marks it seen on this browser, so it never opens by itself again; Replay opens it from step 1 at any time; with storage blocked it never opens by itself (every storage error caught), and Replay still works");
+    // The wiring: once per page load, and only when the teacher view is on show (backend mode: after signing in).
+    const TTw = fresh(ttSrc);
+    const main = { hidden: true };
+    const store3 = memStore();
+    const page = { Tour: fresh(tourSrc23), localStorage: store3, document: fakeDoc({ "teacher-main": main }) };
+    const beforeSignIn = TTw.maybeStart(page, true);
+    main.hidden = false;
+    const afterSignIn = TTw.maybeStart(page, true);
+    const secondDraw = TTw.maybeStart(page, true);
+    check(beforeSignIn === null && !!afterSignIn && secondDraw === null && /if \(self\.TeacherTour\) self\.TeacherTour\.maybeStart\(window, !!tb\);/.test(tj) &&
+      /<button type="button" id="tour-replay" class="secondary">Replay tour<\/button>/.test(th) && th.indexOf('id="tour-replay"') > th.indexOf('id="page-settings"') &&
+      /\$\("tour-replay"\)\.addEventListener\("click", \(\) => \{ if \(self\.TeacherTour\) self\.TeacherTour\.replay\(window, !!tb\); \}\);/.test(tj) &&
+      /const KEY = "pythonPractice\.teacherTour";/.test(ttSrc) && !/localStorage\.(get|set)Item/.test(ttSrc.replace(/storage\.(get|set|remove)Item/g, "")),
+      "Teacher tour: teacher.js starts it when a page is drawn with the teacher view on show (not before signing in), once per page load; Settings has a Replay tour button wired to it");
+
+    // ---------- Feature 2: stars and the re-secure bonus ----------
+    const DAY = 86400000, T0 = Date.parse("2026-09-01T09:00:00Z");
+    const pass = (d, extra) => Object.assign({ kind: "attempt", result: "pass", hints: 0, phase: "practice", taskLevel: 10, unit: "maths", at: new Date(T0 + d * DAY).toISOString() }, extra);
+    // Secured (two passes), then k returns to 100%, each 8 days after the last (the unit had dropped to 90%).
+    const history = (k) => [pass(0), pass(0.1)].concat(Array.from({ length: k }, (_, i) => pass(8 * (i + 1))));
+    const after = (k) => T0 + (8 * k + 1) * DAY;
+    const starsFor = (k) => S23.stars(S23.score(history(k), "maths", after(k)));
+    const keptFresh = S23.stars(S23.score([pass(0), pass(0.1), pass(3), pass(6)], "maths", T0 + 7 * DAY)); // passes while still at 100%: no drop, no star
+    const html3 = S23.starsHtml(3), html0 = S23.starsHtml(0), html9 = S23.starsHtml(9);
+    check([0, 1, 2, 3, 4, 5, 6, 7].map(starsFor).join() === "0,1,2,3,4,5,5,5" && keptFresh === 0 && S23.stars(S23.score([pass(0)], "maths", T0 + DAY)) === 0 && S23.stars(null) === 0 &&
+      S23.score(history(5), "maths", after(5)).floor === 100 && S23.score(history(4), "maths", after(4)).floor === 90,
+      "Stars: one each time a unit comes back to 100% after it has dropped (0 to 5, capped at 5); a unit that has never dropped, or isn't secured, has 0; five stars is when the floor reaches 100%");
+    check((html3.match(/class="star star-on"/g) || []).length === 3 && (html3.match(/<svg class="star/g) || []).length === 5 && /role="img" aria-label="3 of 5 stars"/.test(html3) &&
+      (html0.match(/star-on/g) || []).length === 0 && /aria-label="0 of 5 stars"/.test(html0) && (html9.match(/star-on/g) || []).length === 5 && /aria-label="5 of 5 stars"/.test(html9) &&
+      /aria-hidden="true" focusable="false"/.test(html3) && /\.unit-stars \.star\.star-on \{ fill: var\(--rag-gold\); stroke: var\(--text\); \}/.test(read("styles.css")),
+      "Stars: a unit card shows five star outlines, the first n filled (0 to 5), read out to a screen reader as \"3 of 5 stars\"");
+    check(/self\.Secured\.starsHtml\(self\.Secured\.stars\(sec\)\)/.test(read("home.js")) && /self\.Secured\.starsHtml\(x\.stars\)/.test(read("progress.js")) &&
+      /self\.Secured\.starsText\(x\.stars\)/.test(read("progress.js")) && /self\.Secured\.starsHtml\(pts\.units\[u\]\.stars\)/.test(tj),
+      "Stars: the same star row is on the home page's unit cards, My progress (and in its cards' spoken label) and the teacher's student page");
+    const placed10 = { level: 10, placement: { status: "done", startLevel: 7 } };
+    const units23 = [{ id: "maths", placement: true }, { id: "selection", placement: true }];
+    const pointsFor = (attempts) => S23.studentPoints({ units: units23, current: { maths: placed10 }, attempts, history: {}, now: after(7) });
+    const noReturns = pointsFor(history(0)), three = pointsFor(history(3)), seven = pointsFor(history(7));
+    check(noReturns.bonus === 0 && three.bonus === 30 && three.units.maths.bonus === 30 && three.units.maths.stars === 3 && seven.bonus === 50 && seven.units.maths.stars === 5 &&
+      [noReturns, three, seven].every((p) => p.level === 100 && p.units.maths.total <= S23.UNIT_POINTS_MAX && p.total === p.secured + p.level) &&
+      three.secured === S23.securedPoints(S23.score(history(3), "maths", after(7))) && seven.secured === S23.securedPoints(S23.score(history(7), "maths", after(7))) &&
+      S23.RESECURE_POINTS === 10 && S23.RESECURE_BONUS_MAX === 50,
+      "Re-secure bonus: 10 points each re-secure, at most 50 a unit; the secured and level points (and the 300 a unit) don't change");
+    const certificatesSrc = read("certificates.js");
+    check(!/stars|resecure|bonus/i.test(certificatesSrc), "Stars and the re-secure bonus don't change certificates (certificates.js doesn't use them)");
+
+    // ---------- Feature 3: endless programme points ----------
+    let seq = 0;
+    const prog = (hints, extra) => Object.assign({ kind: "attempt", result: "pass", hints, phase: "endless", taskLevel: 10, taskType: "write", unit: "maths",
+      taskId: "maths-L10" + "abcdefgh"[seq], at: new Date(T0 + 30 * DAY + seq++ * 60000).toISOString() }, extra);
+    const sixPasses = [0, 1, 2, 3, 4, 7].map((h) => prog(h));
+    const p6 = S23.programmes(sixPasses, T0 + 40 * DAY);
+    check(p6.list.map((p) => p.points).join() === "50,40,30,20,10,10" && p6.count === 6 && p6.points === 160 &&
+      [0, 1, 2, 3, 4, 9].map(S23.programmePointsFor).join() === "50,40,30,20,10,10",
+      "Programme points: 50, 40, 30, 20 and 10 for 0, 1, 2, 3 and 4 or more hints (never under 10)");
+    seq = 0;
+    const firstWith3 = prog(3, { taskId: "maths-L10a" });
+    const repeat0 = prog(0, { taskId: "maths-L10a" });   // the same programme again, later, with no hints
+    const showHow = prog(1, { taskId: "maths-L10b", hintType: "show-me-how" });
+    const variantA = prog(0, { taskId: "d-maths-L10a#1", fingerprint: "fp-1" }), variantSame = prog(0, { taskId: "d-maths-L10a#1", fingerprint: "fp-1" }), variantB = prog(0, { taskId: "d-maths-L10a#2", fingerprint: "fp-2" });
+    const scratch = prog(0, { taskId: "scratch-out-bar", taskType: "scratch" });
+    const notCounted = [prog(0, { taskId: "x1", phase: "practice" }), prog(0, { taskId: "x2", taskLevel: 9 }), prog(0, { taskId: "x3", taskType: "trace" }), prog(0, { taskId: "x4", taskType: "parsons" }),
+      prog(0, { taskId: "x5", result: "fail" }), prog(0, { taskId: "x6", kind: "hint" }), prog(0, { taskId: "x7", phase: "assignment" })];
+    const mixed = S23.programmes([repeat0, firstWith3, showHow, variantA, variantSame, variantB, scratch].concat(notCounted), T0 + 40 * DAY);
+    check(mixed.count === 5 && mixed.list.find((p) => p.key === "maths-L10a").points === 20 && mixed.list.find((p) => p.key === "maths-L10b").points === 30 &&
+      mixed.list.filter((p) => p.key.startsWith("fp-")).length === 2 && mixed.points === 20 + 30 + 50 + 50 + 50 &&
+      S23.programmes([firstWith3, repeat0], T0 + 40 * DAY).points === S23.programmes([firstWith3], T0 + 40 * DAY).points,
+      "Programme points: only the first pass of each programme counts (a repeat gives no points, even with fewer hints; the same made-up variant twice is one programme); \"Show me how\" counts as a hint; only level 10 write and write-from-scratch passes in endless mode count");
+    const base = pointsFor(history(3)), withProg = pointsFor(history(3).concat(sixPasses));
+    check(withProg.programme === 160 && withProg.programmes === 6 && withProg.secured === base.secured && withProg.level === base.level && withProg.total === base.total &&
+      withProg.gain === base.gain && withProg.units.maths.total <= S23.UNIT_POINTS_MAX && S23.maxPoints(units23.length) === 300 * units23.length &&
+      withProg.combined > S23.maxPoints(1),
+      "Programme points are a separate total: they don't change the secured or level points, the 300 a unit or the most possible (maxPoints), nor the 14-day gain, and the combined total can go past the most possible");
+    check([noReturns, three, seven, base, withProg].every((p) => p.combined === p.secured + p.level + p.programme + p.bonus) && withProg.combined === withProg.secured + withProg.level + 160 + 30,
+      "Combined total = secured + level + programme points + re-secure bonus");
+    // The teacher view's local boards and the student's pages use the same totals.
+    const data23 = { students: { a: { name: "Ann" } }, progress: { a: { units: { maths: placed10 } } }, attempts: history(3).concat(sixPasses).map((x) => Object.assign({ studentId: "a" }, x)),
+      levelLog: [], buttonLog: [], placementLog: [], units: Curriculum.UNITS };
+    const lbRow = TD23.leaderboardStudents(data23, units23, after(7))[0];
+    check(lbRow.total === withProg.combined && lbRow.secured === withProg.secured && lbRow.level === withProg.level && lbRow.programme === 160 && lbRow.bonus === 30 && lbRow.gain === withProg.gain &&
+      /\$\("programmes-count"\)\.textContent = self\.Secured\.programmesText\(self\.Secured\.programmes\(attempts\)\.count\)/.test(read("progress.js")) && /id="programmes-count"/.test(read("progress.html")) &&
+      /self\.Secured\.programmesText\(pts\.programmes\)/.test(tj) && S23.programmesText(12) === "12 programmes completed" && S23.programmesText(1) === "1 programme completed",
+      "Programmes: the teacher's local boards carry the four totals and rank by the combined one; My progress and the teacher's student page say \"12 programmes completed\"");
+    const lbHtml = read("leaderboard.html"), lbJs = read("leaderboard.js");
+    const order = ["me-secured", "me-level", "me-programme", "me-bonus", "me-total"].map((id) => lbHtml.indexOf('id="' + id + '"'));
+    check(order.every((x, i) => x > 0 && (i === 0 || x > order[i - 1])) && /\$\("me-total"\)\.textContent = total\(me\.total\);/.test(lbJs) && /\$\("me-programme"\)\.textContent = thousands\(me\.programme \|\| 0\);/.test(lbJs) &&
+      /Your points are all four added together\./.test(lbHtml) && /"Show me how" counts as a hint/.test(lbHtml) && /up to 50 points/.test(lbHtml) &&
+      /Programme points: each level 10 writing task/.test(th) && /Most improved still counts only secured and level points\./.test(th),
+      "Leaderboards: the student's page shows secured, level, programme and re-secure bonus points, then the combined total (the number only, \"12,400\", since prompt 24); its notes and the teacher's Leaderboards notes give the two new totals");
   }
 
   // ===================== Selection, trimmed =====================

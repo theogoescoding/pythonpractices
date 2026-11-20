@@ -12,14 +12,15 @@
 //                                           homework must be one of the student's own class's, or that row is rejected)
 //   mark_passed { unit, fingerprint }
 //   rename_me { pin, nickname }        -> { nickname }  the student changes their own nickname, after typing their PIN
-//   leaderboard                        -> { boards: { overall, improving }, me: { secured, level, total, gain }, max }  their own class only:
-//                                           each row { rank, nickname, points, percent, me } (no unit detail, attempts or codes)
+//   leaderboard                        -> { boards: { overall, improving }, me: { secured, level, programme, bonus, programmes, total, gain }, max }
+//                                           their own class only: each row { rank, nickname, points, percent, me } (no unit detail,
+//                                           attempts or codes). points = the combined total (secured + level + programme + re-secure bonus)
 //   delete_my_progress                 deletes the student and everything saved for them
 
 import { lookupHash, pinMatches, verifyToken } from "../_shared/crypto.ts";
 import { check, db, HttpError, serve } from "../_shared/http.ts";
 import { NICKNAME_RULES, nicknameBlocked, validNickname } from "../_shared/nickname.ts";
-import { boards, classPoints } from "../_shared/points.ts";
+import { classPoints, studentBoard } from "../_shared/points.ts";
 import { checkAttempts, checkEvents, insertRows, PROGRESS_UNITS, Rejected, UNITS } from "../_shared/rows.ts";
 // The homework rule is the site's own (homework.js); homework-server.js reads and saves it. Both are plain scripts
 // (tests/backend-client.js runs the same files in Node): they set globalThis.Homework and globalThis.HomeworkServer.
@@ -196,13 +197,11 @@ const actions: Record<string, (sid: string, body: Record<string, unknown>) => Pr
   },
 
   // The student's own class's two boards (worked out here: a student can't read other students' rows). The class is
-  // always the student's own: nothing in the request can name another. Each row has only the nickname, the points, the
-  // percentage and whether it is the student's own; "me" adds their own secured, level and total points and gain.
+  // always the student's own: nothing in the request can name another. Each row has only the nickname, the combined
+  // points, the percentage and whether it is the student's own; "me" adds their own secured, level, programme and
+  // re-secure bonus totals, programme count, combined total and gain (points-server.js studentBoard).
   async leaderboard(sid) {
-    const all = await classPoints(await classOf(sid));
-    const me = all.find((s) => s.id === sid);
-    const b = boards(all.map((s) => ({ nickname: s.nickname, total: s.total, gain: s.gain, unitCount: s.unitCount, me: s.id === sid })), false);
-    return { boards: b, me: me ? { secured: me.secured, level: me.level, total: me.total, gain: me.gain } : null, max: 300 * (me ? me.unitCount : 0) };
+    return studentBoard(await classPoints(await classOf(sid)), sid);
   },
 
   async delete_my_progress(sid) {

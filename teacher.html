@@ -243,6 +243,11 @@
           Level points: up to 100, 10 for each level of a placed unit (level 10 gives 100; a unit not started, or with its placement to do, gives 0).
           <strong>Most improved</strong> is the points gained in the last 14 days: today's total minus the total 14 days ago, worked out from the saved attempts and level changes.
           Students with the same points share a place. Students see their own class's boards, with nicknames only.</p>
+        <p class="small"><strong>Two more totals</strong> come on top of the 300 a unit (prompt 23).
+          Programme points: each level 10 writing task (write, or write from scratch) a student passes in endless mode gives 50 points the first time, less 10 for each hint used on that pass ("Show me how" counts as one), and never under 10. A repeat gives nothing; time isn't counted.
+          Re-secure bonus: 10 points each time a unit drops and the student brings it back to 100% (one star on the unit), up to 5 stars, so up to 50 points a unit.
+          The Most points board shows secured, level, programme and re-secure bonus points, then the combined total (all four added) as a number only, such as 12,400: it has no limit. Secured and level points give up to 300 a unit (12,000 for 40 units); the % column is the combined total out of that, so it can go past 100%.
+          Most improved still counts only secured and level points. Stars don't change certificates.</p>
       </details>
       <section class="teacher-section" data-collapse="lb-class">
         <h3>This class</h3>
@@ -252,7 +257,7 @@
       </section>
       <section class="teacher-section" data-collapse="lb-all">
         <h3>All my classes</h3>
-        <p class="small">Every student in all your classes, with their class. Ranked by percentage: points ÷ (300 × units) × 100, so classes can be compared fairly.
+        <p class="small">Every student in all your classes, with their class. Ranked by percentage: combined points ÷ (300 × units) × 100, so classes can be compared fairly.
           Most improved uses the points gained the same way.</p>
         <p><button type="button" id="lb-all-load" class="secondary">Show all my classes</button></p>
         <p id="lb-all-status" class="small" role="status"></p>
@@ -316,7 +321,8 @@
       <h3>Secured score per unit</h3>
       <div id="sd-scores" class="score-bars"></div>
       <h3>Points per unit</h3>
-      <p class="small">The points used on the Leaderboards page: secured points (up to 200) and level points (up to 100) for each unit, up to 300 a unit.</p>
+      <p class="small">The points used on the Leaderboards page: secured points (up to 200) and level points (up to 100) for each unit, up to 300 a unit.
+        The re-secure bonus (10 a star, up to 50 a unit) and the endless programme points come on top, in the combined total.</p>
       <div id="sd-points" class="unit-points"></div>
       <section class="certificates-panel" aria-labelledby="sd-certs-h">
         <h3 id="sd-certs-h">Certificates</h3>
@@ -550,6 +556,12 @@
         <p><button type="submit" class="primary">Save password</button></p>
         <p id="pw-status" role="alert" hidden></p>
       </form>
+      <!-- The teacher tour (teacher-tour.js, prompt 23): it opens by itself once on this browser; this opens it again. -->
+      <section class="task-card name-card" aria-labelledby="tour-h">
+        <h3 id="tour-h">Teacher tour</h3>
+        <p class="small">A short tour of each page of the teacher view.</p>
+        <p><button type="button" id="tour-replay" class="secondary">Replay tour</button></p>
+      </section>
     </section>
     </div>
     </div>
@@ -571,6 +583,8 @@
   <script src="backend-import.js"></script>
   <script src="teacher-backend.js"></script>
   <script src="collapse.js"></script>
+  <script src="tour.js"></script>
+  <script src="teacher-tour.js"></script>
   <script src="teacher.js"></script>
 </body>
 </html>

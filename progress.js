@@ -28,10 +28,15 @@ Store.whenReady(function () {
     const secured = skills.filter((x) => skillStatus(x.state) === "secured").length;
     // The unit's score and what it means for the student (secured.js): placed units only, as on the unit cards.
     const sec = s && !needsPlacement(s) ? self.Secured.score(attempts, u.id) : { secured: false };
-    return { s, total: mine.length, passed, percent: mine.length ? Math.round((passed / mine.length) * 100) : 0, skills, secured, sec, note: self.Secured.studentNote(sec) };
+    // Stars (prompt 23): one each time the unit came back to 100%, on a placed unit only (as on the unit cards).
+    const placed = !!s && !needsPlacement(s);
+    return { s, total: mine.length, passed, percent: mine.length ? Math.round((passed / mine.length) * 100) : 0, skills, secured, sec, note: self.Secured.studentNote(sec),
+      placed, stars: self.Secured.stars(sec) };
   }
 
   function renderOverview() {
+    // Endless mode's programmes (prompt 23): the first pass of each level 10 writing task, from this student's attempts.
+    $("programmes-count").textContent = self.Secured.programmesText(self.Secured.programmes(attempts).count) + " in endless mode.";
     // The old Validation unit only once the student has started it (Curriculum.studentSeesUnit), as on the home page.
     $("progress-cards").innerHTML = UNITS.filter((u) => tasks.some((t) => t.unit === u.id) && self.Curriculum.studentSeesUnit(u.id, progress, attempts)).map((u) => {
       const x = summary(u);
@@ -39,7 +44,7 @@ Store.whenReady(function () {
       const toDo = self.Secured.placementToDo(x.s);
       const level = self.Secured.levelText(x.s) || "Not started";
       return '<li><button type="button" class="unit-card" data-unit="' + u.id + '" aria-label="' +
-        esc(self.Curriculum.studentUnitTitle(u.id) + ": " + level + ", " + x.percent + "% of tasks passed, " + x.secured + " of " + u.skills.length + " skills mastered. " + x.note + " Show skills.") + '">' +
+        esc(self.Curriculum.studentUnitTitle(u.id) + ": " + level + ", " + x.percent + "% of tasks passed, " + x.secured + " of " + u.skills.length + " skills mastered. " + (x.placed ? self.Secured.starsText(x.stars) + ". " : "") + x.note + " Show skills.") + '">' +
         "<h3>" + esc(self.Curriculum.studentUnitTitle(u.id)) + "</h3>" +
         '<div class="stat-row">' +
           '<span class="stat"><strong>' + esc(level) + "</strong>" + (x.s && !toDo ? esc(levelName(x.s.level, u.id)) : "&nbsp;") + "</span>" +
@@ -47,6 +52,7 @@ Store.whenReady(function () {
           '<span class="stat"><strong>' + x.secured + " / " + u.skills.length + "</strong>skills mastered</span>" +
         "</div>" +
         (x.s && x.s.completedTop ? '<p class="unit-meta"><span class="status status-secured">Unit completed – endless mode unlocked</span></p>' : "") +
+        (x.placed ? '<p class="unit-stars-row">' + self.Secured.starsHtml(x.stars) + "</p>" : "") +
         '<p class="score-note">' + esc(x.note) + "</p>" +
         "</button></li>";
     }).join("");

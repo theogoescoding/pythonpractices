@@ -117,7 +117,7 @@ A class can have more than one teacher. Its owner (the teacher who made it, `cla
 | Paste flag details: `events.paste_phase`, `paste_lines` and `paste_homework_id` (null unless the row is a paste flag; the homework must be the student's own class's) | `supabase/migrations/0019_paste_flag_details.sql` |
 | The Debugging (GCSE) unit (`debugging-gcse`) in every table's unit check | `supabase/migrations/0020_debugging_gcse_unit.sql` |
 | `teacher-api` (teacher's Supabase sign-in): reveal codes, reset PIN, reset placement, rename a student, the class's leaderboards and All my classes, add, remove and list a class's teachers, certificates, homework (list, create, delete, report), the class's large paste flags (`paste_flags_for_class`), the class's recent failed checks for Needs review (`review_candidates_for_class`), import | `supabase/functions/teacher-api/` |
-| Shared function code: CORS, crypto, nickname filter, row checks, points and leaderboards (`points.ts`, which loads `curriculum.js` and `secured.js` themselves), class sharing (`class-sharing.js`), certificates (`certificates-server.js`) and homework (`homework-server.js`, with `homework.js`), plain scripts the Node tests run too | `supabase/functions/_shared/` |
+| Shared function code: CORS, crypto, nickname filter, row checks, points and leaderboards (`points.ts`, which loads `curriculum.js` and `secured.js` themselves, with `points-server.js` doing the work), class sharing (`class-sharing.js`), certificates (`certificates-server.js`) and homework (`homework-server.js`, with `homework.js`), plain scripts the Node tests run too | `supabase/functions/_shared/` |
 | Student side | `backend.js`, with `backend-rows.js` (local records ⇄ table rows) |
 | Teacher side | `teacher-backend.js`, with `backend-import.js` (reading a full export) |
 
@@ -816,6 +816,14 @@ A walkthrough over the real screen, one step at a time, on the student pages onl
 - The card sits at the bottom of the screen (16px from each side, at most 28rem wide), never as a backdrop. Skip closes it at any step, Escape closes it, and the arrow keys move between steps. Closing removes everything it added and gives focus back.
 - What has been seen is kept in this browser only, per student, under `pythonPractice.tutorial.<student id>`, with every storage error caught. If storage is blocked nothing opens by itself (it couldn't be remembered); Help still works.
 
+### Teacher tour (`teacher-tour.js`, prompt 23)
+
+The same overlay (`tour.js` `Tour.run`) on the teacher view: an overview step on the side menu, then one step for each page in the menu's order (Students, Homework, Assignments, Misconceptions, Leaderboards, Certificates, Reports, Task browser, Classes, Settings), each two short sentences pointing at that page's menu link (on a phone, at the closed menu's button).
+- It opens by itself the first time the teacher view is shown on this browser (in backend mode, after signing in), and never again on this browser once it has been closed (Skip or Escape) or finished. That is kept under `pythonPractice.teacherTour`, with every storage error caught: if storage is blocked it never opens by itself.
+- **Settings** has a **Replay tour** button that opens it from step 1.
+- In local mode the steps for Homework, Assignments, Classes and Settings say that those pages need the server. Local mode hides Settings from the menu (review finding S10), so its step says to open `teacher.html#settings` to replay the tour.
+- The student tutorial itself still never runs on the teacher view: `teacher.html` loads `tour.js` only for the overlay.
+
 ## Teacher view
 
 **Teachers start from the home page.** Its **New teacher** and **Returning teacher** buttons open `teacher.html#signup` and `teacher.html#signin`. The student pages (`app.html`, `practice.html`, `progress.html`, `endless.html`) have no "Teacher view" link, so a signed-in student is never pointed at it. A feature test checks that no student page, and no script one loads, links to it.
@@ -936,17 +944,22 @@ The rule format: `{ "id": "rev-…", "name", "description", "added": "YYYY-MM-DD
 
 ### Points and leaderboards
 
-One rule, in `secured.js` (`studentPoints`, `boards`), used by the student page, the teacher view and the server (`supabase/functions/_shared/points.ts` loads `secured.js` and `curriculum.js` themselves).
+One rule, in `secured.js` (`studentPoints`, `boards`), used by the student page, the teacher view and the server (`supabase/functions/_shared/points.ts` loads `secured.js` and `curriculum.js` themselves, and `points-server.js` does the work: a plain script the Node tests run too).
 
 - **Per unit, up to 300 points:**
   - **Secured points, up to 200:** 2 for each percent of the unit's secured score. 100% gives 200, 50% gives 100. A secured score never falls below 50%, and anything under 50% would count as 50%, so a secured unit is worth at least 100. A unit that isn't secured, or isn't placed, gives 0.
   - **Level points, up to 100:** 10 for each level of a placed unit, so level 10 gives 100. Not started, or its placement still to do: 0.
 - **A student's total** is the sum over all 40 units, whatever the class's stage (as on the Students page): at most 12,000. Every maximum and percentage uses the number of units in `curriculum.js`, never a fixed number, so adding a unit (Debugging (GCSE) made it 40) changes them by itself.
 - **Most improved** is the gain over the last 14 days: today's total minus the total 14 days ago. The total 14 days ago is worked out from the saved records, with no snapshot table: the secured score at that moment (`score()` with that time, so the weekly drop is counted to then) and the level from the level changes and placement results (`levelAt`). A unit with no placement test counts as placed from the student's first record in it.
-- **Percentage** (for comparing classes): points ÷ (300 × units) × 100, one decimal place. For example 6,000 points over 40 units is 6,000 ÷ 12,000 × 100 = 50.0%, and a gain of 240 points is 2.0%.
-- **Students** (backend mode only): a **Leaderboard** button next to My progress opens `leaderboard.html`: their own points (secured, level, total and the last 14 days) and their class's two boards, **Most points** and **Most improved**, ranked by points, with nicknames only, their own row highlighted, and ties sharing a place. It comes from student-api `leaderboard`, which always uses the student's own class.
-- **Teachers:** the **Leaderboards** page has this class's two boards (teacher-api `leaderboards`, ranked by points) and **All my classes** (teacher-api `leaderboards_all`: every class they own, with the class name, ranked by percentage). A student's page shows their secured, level and total points for each unit. In local mode the same rule runs on this browser's records.
-- The server sends only nicknames, class names (teacher views), points and percentages: no unit detail, attempts, codes or PINs.
+- **Two more totals, on top of the 300 a unit** (prompt 23, 2026-11). Both are worked out from the attempts already stored, like the certificates and the 14-day board: no new table, column or migration.
+  - **Re-secure bonus:** 10 points each time a unit drops and the student brings it back to 100% (`Secured.stars`: `score()`'s `timesAt100` − 1, at most 5 stars), so at most 50 a unit (`resecureBonus`). Five stars is the moment the unit's floor reaches 100%. The secured and level points don't change, and stars don't change certificates.
+  - **Programme points:** a programme is a level 10 write task (type `write` or `scratch`, "write from scratch") passed in endless mode. Only its first pass counts (the same programme is the app's `fingerprintOf`: a made-up variant's fingerprint, or the task id); a repeat earns nothing. Its points are 50 less 10 for each hint used on that pass, "Show me how" counting as one, and never under 10 (0 hints 50, 1 40, 2 30, 3 20, 4 or more 10). Time isn't counted (`Secured.programmes`).
+  - **Combined total** = secured + level + programme points + re-secure bonus. It ranks the **Most points** board and is shown as a number only, such as "12,400" (since prompt 24: programme points and the bonus have no limit, so the combined total has none). The notes still give the 300-a-unit maximum ("12,000" for 40 units), and the **%** column is still the combined total out of it, so it can go past 100% (for example "103.3%"). **Most improved** is unchanged: the 14-day gain of secured and level points.
+  - **Stars** show on each placed unit's card: five outlines, one filled for each star, read out as "3 of 5 stars" (`Secured.starsHtml`), on the home page, My progress and the teacher's student page. My progress, the student's Leaderboard page and the teacher's student page say how many programmes the student has completed ("12 programmes completed").
+- **Percentage** (for comparing classes): combined points ÷ (300 × units) × 100, one decimal place. For example 6,000 points over 40 units is 6,000 ÷ 12,000 × 100 = 50.0%, and a gain of 240 points is 2.0%.
+- **Students** (backend mode only): a **Leaderboard** button next to My progress opens `leaderboard.html`: their own points (secured, level, programme points, re-secure bonus, then the combined total, the last 14 days and their programme count) and their class's two boards, **Most points** and **Most improved**, ranked by points, with nicknames only, their own row highlighted, and ties sharing a place. It comes from student-api `leaderboard`, which always uses the student's own class.
+- **Teachers:** the **Leaderboards** page has this class's two boards (teacher-api `leaderboards`, ranked by points) and **All my classes** (teacher-api `leaderboards_all`: every class they own, with the class name, ranked by percentage). The Most points boards show the secured, level, programme and re-secure bonus totals, then the combined points (a server not yet updated shows "–" for the four). A student's page shows their secured, level, total and re-secure bonus points for each unit, their stars, their programme count and points, and the combined total. In local mode the same rule runs on this browser's records.
+- The server sends only nicknames, class names (teacher views), points and percentages: no unit detail, attempts, codes or PINs. A student gets their own separate totals; other students' rows on their board have only the nickname, the combined points and the place.
 
 ### Certificates
 
@@ -1018,7 +1031,7 @@ The finding IDs are those in `review-report.md` and `fix-soon-plan.md`. Display 
 - **L7:** the Misconceptions page opens on **All units**.
 - **S2:** a class with no students shows "No students yet. They join with the class code …" (local mode: "No students yet. Students appear here once they use this browser.") instead of the tiles, help and tables.
 - **T1:** unchanged by decision: the tiles still count each student by their average.
-- **T2:** the leaderboards show each total as "630 of 12,000": the points out of the most possible (300 a unit, every unit, the leaderboard rule). Display only.
+- **T2:** the leaderboards show each total as "630 of 12,000": the points out of the most possible (300 a unit, every unit, the leaderboard rule). Display only. (Since prompt 24 the combined total is the number only, "12,400", as it has no limit.)
 - **T3:** the teacher's student page shows a bar for any started unit outside the class's stage, tagged "(not in this class's stage)" and not in the average; Reset placement lists only started units ("No unit started yet" when there are none); the points table says "Points count every unit, as on the Leaderboards page."
 
 ### "Later" changes (2026-11, review report group 3, prompt 21)

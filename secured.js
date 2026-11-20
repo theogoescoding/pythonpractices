@@ -147,6 +147,57 @@
     return started && Date.parse(started) <= at ? { placed: true, level: 1 } : { placed: false, level: null };
   }
 
+  // ---------- Stars and the re-secure bonus (added 2026-11, prompt 23; the rules above are unchanged) ----------
+  // A star each time a secured unit comes back to 100% after it has dropped: score()'s timesAt100 counts the first
+  // time it reached 100% and then each return, so the stars are timesAt100 - 1, at most 5. Worked out from the attempts,
+  // like the certificate (certificates.js) and the 14-day board: nothing new is stored. Five stars is the same moment
+  // the floor reaches 100% (FLOOR_START + 5 x FLOOR_STEP). Stars don't change certificates.
+  const STARS_MAX = 5;
+  const RESECURE_POINTS = 10;      // each re-secure
+  const RESECURE_BONUS_MAX = 50;   // a unit's bonus: at most 5 x 10
+  const stars = (sec) => (sec && sec.secured ? Math.max(0, Math.min(STARS_MAX, (sec.timesAt100 || 0) - 1)) : 0);
+  // The re-secure bonus of one unit: 10 points a star, at most 50. Separate from the 300 a unit (secured + level).
+  const resecureBonus = (sec) => Math.min(RESECURE_BONUS_MAX, RESECURE_POINTS * stars(sec));
+  const starsText = (n) => n + " of " + STARS_MAX + " stars";
+  // The unit card's stars: five outlines, the first n filled, read out as "3 of 5 stars" (one image to a screen reader).
+  const STAR_PATH = "M8 1.2l2.1 4.3 4.7.7-3.4 3.3.8 4.7L8 12l-4.2 2.2.8-4.7L1.2 6.2l4.7-.7z";
+  function starsHtml(n) {
+    const k = Math.max(0, Math.min(STARS_MAX, Math.round(n) || 0));
+    let out = '<span class="unit-stars" role="img" aria-label="' + starsText(k) + '">';
+    for (let i = 0; i < STARS_MAX; i++) out += '<svg class="star' + (i < k ? " star-on" : "") + '" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="' + STAR_PATH + '"/></svg>';
+    return out + "</span>";
+  }
+
+  // ---------- Endless programme points (added 2026-11, prompt 23) ----------
+  // A programme is a level 10 write task (a "write" or "write from scratch" task) passed in endless mode. Only its first
+  // pass counts: a repeat of the same programme earns nothing. The same programme is the app's own "same task"
+  // (app.js fingerprintOf): a made-up variant's fingerprint, or the task's id. Its points: 50, less 10 for each hint
+  // used on that pass ("Show me how" counts as one), never under 10. Time isn't counted. Worked out from the attempts.
+  const PROGRAMME_TYPES = ["write", "scratch"];
+  const PROGRAMME_POINTS_START = 50;
+  const PROGRAMME_POINTS_PER_HINT = 10;
+  const PROGRAMME_POINTS_MIN = 10;
+  const isProgrammePass = (a) => !!a && (a.kind || "attempt") === "attempt" && a.result === "pass" && a.phase === "endless" && a.taskLevel === 10 && PROGRAMME_TYPES.includes(a.taskType);
+  const programmeKey = (a) => a.fingerprint || a.taskId;
+  const programmeHints = (a) => (Number.isFinite(a.hints) && a.hints > 0 ? a.hints : 0) + (a.hintType === "show-me-how" ? 1 : 0);
+  const programmePointsFor = (hints) => Math.max(PROGRAMME_POINTS_MIN, PROGRAMME_POINTS_START - PROGRAMME_POINTS_PER_HINT * Math.max(0, hints || 0));
+  // -> { count, points, list: [{ key, unit, at, hints, points }] }, first passes only, up to `now` (ms, default now).
+  function programmes(attempts, now) {
+    const at = now == null ? Date.now() : now;
+    const firsts = new Map();
+    const passes = (attempts || []).filter(isProgrammePass).filter((a) => Number.isFinite(Date.parse(a.at)) && Date.parse(a.at) <= at)
+      .sort((x, y) => Date.parse(x.at) - Date.parse(y.at));
+    for (const a of passes) {
+      const key = programmeKey(a);
+      if (!key || firsts.has(key)) continue; // a repeat earns nothing
+      const hints = programmeHints(a);
+      firsts.set(key, { key, unit: a.unit, at: a.at, hints, points: programmePointsFor(hints) });
+    }
+    const list = [...firsts.values()];
+    return { count: list.length, points: list.reduce((n, p) => n + p.points, 0), list };
+  }
+  const programmesText = (n) => n + (n === 1 ? " programme" : " programmes") + " completed";
+
   // A student's points now and IMPROVING_DAYS (14) days ago, and the gain.
   //   now: the saved state of each unit (current[unit] = its state, or the server's { level, placement }) and the
   //        secured score now;
@@ -154,23 +205,31 @@
   //        so valueAt and fullWeeks count the weeks from the last pass to then).
   // o = { units: [{ id, placement (has a placement test) }], current, attempts (the app's records: unit, at, kind,
   //       result, hints, hintType, phase, taskLevel), history: { levels, placements, started }, now (ms, default now) }
-  // -> { secured, level, total, units: { id: { secured, level, total } }, before: { secured, level, total }, gain }
+  // -> { secured, level, total, units: { id: { secured, level, total, stars, bonus } }, before: { secured, level, total }, gain,
+  //      bonus, stars, programme, programmes, combined }
+  // total is secured + level (at most 300 a unit), and gain is its change over 14 days, as before. Added in prompt 23:
+  // bonus (the re-secure bonus, 10 a star, at most 50 a unit), programme (the endless programme points, from
+  // programmes()), programmes (how many) and combined = secured + level + programme + bonus (the Most points board).
   function studentPoints(o) {
     const now = o.now == null ? Date.now() : o.now;
     const then = now - IMPROVING_DAYS * DAY_MS;
     const out = { secured: 0, level: 0, total: 0, units: {}, before: { secured: 0, level: 0, total: 0 }, gain: 0 };
+    let bonus = 0, starCount = 0;
     for (const u of o.units) {
       const state = (o.current || {})[u.id];
       // A unit counts only while placed (as on the teacher's Students page: a reset placement shows no secured score).
       const placed = placedNow(state);
-      const p = unitPoints(placed ? score(o.attempts, u.id, now) : null, state ? state.level : null, placed);
+      const sec = placed ? score(o.attempts, u.id, now) : null;
+      const p = unitPoints(sec, state ? state.level : null, placed);
       const past = levelAt(u.id, u.placement, o.history || {}, then);
       const b = unitPoints(past.placed ? score(o.attempts, u.id, then) : null, past.level, past.placed);
-      out.units[u.id] = p;
+      out.units[u.id] = Object.assign(p, { stars: stars(sec), bonus: resecureBonus(sec) });
+      bonus += p.bonus; starCount += p.stars;
       for (const k of ["secured", "level", "total"]) { out[k] += p[k]; out.before[k] += b[k]; }
     }
     out.gain = out.total - out.before.total;
-    return out;
+    const prog = programmes(o.attempts, now);
+    return Object.assign(out, { bonus, stars: starCount, programme: prog.points, programmes: prog.count, combined: out.secured + out.level + prog.points + bonus });
   }
 
   // The most a student can have over unitCount units, and points as a percentage of it (one decimal place), so
@@ -200,5 +259,7 @@
 
   return { DAY_MS, WEEK_MS, DROP_PER_WEEK, keepByDate, studentDate, studentNote, PASSES_TO_SECURE, FLOOR_START, FLOOR_STEP, FLOOR_CAP, BANDS, band, levelBand, unitColour, isTopPass, score,
     SECURED_POINTS_PER_PERCENT, LEVEL_POINTS_PER_LEVEL, UNIT_POINTS_MAX, IMPROVING_DAYS, securedPoints, levelPoints, unitPoints, placedNow, PLACEMENT_TO_DO, placementToDo, levelText, levelAt, studentPoints,
-    maxPoints, normalised, ranked, boards };
+    maxPoints, normalised, ranked, boards,
+    STARS_MAX, RESECURE_POINTS, RESECURE_BONUS_MAX, stars, resecureBonus, starsText, starsHtml,
+    PROGRAMME_TYPES, PROGRAMME_POINTS_START, PROGRAMME_POINTS_PER_HINT, PROGRAMME_POINTS_MIN, isProgrammePass, programmeKey, programmeHints, programmePointsFor, programmes, programmesText };
 });

@@ -119,6 +119,8 @@
     $("set-local").hidden = !!tb;
     $("pw-form").hidden = !tb;
     document.querySelectorAll("[data-backend]").forEach((b) => { b.hidden = !tb; });
+    // The teacher tour (teacher-tour.js): once on this browser, the first time the teacher view is on show.
+    if (self.TeacherTour) self.TeacherTour.maybeStart(window, !!tb);
     if (p === "tasks") renderTaskBrowser(arg); // needs no class
     renderHomework(); // the class chosen at the top; does nothing unless the page is showing
     const data = collect();
@@ -286,26 +288,34 @@
   const POINT_UNITS = UNITS.map((u) => ({ id: u.id, placement: self.Curriculum.hasPlacement(u.id) }));
   const MAX_POINTS = self.Secured.maxPoints(POINT_UNITS.length);
   const signed = (n) => (n > 0 ? "+" + n : String(n));
-  // A total as "630 of 12,000" (review finding T2): the student's points out of the most possible for the units that
-  // count (every unit, the leaderboard rule). Display only: the points themselves are the server's (or secured.js's).
+  // A number with thousands separators ("12,400"). Review finding T2 showed each total as "630 of 12,000"; since
+  // prompt 24 the combined total is the number only (programme points and the re-secure bonus have no limit), and
+  // "of 12,000" stays only in the notes that explain the 300-a-unit maximum. Display only.
   const thousands = (n) => Number(n).toLocaleString("en-GB");
-  const outOf = (points, max) => thousands(points) + " of " + thousands(max);
-  let boardMax = MAX_POINTS; // the most possible, as the server's reply gives it (the same rule: 300 a unit)
+  let boardMax = MAX_POINTS; // the 300-a-unit maximum, as the server's reply gives it: the notes and the % column use it
   // One board as a table. withClass: the All my classes boards (class name, ranked by percentage).
+  // The Most points board's separate totals (prompt 23), then the combined points: secured + level + programme points +
+  // re-secure bonus. A server not yet updated sends none of them: "–".
+  const TOTALS = [["secured", "Secured"], ["level", "Level"], ["programme", "Programme"], ["bonus", "Re-secure bonus"]];
   function boardHtml(title, note, rows, gain, withClass) {
-    const num = (r) => (gain ? signed(r.points) : outOf(r.points, boardMax));
+    // The combined total is the number only (prompt 24): it has no cap, so it isn't shown "of" the 300-a-unit maximum.
+    const num = (r) => (gain ? signed(r.points) : thousands(r.points));
     const per = (r) => (gain ? signed(r.percent) : String(r.percent)) + "%";
+    const parts = gain ? [] : TOTALS;
     return '<section class="board"><h4>' + esc(title) + '</h4><p class="small">' + esc(note) + "</p>" + (!rows.length ? '<p class="small">No students yet.</p>' :
-      '<table class="board-table" aria-label="' + esc(title) + '"><thead><tr><th scope="col" class="num">Place</th><th scope="col">Nickname</th>' +
+      '<div class="table-wrap"><table class="board-table" aria-label="' + esc(title) + '"><thead><tr><th scope="col" class="num">Place</th><th scope="col">Nickname</th>' +
       // Points, then %, on every board (review finding L9). All my classes stays ranked by %.
-      (withClass ? '<th scope="col">Class</th>' : "") + '<th scope="col" class="num">Points</th><th scope="col" class="num">%</th>' +
+      (withClass ? '<th scope="col">Class</th>' : "") + parts.map(([, label]) => '<th scope="col" class="num">' + label + "</th>").join("") +
+      '<th scope="col" class="num">' + (gain ? "Points" : "Combined") + '</th><th scope="col" class="num">%</th>' +
       "</tr></thead><tbody>" + rows.map((r) => '<tr><td class="num">' + r.rank + "</td><td>" + esc(r.nickname) + "</td>" +
-        (withClass ? "<td>" + esc(r.class_name || "") + "</td>" : "") + '<td class="num">' + num(r) + '</td><td class="num">' + per(r) + "</td></tr>").join("") + "</tbody></table>") + "</section>";
+        (withClass ? "<td>" + esc(r.class_name || "") + "</td>" : "") + parts.map(([k]) => '<td class="num">' + (r[k] == null ? "–" : thousands(r[k])) + "</td>").join("") +
+        '<td class="num">' + num(r) + '</td><td class="num">' + per(r) + "</td></tr>").join("") + "</tbody></table></div>") + "</section>";
   }
   function boardsHtml(b, withClass, max) {
     boardMax = max || MAX_POINTS;
-    return boardHtml("Most points", withClass ? "Ranked by percentage of the most possible (" + thousands(boardMax) + " points)." : "Total points in all units, out of " + thousands(boardMax) + ".", b.overall, false, withClass) +
-      boardHtml("Most improved", "Points gained in the last 14 days" + (withClass ? ", ranked by percentage." : "."), b.improving, true, withClass);
+    return boardHtml("Most points", (withClass ? "Ranked by percentage of " + thousands(boardMax) + " points. " : "") +
+        "Combined = secured + level + programme points + re-secure bonus. Secured and level points give up to 300 a unit, " + thousands(boardMax) + " in all; programme points and the bonus have no limit, so the combined total has none.", b.overall, false, withClass) +
+      boardHtml("Most improved", "Secured and level points gained in the last 14 days" + (withClass ? ", ranked by percentage." : "."), b.improving, true, withClass);
   }
   const localBoards = (data, extra, byPercent) => self.Secured.boards(TD.leaderboardStudents(data, POINT_UNITS, null, extra), byPercent);
 
@@ -663,6 +673,8 @@
     $("reset-unit").disabled = !startedUnits.length;
     $("reset-placement").disabled = !startedUnits.length;
     if (keepUnit && startedUnits.includes(keepUnit)) $("reset-unit").value = keepUnit;
+    // Points (secured.js, the rule the leaderboards use), worked out first: each placed unit's bar shows its stars.
+    const pts = TD.pointsByStudent({ students: { [studentId]: s }, progress: data.progress, attempts: data.attempts, levelLog: data.levelLog, placementLog: data.placementLog }, POINT_UNITS)[studentId];
     $("sd-scores").innerHTML = unitIds.map((u) => {
       const c = d.cells[u];
       // The bar: the secured score, or for a unit not secured yet its level (out of 10) in the level's colour.
@@ -673,18 +685,22 @@
         // Placement to do: one grey chip (the teacher colour key's), not a level as well.
         (c.started ? (c.placed ? bandHtml(c) : PLACEMENT_GREY) + " " + '<span class="small">' + (c.placementToDo ? "" :
           c.placed && !c.secured ? "Not secured yet (" + c.levelTenPasses + " of 2 level 10 passes with no hints)" : "Level " + c.level) +
-          (c.failsInARow ? " · " + c.failsInARow + " fail" + (c.failsInARow === 1 ? "" : "s") + " in a row" : "") + "</span> " + buttonFlagsHtml(c)
+          (c.failsInARow ? " · " + c.failsInARow + " fail" + (c.failsInARow === 1 ? "" : "s") + " in a row" : "") + "</span> " + buttonFlagsHtml(c) +
+          // The unit card's stars (prompt 23): one each time the unit came back to 100%, the same as the student sees.
+          (c.placed && pts.units[u] ? " " + self.Secured.starsHtml(pts.units[u].stars) : "")
           : '<span class="small">Not started</span>') +
         '</div><div class="bar" aria-hidden="true"><span class="' + (barCls ? "rag-" + barCls : "") + '" style="width:' + width + '%"></span></div></div>';
     }).join("");
-    // Points per unit (secured.js, the rule the leaderboards use): every unit with points, then the totals.
-    const pts = TD.pointsByStudent({ students: { [studentId]: s }, progress: data.progress, attempts: data.attempts, levelLog: data.levelLog, placementLog: data.placementLog }, POINT_UNITS)[studentId];
-    const withPoints = POINT_UNITS.filter((u) => pts.units[u.id].total > 0);
-    $("sd-points").innerHTML = '<div class="table-wrap"><table class="board-table"><thead><tr><th scope="col">Unit</th><th scope="col" class="num">Secured</th><th scope="col" class="num">Level</th><th scope="col" class="num">Total</th></tr></thead><tbody>' +
-      (withPoints.length ? withPoints.map((u) => { const p = pts.units[u.id]; return '<tr><th scope="row">' + esc(unitTitle(u.id)) + '</th><td class="num">' + p.secured + '</td><td class="num">' + p.level + '</td><td class="num">' + p.total + "</td></tr>"; }).join("")
-        : '<tr><td colspan="4">No points yet.</td></tr>') +
-      '</tbody><tfoot><tr><th scope="row">All ' + POINT_UNITS.length + " units (out of " + MAX_POINTS + ")</th><td class=\"num\">" + pts.secured + '</td><td class="num">' + pts.level + '</td><td class="num"><strong>' + pts.total + "</strong></td></tr></tfoot></table></div>" +
-      '<p class="small">Points count every unit, as on the Leaderboards page. Units not listed have 0 points. In the last 14 days: ' + signed(pts.gain) + " points (" + pts.before.total + " points 14 days ago).</p>";
+    // Points per unit: every unit with points, then the totals. Total is secured + level (at most 300 a unit); the
+    // re-secure bonus (at most 50 a unit) and the programme points come on top, in the combined total (prompt 23).
+    const withPoints = POINT_UNITS.filter((u) => pts.units[u.id].total > 0 || pts.units[u.id].bonus > 0);
+    $("sd-points").innerHTML = '<div class="table-wrap"><table class="board-table"><thead><tr><th scope="col">Unit</th><th scope="col" class="num">Secured</th><th scope="col" class="num">Level</th><th scope="col" class="num">Total</th><th scope="col" class="num">Re-secure bonus</th></tr></thead><tbody>' +
+      (withPoints.length ? withPoints.map((u) => { const p = pts.units[u.id]; return '<tr><th scope="row">' + esc(unitTitle(u.id)) + '</th><td class="num">' + p.secured + '</td><td class="num">' + p.level + '</td><td class="num">' + p.total + '</td><td class="num">' + p.bonus + "</td></tr>"; }).join("")
+        : '<tr><td colspan="5">No points yet.</td></tr>') +
+      '</tbody><tfoot><tr><th scope="row">All ' + POINT_UNITS.length + " units (out of " + MAX_POINTS + ")</th><td class=\"num\">" + pts.secured + '</td><td class="num">' + pts.level + '</td><td class="num"><strong>' + pts.total + '</strong></td><td class="num">' + pts.bonus + "</td></tr></tfoot></table></div>" +
+      '<p class="sd-programmes"><strong>' + esc(self.Secured.programmesText(pts.programmes)) + "</strong> in endless mode: " + pts.programme + " programme points.</p>" +
+      '<p class="small">Combined total: ' + thousands(pts.combined) + " (secured " + pts.secured + " + level " + pts.level + " + programme " + pts.programme + " + re-secure bonus " + pts.bonus + ")." +
+      " Points count every unit, as on the Leaderboards page. Units not listed have 0 points. In the last 14 days: " + signed(pts.gain) + " secured and level points (" + pts.before.total + " points 14 days ago).</p>";
     renderStudentCertificates(data, studentId, s.name);
     $("sd-recent").innerHTML = d.recent.length ? '<div class="table-wrap"><table><thead><tr><th scope="col">Time</th><th scope="col">Task</th><th scope="col">Result</th>' +
       '<th scope="col">Hints</th><th scope="col">Test that failed</th><th scope="col">Misconception matched</th></tr></thead><tbody>' +
@@ -1328,6 +1344,9 @@
     })));
     return TD.toCsv(cols, rows);
   }
+
+  // Settings: Replay tour opens the teacher tour from the start (local mode too: the page says what needs the server).
+  $("tour-replay").addEventListener("click", () => { if (self.TeacherTour) self.TeacherTour.replay(window, !!tb); });
 
   // ---------- Start up ----------
   window.addEventListener("hashchange", () => {

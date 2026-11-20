@@ -101,6 +101,7 @@ function fakeDb() {
     constructor(name) { this.name = name; this.filters = []; this.op = "select"; this.one = false; this.returning = false; this.from = 0; this.to = Infinity; }
     select() { if (this.op !== "select") this.returning = true; return this; }
     eq(col, v) { this.filters.push((r) => r[col] === v); return this; }
+    neq(col, v) { this.filters.push((r) => r[col] !== v); return this; }
     in(col, vs) { this.filters.push((r) => vs.includes(r[col])); return this; }
     is(col, v) { this.filters.push((r) => (r[col] === undefined ? null : r[col]) === v); return this; }
     gte(col, v) { this.filters.push((r) => r[col] >= v); return this; } // ISO times compare as text
@@ -446,6 +447,57 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
     T.attempts = T.attempts.filter((a) => a.student_id !== ADA);
     const kept = await CS.classCertificates(sb, deps, O, CLA);
     check(kept.certificates.length === 1 && kept.certificates[0].earned_on === "2026-10-23", "Certificates: once earned, a certificate is kept with its first earned date");
+  }
+
+  // ---------- Points and leaderboards (student-api and teacher-api: supabase/functions/_shared/points-server.js, prompt 23) ----------
+  // The real module both functions run (through points.ts), with the site's rule (secured.js), against an in-memory
+  // database: the programme points and the re-secure bonus are worked out from the rows the server already keeps.
+  {
+    const PS = require(path.join(ROOT, "supabase", "functions", "_shared", "points-server.js"));
+    const Curriculum = require(path.join(ROOT, "curriculum.js"));
+    const deps = { Secured, Curriculum };
+    const sb = fakeDb();
+    const T = sb.t;
+    const CLA = "0000000a-0000-0000-0000-00000000c1a5", CLX = "0000000c-0000-0000-0000-00000000c1a5";
+    const ADA = "0000000a-0000-0000-0000-0000000057d1", BEN = "0000000a-0000-0000-0000-0000000057d2", XAVI = "0000000c-0000-0000-0000-0000000057d1";
+    T.students.push({ id: ADA, class_id: CLA, nickname: "Ada", pin_hash: "SECRET-PIN", login_code_enc: "SECRET-CODE" }, { id: BEN, class_id: CLA, nickname: "Ben", pin_hash: "SECRET-PIN2" },
+      { id: XAVI, class_id: CLX, nickname: "Xavi", pin_hash: "SECRET-PIN3" });
+    const placed = { status: "done", startLevel: 7 };
+    T.progress.push({ student_id: ADA, unit: "maths", level: 10, placement: placed }, { student_id: BEN, unit: "maths", level: 6, placement: placed },
+      { student_id: XAVI, unit: "maths", level: 10, placement: placed }, { student_id: ADA, unit: "endless", level: null, placement: null });
+    const DAY = 86400000, T0 = Date.parse("2026-09-01T09:00:00Z"), NOW = T0 + 60 * DAY;
+    let n = 0;
+    const row = (sid, d, extra) => Object.assign({ id: ++n, student_id: sid, unit: "maths", timestamp: new Date(T0 + d * DAY).toISOString(), record_type: "attempt", result: "pass",
+      hints_used: 0, hint_type: null, phase: "practice", task_level: 10, task_type: "write", task_id: "maths-L10a", variant_fingerprint: null, student_code: "print('secret code')" }, extra);
+    // Ada: secured, then back to 100% twice (2 stars, 20 bonus); endless programmes with 0, 2 and 5 hints (50 + 30 + 10),
+    // one with "Show me how" and 1 hint (30), and a repeat of the first (nothing). Xavi (another class): 5 stars, 1 programme.
+    T.attempts.push(row(ADA, 0), row(ADA, 0.1), row(ADA, 8), row(ADA, 16),
+      row(ADA, 20, { phase: "endless", task_id: "maths-L10b" }), row(ADA, 21, { phase: "endless", task_id: "maths-L10c", hints_used: 2 }),
+      row(ADA, 22, { phase: "endless", task_id: "maths-L10d", hints_used: 5 }), row(ADA, 23, { phase: "endless", task_id: "maths-L10e", hints_used: 1, hint_type: "show-me-how" }),
+      row(ADA, 24, { phase: "endless", task_id: "maths-L10b", hints_used: 0 }), row(ADA, 25, { phase: "endless", task_id: "trace-L10a", task_type: "trace" }),
+      row(BEN, 1, { task_level: 6 }),
+      ...[0, 0.1, 8, 16, 24, 32, 40, 48].map((d) => row(XAVI, d)), row(XAVI, 50, { phase: "endless", task_id: "maths-L10z" }));
+    const all = await PS.classPoints(sb, deps, CLA, NOW);
+    const ada = all.find((s) => s.nickname === "Ada"), ben = all.find((s) => s.nickname === "Ben");
+    check(all.length === 2 && ada.bonus === 20 && ada.programme === 50 + 30 + 10 + 30 && ada.programmes === 4 && ada.secured === Secured.securedPoints(Secured.score(
+      T.attempts.filter((a) => a.student_id === ADA).map((a) => ({ kind: a.record_type, unit: a.unit, at: a.timestamp, result: a.result, hints: a.hints_used, phase: a.phase, taskLevel: a.task_level })), "maths", NOW)) &&
+      ada.level === 100 && ada.combined === ada.secured + ada.level + ada.programme + ada.bonus && ada.total === ada.combined && ben.programme === 0 && ben.bonus === 0 && ben.level === 60,
+      "Points on the server: the re-secure bonus (10 a re-secure) and the programme points (first endless pass of each level 10 write task, 50 less 10 a hint, \"Show me how\" counting as one, at least 10; a repeat gives nothing) are worked out from the stored rows; combined = secured + level + programme + bonus");
+    const sbAda = PS.studentBoard(all, ADA, deps);
+    const sbRows = sbAda.boards.overall.concat(sbAda.boards.improving);
+    const text = JSON.stringify(sbAda);
+    check(sbRows.every((r) => Object.keys(r).sort().join() === "me,nickname,percent,points,rank") && sbAda.boards.overall.find((r) => r.me).points === ada.combined &&
+      Object.keys(sbAda.me).sort().join() === "bonus,gain,level,programme,programmes,secured,total" && sbAda.me.programme === ada.programme && sbAda.me.bonus === 20 && sbAda.me.total === ada.combined &&
+      sbAda.max === 300 * Curriculum.UNITS.length && !/SECRET|secret code|57d|c1a5|Xavi/.test(text) && !text.includes('"secured":' + ben.secured + ',"level":' + ben.level),
+      "Points on the server: the student's board gives them their own programme points, re-secure bonus and programme count; other students' rows have only nickname, points and place (no separate totals), and there is no PIN, code, id or other class's student");
+    const cb = PS.classBoard(all, deps);
+    const cbRows = cb.boards.overall.concat(cb.boards.improving);
+    const ab = PS.allClassesBoard([{ name: "7A", students: all }, { name: "8X", students: await PS.classPoints(sb, deps, CLX, NOW) }], deps);
+    const xavi = ab.boards.overall.find((r) => r.nickname === "Xavi");
+    check(cbRows.every((r) => Object.keys(r).sort().join() === "bonus,level,nickname,percent,points,programme,rank,secured") && cb.boards.overall.find((r) => r.nickname === "Ada").bonus === 20 &&
+      cb.boards.overall.find((r) => r.nickname === "Ada").points === ada.combined && !/SECRET|secret code|57d|c1a5|Xavi/.test(JSON.stringify(cb)) &&
+      xavi.bonus === 50 && xavi.programme === 50 && xavi.class_name === "8X" && ab.classes === 2 && !/SECRET|secret code|57d|c1a5/.test(JSON.stringify(ab)),
+      "Points on the server: the teacher's boards carry the secured, level, programme and re-secure bonus totals and the combined points (capped at 50 bonus a unit), with no PIN, code or student id");
   }
 
   // ---------- Homework (teacher-api and student-api: supabase/functions/_shared/homework-server.js, migration 0018) ----------

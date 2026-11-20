@@ -12,10 +12,10 @@ Store.whenReady(function () {
   $("student-name").textContent = student.name;
 
   const plus = (n) => (n > 0 ? "+" + n : String(n));
-  // A total as "630 of 12,000" (review finding T2): points out of the most possible. Display only.
+  // A number with thousands separators. The combined total is the number only, "12,400" (prompt 24): programme points
+  // and the re-secure bonus have no limit, so it isn't shown "of" the 300-a-unit maximum (review finding T2 had "630 of 12,000").
   const thousands = (n) => Number(n).toLocaleString("en-GB");
-  let max = 0;
-  const total = (n) => (max ? thousands(n) + " of " + thousands(max) : thousands(n));
+  const total = (n) => thousands(n);
 
   // One board as a table: place, nickname, points. The student's own row is highlighted and says "(you)".
   function table(rows, field, caption) {
@@ -35,11 +35,14 @@ Store.whenReady(function () {
     }
     const b = r.body.boards || { overall: [], improving: [] };
     const me = r.body.me || { secured: 0, level: 0, total: 0, gain: 0 };
-    max = r.body.max || 0;
+    // The separate totals, then the combined one (prompt 23). A server not yet updated sends no programme or bonus: 0.
+    $("me-secured").textContent = thousands(me.secured);
+    $("me-level").textContent = thousands(me.level);
+    $("me-programme").textContent = thousands(me.programme || 0);
+    $("me-bonus").textContent = thousands(me.bonus || 0);
     $("me-total").textContent = total(me.total);
-    $("me-secured").textContent = me.secured;
-    $("me-level").textContent = me.level;
     $("me-gain").textContent = plus(me.gain);
+    $("me-programmes").textContent = self.Secured && self.Secured.programmesText ? self.Secured.programmesText(me.programmes || 0) + " in endless mode." : "";
     $("board-overall").innerHTML = table(b.overall, "Points", "Most points");
     $("board-improving").innerHTML = table(b.improving, "Points gained", "Most improved in the last 14 days");
     $("lb-status").hidden = true;

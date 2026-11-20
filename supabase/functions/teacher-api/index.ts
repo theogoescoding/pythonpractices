@@ -27,9 +27,10 @@
 //   rename_student { student_id, nickname } -> { nickname }  (the nickname rules and word filter, as for joining;
 //                                              refused if another student in the class has that nickname)
 //   leaderboards { class_id }               -> { boards: { overall, improving }, max }  one class, ranked by points;
-//                                              each row { rank, nickname, points, percent }
-//   leaderboards_all                        -> { boards: { overall, improving }, classes }  every class this teacher is on (own and shared),
-//                                              ranked by the percentage; each row { rank, nickname, class_name, points, percent }
+//                                              each row { rank, nickname, points, percent, secured, level, programme, bonus }
+//                                              (points = the combined total; the improving board's points = the 14-day gain)
+//   leaderboards_all                        -> { boards: { overall, improving }, classes, max }  every class this teacher is on (own and shared),
+//                                              ranked by the percentage; each row as above, with class_name
 // Importing a full export (section 8) takes three steps, so a big class fits the Edge Function time limit:
 //   import_check { class_id, students: [{ file_id, nickname }] }
 //       -> { ok, students: [{ file_id, nickname, status, message }] }. Saves nothing.
@@ -44,7 +45,7 @@
 import { decryptCode, hashPin, lookupHash, newPin } from "../_shared/crypto.ts";
 import { check, db, HttpError, serve } from "../_shared/http.ts";
 import { NICKNAME_RULES, nicknameBlocked, validNickname } from "../_shared/nickname.ts";
-import { boards, classPoints, POINT_UNITS } from "../_shared/points.ts";
+import { allClassesBoard, classBoard, classPoints } from "../_shared/points.ts";
 import { checkAttempts, checkEvents, insertRows, MAX_ROWS_PER_BATCH, PROGRESS_UNITS, Rejected, UNITS } from "../_shared/rows.ts";
 import { createStudent } from "../_shared/students.ts";
 import "../_shared/class-sharing.js";
@@ -185,21 +186,21 @@ const actions: Record<string, (tid: string, body: Record<string, unknown>) => Pr
     return { reset: check(await db().rpc("reset_placement", { p_teacher: tid, p_student: s.id, p_unit: body.unit }), "reset placement") };
   },
 
-  // The leaderboards (_shared/points.ts, the site's own rule in secured.js). Rows carry only the nickname, the class
-  // name (all classes), the points and the percentage.
+  // The leaderboards (_shared/points.ts and points-server.js, the site's own rule in secured.js). Rows carry only the
+  // nickname, the class name (all classes), the secured, level, programme and re-secure bonus totals, the combined
+  // points and the percentage.
   async leaderboards(tid, body) {
     const classId = await ownClass(tid, body.class_id);
-    const all = await classPoints(classId);
-    return { boards: boards(all.map((s) => ({ nickname: s.nickname, total: s.total, gain: s.gain, unitCount: s.unitCount })), false), max: 300 * POINT_UNITS.length };
+    return classBoard(await classPoints(classId));
   },
 
   // Every class this teacher is on (their own and the ones shared with them), ranked by the percentage:
-  // points / (300 x units) x 100.
+  // combined points / (300 x units) x 100.
   async leaderboards_all(tid) {
     const classes = await Sharing.myClasses(db(), tid) as { id: string; name: string }[];
-    const rows = [];
-    for (const c of classes) for (const s of await classPoints(c.id)) rows.push({ nickname: s.nickname, class_name: c.name, total: s.total, gain: s.gain, unitCount: s.unitCount });
-    return { boards: boards(rows, true), classes: classes.length, max: 300 * POINT_UNITS.length };
+    const withPoints = [];
+    for (const c of classes) withPoints.push({ name: c.name, students: await classPoints(c.id) });
+    return allClassesBoard(withPoints);
   },
 
   // Certificates (certificates-server.js, migration 0017): works out what each student has earned, saves any new

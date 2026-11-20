@@ -30,25 +30,33 @@
       <h2 id="lb-h">Your class's leaderboard</h2>
       <p id="lb-status" role="status" class="loading">Loading…</p>
       <div id="lb-body" hidden>
+        <!-- The separate totals, then the combined total (prompt 23): secured + level + programme points + re-secure bonus. -->
         <div class="task-card points-summary" aria-label="Your points">
-          <p class="stat"><strong id="me-total"></strong> your points</p>
           <p class="stat"><strong id="me-secured"></strong> secured points</p>
           <p class="stat"><strong id="me-level"></strong> level points</p>
+          <p class="stat"><strong id="me-programme"></strong> programme points</p>
+          <p class="stat"><strong id="me-bonus"></strong> re-secure bonus</p>
+          <p class="stat"><strong id="me-total"></strong> your points</p>
           <p class="stat"><strong id="me-gain"></strong> in the last 14 days</p>
         </div>
+        <p id="me-programmes" class="small"></p>
         <p class="small" id="points-rule">Each unit gives up to 300 points.
           Secured points: up to 200. You get 2 points for each percent of a secured unit's score, so 100% gives 200 and 50% gives 100.
           Level points: up to 100. You get 10 points for each level, so level 10 gives 100.
           A unit you haven't started, or still have the quick check to do in, gives 0 level points.</p>
+        <p class="small" id="extra-rule">Two more totals come on top of that.
+          Programme points: each level 10 writing task you pass in endless mode gives 50 points the first time. Each hint takes off 10, and "Show me how" counts as a hint. You always get at least 10. Passing it again gives nothing.
+          Re-secure bonus: each time a unit drops and you bring it back to 100%, you get a star and 10 points. A unit can have up to 5 stars, so up to 50 points.
+          Your points are all four added together.</p>
         <div class="boards">
           <section class="board" aria-labelledby="board-overall-h">
             <h3 id="board-overall-h">Most points</h3>
-            <p class="small">Everyone's points in all units.</p>
+            <p class="small">Everyone's points: all four totals added together.</p>
             <div id="board-overall"></div>
           </section>
           <section class="board" aria-labelledby="board-improving-h">
             <h3 id="board-improving-h">Most improved</h3>
-            <p class="small">Points gained in the last 14 days.</p>
+            <p class="small">Secured and level points gained in the last 14 days.</p>
             <div id="board-improving"></div>
           </section>
         </div>

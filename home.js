@@ -290,6 +290,8 @@ Store.whenReady(function () {
     const chip = colour && !b ? '<p class="secured-note"><span class="rag rag-' + colour.cls + '">' + esc(colour.label) + "</span></p>" : "";
     return '<li><a class="unit-card' + (glow ? " unit-complete" : b ? " unit-scored" : "") + '" href="practice.html?unit=' + encodeURIComponent(u.id) + '">' + title +
       '<p class="unit-meta"><span>' + count + " tasks</span><span><strong>" + esc(levelText) + "</strong></span></p>" +
+      // Stars (prompt 23): five outlines on a placed unit, one filled each time it came back to 100% (secured.js).
+      (s && !placing ? '<p class="unit-stars-row">' + self.Secured.starsHtml(self.Secured.stars(sec)) + "</p>" : "") +
       (b ? '<p class="secured-note"><span class="rag rag-' + colour.cls + '">' + esc(colour.label) + "</span>" +
         (sec.score < 100 ? ' <span class="small">One level 10 pass with no hints brings it back to 100%.</span>' : "") + "</p>"
         : chip + (passedTen ? '<p class="complete-note">★ Level 10 passed</p>' : "")) + "</a></li>";

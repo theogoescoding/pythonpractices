@@ -735,10 +735,13 @@
     }
     return out;
   }
-  // The rows Secured.boards ranks: [{ nickname, total, gain, unitCount }] (and extra fields, such as className).
+  // The rows Secured.boards ranks: [{ nickname, total, gain, unitCount, secured, level, programme, bonus }] (and extra
+  // fields, such as className), as the server's (points-server.js classBoard): total is the combined total (secured +
+  // level + programme points + re-secure bonus, prompt 23), gain the 14-day gain of secured + level, as before.
   function leaderboardStudents(data, units, now, extra) {
     const points = pointsByStudent(data, units, now);
-    return Object.entries(data.students).map(([id, s]) => Object.assign({ nickname: s.name, total: points[id].total, gain: points[id].gain, unitCount: units.length }, extra || {}));
+    return Object.entries(data.students).map(([id, s]) => { const p = points[id];
+      return Object.assign({ nickname: s.name, total: p.combined, gain: p.gain, unitCount: units.length, secured: p.secured, level: p.level, programme: p.programme, bonus: p.bonus }, extra || {}); });
   }
 
   // ---------- Certificates (local mode; certificates.js holds the rule, the server uses the same) ----------
