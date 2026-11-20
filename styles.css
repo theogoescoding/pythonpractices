@@ -725,6 +725,44 @@ td.num { text-align: right; font-variant-numeric: tabular-nums; }
    column, so there is never sideways scrolling, and its label chip takes the tile's full width and wraps only between
    words (break-word splits a word only if it can't fit on a line by itself, which these labels never need). */
 .rag-summary { margin: .75rem 0; }
+/* OCR specification codes (prompt 28): the small grey label under each unit's heading on the Students page, and the
+   Curriculum page's table (it scrolls sideways inside its own box on a phone). */
+.spec-code { display: block; font-size: .72rem; font-weight: 400; color: var(--muted); margin-top: .1rem; white-space: nowrap; }
+.cc-versions { margin: .25rem 0 .75rem; }
+.cc-wrap { overflow-x: auto; }
+.cc-table { border-collapse: collapse; width: 100%; min-width: 44rem; }
+.cc-table th, .cc-table td { text-align: left; padding: .35rem .6rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+.cc-table thead th { border-bottom: 2px solid var(--text); }
+.cc-block th { background: var(--code-bg); font-weight: 700; }
+.cc-code { white-space: nowrap; }
+.cc-flag { display: block; font-size: .8rem; font-style: italic; color: var(--muted); }
+.cc-none { font-weight: 700; padding: .5rem .6rem; }
+/* Read out to a screen reader, not shown (for example "opens in a new tab"). */
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+/* The glossary (prompt 27): glossary.html, and its links in task text and hints. */
+.term-link { text-decoration-style: dotted; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.side-glossary { font-size: .95rem; }
+.gloss-search-row { max-width: 32rem; margin: 1rem 0; }
+.gloss-search-row .text-input { width: 100%; }
+.gloss-letters { display: flex; flex-wrap: wrap; gap: .35rem .6rem; margin: .5rem 0 1rem; font-weight: 700; }
+.gloss-letters a { padding: .15rem .35rem; }
+.gloss-letter-h { font-size: 1.4rem; border-bottom: 2px solid var(--border); padding-bottom: .2rem; margin: 1.5rem 0 .5rem; }
+.gloss-entry { min-width: 0; border: 2px solid var(--border); border-radius: 8px; background: var(--card); padding: .6rem .9rem; margin: .6rem 0; scroll-margin-top: 1rem; }
+.gloss-entry.gloss-target { border-color: var(--focus); box-shadow: 0 0 0 3px var(--focus); }
+.gloss-term { font-size: 1.15rem; margin: 0 0 .3rem; overflow-wrap: anywhere; }
+.gloss-group { font-size: .78rem; font-weight: 600; color: var(--muted); margin-left: .35rem; white-space: nowrap; }
+.gloss-def { margin: 0 0 .5rem; overflow-wrap: anywhere; }
+/* The example wraps on a phone instead of scrolling sideways. */
+.gloss-example { margin: 0; padding: .5rem .7rem; background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word; max-width: 100%; }
+.gloss-none { font-weight: 700; }
+/* The Classes page (prompt 26): Create several classes, its summary, and the class code cards list. */
+.batch-create { margin: .5rem 0 1rem; }
+.batch-create summary { cursor: pointer; font-weight: 600; }
+.batch-create textarea { width: 100%; max-width: 32rem; }
+.batch-list { margin: .25rem 0 .75rem; padding-left: 1.25rem; }
+.class-cards { margin-top: 1.5rem; }
+.card-list { list-style: none; padding: 0; margin: .5rem 0; }
+.card-row { display: flex; flex-wrap: wrap; gap: .4rem .75rem; align-items: center; justify-content: space-between; padding: .4rem 0; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
 /* The teacher's student page: Progress summary (prompt 25), four figures that wrap two to a line on a phone. */
 .summary-figures { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; margin: .5rem 0; }
 .summary-figure { min-width: 0; overflow-wrap: break-word; border: 2px solid var(--border); border-radius: 8px; padding: .5rem .9rem; background: var(--card); }

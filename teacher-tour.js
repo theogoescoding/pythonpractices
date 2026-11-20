@@ -42,6 +42,8 @@
     { id: "classes", title: "Classes", targets: link("classes"),
       text: "Create a class and share it with other teachers. Student logins and PIN resets are here too.",
       local: "Classes, student logins and sharing need the server. In this browser, every student is on the Students page." },
+    { id: "curriculum", title: "Curriculum", targets: link("curriculum"),
+      text: "See the OCR specification code for each unit. Print the table for planning or inspection." },
     { id: "settings", title: "Settings", targets: link("settings"),
       text: "Change your password here. Select Replay tour on this page to see this tour again.",
       local: "Teacher accounts and passwords need the server. To see this tour again, open teacher.html#settings and select Replay tour." },

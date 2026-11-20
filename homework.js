@@ -101,16 +101,22 @@
   // makes Monday the first day): two moments are in the same week when their numbers match.
   const ukDayNumber = (ms) => { const [y, m, d] = ukDate(ms).split("-").map(Number); return Math.floor(Date.UTC(y, m - 1, d) / 86400000); };
   const ukWeek = (ms) => Math.floor((ukDayNumber(ms) + 3) / 7);
+  // Homework set since the student joined (prompt 26): only homework created on or after the day they joined the class
+  // (UK dates), and already set by now. joinedAt: when the student joined (the server's students.created_at; in local
+  // mode the browser's own record of when the student was added); none known: every homework set by now.
+  const homeworkSinceJoined = (list, joinedAt, now) => (list || []).filter((hw) => time(hw.created_at) <= (now == null ? Date.now() : time(now)) &&
+    (joinedAt == null || !Number.isFinite(time(joinedAt)) || ukDate(time(hw.created_at)) >= ukDate(time(joinedAt))));
   // o = { attempts (every attempt record the student has: { kind, at, taskId, result, unit, units }), flags (their paste
   //       flags), homework (their class's homework: [{ created_at, due_on, units, task_count }], or null when it isn't
-  //       available, as in local mode), now (default now) }
+  //       available, as in local mode), joinedAt (when the student joined the class), now (default now) }
   // -> { firstPassesThisWeek, averageFirstPassesPerWeek (one decimal place), averageHomeworkCompletion (a whole
-  //      percentage; null when no homework has been set; undefined when homework isn't available), lastActive (ISO, or null) }
+  //      percentage; null when no homework has been set since they joined; undefined when homework isn't available),
+  //      lastActive (ISO, or null) }
   //   - First passes: firstPasses() above, the homework rule (a repeat pass never counts).
   //   - This week: first passes in the current UK week, Monday to Sunday.
   //   - Average a week: every first pass so far, divided by the weeks from the week of the student's first attempt
   //     (any result) to this week, both counted; a week with no first pass counts as 0.
-  //   - Homework: for each homework set (created by now), progress()'s "done" (the number the student's card shows,
+  //   - Homework: for each homework set since the student joined (homeworkSinceJoined), progress()'s "done" (the number the student's card shows,
   //     at most its task count) as a percentage of its task count; the average of those, rounded.
   //   - Last active: the student's most recent attempt (any result).
   function progressSummary(o) {
@@ -123,7 +129,7 @@
     const weeks = firstTry == null ? 0 : thisWeek - ukWeek(firstTry) + 1;
     let averageHomeworkCompletion;
     if (o.homework) {
-      const set = o.homework.filter((hw) => time(hw.created_at) <= now && hw.task_count > 0);
+      const set = homeworkSinceJoined(o.homework, o.joinedAt, now).filter((hw) => hw.task_count > 0);
       averageHomeworkCompletion = !set.length ? null : Math.round(set.map((hw) =>
         (100 * Math.min(progress(hw, o.attempts, o.flags).done, hw.task_count)) / hw.task_count).reduce((x, y) => x + y, 0) / set.length);
     }
@@ -141,5 +147,5 @@
   const doneText = (hw) => (hw.complete ? "Complete" : Math.min(hw.done || 0, hw.task_count) + " of " + hw.task_count + " done");
 
   return { MAX_TASKS, MAX_UNITS, ukDate, isDate, inTime, pastDue, coversUnits, firstPasses, progress, activeFor, checkNew, longDate, doneText,
-    ukWeek, progressSummary };
+    ukWeek, homeworkSinceJoined, progressSummary };
 });

@@ -1,0 +1,1172 @@
+{
+ "version": 1,
+ "note": "The glossary (prompt 27): approved by Theo from glossary-draft.md. glossary.html shows it; glossary.js links terms in task text and hints using each term's match words, only in a term's units when it has a units list, and never in its notUnits.",
+ "groups": [
+  "Values and variables",
+  "Operators and expressions",
+  "Selection and loops",
+  "Strings and lists",
+  "Functions",
+  "Files, modules and validation",
+  "Errors, testing and debugging",
+  "Searching and sorting",
+  "A-level: programming techniques",
+  "A-level: data structures"
+ ],
+ "terms": [
+  {
+   "id": "variable",
+   "term": "variable",
+   "group": "Values and variables",
+   "definition": "A name that stores a value, which the program can change while it runs.",
+   "example": "score = 10",
+   "match": [
+    "variable",
+    "variables"
+   ]
+  },
+  {
+   "id": "assignment",
+   "term": "assignment",
+   "group": "Values and variables",
+   "definition": "Giving a variable a value with `=`, which replaces any value it had before.",
+   "example": "name = \"Ada\"",
+   "match": [
+    "assignment",
+    "assignments"
+   ]
+  },
+  {
+   "id": "data-type",
+   "term": "data type",
+   "group": "Values and variables",
+   "definition": "The kind of value something is, such as text, a whole number, a decimal or True/False.",
+   "example": "type(3.5)   # gives <class 'float'>",
+   "match": [
+    "data type",
+    "data types"
+   ]
+  },
+  {
+   "id": "string",
+   "term": "string",
+   "group": "Values and variables",
+   "definition": "A piece of text, written inside quotation marks.",
+   "example": "\"hello\"",
+   "match": [
+    "string",
+    "strings"
+   ]
+  },
+  {
+   "id": "integer",
+   "term": "integer",
+   "group": "Values and variables",
+   "definition": "A whole number, with no decimal point (`int` in Python).",
+   "example": "age = 15",
+   "match": [
+    "integer",
+    "integers"
+   ]
+  },
+  {
+   "id": "real-float",
+   "term": "real (float)",
+   "group": "Values and variables",
+   "definition": "A number with a decimal point; Python calls it a `float`.",
+   "example": "price = 2.99",
+   "match": [
+    "real number",
+    "real numbers",
+    "float",
+    "floats"
+   ]
+  },
+  {
+   "id": "boolean",
+   "term": "Boolean",
+   "group": "Values and variables",
+   "definition": "A value that is either `True` or `False`.",
+   "example": "passed = score >= 50",
+   "match": [
+    "Boolean",
+    "Booleans"
+   ]
+  },
+  {
+   "id": "casting",
+   "term": "casting",
+   "group": "Values and variables",
+   "definition": "Changing a value from one data type to another.",
+   "example": "int(\"42\")   # gives 42",
+   "match": [
+    "casting",
+    "cast"
+   ]
+  },
+  {
+   "id": "input",
+   "term": "input",
+   "group": "Values and variables",
+   "definition": "Data the program reads while it runs, usually typed by the user; `input()` always gives a string.",
+   "example": "name = input(\"Name: \")",
+   "match": [
+    "input",
+    "inputs"
+   ]
+  },
+  {
+   "id": "output",
+   "term": "output",
+   "group": "Values and variables",
+   "definition": "What the program shows the user, usually with `print()`.",
+   "example": "print(\"Total:\", total)",
+   "match": [
+    "output",
+    "outputs"
+   ]
+  },
+  {
+   "id": "comment",
+   "term": "comment",
+   "group": "Values and variables",
+   "definition": "A note for people reading the code, which Python ignores; it starts with `#`.",
+   "example": "# work out the average",
+   "match": [
+    "comment",
+    "comments"
+   ]
+  },
+  {
+   "id": "operator",
+   "term": "operator",
+   "group": "Operators and expressions",
+   "definition": "A symbol that does something to values, such as `+`, `*` or `==`.",
+   "example": "3 + 4",
+   "match": [
+    "operator",
+    "operators"
+   ]
+  },
+  {
+   "id": "arithmetic-operators",
+   "term": "arithmetic operators",
+   "group": "Operators and expressions",
+   "definition": "The operators for sums: `+`, `-`, `*`, `/`, `//`, `%` and `**`.",
+   "example": "total = price * 3",
+   "match": [
+    "arithmetic operator",
+    "arithmetic operators"
+   ]
+  },
+  {
+   "id": "integer-division",
+   "term": "integer division",
+   "group": "Operators and expressions",
+   "definition": "Division with `//`, which gives the whole-number part of the answer and drops the remainder.",
+   "example": "7 // 2   # gives 3",
+   "match": [
+    "integer division",
+    "integer divisions"
+   ]
+  },
+  {
+   "id": "modulus",
+   "term": "modulus",
+   "group": "Operators and expressions",
+   "definition": "The remainder after division, with `%`.",
+   "example": "7 % 2   # gives 1",
+   "match": [
+    "modulus",
+    "moduluses"
+   ]
+  },
+  {
+   "id": "exponent",
+   "term": "exponent",
+   "group": "Operators and expressions",
+   "definition": "Raising a number to a power, with `**`.",
+   "example": "2 ** 3   # gives 8",
+   "match": [
+    "exponent",
+    "exponents"
+   ]
+  },
+  {
+   "id": "comparison-operators",
+   "term": "comparison operators",
+   "group": "Operators and expressions",
+   "definition": "Operators that compare two values and give `True` or `False`: `==`, `!=`, `<`, `>`, `<=`, `>=`.",
+   "example": "age >= 18",
+   "match": [
+    "comparison operator",
+    "comparison operators"
+   ]
+  },
+  {
+   "id": "boolean-operators",
+   "term": "Boolean operators",
+   "group": "Operators and expressions",
+   "definition": "`and`, `or` and `not`, which join or reverse conditions.",
+   "example": "age >= 13 and age <= 19",
+   "match": [
+    "Boolean operator",
+    "Boolean operators",
+    "logical operator",
+    "logical operators"
+   ]
+  },
+  {
+   "id": "concatenation",
+   "term": "concatenation",
+   "group": "Operators and expressions",
+   "definition": "Joining strings together with `+`.",
+   "example": "\"Hi \" + name",
+   "match": [
+    "concatenation",
+    "concatenate",
+    "concatenates",
+    "concatenating"
+   ]
+  },
+  {
+   "id": "sequence",
+   "term": "sequence",
+   "group": "Selection and loops",
+   "definition": "Running instructions one after another, in the order they are written.",
+   "example": "a = 1\nprint(a)",
+   "match": [
+    "sequence",
+    "sequences"
+   ]
+  },
+  {
+   "id": "selection",
+   "term": "selection",
+   "group": "Selection and loops",
+   "definition": "Choosing which code to run, depending on a condition.",
+   "example": "if score >= 50:",
+   "match": [
+    "selection",
+    "selections"
+   ]
+  },
+  {
+   "id": "condition",
+   "term": "condition",
+   "group": "Selection and loops",
+   "definition": "An expression that is either `True` or `False`, used to decide what happens next.",
+   "example": "while guess != answer:",
+   "match": [
+    "condition",
+    "conditions"
+   ]
+  },
+  {
+   "id": "if-elif-else",
+   "term": "if, elif, else",
+   "group": "Selection and loops",
+   "definition": "The words for selection: `if` checks a condition, `elif` checks another, and `else` runs when none were true.",
+   "example": "if x > 0:\n    print(\"positive\")\nelif x == 0:\n    print(\"zero\")\nelse:\n    print(\"negative\")",
+   "match": [
+    "elif"
+   ]
+  },
+  {
+   "id": "indentation",
+   "term": "indentation",
+   "group": "Selection and loops",
+   "definition": "The spaces at the start of a line, which show which lines belong inside an `if`, loop or function.",
+   "example": "if ok:\n    print(\"Yes\")   # indented: inside the if",
+   "match": [
+    "indentation",
+    "indentations"
+   ]
+  },
+  {
+   "id": "loop",
+   "term": "loop",
+   "group": "Selection and loops",
+   "definition": "Code that repeats.",
+   "example": "for i in range(3):",
+   "match": [
+    "loop",
+    "loops"
+   ]
+  },
+  {
+   "id": "for-loop",
+   "term": "for loop",
+   "group": "Selection and loops",
+   "definition": "A count-controlled loop: it repeats once for each item, or a set number of times.",
+   "example": "for i in range(5):",
+   "match": [
+    "for loop",
+    "for loops"
+   ]
+  },
+  {
+   "id": "while-loop",
+   "term": "while loop",
+   "group": "Selection and loops",
+   "definition": "A condition-controlled loop: it repeats while its condition is `True`.",
+   "example": "while lives > 0:",
+   "match": [
+    "while loop",
+    "while loops"
+   ]
+  },
+  {
+   "id": "range",
+   "term": "range",
+   "group": "Selection and loops",
+   "definition": "A sequence of whole numbers that a `for` loop can count through; `range(1, 4)` gives 1, 2 and 3.",
+   "example": "for n in range(1, 4):",
+   "match": [
+    "range",
+    "ranges"
+   ],
+   "units": [
+    "loops-count",
+    "debugging",
+    "debugging-gcse",
+    "bubble-sort",
+    "insertion-sort",
+    "merge-sort",
+    "linear-search",
+    "binary-search",
+    "lists",
+    "arrays-2d",
+    "arrays-3d"
+   ]
+  },
+  {
+   "id": "nested",
+   "term": "nested",
+   "group": "Selection and loops",
+   "definition": "One structure inside another, such as a loop inside a loop.",
+   "example": "for row in grid:\n    for cell in row:\n        print(cell)",
+   "match": [
+    "nested",
+    "nesteds"
+   ]
+  },
+  {
+   "id": "infinite-loop",
+   "term": "infinite loop",
+   "group": "Selection and loops",
+   "definition": "A loop that never stops, usually because its condition never becomes `False`.",
+   "example": "while True:\n    print(\"again\")   # no break, so it never stops",
+   "match": [
+    "infinite loop",
+    "infinite loops"
+   ]
+  },
+  {
+   "id": "list",
+   "term": "list",
+   "group": "Strings and lists",
+   "definition": "An ordered collection of values in one variable, written in square brackets.",
+   "example": "scores = [4, 7, 9]",
+   "match": [
+    "list",
+    "lists"
+   ]
+  },
+  {
+   "id": "array",
+   "term": "array",
+   "group": "Strings and lists",
+   "definition": "A collection of values stored under one name and reached by index; in Python, a list is used as an array.",
+   "example": "marks[0]",
+   "match": [
+    "array",
+    "arrays"
+   ]
+  },
+  {
+   "id": "index",
+   "term": "index",
+   "group": "Strings and lists",
+   "definition": "The position of an item in a string or list, counting from 0.",
+   "example": "word = \"cat\"\nword[0]   # gives \"c\", the first letter",
+   "match": [
+    "index",
+    "indexes",
+    "indices"
+   ]
+  },
+  {
+   "id": "slice",
+   "term": "slice",
+   "group": "Strings and lists",
+   "definition": "Part of a string or list, from a start index up to (not including) an end index.",
+   "example": "word[1:3]",
+   "match": [
+    "slice",
+    "slices",
+    "slicing"
+   ]
+  },
+  {
+   "id": "length",
+   "term": "length",
+   "group": "Strings and lists",
+   "definition": "How many items or characters there are, found with `len()`.",
+   "example": "len(\"cat\")   # gives 3",
+   "match": [
+    "length",
+    "lengths"
+   ],
+   "notUnits": [
+    "maths",
+    "validation-type",
+    "validation-range",
+    "records-tuples",
+    "oop-classes"
+   ]
+  },
+  {
+   "id": "append",
+   "term": "append",
+   "group": "Strings and lists",
+   "definition": "Adding an item to the end of a list.",
+   "example": "scores.append(10)",
+   "match": [
+    "append",
+    "appends"
+   ]
+  },
+  {
+   "id": "string-methods",
+   "term": "string methods",
+   "group": "Strings and lists",
+   "definition": "Built-in actions on a string, such as `.upper()`, `.lower()`, `.strip()` and `.split()`.",
+   "example": "name.strip().upper()",
+   "match": [
+    "string method",
+    "string methods"
+   ]
+  },
+  {
+   "id": "2d-array",
+   "term": "2D array",
+   "group": "Strings and lists",
+   "definition": "A list of lists, like a table with rows and columns.",
+   "example": "grid[1][2]   # row 1, column 2",
+   "match": [
+    "2D array",
+    "2D arrays",
+    "2D list",
+    "2D lists"
+   ]
+  },
+  {
+   "id": "3d-array",
+   "term": "3D array",
+   "group": "Strings and lists",
+   "definition": "A list of 2D arrays, like a stack of tables, reached with three indexes.",
+   "example": "cube[0][1][2]",
+   "match": [
+    "3D array",
+    "3D arrays",
+    "3D list",
+    "3D lists"
+   ]
+  },
+  {
+   "id": "tuple",
+   "term": "tuple",
+   "group": "Strings and lists",
+   "definition": "An ordered collection, like a list, that can't be changed once made; written in round brackets.",
+   "example": "point = (3, 4)",
+   "match": [
+    "tuple",
+    "tuples"
+   ]
+  },
+  {
+   "id": "record",
+   "term": "record",
+   "group": "Strings and lists",
+   "definition": "A group of related values about one thing, such as a student's name and age, kept together.",
+   "example": "student = (\"Ada\", 15)",
+   "match": [
+    "record",
+    "records"
+   ]
+  },
+  {
+   "id": "function",
+   "term": "function",
+   "group": "Functions",
+   "definition": "A named block of code that does one job, which the program can call whenever it needs it.",
+   "example": "def area(w, h):",
+   "match": [
+    "function",
+    "functions"
+   ]
+  },
+  {
+   "id": "parameter",
+   "term": "parameter",
+   "group": "Functions",
+   "definition": "A variable in a function's definition that receives a value when the function is called.",
+   "example": "def greet(name):",
+   "match": [
+    "parameter",
+    "parameters"
+   ]
+  },
+  {
+   "id": "argument",
+   "term": "argument",
+   "group": "Functions",
+   "definition": "The value passed into a function when it is called.",
+   "example": "greet(\"Ada\")",
+   "match": [
+    "argument",
+    "arguments"
+   ]
+  },
+  {
+   "id": "return",
+   "term": "return",
+   "group": "Functions",
+   "definition": "Sending a value back from a function to the code that called it.",
+   "example": "return w * h",
+   "match": [
+    "return",
+    "returns"
+   ],
+   "notUnits": [
+    "data-types"
+   ]
+  },
+  {
+   "id": "call",
+   "term": "call",
+   "group": "Functions",
+   "definition": "Running a function by writing its name with brackets.",
+   "example": "area(3, 4)",
+   "match": [
+    "call",
+    "calls"
+   ]
+  },
+  {
+   "id": "local-variable",
+   "term": "local variable",
+   "group": "Functions",
+   "definition": "A variable made inside a function, which only that function can use.",
+   "example": "def f():\n    total = 0   # only f can use total",
+   "match": [
+    "local variable",
+    "local variables"
+   ]
+  },
+  {
+   "id": "global-variable",
+   "term": "global variable",
+   "group": "Functions",
+   "definition": "A variable made outside every function, which the whole program can read.",
+   "example": "MAX = 10   # at the top of the program",
+   "match": [
+    "global variable",
+    "global variables"
+   ]
+  },
+  {
+   "id": "none",
+   "term": "None",
+   "group": "Functions",
+   "definition": "The value a function gives back when it has no `return`.",
+   "example": "def greet(name):\n    print(\"Hi\", name)\n\nprint(greet(\"Ada\"))   # shows None",
+   "match": [
+    "None",
+    "Nones"
+   ],
+   "exactCase": true
+  },
+  {
+   "id": "random",
+   "term": "random",
+   "group": "Functions",
+   "definition": "Python's module for random numbers, such as `random.randint(1, 6)` for a dice roll.",
+   "example": "import random",
+   "match": [
+    "random",
+    "randoms"
+   ]
+  },
+  {
+   "id": "module",
+   "term": "module",
+   "group": "Files, modules and validation",
+   "definition": "A file of ready-made code that a program can use after importing it.",
+   "example": "import random\nimport math",
+   "match": [
+    "module",
+    "modules"
+   ]
+  },
+  {
+   "id": "import",
+   "term": "import",
+   "group": "Files, modules and validation",
+   "definition": "Loading a module so its functions can be used.",
+   "example": "import random",
+   "match": [
+    "import",
+    "imports"
+   ]
+  },
+  {
+   "id": "file-handling",
+   "term": "file handling",
+   "group": "Files, modules and validation",
+   "definition": "Opening a file to read from it or write to it, then closing it.",
+   "example": "f = open(\"data.txt\", \"r\")",
+   "match": [
+    "file handling",
+    "file handlings"
+   ]
+  },
+  {
+   "id": "read-write-mode",
+   "term": "read / write mode",
+   "group": "Files, modules and validation",
+   "definition": "`\"r\"` opens a file to read it, `\"w\"` to write over it, and `\"a\"` to add to its end.",
+   "example": "open(\"log.txt\", \"a\")",
+   "match": [
+    "read mode",
+    "write mode",
+    "append mode"
+   ]
+  },
+  {
+   "id": "validation",
+   "term": "validation",
+   "group": "Files, modules and validation",
+   "definition": "Checking that input is sensible before it is used.",
+   "example": "while not age.isdigit():",
+   "match": [
+    "validation",
+    "validate",
+    "validates"
+   ]
+  },
+  {
+   "id": "presence-check",
+   "term": "presence check",
+   "group": "Files, modules and validation",
+   "definition": "Checking that something has been entered (it isn't empty).",
+   "example": "if name.strip() == \"\":",
+   "match": [
+    "presence check",
+    "presence checks"
+   ]
+  },
+  {
+   "id": "type-check",
+   "term": "type check",
+   "group": "Files, modules and validation",
+   "definition": "Checking that input is the right type, such as a whole number.",
+   "example": "if not age.isdigit():",
+   "match": [
+    "type check",
+    "type checks"
+   ]
+  },
+  {
+   "id": "range-check",
+   "term": "range check",
+   "group": "Files, modules and validation",
+   "definition": "Checking that a value is between a lowest and a highest allowed value.",
+   "example": "if 1 <= mark <= 100:",
+   "match": [
+    "range check",
+    "range checks"
+   ]
+  },
+  {
+   "id": "length-check",
+   "term": "length check",
+   "group": "Files, modules and validation",
+   "definition": "Checking that input has an allowed number of characters.",
+   "example": "if len(pin) == 4:",
+   "match": [
+    "length check",
+    "length checks"
+   ]
+  },
+  {
+   "id": "format-check",
+   "term": "format check",
+   "group": "Files, modules and validation",
+   "definition": "Checking that input follows a pattern, such as two letters then three digits.",
+   "example": "code[:2].isalpha() and code[2:].isdigit()",
+   "match": [
+    "format check",
+    "format checks"
+   ]
+  },
+  {
+   "id": "authentication",
+   "term": "authentication",
+   "group": "Files, modules and validation",
+   "definition": "Checking that a user is who they say they are, for example with a username and password.",
+   "example": "if password == stored:",
+   "match": [
+    "authentication",
+    "authentications"
+   ]
+  },
+  {
+   "id": "syntax-error",
+   "term": "syntax error",
+   "group": "Errors, testing and debugging",
+   "definition": "A mistake in the way the code is written, so Python can't run it at all.",
+   "example": "print(\"hi\"   # the closing ) is missing",
+   "match": [
+    "syntax error",
+    "syntax errors"
+   ]
+  },
+  {
+   "id": "logic-error",
+   "term": "logic error",
+   "group": "Errors, testing and debugging",
+   "definition": "The program runs, but does the wrong thing or gives the wrong answer.",
+   "example": "average = total / 2   # wrong when there are 3 numbers",
+   "match": [
+    "logic error",
+    "logic errors"
+   ]
+  },
+  {
+   "id": "runtime-error",
+   "term": "runtime error",
+   "group": "Errors, testing and debugging",
+   "definition": "An error that stops the program while it is running, such as dividing by zero.",
+   "example": "10 / 0   # ZeroDivisionError",
+   "match": [
+    "runtime error",
+    "runtime errors"
+   ]
+  },
+  {
+   "id": "debugging",
+   "term": "debugging",
+   "group": "Errors, testing and debugging",
+   "definition": "Finding and fixing errors in a program.",
+   "example": "print(x)   # a print added to see a value",
+   "match": [
+    "debugging",
+    "debug"
+   ]
+  },
+  {
+   "id": "trace-table",
+   "term": "trace table",
+   "group": "Errors, testing and debugging",
+   "definition": "A table that records the value of each variable, line by line, as a program runs, to check what it does.",
+   "example": "# i | total\n# 1 | 1\n# 2 | 3\n# 3 | 6",
+   "match": [
+    "trace table",
+    "trace tables"
+   ]
+  },
+  {
+   "id": "linear-search",
+   "term": "linear search",
+   "group": "Searching and sorting",
+   "definition": "Checking each item in turn, from the start, until the target is found or the list ends.",
+   "example": "for item in items:\n    if item == target:\n        print(\"Found\")",
+   "match": [
+    "linear search",
+    "linear searches"
+   ]
+  },
+  {
+   "id": "binary-search",
+   "term": "binary search",
+   "group": "Searching and sorting",
+   "definition": "Searching a sorted list by checking the middle item and throwing away the half the target can't be in.",
+   "example": "mid = (low + high) // 2",
+   "match": [
+    "binary search",
+    "binary searches"
+   ]
+  },
+  {
+   "id": "bubble-sort",
+   "term": "bubble sort",
+   "group": "Searching and sorting",
+   "definition": "Sorting by comparing each pair of neighbours and swapping them if they are in the wrong order, over and over.",
+   "example": "if a[i] > a[i + 1]:\n    a[i], a[i + 1] = a[i + 1], a[i]",
+   "match": [
+    "bubble sort",
+    "bubble sorts"
+   ]
+  },
+  {
+   "id": "insertion-sort",
+   "term": "insertion sort",
+   "group": "Searching and sorting",
+   "definition": "Sorting by taking each item in turn and putting it into its place among the items already sorted.",
+   "example": "while j > 0 and a[j - 1] > a[j]:\n    a[j - 1], a[j] = a[j], a[j - 1]\n    j = j - 1",
+   "match": [
+    "insertion sort",
+    "insertion sorts"
+   ]
+  },
+  {
+   "id": "merge-sort",
+   "term": "merge sort",
+   "group": "Searching and sorting",
+   "definition": "Sorting by splitting the list into halves until each has one item, then merging them back in order.",
+   "example": "merge(sort(left), sort(right))",
+   "match": [
+    "merge sort",
+    "merge sorts"
+   ]
+  },
+  {
+   "id": "recursion",
+   "term": "recursion",
+   "group": "A-level: programming techniques",
+   "definition": "A function that calls itself to solve a smaller version of the same problem.",
+   "example": "return n * fact(n - 1)",
+   "match": [
+    "recursion",
+    "recursive"
+   ]
+  },
+  {
+   "id": "base-case",
+   "term": "base case",
+   "group": "A-level: programming techniques",
+   "definition": "The case where a recursive function stops calling itself and returns an answer straight away.",
+   "example": "if n == 0: return 1",
+   "match": [
+    "base case",
+    "base cases"
+   ]
+  },
+  {
+   "id": "class",
+   "term": "class",
+   "group": "A-level: programming techniques",
+   "definition": "A blueprint for making objects, setting out their attributes and methods.",
+   "example": "class Dog:",
+   "match": [
+    "class",
+    "classes"
+   ],
+   "units": [
+    "oop-classes",
+    "oop-methods",
+    "oop-encapsulation",
+    "oop-inheritance",
+    "linked-lists",
+    "stacks-queues",
+    "hash-tables"
+   ]
+  },
+  {
+   "id": "object",
+   "term": "object",
+   "group": "A-level: programming techniques",
+   "definition": "One thing made from a class, with its own values.",
+   "example": "rex = Dog(\"Rex\")",
+   "match": [
+    "object",
+    "objects"
+   ]
+  },
+  {
+   "id": "attribute",
+   "term": "attribute",
+   "group": "A-level: programming techniques",
+   "definition": "A value that belongs to an object.",
+   "example": "self.name",
+   "match": [
+    "attribute",
+    "attributes"
+   ]
+  },
+  {
+   "id": "method",
+   "term": "method",
+   "group": "A-level: programming techniques",
+   "definition": "A function that belongs to a class and works on its objects.",
+   "example": "def bark(self):",
+   "match": [
+    "method",
+    "methods"
+   ]
+  },
+  {
+   "id": "constructor",
+   "term": "constructor",
+   "group": "A-level: programming techniques",
+   "definition": "The method that sets up a new object; in Python it is `__init__`.",
+   "example": "def __init__(self, name):",
+   "match": [
+    "constructor",
+    "constructors"
+   ]
+  },
+  {
+   "id": "self",
+   "term": "self",
+   "group": "A-level: programming techniques",
+   "definition": "The name a method uses for the object it is working on.",
+   "example": "self.name = name",
+   "match": [
+    "self",
+    "selfs"
+   ],
+   "exactCase": true
+  },
+  {
+   "id": "encapsulation",
+   "term": "encapsulation",
+   "group": "A-level: programming techniques",
+   "definition": "Keeping an object's attributes private and changing them only through its methods.",
+   "example": "self.__balance",
+   "match": [
+    "encapsulation",
+    "encapsulations"
+   ]
+  },
+  {
+   "id": "getter-and-setter",
+   "term": "getter and setter",
+   "group": "A-level: programming techniques",
+   "definition": "Methods that read (get) or change (set) a private attribute safely.",
+   "example": "def get_balance(self):",
+   "match": [
+    "getter",
+    "getters",
+    "setter",
+    "setters"
+   ]
+  },
+  {
+   "id": "inheritance",
+   "term": "inheritance",
+   "group": "A-level: programming techniques",
+   "definition": "A class (the subclass) taking the attributes and methods of another class (the superclass), and adding its own.",
+   "example": "class Puppy(Dog):",
+   "match": [
+    "inheritance",
+    "inherit",
+    "inherits"
+   ]
+  },
+  {
+   "id": "overriding",
+   "term": "overriding",
+   "group": "A-level: data structures",
+   "definition": "A subclass giving its own version of a method its superclass already has.",
+   "example": "class Puppy(Dog):\n    def speak(self):\n        return \"Yip\"",
+   "match": [
+    "overriding",
+    "override",
+    "overrides"
+   ]
+  },
+  {
+   "id": "stack",
+   "term": "stack",
+   "group": "A-level: data structures",
+   "definition": "A last in, first out structure: items are added (pushed) and taken (popped) at the top.",
+   "example": "stack.append(x)   # push\nstack.pop()       # pop",
+   "match": [
+    "stack",
+    "stacks"
+   ]
+  },
+  {
+   "id": "queue",
+   "term": "queue",
+   "group": "A-level: data structures",
+   "definition": "A first in, first out structure: items join at the back and leave from the front.",
+   "example": "queue.append(x)   # join at the back\nqueue.pop(0)      # leave from the front",
+   "match": [
+    "queue",
+    "queues"
+   ]
+  },
+  {
+   "id": "linked-list",
+   "term": "linked list",
+   "group": "A-level: data structures",
+   "definition": "A list made of nodes, where each node stores a value and a pointer to the next node.",
+   "example": "node.next",
+   "match": [
+    "linked list",
+    "linked lists"
+   ]
+  },
+  {
+   "id": "node",
+   "term": "node",
+   "group": "A-level: data structures",
+   "definition": "One item in a linked list (or tree), holding data and a link to the next item.",
+   "example": "Node(5)",
+   "match": [
+    "node",
+    "nodes"
+   ]
+  },
+  {
+   "id": "pointer",
+   "term": "pointer",
+   "group": "A-level: data structures",
+   "definition": "A value that says where the next item is, such as a node's `next`.",
+   "example": "current = current.next",
+   "match": [
+    "pointer",
+    "pointers"
+   ]
+  },
+  {
+   "id": "hash-table",
+   "term": "hash table",
+   "group": "A-level: data structures",
+   "definition": "A structure that stores values at positions worked out from their keys by a hash function, so they can be found quickly.",
+   "example": "index = hash(key) % size",
+   "match": [
+    "hash table",
+    "hash tables"
+   ]
+  },
+  {
+   "id": "key",
+   "term": "key",
+   "group": "A-level: data structures",
+   "definition": "The value used to find an item in a hash table.",
+   "example": "table[\"ada\"]   # \"ada\" is the key",
+   "match": [
+    "key",
+    "keys"
+   ],
+   "units": [
+    "hash-tables"
+   ]
+  },
+  {
+   "id": "collision",
+   "term": "collision",
+   "group": "A-level: data structures",
+   "definition": "When two keys give the same position in a hash table.",
+   "example": "# \"Ann\" and \"Ben\" both hash to index 3",
+   "match": [
+    "collision",
+    "collisions"
+   ]
+  },
+  {
+   "id": "dictionary",
+   "term": "dictionary",
+   "group": "Strings and lists",
+   "definition": "A collection of key and value pairs, where each value is found by its key.",
+   "example": "ages = {\"Ada\": 15}",
+   "match": [
+    "dictionary",
+    "dictionaries"
+   ]
+  },
+  {
+   "id": "iteration",
+   "term": "iteration",
+   "group": "Selection and loops",
+   "definition": "Repeating code; another word for looping.",
+   "example": "for i in range(3):\n    print(i)",
+   "match": [
+    "iteration",
+    "iterations"
+   ]
+  },
+  {
+   "id": "procedure",
+   "term": "procedure",
+   "group": "Functions",
+   "definition": "A subroutine that does a job but doesn't return a value.",
+   "example": "def show_menu():",
+   "match": [
+    "procedure",
+    "procedures"
+   ]
+  },
+  {
+   "id": "scope",
+   "term": "scope",
+   "group": "Functions",
+   "definition": "Where in a program a variable can be used (local or global).",
+   "example": "def f():\n    x = 5   # x can only be used inside f",
+   "match": [
+    "scope",
+    "scopes"
+   ]
+  },
+  {
+   "id": "constant",
+   "term": "constant",
+   "group": "Values and variables",
+   "definition": "A value that doesn't change while the program runs, often written in capitals.",
+   "example": "VAT = 0.2",
+   "match": [
+    "constant",
+    "constants"
+   ]
+  },
+  {
+   "id": "f-string",
+   "term": "f-string",
+   "group": "Strings and lists",
+   "definition": "A string with an `f` before it, where values in `{}` are put into the text.",
+   "example": "f\"Hi {name}\"",
+   "match": [
+    "f-string",
+    "f-strings"
+   ]
+  },
+  {
+   "id": "subroutine",
+   "term": "subroutine",
+   "group": "Functions",
+   "definition": "A general name for a function or procedure: a named block of code that can be called.",
+   "example": "def greet():",
+   "match": [
+    "subroutine",
+    "subroutines"
+   ]
+  },
+  {
+   "id": "exception",
+   "term": "exception",
+   "group": "Errors, testing and debugging",
+   "definition": "Python's name for a runtime error, such as `ValueError`, `IndexError` or `NameError`.",
+   "example": "int(\"cat\")   # ValueError",
+   "match": [
+    "exception",
+    "exceptions"
+   ]
+  },
+  {
+   "id": "algorithm",
+   "term": "algorithm",
+   "group": "Searching and sorting",
+   "definition": "A set of steps that solves a problem.",
+   "example": "# a linear search, step by step:\nfor item in items:\n    if item == target:\n        print(\"Found\")",
+   "match": [
+    "algorithm",
+    "algorithms"
+   ]
+  }
+ ]
+}

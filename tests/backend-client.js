@@ -548,8 +548,51 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
       !/SECRET|secret code|t-a|t-b|maths|57d|c1a5|Ben|Ada|b1/.test(text) &&
       JSON.stringify(fresh) === JSON.stringify({ first_passes_this_week: 0, average_first_passes_per_week: 0, average_homework_completion: 0, last_active: null }),
       "Progress summary: the reply has only the four figures (no PIN, code, task ids, ids, names, other student's data or attempt log); a student with no attempts has none (last active null)");
+    // Prompt 26: only homework set on or after the day the student joined (students.created_at) counts.
+    T.students.find((s) => s.id === ADA).created_at = "2026-11-10T15:00:00Z";
+    const sinceJoin = await HS.progressSummary(sb, deps, O, ADA, NOW);
+    T.students.find((s) => s.id === ADA).created_at = "2026-11-20T09:00:00Z";
+    const joinedLater = await HS.progressSummary(sb, deps, K, ADA, NOW);
+    check(sinceJoin.average_homework_completion === 100 && joinedLater.average_homework_completion === null && Object.keys(sinceJoin).length === 4,
+      "Progress summary (prompt 26): the homework average counts only homework set since the student joined (students.created_at): the 2 November homework drops out (100%), and with none since, it is null (\"No homework set since they joined\")");
     T.homework = [];
-    check((await HS.progressSummary(sb, deps, O, ADA, NOW)).average_homework_completion === null, "Progress summary: with no homework set for the class, the homework figure is null (\"No homework set yet\")");
+    check((await HS.progressSummary(sb, deps, O, ADA, NOW)).average_homework_completion === null, "Progress summary: with no homework set for the class, the homework figure is null");
+  }
+
+  // ---------- Several classes at once (class-create.js, prompt 26) ----------
+  // The real module the Classes page uses, against a stand-in for Supabase that does what the database does: the
+  // teacher's own row-level security (migration 0002: a class's teacher_id must be the signed-in teacher, and it
+  // defaults to them), and a new class code for each class (private.set_class_code).
+  {
+    const CC = require(path.join(ROOT, "class-create.js"));
+    const db = { classes: [] };
+    let codeN = 0;
+    const signedInAs = (uid) => ({ from: (table) => {
+      const q = { row: null };
+      const b = { insert(row) { q.row = row; return b; }, select() { return b; }, single() { return b; },
+        then(ok, bad) {
+          return Promise.resolve().then(() => {
+            if (table !== "classes" || !q.row) return { data: null, error: { code: "42501", message: "permission denied" } };
+            if ("teacher_id" in q.row && q.row.teacher_id !== uid) return { data: null, error: { code: "42501", message: 'new row violates row-level security policy for table "classes"' } };
+            if (Object.keys(q.row).some((k) => !["name", "end_of_year", "stage"].includes(k))) return { data: null, error: { code: "42501", message: "permission denied for table classes" } };
+            const made = Object.assign({ id: "class-" + (db.classes.length + 1), class_code: "K" + String(++codeN).padStart(5, "0"), stage: "gcse" }, q.row, { teacher_id: uid });
+            db.classes.push(made);
+            return { data: { id: made.id, class_code: made.class_code }, error: null };
+          }).then(ok, bad);
+        } };
+      return b; } });
+    const OWNER = "teacher-owner", STRANGER = "teacher-stranger";
+    const plan = CC.planBatch("11A, 11B, 11C", []);
+    const done = await CC.createClasses(signedInAs(OWNER), plan.names, "a-level", true);
+    check(done.created.map((c) => c.name).join() === "11A,11B,11C" && new Set(done.created.map((c) => c.class_code)).size === 3 && done.failed.length === 0 &&
+      db.classes.length === 3 && db.classes.every((c) => c.teacher_id === OWNER && c.stage === "a-level"),
+      "Several classes: the owner's batch makes one class per name, each with its own class code and the chosen stage, all in their name");
+    const before = db.classes.length;
+    const stranger = await CC.createClasses(signedInAs(STRANGER), ["12Z"], "gcse", true);
+    const forged = await signedInAs(STRANGER).from("classes").insert({ name: "Owner's class", teacher_id: OWNER }).select("id, class_code").single();
+    check(stranger.created.length === 1 && db.classes.length === before + 1 && db.classes[db.classes.length - 1].teacher_id === STRANGER &&
+      db.classes.filter((c) => c.teacher_id === OWNER).length === 3 && forged.error && db.classes.length === before + 1,
+      "Several classes: another teacher's batch makes classes only in their own name (the row sent has no teacher id, and a row naming someone else is refused)");
   }
 
   // ---------- Homework (teacher-api and student-api: supabase/functions/_shared/homework-server.js, migration 0018) ----------

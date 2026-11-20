@@ -78,7 +78,11 @@
       <a href="#reports" data-page="reports">Reports</a>
       <a href="#tasks" data-page="tasks">Task browser</a>
       <a href="#classes" data-page="classes" data-backend>Classes</a>
+      <!-- The OCR specification codes (prompt 28): plain content, so in local mode too. -->
+      <a href="#curriculum" data-page="curriculum">Curriculum</a>
       <a href="#settings" data-page="settings" data-backend>Settings</a>
+      <!-- The glossary (prompt 27), as on the student side: a page of its own, so it is not one of the hash pages. -->
+      <a href="glossary.html" class="nav-glossary">Glossary</a>
       </div>
     </nav>
     <div class="teacher-pages">
@@ -166,6 +170,22 @@
           <button type="submit" class="secondary">Create class</button>
         </form>
 
+        <!-- Create several classes (prompt 26): class-create.js checks the names, then makes each one as "Create class" does. -->
+        <details class="batch-create" id="tb-batch">
+          <summary>Create several classes</summary>
+          <form id="tb-new-classes" novalidate>
+            <label for="tb-new-classes-names" class="editor-label">Class names, separated by commas or new lines (up to 10)</label>
+            <textarea id="tb-new-classes-names" class="text-input" rows="3" spellcheck="false" placeholder="11A, 11B, 11C"></textarea>
+            <div class="teacher-controls">
+              <label>Stage <select id="tb-new-classes-stage"><option value="ks3">KS3</option><option value="gcse" selected>GCSE</option><option value="a-level">A-level</option></select></label>
+              <button type="submit" class="secondary" id="tb-new-classes-save">Create classes</button>
+            </div>
+            <p class="small">Each class gets its own class code and its own list of students. A name you already have, or one listed twice, isn't made again.</p>
+            <p id="tb-batch-status" role="status" hidden></p>
+            <div id="tb-batch-result" aria-live="polite"></div>
+          </form>
+        </details>
+
         <details class="retention-note">
           <summary>What is kept, and for how long</summary>
           <ul>
@@ -177,6 +197,14 @@
           </ul>
         </details>
       </div>
+
+      <!-- Class code cards (prompt 26): one A4 card per class, for students to join with (class-card.html). Local mode too. -->
+      <section class="class-cards" aria-labelledby="cards-h">
+        <h3 id="cards-h">Class code cards</h3>
+        <p class="small">Print a card for each class. It shows the class code and how to join, on one A4 page.</p>
+        <ul id="card-list" class="card-list"></ul>
+        <p><button type="button" id="cards-print-all" class="secondary">Print all classes</button></p>
+      </section>
     </section>
 
     <!-- ===== Students (the default page) ===== -->
@@ -548,6 +576,20 @@
       <div id="tb-view" aria-live="polite"></div>
     </section>
 
+    <!-- ===== Curriculum (prompt 28): each unit's OCR specification code, for teachers only ===== -->
+    <section id="page-curriculum" aria-labelledby="curriculum-title" hidden>
+      <h2 id="curriculum-title" tabindex="-1">Curriculum</h2>
+      <p class="small">Each unit's OCR specification code, for planning and inspection evidence. Students don't see these codes.</p>
+      <p id="cc-versions" class="small cc-versions"></p>
+      <div class="teacher-controls">
+        <label>Search by unit or code <input type="search" id="cc-search" class="text-input" style="width:auto" autocomplete="off" spellcheck="false" aria-describedby="cc-status"></label>
+        <button type="button" id="cc-print" class="secondary">Print the table</button>
+      </div>
+      <p id="cc-status" class="small" role="status"></p>
+      <!-- On a phone the table scrolls sideways inside this box, never the page. -->
+      <div class="table-wrap cc-wrap" role="region" tabindex="0" aria-label="Specification codes for each unit. Scroll sideways to see every column"><div id="cc-table"></div></div>
+    </section>
+
     <!-- ===== Settings ===== -->
     <section id="page-settings" aria-labelledby="settings-title" hidden>
       <h2 id="settings-title" tabindex="-1">Settings</h2>
@@ -588,7 +630,10 @@
   <script src="config.js"></script>
   <script src="backend-rows.js"></script>
   <script src="backend-import.js"></script>
+  <script src="class-create.js"></script>
+  <script src="class-card.js"></script>
   <script src="teacher-backend.js"></script>
+  <script src="curriculum-codes.js"></script>
   <script src="collapse.js"></script>
   <script src="tour.js"></script>
   <script src="teacher-tour.js"></script>

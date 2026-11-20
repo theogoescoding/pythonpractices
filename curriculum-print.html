@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Curriculum: OCR specification codes – Pythons and Ladders</title>
+  <link rel="icon" type="image/png" href="assets/logo/icon-light.png">
+  <!-- The teacher view's Curriculum table, for printing (prompt 28): every unit with its OCR specification code, on
+       one A4 landscape page. No site menu, no buttons. curriculum-codes.js draws it from curriculum-codes.json. -->
+  <style>
+    :root { --ink: #1b1f24; --muted: #4a5360; --line: #c9ced6; --band: #eef1f4; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: #fff; color: var(--ink); }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif; padding: 16px; }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    h1 { font-size: 1.3rem; margin: 0 0 .2rem; }
+    .cc-versions { font-size: .9rem; color: var(--muted); margin: 0 0 .6rem; }
+    .cc-wrap { overflow-x: auto; }
+    .cc-table { border-collapse: collapse; width: 100%; min-width: 40rem; font-size: .9rem; }
+    .cc-table th, .cc-table td { text-align: left; border-bottom: 1px solid var(--line); padding: .25rem .5rem; vertical-align: top; }
+    .cc-table thead th { border-bottom: 2px solid var(--ink); }
+    .cc-table tbody th[scope="row"] { font-weight: 600; }
+    .cc-block th { background: var(--band); font-weight: 700; }
+    .cc-code { white-space: nowrap; }
+    .cc-flag { color: var(--muted); font-style: italic; }
+    .cc-footer { font-size: .8rem; color: var(--muted); margin: .5rem 0 0; }
+
+    /* Printing: the whole table on one A4 landscape page. */
+    @page { size: A4 landscape; margin: 10mm; }
+    @media print {
+      body { padding: 0; }
+      h1 { font-size: 12pt; }
+      .cc-versions { font-size: 8.5pt; margin-bottom: 2mm; }
+      .cc-wrap { overflow: visible; }
+      .cc-table { font-size: 7.5pt; line-height: 1.1; min-width: 0; }
+      .cc-table th, .cc-table td { padding: .1mm 1.6mm; }
+      .cc-table tr { break-inside: avoid; page-break-inside: avoid; }
+      .cc-block th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .cc-footer { font-size: 7pt; margin-top: 1.5mm; }
+    }
+  </style>
+</head>
+<body>
+  <main id="cc-print-page">
+    <h1>Pythons and Ladders: OCR specification codes</h1>
+    <p id="cc-versions" class="cc-versions"></p>
+    <div class="cc-wrap"><div id="cc-table"></div></div>
+    <p class="cc-footer">For teacher planning and inspection evidence. Students don't see these codes.</p>
+  </main>
+  <script src="curriculum.js"></script>
+  <script src="curriculum-codes.js"></script>
+</body>
+</html>

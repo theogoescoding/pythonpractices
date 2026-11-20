@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Glossary – Pythons and Ladders</title>
+  <link rel="icon" type="image/png" href="assets/logo/icon-light.png">
+  <link rel="stylesheet" href="styles.css">
+  <!-- The glossary (prompt 27): plain content from glossary.json, shown by glossary.js. It needs no sign-in and no
+       server (none of the server scripts are loaded here), so it works the same in local mode, for students and teachers. -->
+  <script src="store.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <h1><a href="app.html" class="home-link">Pythons and Ladders</a> <span class="unit-crumb">· Glossary</span></h1>
+      <div class="header-tools" role="group" aria-label="Display settings">
+        <a href="app.html" id="gloss-back">← Back to your units</a>
+        <span id="display-tools"></span>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="wrap home glossary" tabindex="-1">
+    <h2 id="gloss-h" class="gloss-title">Glossary</h2>
+    <p>Python words used in the tasks and hints. Each one has a short meaning and an example.</p>
+    <div class="gloss-search-row">
+      <label for="gloss-search" class="editor-label">Search the glossary</label>
+      <input type="search" id="gloss-search" class="text-input" autocomplete="off" spellcheck="false" aria-describedby="gloss-status">
+      <p id="gloss-status" class="small" role="status">Loading…</p>
+    </div>
+    <nav id="gloss-letters" class="gloss-letters" aria-label="Jump to a letter"></nav>
+    <div id="gloss-list" class="gloss-list"></div>
+  </main>
+
+  <script src="glossary.js"></script>
+</body>
+</html>

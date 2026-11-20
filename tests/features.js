@@ -1351,10 +1351,10 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
 
     // The side menu, in order, with Students as the default page; old addresses still open the right page.
     const nav = [...teacher.matchAll(/<a href="#(\w+)" data-page="\w+"( data-backend)?>([^<]+)<\/a>/g)].map((m) => m[3]);
-    check(nav.join() === "Students,Homework,Assignments,Misconceptions,Leaderboards,Certificates,Reports,Task browser,Classes,Settings" && !/tab-nav/.test(teacher) &&
-      ["classes", "students", "leaderboards", "certificates", "homework", "student", "assignments", "reports", "misconceptions", "tasks", "settings"].every((p) => teacher.includes('id="page-' + p + '"')) &&
+    check(nav.join() === "Students,Homework,Assignments,Misconceptions,Leaderboards,Certificates,Reports,Task browser,Classes,Curriculum,Settings" && !/tab-nav/.test(teacher) &&
+      ["classes", "students", "leaderboards", "certificates", "homework", "student", "assignments", "reports", "misconceptions", "tasks", "curriculum", "settings"].every((p) => teacher.includes('id="page-' + p + '"')) &&
       /\["students", null\]/.test(teacherSrc) && /overview: "students", log: "reports", workshop: "misconceptions"/.test(teacherSrc) && /"#students"\)/.test(backendSrc),
-      "Teacher view: a side menu (Students, Homework, Assignments, Misconceptions, Leaderboards, Certificates, Reports, Task browser, Classes, Settings; the order since review finding L1) replaces the tabs; Students is the default page, and #overview, #log and #workshop still open Students, Reports or Misconceptions");
+      "Teacher view: a side menu (Students, Homework, Assignments, Misconceptions, Leaderboards, Certificates, Reports, Task browser, Classes, Curriculum (prompt 28), Settings; the order since review finding L1) replaces the tabs; Students is the default page, and #overview, #log and #workshop still open Students, Reports or Misconceptions");
 
     // The Misconceptions page (the workshop, moved from Reports).
     const pageOf = (id) => { const i = teacher.indexOf('<section id="page-' + id + '"'); return teacher.slice(i, teacher.indexOf("<!-- =====", i + 10)); };
@@ -1853,6 +1853,8 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
           supabase: { createClient: () => sb }, Curriculum: { DEFAULT_STAGE: "gcse", stageOf: (s) => ({ label: s }) } };
         ctx.self = ctx;
         vm.createContext(ctx);
+        // class-create.js (prompt 26: the one class-creation rule) loads first, as on the page.
+        vm.runInContext(fs.readFileSync(require("path").join(root, "class-create.js"), "utf8"), ctx);
         vm.runInContext(fs.readFileSync(require("path").join(root, "teacher-backend.js"), "utf8"), ctx);
         await ctx.TeacherBackend.start(() => {}, () => {});
         await handlers["tb-new-class:submit"]({ preventDefault() {} });
@@ -4227,7 +4229,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     check(TD21.workshop(empty, [], {}, {}).tasks.length === 0 && /\$\("ws-unseen"\)\.innerHTML = !w\.tasks\.length \? '<p class="small">No failed attempts yet\.<\/p>' : unseen\.length \?/.test(tj),
       "S6: Not matched yet says \"No failed attempts yet.\" for a class with no failed attempts, instead of listing every misconception");
     const navLinks = [...th.matchAll(/<a href="#(\w+)" data-page="\w+"( data-backend)?>/g)].map((m) => m[1] + (m[2] ? "*" : ""));
-    check(navLinks.join() === "students,homework*,assignments*,misconceptions,leaderboards,certificates,reports,tasks,classes*,settings*" &&
+    check(navLinks.join() === "students,homework*,assignments*,misconceptions,leaderboards,certificates,reports,tasks,classes*,curriculum,settings*" &&
       /document\.querySelectorAll\("\[data-backend\]"\)\.forEach\(\(b\) => \{ b\.hidden = !tb; \}\);/.test(tj) && ["cl-local", "as-local", "set-local", "hw-local"].every((id) => th.includes('id="' + id + '"')),
       "S10: local mode's menu hides Homework, Assignments, Classes and Settings (data-backend); their pages still say why they need backend mode");
     const certHtml = read("certificate.html"), certJs = read("certificate.js");
@@ -4296,7 +4298,7 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
 
     // ---------- Feature 1: the teacher tour ----------
     const TT = fresh(ttSrc), Tour23 = fresh(tourSrc23);
-    const pages = ["students", "homework", "assignments", "misconceptions", "leaderboards", "certificates", "reports", "tasks", "classes", "settings"];
+    const pages = ["students", "homework", "assignments", "misconceptions", "leaderboards", "certificates", "reports", "tasks", "classes", "curriculum", "settings"]; // Curriculum since prompt 28
     const onServer = ["homework", "assignments", "classes", "settings"];
     const back = TT.stepsFor(true), local = TT.stepsFor(false);
     check(TT.STEPS.map((s) => s.id).join() === "overview," + pages.join() && back.concat(local).every((s) => sentences(s.text) === 2 && s.text.length <= 140 && s.title && s.targets.length) &&
@@ -4496,9 +4498,9 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
     const shown = dl(figures(asReply(withHw))), none = dl(figures(asReply(HW.progressSummary({ attempts: [], homework: [], now: NOW })))),
       local = dl(figures(asReply(HW.progressSummary({ attempts: known, homework: null, now: NOW }))));
     check(shown.join(" | ") === "First passes this week: 2 | Average first passes per week: 1.3 | Average homework completion: 67% | Last active: 17 Nov 2026, 16:00" &&
-      none.join(" | ") === "First passes this week: 0 | Average first passes per week: 0.0 | Average homework completion: No homework set yet | Last active: Not active yet" &&
+      none.join(" | ") === "First passes this week: 0 | Average first passes per week: 0.0 | Average homework completion: No homework set since they joined | Last active: Not active yet" &&
       local[2] === "Average homework completion: Homework is not available in this browser",
-      "Progress summary: the four figures as the page shows them (one decimal place, a whole percentage, UK date and time); \"No homework set yet\" with none set, \"Not active yet\" with no attempts, and in local mode \"Homework is not available in this browser\"");
+      "Progress summary: the four figures as the page shows them (one decimal place, a whole percentage, UK date and time); \"No homework set since they joined\" with none set (prompt 26), \"Not active yet\" with no attempts, and in local mode \"Homework is not available in this browser\"");
     const sdIdx = (id) => th.indexOf(id);
     const studentPage = between(th, '<section id="page-student"', "<!-- =====");
     check(studentPage.indexOf('id="sd-summary-h">Progress summary</h3>') > 0 && studentPage.indexOf('id="sd-summary-h"') < studentPage.indexOf("<h3>Secured score per unit</h3>") &&
@@ -4506,6 +4508,244 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       !/progressSummary|progress_summary|Based on first passes/.test(read("leaderboard.js") + read("leaderboard.html") + read("home.js") + read("progress.js") + read("app.html") + read("progress.html") + read("backend.js")) &&
       !/progress_summary|progressSummary/.test(between(tj, "const EXPORTS = {", "// The first rows of a CSV text")),
       "Progress summary: a section on the teacher's student page, above the secured score per unit, with its one line \"Based on first passes. Repeat passes are not counted.\"; not on the student's own pages, the leaderboards or the exports");
+  }
+
+  // ===================== Prompt 26 (2026-11): homework since joining, several classes at once, class code cards =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const HW = require(path.join(ROOT, "homework.js"));
+    const CC = require(path.join(ROOT, "class-create.js"));
+    const Card = require(path.join(ROOT, "class-card.js"));
+    const tj = read("teacher.js"), th = read("teacher.html"), tb = read("teacher-backend.js"), hs = read("supabase/functions/_shared/homework-server.js");
+    const between = (src, from, to) => { const i = src.indexOf(from); return i < 0 ? "" : src.slice(i, src.indexOf(to, i + from.length)); };
+    const escF = (x) => String(x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+    // ---------- Part A: homework set since the student joined ----------
+    const NOW = Date.parse("2026-11-18T12:00:00Z");
+    const A = (taskId, iso) => ({ kind: "attempt", taskId, unit: "maths", units: ["maths"], result: "pass", at: iso });
+    const passes = [A("t-a", "2026-11-03T10:00:00Z"), A("t-b", "2026-11-16T09:00:00Z"), A("t-c", "2026-11-17T09:00:00Z")];
+    const before = { created_at: "2026-11-02T08:00:00Z", due_on: "2026-11-08", units: [], task_count: 2 };   // set before the student joined: 1 of 2 done
+    const sameDay = { created_at: "2026-11-10T07:00:00Z", due_on: "2026-11-30", units: [], task_count: 4 }; // set on the day they joined (earlier that day): 2 of 4
+    const later = { created_at: "2026-11-15T08:00:00Z", due_on: "2026-11-30", units: [], task_count: 2 };   // set after: 2 of 2
+    const joined = "2026-11-10T15:00:00Z";
+    const sinceJoin = HW.progressSummary({ attempts: passes, flags: [], homework: [before, sameDay, later], joinedAt: joined, now: NOW });
+    const everyHw = HW.progressSummary({ attempts: passes, flags: [], homework: [before, sameDay, later], now: NOW });
+    const noneSince = HW.progressSummary({ attempts: passes, flags: [], homework: [before], joinedAt: joined, now: NOW });
+    check(HW.homeworkSinceJoined([before, sameDay, later], joined, NOW).length === 2 && sinceJoin.averageHomeworkCompletion === 75 && everyHw.averageHomeworkCompletion === 67 &&
+      noneSince.averageHomeworkCompletion === null && HW.homeworkSinceJoined([later], "2026-12-01T00:00:00Z", NOW).length === 0 &&
+      /joinedAt: joined && joined\.created_at/.test(hs) && /sb\.from\("students"\)\.select\("id, created_at"\)\.eq\("id", s\.id\)/.test(hs) &&
+      /joinedAt: \(data\.students\[studentId\] \|\| \{\}\)\.created/.test(tj) && /const set = homeworkSinceJoined\(o\.homework, o\.joinedAt, now\)/.test(read("homework.js")),
+      "Progress summary (prompt 26): the homework average counts only homework set on or after the day the student joined (50% and 100% give 75%, not 67% with the earlier one); one rule (homework.js homeworkSinceJoined) for the server (students.created_at) and local mode");
+    const figures = new Function("esc", between(tj, "  const ukWhen = ", "  // joinedAt: when this browser") + "; return summaryFiguresHtml;")(escF);
+    check(/<dt>Average homework completion<\/dt><dd>No homework set since they joined<\/dd>/.test(figures({ first_passes_this_week: 0, average_first_passes_per_week: 0, average_homework_completion: null, last_active: null })) &&
+      !/No homework set yet/.test(tj),
+      "Progress summary (prompt 26): with no homework set since the student joined, the page says \"No homework set since they joined\"");
+
+    // ---------- Part B: several classes at once ----------
+    const plan = CC.planBatch("11A, 11B\n11C,, 11a ,  12X  , 7Y", ["12x", "7Z"]);
+    check(plan.names.join("|") === "11A|11B|11C|7Y" && plan.refused.map((r) => r.name + ": " + r.reason).join("|") === "11a: it is in the list twice|12X: you already have a class with this name",
+      "Several classes: the names (commas or new lines) are checked first; a name listed twice or one the teacher already has (ignoring capitals and spaces) is refused, with the reason");
+    const twelve = CC.planBatch(Array.from({ length: 12 }, (_, i) => "C" + (i + 1)).join(", "), []);
+    check(CC.MAX_BATCH === 10 && twelve.names.length === 10 && twelve.refused.map((r) => r.name).join() === "C11,C12" && twelve.refused.every((r) => r.reason === "only 10 classes can be made at a time") &&
+      CC.planBatch("x".repeat(101), []).refused[0].reason === "the name is longer than 100 characters",
+      "Several classes: at most 10 are made at a time; names after the tenth (and names over 100 characters) are refused and listed");
+    // The real "Create several classes" handler (teacher-backend.js with class-create.js) against a stand-in Supabase
+    // client that gives each new class its own code, in a child process (the handler is async and these checks are not).
+    const batch = (names) => {
+      const scenario = async (root, names) => {
+        const fs = require("fs"), vm = require("vm");
+        const els = {}, handlers = {}, inserts = [];
+        const el = (id) => els[id] || (els[id] = { id, value: "", textContent: "", innerHTML: "", hidden: false, className: "", disabled: false,
+          addEventListener: (type, fn) => { handlers[id + ":" + type] = fn; }, focus() {} });
+        el("tb-new-classes-names").value = names;
+        el("tb-new-classes-stage").value = "ks3";
+        const respond = (q) => { if (!q.insert) return { data: [] }; inserts.push(q.insert); return { data: { id: "c" + inserts.length, class_code: "CODE" + String(inserts.length).padStart(2, "0") } }; };
+        const query = () => { const q = {}; const b = { insert: (row) => { q.insert = row; return b; }, then: (ok) => ok(respond(q)) };
+          ["select", "order", "eq", "single", "maybeSingle", "range"].forEach((m) => { b[m] = () => b; }); return b; };
+        const sb = { from: query, auth: { getSession: async () => ({ data: { session: null } }) } };
+        const ctx = { document: { getElementById: el, head: { appendChild() {} } }, location: { hash: "", pathname: "/teacher.html", origin: "" },
+          history: { replaceState() {} }, localStorage: { getItem: () => null, setItem() {} }, console,
+          APP_CONFIG: { BACKEND_ENABLED: true, SUPABASE_URL: "https://example.test", SUPABASE_ANON_KEY: "test" },
+          supabase: { createClient: () => sb }, Curriculum: { DEFAULT_STAGE: "gcse", stageOf: (s) => ({ label: s }) } };
+        ctx.self = ctx;
+        vm.createContext(ctx);
+        vm.runInContext(fs.readFileSync(require("path").join(root, "class-create.js"), "utf8"), ctx);
+        vm.runInContext(fs.readFileSync(require("path").join(root, "teacher-backend.js"), "utf8"), ctx);
+        await ctx.TeacherBackend.start(() => {}, () => {});
+        await handlers["tb-new-classes:submit"]({ preventDefault() {} });
+        console.log(JSON.stringify({ inserts, result: el("tb-batch-result").innerHTML, left: el("tb-new-classes-names").value }));
+      };
+      const out = require("child_process").execFileSync(process.execPath, ["-e", "(" + scenario.toString() + ")(" + JSON.stringify(ROOT) + ", " + JSON.stringify(names) + ")"], { encoding: "utf8" });
+      return JSON.parse(out.trim().split("\n").pop());
+    };
+    const made = batch("11A, 11B\n11C, 11a");
+    check(made.inserts.map((r) => JSON.stringify(r)).join() === '{"name":"11A","stage":"ks3"},{"name":"11B","stage":"ks3"},{"name":"11C","stage":"ks3"}' &&
+      made.inserts.every((r) => !("teacher_id" in r)) && /3 classes created\./.test(made.result) &&
+      ["11A: <strong class=\"class-code\">CODE01", "11B: <strong class=\"class-code\">CODE02", "11C: <strong class=\"class-code\">CODE03"].every((x) => made.result.includes(x)) &&
+      /<li>11a: it is in the list twice\.<\/li>/.test(made.result) && made.left === "11a",
+      "Several classes: the real handler makes one class per name (each insert as \"Create class\" makes it, with the stage and no teacher id), and the summary lists each new class with its own code, and the refused names with why");
+    const over = batch(Array.from({ length: 12 }, (_, i) => "Y" + (i + 1)).join("\n"));
+    check(over.inserts.length === 10 && /10 classes created\./.test(over.result) && /<li>Y11: only 10 classes can be made at a time\.<\/li><li>Y12: only 10 classes can be made at a time\.<\/li>/.test(over.result) &&
+      /const r = await self\.ClassCreate\.createClass\(sb, name, stage, stageOnServer\);/.test(tb) && !/sb\.from\("classes"\)\.insert/.test(tb) &&
+      /<script src="class-create\.js"><\/script>\s*<script src="class-card\.js"><\/script>\s*<script src="teacher-backend\.js"><\/script>/.test(th),
+      "Several classes: a batch over 10 makes the first 10 and lists the rest as refused; \"Create class\" and \"Create several classes\" share class-create.js (teacher-backend.js has no insert of its own)");
+    const rls = read("supabase/migrations/0002_rls.sql");
+    check(/create policy "teacher adds own classes" on public\.classes for insert to authenticated\s*with check \(teacher_id = \(select auth\.uid\(\)\)\);/.test(rls) &&
+      /grant select, delete, insert \(name, end_of_year\)/.test(rls) && /teacher_id uuid not null default auth\.uid\(\)/.test(read("supabase/migrations/0001_schema.sql")),
+      "Several classes: a class can only be made in the signed-in teacher's own name (row-level security checks teacher_id, which the teacher can't even send)");
+
+    // ---------- Part C: class code cards ----------
+    const doc = { createElement: (tag) => { const e = { tagName: tag, children: [], attrs: {}, className: "", textContent: "",
+      setAttribute(k, v) { this.attrs[k] = v; }, appendChild(c) { this.children.push(c); return c; } }; return e; } };
+    const flat = (e) => [e].concat(...e.children.map(flat));
+    const text = (e) => flat(e).map((x) => x.textContent).filter(Boolean);
+    const cards = Card.parse("#" + Card.url([{ name: "11A", stage: "GCSE", code: "ABC234" }, { name: "11B <b>", stage: "KS3", code: "" }], true).split("#")[1]);
+    const one = text(Card.card(doc, cards[0])), noCode = text(Card.card(doc, cards[1]));
+    check(cards.length === 2 && cards[1].name === "11B <b>" &&
+      JSON.stringify(one) === JSON.stringify(["Pythons and Ladders", "11A", "GCSE", "Class code", "ABC234", "Website: ", "[SITE ADDRESS]", "How to join",
+        "Go to [SITE ADDRESS].", "Choose 'New student'.", "Type the class code above and your nickname.", "Write down the code and PIN you are given. Keep them secret.", "If you forget your PIN, ask your teacher."]) &&
+      noCode.includes(Card.NO_CODE) && /print=1/.test(Card.url(cards, true)) && Card.parse("#classes=not-json").length === 0 &&
+      (read("class-card.js").match(/\[SITE ADDRESS\]/g) || []).length === 1 && !/\[SITE ADDRESS\]/.test(read("class-card.html")) && !/innerHTML/.test(read("class-card.js")),
+      "Class code card: the class name and stage, the class code, the site address placeholder ([SITE ADDRESS], set in one place), the four instructions and \"If you forget your PIN, ask your teacher.\", all as text; local mode's card says it has no class code");
+    const cardHtml = read("class-card.html");
+    check(/@page \{ size: A4 portrait; margin: 12mm; \}/.test(cardHtml) && /\.cc-card \{ width: 186mm; height: 271mm;[^}]*break-after: page;[^}]*break-inside: avoid;/.test(cardHtml) &&
+      /\.cc-card:last-child \{ break-after: auto;/.test(cardHtml) && !/<nav|<button|class="side-nav"|<a /i.test(cardHtml.replace(/<!--[\s\S]*?-->/g, "")) &&
+      /\.cc-card \{\s*background: var\(--paper\); width: 100%; max-width: 640px;/.test(cardHtml) && /overflow-wrap: anywhere/.test(cardHtml),
+      "Class code card: each card is one A4 portrait page (186 × 271 mm inside 12 mm margins, a page break after each but the last), with no site menu, links or buttons, and it shrinks to the screen's width");
+    check(/<section class="class-cards" aria-labelledby="cards-h">/.test(th) && /<button type="button" id="cards-print-all" class="secondary">Print all classes<\/button>/.test(th) &&
+      /data-card="' \+ i \+ '"[^>]*>Print card<\/button>/.test(tj) && /window\.open\(self\.ClassCard\.url\(cardClasses\(\), true\), "_blank"\)/.test(tj) &&
+      /tb \? tb\.classCards\(\) : \[\{ name: "This browser"/.test(tj) && th.indexOf('class="class-cards"') > th.indexOf('id="cl-main"') && th.indexOf('class="class-cards"') < th.indexOf('id="page-students"'),
+      "Class code cards: the Classes page lists every class with Print card, and Print all classes prints every class, one per sheet (local mode: this browser's card)");
+  }
+
+  // ===================== Prompt 27 (2026-11): class card wording, and the glossary =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const Card = require(path.join(ROOT, "class-card.js"));
+    const G = require(path.join(ROOT, "glossary.js"));
+    const gl = JSON.parse(read("glossary.json"));
+    const compiled = G.compile(gl);
+    const links = (h) => [...h.matchAll(/<a class="term-link" href="glossary\.html#term-([\w-]+)" target="_blank" rel="noopener" title="[^"]*">([^<]+)<span class="visually-hidden">/g)].map((m) => m[1] + "=" + m[2]);
+
+    // Part A: the card's steps.
+    check(JSON.stringify(Card.STEPS) === JSON.stringify(["Go to [SITE ADDRESS].", "Choose 'New student'.", "Type the class code above and your nickname.", "Write down the code and PIN you are given. Keep them secret."]) &&
+      !/Join a class|Choose a PIN/.test(read("class-card.js")) && /Choose 'New student'/.test(read("README.md")),
+      "Class code card (prompt 27): step 2 is \"Choose 'New student'.\" and step 4 \"Write down the code and PIN you are given. Keep them secret.\" (steps 1 and 3 unchanged, no others)");
+
+    // Part B: the content.
+    const draftTerms = ["variable", "casting", "for loop", "if, elif, else", "2D array", "constructor", "hash table", "dictionary", "f-string", "subroutine", "exception", "algorithm"];
+    check(gl.terms.length === 100 && new Set(gl.terms.map((t) => t.id)).size === 100 && new Set(gl.terms.map((t) => t.term.toLowerCase())).size === 100 &&
+      gl.terms.every((t) => t.term && t.definition && /[.!?]$/.test(t.definition.trim()) && t.example && t.group && gl.groups.includes(t.group) && Array.isArray(t.match)) &&
+      draftTerms.every((x) => gl.terms.some((t) => t.term === x)) && gl.groups.length === 10,
+      "Glossary: glossary.json (the one data file) has 100 terms, each with a one-sentence definition, an example and its group (the draft's 91, plus the 9 kept)");
+    // Search: the start of a term, the start of a word in a definition, and nothing.
+    const names = (q) => G.search(gl.terms, q).map((t) => t.term);
+    const none = G.listHtml(gl.terms, "zzzq");
+    check(names("").length === 100 && ["record", "recursion"].every((x) => names("rec").includes(x)) && names("constru").join() === "constructor" && names("recu").join() === "base case,recursion" && names("Remainder").includes("modulus") && names("LIFO").length === 0 &&
+      names("last in").includes("stack") && !names("ainder").includes("modulus") && G.search(gl.terms, "zzzq").length === 0 && none.count === 0 && /No matching terms/.test(none.html),
+      "Glossary search: it finds the start of a term (constru: constructor; rec: record and recursion, among others; recu: recursion, and base case, whose definition says recursive) and the start of any word in a definition (remainder: modulus; last in: stack), ignores capitals, not the middle of a word, and says \"No matching terms\" when nothing matches");
+    const all = G.listHtml(gl.terms, "");
+    const order = [...all.html.matchAll(/<h3 class="gloss-term">([^<]+) <span/g)].map((m) => m[1].replace(/&amp;/g, "&"));
+    const letters = [...all.html.matchAll(/<h2 class="gloss-letter-h" id="letter-(\w+)">/g)].map((m) => m[1]);
+    check(order.length === 100 && order[0] === "2D array" && order[1] === "3D array" && order.slice(2).every((t, i, a) => i === 0 || a[i - 1].localeCompare(t, "en-GB", { sensitivity: "base", numeric: true }) <= 0) &&
+      letters[0] === "num" && letters.slice(1).every((l, i, a) => i === 0 || a[i - 1] < l) && /<pre class="gloss-example"><code>/.test(all.html) &&
+      /\.gloss-example \{[^}]*white-space: pre-wrap;[^}]*overflow-wrap: anywhere;/.test(read("styles.css")),
+      "Glossary page: every term A to Z under its letter (\"2D array\" and \"3D array\" first, under 0–9), each with its definition and its example in a code block that wraps on a phone");
+    const page = read("glossary.html"), gjs = read("glossary.js");
+    check(!/backend\.js|config\.js|supabase|backend-rows/.test(page) && /<script src="store\.js"><\/script>/.test(page) && /<script src="glossary\.js"><\/script>/.test(page) &&
+      /fetch\("glossary\.json"\)/.test(gjs) && !/Backend|functions\/v1|supabase|teacher\.html/.test(gjs) && /<input type="search" id="gloss-search"/.test(page) && /id="gloss-status"[^>]*role="status"/.test(page),
+      "Glossary page: plain content (glossary.json and the theme settings only), so it works the same in local mode, with no server or sign-in; a search box at the top and a status line");
+
+    // Linking in task text and hints.
+    const t1 = { unit: "lists", description: "A list holds several values. Use the list below.\nlist output: 1 2 3", hints: ["Append each value to the list.", "Each list has an index."] };
+    const r1 = G.linkTask(t1, compiled);
+    check(links(r1.description).join() === "list=list" && links(r1.hints[0]).join() === "append=Append" && links(r1.hints[1]).join() === "index=index" &&
+      (r1.description + r1.hints.join("")).split("term-list\"").length === 2 && /\nlist output: 1 2 3$/.test(r1.description),
+      "Glossary links: a task's first mention of each term links to its entry (in a new tab), and later mentions on the same task (description or hints) don't");
+    const codeLike = G.linkTask({ unit: "loops-count", description: 'Use range(5) and print "a list of numbers". Set self.name too.', hints: ["The loop uses len(items)."] }, compiled);
+    const units = (u) => links(G.linkTask({ unit: u, description: "Each class has 30 pupils.", hints: [] }, compiled).description).join();
+    check(links(codeLike.description).join() === "" && links(codeLike.hints[0]).join() === "loop=loop" && units("selection") === "" && units("oop-classes") === "class=class" &&
+      links(G.linkTask({ unit: "insertion-sort", description: "The item is in a variable called key.", hints: [] }, compiled).description).join() === "variable=variable",
+      "Glossary links: never a call such as range(5) or len(, a word in \"double quotes\", or part of a name such as self.name; a term with a meaning that changes (class, key, range, return, length) links only in the units where it means the Python word");
+    const realTask = require(path.join(ROOT, "tasks.json")).find((t) => t.id === "lists-L1a") || require(path.join(ROOT, "tasks.json")).find((t) => t.unit === "lists");
+    const realLinks = links(G.linkTask(realTask, compiled).description).concat(...G.linkTask(realTask, compiled).hints.map(links));
+    check(realLinks.length > 0 && new Set(realLinks.map((l) => l.split("=")[0])).size === realLinks.length,
+      "Glossary links: a real task (" + realTask.id + ") links its terms (" + realLinks.join(", ") + "), each only once");
+    const appJs = read("app.js");
+    check((appJs.match(/linked\(t\)/g) || []).length === 2 && /'<p class="description">' \+ linked\(t\)\.description \+ "<\/p>"/.test(appJs) && /\(linked\(t\)\.hints\[i\] \|\| esc\(h\)\)/.test(appJs) &&
+      /loadJson\("glossary\.json"\)\.catch\(\(\) => null\)/.test(appJs) && !/Glossary/.test(read("task-view.js")) && !/Glossary|linked\(/.test(appJs.slice(appJs.indexOf("function renderResults"), appJs.indexOf("function renderResults") + 3000)),
+      "Glossary links: only the task's description and hints are linked; the code, the editor (task-view.js) and the test results never are; without glossary.json the text shows as before");
+    // The links to the page.
+    const tNav = read("teacher.html").slice(read("teacher.html").indexOf('<div id="side-nav-links"'), read("teacher.html").indexOf("</nav>"));
+    check(/<a href="glossary\.html" class="menu-link">Glossary<\/a>/.test(read("app.html")) && /<a href="glossary\.html" class="menu-link">Glossary<\/a>/.test(read("progress.html")) &&
+      /<a href="glossary\.html" target="_blank" rel="noopener">Glossary/.test(read("practice.html")) && /<script src="glossary\.js"><\/script>/.test(read("practice.html")) &&
+      /<a href="glossary\.html" class="nav-glossary">Glossary<\/a>/.test(tNav),
+      "Glossary: linked from the student home page's menu, My progress and the practice page's side panel, and from the teacher view's side menu");
+  }
+
+  // ===================== Prompt 28 (2026-11): OCR specification codes (teacher side only) =====================
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const CC = require(path.join(ROOT, "curriculum-codes.js"));
+    const TD28 = require(path.join(ROOT, "teacher-data.js"));
+    const codes = JSON.parse(read("curriculum-codes.json"));
+    const tj = read("teacher.js"), th = read("teacher.html");
+    const between = (src, from, to) => { const i = src.indexOf(from); return i < 0 ? "" : src.slice(i, src.indexOf(to, i + from.length)); };
+
+    // The data: one code for every unit, every code a real unit, and the versions.
+    check(CC.problems(codes, Curriculum).length === 0 && codes.units.length === Curriculum.UNITS.length && Curriculum.UNITS.length === 40 &&
+      Curriculum.UNITS.every((u) => codes.units.filter((e) => e.unit === u.id).length === 1) && codes.units.every((e) => Curriculum.UNITS.some((u) => u.id === e.unit)) &&
+      CC.problems({ specifications: codes.specifications, units: codes.units.slice(1).concat([{ unit: "no-such-unit", specification: "J277", version: "2.4", code: "2.2.1", point: "x" }]) }, Curriculum).join("|") === "output has 0 entries|no-such-unit isn't a unit",
+      "Specification codes: curriculum-codes.json has exactly one code for each of the 40 units in the curriculum, and every code belongs to a real unit (a missing or unknown unit is caught)");
+    const vers = CC.versions(codes);
+    check(codes.specifications.J277.version === "2.4" && codes.specifications.H446.version === "3.0" && vers.join(" · ") === "OCR GCSE (9–1) Computer Science (J277), version 2.4 · OCR A Level Computer Science (H446), version 3.0" &&
+      /\$\("cc-versions"\)\.textContent = self\.CurriculumCodes\.versions\(codesData\)\.join\(" · "\);/.test(tj) && /<p id="cc-versions"/.test(between(th, '<section id="page-curriculum"', "</section>")) &&
+      /document\.getElementById\("cc-versions"\)\.textContent = versions\(data\)/.test(read("curriculum-codes.js")) && /id="cc-versions"/.test(read("curriculum-print.html")) &&
+      codes.units.every((e) => e.version === codes.specifications[e.specification].version),
+      "Specification codes: the J277 (version 2.4) and H446 (version 3.0) versions are on the Curriculum page and its print page");
+    const traceRow = codes.units.find((e) => e.unit === "trace-tables");
+    const all = CC.rows(codes, Curriculum);
+    const html = CC.tableHtml(all);
+    check(traceRow.closestMatch === true && traceRow.code === "2.3.2" && traceRow.point === "testing" && /aren't named in the specification/.test(traceRow.matchNote) &&
+      codes.units.filter((e) => e.closestMatch).length === 1 && (html.match(/Closest match: not named in the specification<\/span>/g) || []).length === 1 &&
+      /Trace tables<\/th><td>J277 \(version 2\.4\)<\/td><td class="cc-code">2\.3\.2<\/td><td>testing <span class="cc-flag"/.test(html),
+      "Specification codes: Trace tables is J277 2.3.2 (testing), marked in the data and on the page as the closest match (not named in the specification)");
+    // The Curriculum page: every unit, by block, with its code.
+    const rowsShown = [...html.matchAll(/<tr><th scope="row">([^<]+)<\/th><td>(J277|H446) \(version [\d.]+\)<\/td><td class="cc-code">([\d.]+)<\/td><td>([^<]+)/g)];
+    const blocksShown = [...html.matchAll(/<tr class="cc-block"><th scope="colgroup" colspan="4">([^<]+)<\/th>/g)].map((m) => m[1]);
+    check(rowsShown.length === 40 && Curriculum.UNITS.every((u) => rowsShown.some((m) => m[1] === Curriculum.unitTitle(u.id).replace(/&/g, "&amp;") && m[3] === codes.units.find((e) => e.unit === u.id).code)) &&
+      blocksShown.join("|") === "Programming fundamentals|Advanced programming|Validation|Searching and sorting|A-level: Programming techniques|A-level: Data structures" &&
+      /<a href="#classes" data-page="classes" data-backend>Classes<\/a>\s*<!--[^>]*-->\s*<a href="#curriculum" data-page="curriculum">Curriculum<\/a>/.test(th) &&
+      /<thead><tr><th scope="col">Unit<\/th><th scope="col">Specification<\/th><th scope="col">Code<\/th><th scope="col">Specification point<\/th><\/tr><\/thead>/.test(html),
+      "Curriculum page: in the teacher menu after Classes (local mode too), a table of every unit grouped by block, with the unit name, specification, code and specification point");
+    const names = (q) => CC.search(all, q).map((r) => r.unit);
+    check(names("loops").join() === "loops-condition,loops-count" && names("SORT").join() === "bubble-sort,insertion-sort,merge-sort" && names("2.3.1").length === 7 &&
+      names("h446 1.4.2").join() === "records-tuples,stacks-queues,linked-lists,hash-tables,arrays-3d" && names("").length === 40 && names("zzq").length === 0 &&
+      /No matching units/.test(CC.tableHtml([])) && /\$\("cc-search"\)\.addEventListener\("input", renderCurriculum\);/.test(tj),
+      "Curriculum page: the search box filters as you type, by unit name (loops, sort) or by code (2.3.1, H446 1.4.2), and says \"No matching units\" when nothing matches");
+    const printPage = read("curriculum-print.html");
+    check(/@page \{ size: A4 landscape; margin: 10mm; \}/.test(printPage) && /\.cc-table \{ font-size: 7\.5pt; line-height: 1\.1; min-width: 0; \}/.test(printPage) &&
+      !/<button|<nav|<a /i.test(printPage.replace(/<!--[\s\S]*?-->/g, "")) && /<script src="curriculum\.js"><\/script>\s*<script src="curriculum-codes\.js"><\/script>/.test(printPage) &&
+      /window\.open\("curriculum-print\.html#print=1", "_blank"\)/.test(tj) && /<button type="button" id="cc-print" class="secondary">Print the table<\/button>/.test(th),
+      "Curriculum page: Print the table opens the print page (curriculum-print.html): the whole table on one A4 landscape page, with no menu, links or buttons");
+    // The Students page: a small grey label under each unit's heading, with a name for a screen reader.
+    const S = TD28.overviewTablesHtml({ rows: TD28.scoreTable({ students: { a: { name: "Ann" } }, progress: { a: { units: {} } }, attempts: [], levelLog: [], buttonLog: [], placementLog: [], units: Curriculum.UNITS },
+      Curriculum.UNITS.map((u) => u.id)).rows, unitIds: Curriculum.UNITS.map((u) => u.id), unitGroups: Curriculum.UNIT_GROUPS, unitTitle: Curriculum.unitTitle, sortKey: "name", sortDir: 1, when: () => "",
+      flagsHtml: () => "", specLabelHtml: (u) => CC.labelHtml(CC.byUnit(codes).get(u)) });
+    check(/<button type="button" data-sort="selection">Selection<\/button><span class="spec-code"><span class="visually-hidden">Specification code <\/span>J277 2\.2\.1<\/span><\/th>/.test(S) &&
+      /data-sort="hash-tables">Hash tables<\/button><span class="spec-code"><span class="visually-hidden">Specification code <\/span>H446 1\.4\.2<\/span>/.test(S) &&
+      (S.match(/class="spec-code"/g) || []).length === 40 && !/spec-code/.test(S.slice(0, S.indexOf('data-sort="average"') + 60)) &&
+      /\.spec-code \{ display: block; font-size: \.72rem; font-weight: 400; color: var\(--muted\);[^}]*white-space: nowrap; \}/.test(read("styles.css")) &&
+      /specLabelHtml: \(u\) => \(specCodes \? self\.CurriculumCodes\.labelHtml\(specCodes\.get\(u\)\) : ""\)/.test(tj),
+      "Students page: each unit's column heading has its code under it (\"J277 2.2.1\"), small and grey on one line, named \"Specification code J277 2.2.1\" for a screen reader; not under Name or Average");
+    // Exports and the student side: no change.
+    const t17 = TD28.scoreTable({ students: { a: { name: "Ann" } }, progress: { a: { units: {} } }, attempts: [], levelLog: [], buttonLog: [], placementLog: [], units: Curriculum.UNITS }, ["selection"], null, ["selection"]);
+    const exportSrc = between(tj, "const EXPORTS = {", "// The first rows of a CSV text") + between(tj, "function levelsCsv(data)", "// The workshop tables");
+    check(TD28.classScoresCsv(t17, ["selection"], (u) => u).split(/\r?\n/)[0] === "Name,Average secured score,RAG,selection: secured score,selection: label,selection: level" &&
+      !/J277|H446|CurriculumCodes|specCodes|spec-code/.test(exportSrc + read("teacher-data.js").replace(/o\.specLabelHtml/g, "")) &&
+      ["app.html", "practice.html", "progress.html", "endless.html", "leaderboard.html", "glossary.html", "index.html"].every((f) => !/curriculum-codes|J277|H446/.test(read(f))) &&
+      !/curriculum-codes|J277|H446/.test(read("app.js") + read("home.js") + read("progress.js") + read("backend.js")),
+      "Specification codes: no export header or column changes (the Class scores header is as before), and no student page or script loads or shows the codes");
   }
 
   // ===================== Selection, trimmed =====================

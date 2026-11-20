@@ -1518,12 +1518,18 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       '<span class="type-how">' + esc(info.how) + "</span></div>";
   }
 
+  // Glossary links (glossary.js, prompt 27): the first mention of each glossary term in the task's description (its first
+  // line) and hints opens its entry in a new tab. Code, the editor and the test results are never linked. Until
+  // glossary.json has loaded (or if it can't be), the text shows as before, unlinked.
+  let glossary = null;
+  const linked = (t) => (glossary && self.Glossary ? self.Glossary.linkTask(t, glossary) : { description: esc(t.description), hints: (t.hints || []).map(esc) });
+
   function header(t) {
     return '<h2 id="task-title">' + esc(t.title) + "</h2>" +
       '<p class="meta">' + (preview ? '<span class="cat-tag">Teacher practice · not recorded</span>' : inAssignment ? '<span class="cat-tag">Assignment · task ' + (work.index + 1) + " of " + assignmentTasks.length + "</span>" : "") +
         unitsOf(t).map((u) => '<span class="cat-tag">' + esc(unitTitle(u)) + "</span>").join("") +
         " Level " + t.level + " · " + esc(t.type === "scratch" ? "Write from scratch" : levelName(t.level, t.unit)) + " · Task " + esc(t.id) + "</p>" +
-      '<p class="description">' + esc(t.description) + "</p>" +
+      '<p class="description">' + linked(t).description + "</p>" +
       // The exact output the checker expects for the example test (not on predict tasks: it is the answer).
       (TaskView.showsExpectedOutput(t) ? TaskView.expectedBoxHtml(t) : "");
   }
@@ -1806,7 +1812,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   function renderHints() {
     const t = task();
     $("hints").innerHTML = t.hints.slice(0, cur().hints).map((h, i) =>
-      "<li><strong>Hint " + (i + 1) + ":</strong> " + esc(h) + "</li>").join("");
+      "<li><strong>Hint " + (i + 1) + ":</strong> " + (linked(t).hints[i] || esc(h)) + "</li>").join("");
   }
 
   function showHint() {
@@ -2760,8 +2766,10 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     loadJson("tasks.json"),
     loadJson("templates.json").catch(() => []), // without templates, practice still works from the task bank
     loadJson("misconceptions.json").catch(() => []), // without it, failures just don't show a misconception's explanation
+    loadJson("glossary.json").catch(() => null), // without it, task text and hints just aren't linked to the glossary
   ])
-    .then(async ([data, tpls, mis]) => {
+    .then(async ([data, tpls, mis, gloss]) => {
+      glossary = gloss && self.Glossary ? self.Glossary.compile(gloss) : null;
       tasks = data;
       templates = tpls;
       templateById = Object.fromEntries(templates.map((x) => [x.id, x]));

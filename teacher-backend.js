@@ -166,7 +166,7 @@
 
   // ---------- Classes ----------
   // A server without migration 0013 has no classes.stage column: classes then load without it (every class is GCSE).
-  const noStage = (e) => e && (e.code === "42703" || e.code === "PGRST204" || /stage/.test(e.message || ""));
+  const noStage = self.ClassCreate.noStage; // class-create.js: the one rule
   let stageOnServer = true;
   // Row-level security returns the teacher's own classes and the ones shared with them (migration 0016), each with its
   // owner's name (the "teacher reads co-teachers' names" policy; a server without 0016 has only the teacher's own).
@@ -339,21 +339,45 @@
       const name = $("tb-new-class-name").value.trim();
       const stage = $("tb-new-class-stage").value;
       if (!name) return say("tb-status", "Please type a name for the class.", true);
-      let r = await sb.from("classes").insert(stageOnServer ? { name, stage } : { name }).select("id, class_code").single();
-      if (r.error && noStage(r.error)) { stageOnServer = false; r = await sb.from("classes").insert({ name }).select("id, class_code").single(); }
-      // A server with migration 0013 but not 0014 refuses the stage column (permission denied, 42501): make the class
-      // without it (GCSE, the column's default), so a class can still be made.
-      let stageRefused = false;
-      if (r.error && r.error.code === "42501" && stageOnServer) { stageRefused = true; r = await sb.from("classes").insert({ name }).select("id, class_code").single(); }
+      // class-create.js: the same rule as "Create several classes" (the stage, and a server without 0013 or 0014).
+      const r = await self.ClassCreate.createClass(sb, name, stage, stageOnServer);
+      stageOnServer = r.stageOnServer;
+      const stageRefused = r.stageRefused;
       // The server's reason, when it gives one, so the teacher (and Theo) can see why.
-      const reason = r.error && (r.error.message || r.error.code);
-      if (r.error) return say("tb-status", "Couldn't create the class" + (reason ? " (" + reason + ")" : "") + ". Please try again.", true);
+      const reason = r.reason;
+      if (!r.ok) return say("tb-status", "Couldn't create the class" + (reason ? " (" + reason + ")" : "") + ". Please try again.", true);
       $("tb-new-class-name").value = "";
-      await loadClasses(r.data.id);
-      say("tb-status", "Class " + name + " created. Its class code is " + r.data.class_code + ": give it to your students so they can join." +
+      await loadClasses(r.id);
+      say("tb-status", "Class " + name + " created. Its class code is " + r.class_code + ": give it to your students so they can join." +
         (!stageOnServer ? " (The server doesn't store a class's stage yet, so it is shown as GCSE.)"
           : stageRefused && stage !== self.Curriculum.DEFAULT_STAGE ? " (The server can't save its stage yet (it needs migration 0014), so it was made as GCSE.)" : ""));
       location.hash = "students";
+    });
+
+    // Create several classes (prompt 26): the names (commas or new lines) are checked first (class-create.js planBatch:
+    // at most 10, none twice, none the teacher already has), then each class is made with the same rule as one class.
+    // The summary lists the classes made, with their codes, and the names refused, with why.
+    $("tb-new-classes").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const plan = self.ClassCreate.planBatch($("tb-new-classes-names").value, classes.map((c) => c.name));
+      const stage = $("tb-new-classes-stage").value;
+      if (!plan.names.length && !plan.refused.length) return say("tb-batch-status", "Type the class names, separated by commas or new lines.", true);
+      $("tb-new-classes-save").disabled = true;
+      say("tb-batch-status", plan.names.length ? "Creating " + plan.names.length + (plan.names.length === 1 ? " class…" : " classes…") : "");
+      const done = plan.names.length ? await self.ClassCreate.createClasses(sb, plan.names, stage, stageOnServer) : { created: [], failed: [], stageOnServer, stageRefused: false };
+      stageOnServer = done.stageOnServer;
+      $("tb-new-classes-save").disabled = false;
+      if (done.created.length) await loadClasses(current ? current.id : done.created[0].id);
+      const notMade = plan.refused.concat(done.failed.map((f) => ({ name: f.name, reason: "the server refused it" + (f.reason ? " (" + f.reason + ")" : "") })));
+      say("tb-batch-status", "");
+      $("tb-batch-result").innerHTML =
+        (done.created.length ? "<p><strong>" + (done.created.length === 1 ? "1 class created." : done.created.length + " classes created.") + "</strong> Give each class its code.</p>" +
+          '<ul class="batch-list">' + done.created.map((c) => "<li>" + esc(c.name) + ': <strong class="class-code">' + esc(c.class_code) + "</strong></li>").join("") + "</ul>"
+          : "<p><strong>No classes were created.</strong></p>") +
+        (notMade.length ? "<p><strong>Not created:</strong></p><ul class=\"batch-list\">" + notMade.map((r) => "<li>" + esc(r.name) + ": " + esc(r.reason) + ".</li>").join("") + "</ul>" : "") +
+        (done.created.length && !stageOnServer ? '<p class="small">The server doesn\'t store a class\'s stage yet, so they are shown as GCSE.</p>'
+          : done.created.length && done.stageRefused && stage !== self.Curriculum.DEFAULT_STAGE ? '<p class="small">The server can\'t save their stage yet (it needs migration 0014), so they were made as GCSE.</p>' : "");
+      if (done.created.length) $("tb-new-classes-names").value = notMade.map((r) => r.name).join("\n");
     });
 
     $("tb-rename-class").addEventListener("click", async () => {
@@ -735,6 +759,8 @@
     ownsCurrentClass: () => !!(current && current.owned),
     // Every class this teacher is on (own and shared), and their name for "Issued by" on certificates.
     allClasses: () => classes.map((c) => ({ id: c.id, name: c.name })),
+    // The class code cards on the Classes page (prompt 26): every class the teacher is on, with its stage and code.
+    classCards: () => classes.map((c) => ({ id: c.id, name: c.name, stage: c.stage, class_code: c.class_code })),
     teacherName: () => myName,
     certificatesForClass, certificatesForStudent, progressSummary,
     listHomework, createHomework, deleteHomework, homeworkReport, pasteFlagsForClass, reviewCandidates,

@@ -535,7 +535,8 @@
   // it can take focus, and it is named for screen readers). ov-name and ov-shows cells stay fixed on the left.
   function overviewTables(o, groups) {
     const sorted = (key) => (key === o.sortKey ? ' aria-sort="' + (o.sortDir === 1 ? "ascending" : "descending") + '"' : "");
-    const head = (key, label, cls) => '<th scope="col"' + (cls ? ' class="' + cls + '"' : "") + sorted(key) + '><button type="button" data-sort="' + htmlEsc(key) + '">' + htmlEsc(label) + "</button></th>";
+    // extra: HTML under the heading's button (a unit's specification code, prompt 28: o.specLabelHtml).
+    const head = (key, label, cls, extra) => '<th scope="col"' + (cls ? ' class="' + cls + '"' : "") + sorted(key) + '><button type="button" data-sort="' + htmlEsc(key) + '">' + htmlEsc(label) + "</button>" + (extra || "") + "</th>";
     const td = (html, label) => '<td class="unit-cell" data-label="' + htmlEsc(label) + '">' + html + "</td>";
     return groups.map((g) => {
       const titles = g.units.map((u) => o.unitTitle(u));
@@ -553,7 +554,7 @@
         '<table class="overview-table" data-group="' + htmlEsc(g.id) + '" style="--ov-units: ' + g.units.length + '">' +
         '<caption>' + htmlEsc(g.title) + "</caption>" +
         '<colgroup><col class="ov-col-name"><col class="ov-col-shows"><col class="ov-col-avg">' + g.units.map(() => '<col class="ov-col-unit">').join("") + "</colgroup>" +
-        "<thead><tr>" + head("name", "Name", "ov-name") + '<th scope="col" class="ov-shows">Row</th>' + head("average", "Average") + g.units.map((u, i) => head(u, titles[i])).join("") + "</tr></thead>" +
+        "<thead><tr>" + head("name", "Name", "ov-name") + '<th scope="col" class="ov-shows">Row</th>' + head("average", "Average") + g.units.map((u, i) => head(u, titles[i], null, o.specLabelHtml ? o.specLabelHtml(u) : "")).join("") + "</tr></thead>" +
         body + "</table></div>";
     });
   }

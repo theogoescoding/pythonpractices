@@ -10,7 +10,7 @@
   const TD = self.TeacherData;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const PAGES = ["classes", "students", "leaderboards", "certificates", "student", "homework", "assignments", "reports", "misconceptions", "tasks", "settings"];
+  const PAGES = ["classes", "students", "leaderboards", "certificates", "student", "homework", "assignments", "reports", "misconceptions", "tasks", "settings", "curriculum"];
   const OLD_PAGES = { overview: "students", log: "reports", workshop: "misconceptions" }; // the workshop was on Reports
   const RECENT_ATTEMPTS = 30;
   const REASONS = {
@@ -121,6 +121,8 @@
     document.querySelectorAll("[data-backend]").forEach((b) => { b.hidden = !tb; });
     // The teacher tour (teacher-tour.js): once on this browser, the first time the teacher view is on show.
     if (self.TeacherTour) self.TeacherTour.maybeStart(window, !!tb);
+    if (p === "classes") renderClassCards(); // needs no class data
+    if (p === "curriculum") renderCurriculum(); // needs no class data
     if (p === "tasks") renderTaskBrowser(arg); // needs no class
     renderHomework(); // the class chosen at the top; does nothing unless the page is showing
     const data = collect();
@@ -190,7 +192,9 @@
     const scrolled = Object.fromEntries([...$("overview-tables").querySelectorAll(".overview-wrap")].map((w) => [w.firstElementChild.dataset.group, w.scrollLeft]));
     $("overview-tables").innerHTML = TD.overviewTablesHtml({ rows: scoreRows(data), unitIds, unitGroups: self.Curriculum.UNIT_GROUPS, unitTitle,
       sortKey, sortDir, when, flagsHtml: buttonFlagsHtml, buttonHtml: Collapse.buttonHtml, collapsed: Collapse.collapsedIds(OVERVIEW_KEY).concat(closedNow),
-      pasteHtml: (sid, u) => TD.pasteFlagHtml(sid, u, (pasteFlags[sid] || {})[u]) });
+      pasteHtml: (sid, u) => TD.pasteFlagHtml(sid, u, (pasteFlags[sid] || {})[u]),
+      // Each unit's OCR specification code under its heading, small and grey (prompt 28; curriculum-codes.json).
+      specLabelHtml: (u) => (specCodes ? self.CurriculumCodes.labelHtml(specCodes.get(u)) : "") });
     $("overview-tables").querySelectorAll(".overview-wrap").forEach((w) => { const x = scrolled[w.firstElementChild.dataset.group]; if (x) w.scrollLeft = x; });
   }
 
@@ -413,13 +417,15 @@
   const ukWhen = (iso) => new Date(iso).toLocaleString("en-GB", { timeZone: "Europe/London", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
   function summaryFiguresHtml(x) {
     const homework = x.average_homework_completion === undefined ? "Homework is not available in this browser"
-      : x.average_homework_completion === null ? "No homework set yet" : x.average_homework_completion + "%";
+      : x.average_homework_completion === null ? "No homework set since they joined" : x.average_homework_completion + "%";
     const rows = [["First passes this week", String(x.first_passes_this_week)], ["Average first passes per week", Number(x.average_first_passes_per_week).toFixed(1)],
       ["Average homework completion", homework], ["Last active", x.last_active ? ukWhen(x.last_active) : "Not active yet"]];
     return '<dl class="summary-figures">' + rows.map(([k, v]) => '<div class="summary-figure"><dt>' + esc(k) + "</dt><dd>" + esc(v) + "</dd></div>").join("") + "</dl>";
   }
   // The local figures, in the server's reply's shape (average_homework_completion undefined: no homework here).
-  const localSummary = (data, studentId) => { const x = self.Homework.progressSummary({ attempts: data.attempts.filter((a) => a.studentId === studentId), flags: [], homework: null });
+  // joinedAt: when this browser first saw the student (Store's "created"), the local stand-in for joining a class.
+  const localSummary = (data, studentId) => { const x = self.Homework.progressSummary({ attempts: data.attempts.filter((a) => a.studentId === studentId), flags: [], homework: null,
+    joinedAt: (data.students[studentId] || {}).created });
     return { first_passes_this_week: x.firstPassesThisWeek, average_first_passes_per_week: x.averageFirstPassesPerWeek, average_homework_completion: undefined, last_active: x.lastActive }; };
   let sdSummaryFor = null;
   function renderStudentSummary(data, studentId) {
@@ -1378,6 +1384,42 @@
     return TD.toCsv(cols, rows);
   }
 
+  // ---------- Curriculum (prompt 28) ----------
+  // Every unit's OCR specification code (curriculum-codes.json, curriculum-codes.js), grouped by block, with a search
+  // box that filters by unit name or code. Print opens curriculum-print.html: the whole table on one A4 landscape page.
+  // For teachers only: students never see the codes, and no export uses them.
+  let codesData = null;  // curriculum-codes.json
+  let specCodes = null;  // its entries by unit (a Map)
+  function renderCurriculum() {
+    if (!codesData) { $("cc-status").textContent = "Loading…"; return; }
+    $("cc-versions").textContent = self.CurriculumCodes.versions(codesData).join(" · ");
+    const all = self.CurriculumCodes.rows(codesData, self.Curriculum);
+    const shown = self.CurriculumCodes.search(all, $("cc-search").value);
+    $("cc-table").innerHTML = self.CurriculumCodes.tableHtml(shown);
+    $("cc-status").textContent = !shown.length ? self.CurriculumCodes.NO_MATCH + "." : shown.length === all.length ? all.length + " units." : shown.length + (shown.length === 1 ? " unit matches." : " units match.");
+  }
+  $("cc-search").addEventListener("input", renderCurriculum);
+  $("cc-print").addEventListener("click", () => window.open("curriculum-print.html#print=1", "_blank"));
+
+  // ---------- Class code cards (prompt 26) ----------
+  // Every class the teacher is on, each with Print card, and Print all classes: class-card.html, one A4 card a class.
+  // Local mode: one card for this browser, with no class code (class codes need the server).
+  const cardClasses = () => (tb ? tb.classCards() : [{ name: "This browser", stage: stage(), class_code: "" }])
+    .map((c) => ({ name: c.name, stage: self.Curriculum.stageOf(c.stage).label, code: c.class_code || "" }));
+  function renderClassCards() {
+    const list = cardClasses();
+    const html = list.map((c, i) => '<li class="card-row"><span><strong>' + esc(c.name) + "</strong> · " + esc(c.stage) + " · " +
+      (c.code ? '<span class="class-code">' + esc(c.code) + "</span>" : '<span class="small">no class code</span>') + "</span> " +
+      '<button type="button" class="secondary" data-card="' + i + '" aria-label="' + esc("Print the card for " + c.name) + '">Print card</button></li>').join("");
+    if ($("card-list").dataset.html !== html) { $("card-list").innerHTML = html || '<li class="small">No classes yet.</li>'; $("card-list").dataset.html = html; } // keeps focus
+    $("cards-print-all").hidden = list.length < 2;
+  }
+  $("card-list").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-card]");
+    if (b) window.open(self.ClassCard.url([cardClasses()[+b.dataset.card]], true), "_blank");
+  });
+  $("cards-print-all").addEventListener("click", () => window.open(self.ClassCard.url(cardClasses(), true), "_blank"));
+
   // Settings: Replay tour opens the teacher tour from the start (local mode too: the page says what needs the server).
   $("tour-replay").addEventListener("click", () => { if (self.TeacherTour) self.TeacherTour.replay(window, !!tb); });
 
@@ -1389,7 +1431,10 @@
   if (tb) tb.start((data) => { classData = data; render(); }, () => render());
   else window.addEventListener("storage", render); // refresh if a student page in another tab saves progress
   const loadJson = (file) => fetch(file).then((r) => { if (!r.ok) throw new Error(file); return r.json(); });
-  Promise.all([loadJson("tasks.json").catch(() => []), loadJson("misconceptions.json").catch(() => []), loadJson("rules-review.json").catch(() => [])]).then(([tasks, ms, rr]) => {
+  Promise.all([loadJson("tasks.json").catch(() => []), loadJson("misconceptions.json").catch(() => []), loadJson("rules-review.json").catch(() => []),
+    loadJson("curriculum-codes.json").catch(() => null)]).then(([tasks, ms, rr, codes]) => {
+    codesData = codes;
+    specCodes = codes ? self.CurriculumCodes.byUnit(codes) : null; // without it, the Students page shows no codes
     reviewRules = Array.isArray(rr) ? rr : [];
     // Attempts logged before a task moved unit use its old id (former_ids).
     tasksById = Object.fromEntries(tasks.flatMap((t) => (t.former_ids || []).map((old) => [old, t])).concat(tasks.map((t) => [t.id, t])));

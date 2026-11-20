@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Class code cards – Pythons and Ladders</title>
+  <link rel="icon" type="image/png" href="assets/logo/icon-light.png">
+  <!-- Class code cards (class-card.js, prompt 26), opened from the teacher view's Classes page. The classes come in the
+       address's # part (never sent to a server). No site menu, no buttons: each card prints on its own A4 portrait page. -->
+  <style>
+    :root { --ink: #1b1f24; --muted: #4a5360; --accent: #1f5f3a; --paper: #ffffff; }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { margin: 0; background: #e9ece9; color: var(--ink); }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif; padding: 16px; }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .cards { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; justify-items: center; }
+    .cc-card {
+      background: var(--paper); width: 100%; max-width: 640px; aspect-ratio: 210 / 297; border: 3px solid var(--accent);
+      padding: 7% 8%; display: flex; flex-direction: column; text-align: center; overflow-wrap: anywhere;
+    }
+    .cc-brand { font-size: clamp(.8rem, 2.6vw, 1rem); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 .8em; }
+    .cc-class { font-size: clamp(1.5rem, 7vw, 2.6rem); margin: 0; }
+    .cc-stage { font-size: clamp(.95rem, 3.4vw, 1.25rem); color: var(--muted); margin: .2em 0 1em; }
+    .cc-label { font-size: clamp(.9rem, 3vw, 1.1rem); font-weight: 700; margin: .4em 0 .1em; }
+    .cc-code { font-family: "Consolas", "Courier New", monospace; font-weight: 700; font-size: clamp(2.2rem, 13vw, 5rem); letter-spacing: .14em;
+      margin: 0 0 .25em; padding: .1em .2em; border: 3px solid var(--ink); border-radius: 10px; align-self: center; line-height: 1.15; }
+    .cc-no-code { font-family: inherit; font-size: clamp(.95rem, 3.4vw, 1.2rem); letter-spacing: 0; font-weight: 600; }
+    .cc-site { font-size: clamp(1rem, 3.6vw, 1.35rem); margin: .4em 0 1em; }
+    .cc-how { font-size: clamp(1rem, 3.8vw, 1.4rem); margin: .3em 0 .3em; text-align: left; }
+    .cc-steps { text-align: left; font-size: clamp(.95rem, 3.6vw, 1.3rem); line-height: 1.45; margin: 0; padding-left: 1.4em; }
+    .cc-steps li { margin: .2em 0; }
+    .cc-footer { margin-top: auto; padding-top: .8em; border-top: 1px solid var(--muted); font-size: clamp(.95rem, 3.4vw, 1.2rem); font-weight: 600; }
+    .cards-note { font-size: .9rem; color: var(--muted); text-align: center; max-width: 640px; margin: 12px auto 0; }
+    .cards-missing { text-align: center; padding: 2rem 1rem; }
+    /* A phone: the card keeps the screen's width and grows as tall as it needs (the A4 shape is for printing). */
+    @media screen and (max-width: 600px) { .cc-card { aspect-ratio: auto; min-width: 0; } }
+
+    /* Printing: one card on each A4 portrait page, and nothing else. */
+    @page { size: A4 portrait; margin: 12mm; }
+    @media print {
+      html, body { background: #fff; padding: 0; }
+      .cards-note { display: none; }
+      .cards { display: block; }
+      .cc-card { width: 186mm; height: 271mm; max-width: none; aspect-ratio: auto; margin: 0; padding: 16mm 16mm 12mm;
+        break-after: page; page-break-after: always; break-inside: avoid; page-break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .cc-card:last-child { break-after: auto; page-break-after: auto; }
+      .cc-brand { font-size: 12pt; } .cc-class { font-size: 30pt; } .cc-stage { font-size: 15pt; } .cc-label { font-size: 14pt; }
+      .cc-code { font-size: 60pt; } .cc-no-code { font-size: 14pt; } .cc-site { font-size: 16pt; } .cc-how { font-size: 17pt; }
+      .cc-steps { font-size: 16pt; } .cc-footer { font-size: 15pt; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1 class="visually-hidden">Class code cards</h1>
+    <div id="cards" class="cards" hidden></div>
+    <p id="cards-note" class="cards-note" hidden>Use your browser's Print to print these cards. Each card prints on its own A4 page.</p>
+    <p id="cards-missing" class="cards-missing" hidden>No class card to show. Open it again from the teacher view's Classes page.</p>
+  </main>
+  <script src="class-card.js"></script>
+</body>
+</html>
