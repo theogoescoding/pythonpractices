@@ -15262,7 +15262,7 @@
     "level": 10,
     "type": "write",
     "title": "{{cap(w0)}} safety card",
-    "description": "Make a safety card for the {{w0}} lab.\n1. Start your program with a comment.\n2. Print the lines in the Expected output box exactly.",
+    "description": "Make a lab safety card.\n1. Start your program with a comment.\n2. Print the lines in the Expected output box exactly.",
     "starter": "# Write your program here",
     "solution": "# Safety card for the {{w0}} lab\nprint(\"LAB RULES\")\nprint(\"1. Wear goggles\")\nprint(\"2. Tie hair back\")\nprint(\"3. No food or drink\")\nprint(\"Ask Mrs Patel if unsure.\")",
     "tests": [
@@ -18541,7 +18541,7 @@
     "level": 9,
     "type": "write",
     "title": "{{w2}} to form",
-    "description": "{{w2}} a new pupil.\n1. Ask for the pupil's name. Then ask for their form.\n2. Print `{{w2}}`, the name, `to form` and the form, on one line.\nExample: you type `[[in:0]]`. It prints `[[outs:0]]`.",
+    "description": "Greet a new pupil.\n1. Ask for the pupil's name. Then ask for their form.\n2. Print `{{w2}}`, the name, `to form` and the form, on one line.\nExample: you type `[[in:0]]`. It prints `[[outs:0]]`.",
     "starter": "# Write your program here",
     "solution": "name = input(\"Name: \")\nform = input(\"Form: \")\nprint(\"{{w2}}\", name, \"to form\", form)",
     "tests": [
@@ -24200,7 +24200,7 @@
     "level": 10,
     "type": "write",
     "title": "{{cap(w0)}} party",
-    "description": "Each pupil eats {{a0}} slices of {{w0}}. Each {{w0}} has {{a1 + 1}} slices.\n1. Ask how many pupils are coming. Cast the input to a whole number with int().\n2. Print `{{cap(w0)}}s:` and then how many {{w0}}s to order. A part {{w0}} still counts.\n3. Print `Spare slices:` and then how many slices will be left.\nExample: you type `[[in:0]]`. It prints `[[outs:0]]`.",
+    "description": "Each pupil eats {{a0}} slices. Each {{w0}} has {{a1 + 1}} slices.\n1. Ask how many pupils are coming. Cast the input to a whole number with int().\n2. Print `{{cap(w0)}}s:` and then how many to order. A part one still counts.\n3. Print `Spare slices:` and then how many slices will be left.\nExample: you type `[[in:0]]`. It prints `[[outs:0]]`.",
     "starter": "# Write your program here",
     "solution": "pupils = int(input(\"Pupils: \"))\nslices = pupils * {{a0}}\n{{w0}}s = (slices + {{a1}}) // {{a1 + 1}}\nprint(\"{{cap(w0)}}s:\", {{w0}}s)\nprint(\"Spare slices:\", {{w0}}s * {{a1 + 1}} - slices)",
     "tests": [
@@ -34628,7 +34628,7 @@
     "level": 9,
     "type": "write",
     "title": "{{cap(w0)}} fine checker",
-    "description": "A {{w0}} fines late books.\n1. Ask how many days a book is late. Cast each input with int().\n2. If the number is below 0, print `Days can't be negative` and ask again. Repeat until it is 0 or more.\n3. The fine is {{a3}}p a day, but never more than {{a4}}p.\n4. Print `Fine (p):` and then the fine.\nExample: you type `[[in:0]]`. It prints `[[outs:0]]`.",
+    "description": "Books returned late are fined.\n1. Ask how many days a book is late. Cast each input with int().\n2. If the number is below 0, print `Days can't be negative` and ask again. Repeat until it is 0 or more.\n3. The fine is {{a3}}p a day, but never more than {{a4}}p.\n4. Print `Fine (p):` and then the fine.\nExample: you type `[[in:0]]`. It prints `[[outs:0]]`.",
     "starter": "# Write the whole program here\n",
     "solution": "days = int(input(\"Days late: \"))\nwhile days < 0:\n    print(\"Days can't be negative\")\n    days = int(input(\"Days late: \"))\nfine = days * {{a3}}\nif fine > {{a4}}:\n    fine = {{a4}}\nprint(\"Fine (p):\", fine)",
     "tests": [

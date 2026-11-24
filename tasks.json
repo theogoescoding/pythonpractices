@@ -1730,7 +1730,7 @@
     "level": 10,
     "type": "write",
     "title": "Science safety card",
-    "description": "Make a safety card for the science lab.\n1. Start your program with a comment.\n2. Print the lines in the Expected output box exactly.",
+    "description": "Make a lab safety card.\n1. Start your program with a comment.\n2. Print the lines in the Expected output box exactly.",
     "starter": "# Write your program here",
     "solution": "# Safety card for the science lab\nprint(\"LAB RULES\")\nprint(\"1. Wear goggles\")\nprint(\"2. Tie hair back\")\nprint(\"3. No food or drink\")\nprint(\"Ask Mrs Patel if unsure.\")",
     "tests": [
@@ -3484,7 +3484,7 @@
     "level": 9,
     "type": "write",
     "title": "Welcome to form",
-    "description": "Welcome a new pupil.\n1. Ask for the pupil's name. Then ask for their form.\n2. Print `Welcome`, the name, `to form` and the form, on one line.\nExample: you type `Ella` then `7G`. It prints `Welcome Ella to form 7G`.",
+    "description": "Greet a new pupil.\n1. Ask for the pupil's name. Then ask for their form.\n2. Print `Welcome`, the name, `to form` and the form, on one line.\nExample: you type `Ella` then `7G`. It prints `Welcome Ella to form 7G`.",
     "starter": "# Write your program here",
     "solution": "name = input(\"Name: \")\nform = input(\"Form: \")\nprint(\"Welcome\", name, \"to form\", form)",
     "tests": [
@@ -6487,7 +6487,7 @@
     "level": 10,
     "type": "write",
     "title": "Pizza party",
-    "description": "Each pupil eats 3 slices of pizza. Each pizza has 8 slices.\n1. Ask how many pupils are coming. Cast the input to a whole number with int().\n2. Print `Pizzas:` and then how many pizzas to order. A part pizza still counts.\n3. Print `Spare slices:` and then how many slices will be left.\nExample: you type `10`. It prints `Pizzas: 4` then `Spare slices: 2`.",
+    "description": "Each pupil eats 3 slices. Each pizza has 8 slices.\n1. Ask how many pupils are coming. Cast the input to a whole number with int().\n2. Print `Pizzas:` and then how many to order. A part one still counts.\n3. Print `Spare slices:` and then how many slices will be left.\nExample: you type `10`. It prints `Pizzas: 4` then `Spare slices: 2`.",
     "starter": "# Write your program here",
     "solution": "pupils = int(input(\"Pupils: \"))\nslices = pupils * 3\npizzas = (slices + 7) // 8\nprint(\"Pizzas:\", pizzas)\nprint(\"Spare slices:\", pizzas * 8 - slices)",
     "tests": [
@@ -16265,7 +16265,7 @@
     "level": 9,
     "type": "write",
     "title": "Library fine checker",
-    "description": "A library fines late books.\n1. Ask how many days a book is late. Cast each input with int().\n2. If the number is below 0, print `Days can't be negative` and ask again. Repeat until it is 0 or more.\n3. The fine is 20p a day, but never more than 300p.\n4. Print `Fine (p):` and then the fine.\nExample: you type `-2` then `7`. It prints `Days can't be negative` then `Fine (p): 140`.",
+    "description": "Books returned late are fined.\n1. Ask how many days a book is late. Cast each input with int().\n2. If the number is below 0, print `Days can't be negative` and ask again. Repeat until it is 0 or more.\n3. The fine is 20p a day, but never more than 300p.\n4. Print `Fine (p):` and then the fine.\nExample: you type `-2` then `7`. It prints `Days can't be negative` then `Fine (p): 140`.",
     "starter": "# Write the whole program here\n",
     "solution": "days = int(input(\"Days late: \"))\nwhile days < 0:\n    print(\"Days can't be negative\")\n    days = int(input(\"Days late: \"))\nfine = days * 20\nif fine > 300:\n    fine = 300\nprint(\"Fine (p):\", fine)",
     "tests": [
