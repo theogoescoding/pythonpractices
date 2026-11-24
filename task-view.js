@@ -23,9 +23,17 @@
   const inputsText = (inputs) => inputs.map((v) => (v === "" ? "(nothing – just Enter)" : v)).join(", then ");
 
   // A task description as HTML with no glossary links (the teacher's task browser, and the practice page until
-  // glossary.json has loaded): escaped, each `code span` as <code> with its spaces kept. glossary.js linkTask does the
-  // same, with links.
-  const descriptionHtml = (text) => String(text == null ? "" : text).split(/(`[^`\n]*`)/).map((part, i) => (i % 2 ? "<code>" + esc(part.slice(1, -1)) + "</code>" : esc(part))).join("");
+  // glossary.json has loaded): escaped, each `code span` as <code> with its spaces kept, and, when it has numbered steps,
+  // each line as its own block (a step or example line gets a small gap above it). glossary.js linkTask builds the same
+  // HTML, with links. task: the task, so a numbered line the program itself prints isn't taken for a step.
+  function descriptionHtml(text, task) {
+    const lineHtml = (line) => String(line).split(/(`[^`\n]*`)/).map((part, i) => (i % 2 ? "<code>" + esc(part.slice(1, -1)) + "</code>" : esc(part))).join("");
+    const outputLines = new Set(((task && task.tests) || []).flatMap((t) => String(t.expected || "").split("\n").map((l) => l.trim())));
+    const lines = String(text == null ? "" : text).split("\n");
+    const step = lines.map((line, i) => i > 0 && /^\s*\d+\.\s/.test(line) && !outputLines.has(line.trim()));
+    if (!step.some(Boolean)) return lines.map(lineHtml).join("\n");
+    return lines.map((line, i) => '<span class="desc-line' + (step[i] ? " desc-step" : /^\s*Examples?\b/.test(line) ? " desc-example" : "") + '">' + lineHtml(line) + "</span>").join("");
+  }
 
   // The "Expected output" box: the example test's input and the exact output, and how many tests are hidden.
   function expectedBoxHtml(t) {

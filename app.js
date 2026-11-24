@@ -1523,7 +1523,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   // the editor and the test results are never linked. Until glossary.json has loaded (or if it can't be), the text
   // shows unlinked, with its code spans (TaskView.descriptionHtml).
   let glossary = null;
-  const linked = (t) => (glossary && self.Glossary ? self.Glossary.linkTask(t, glossary) : { description: TaskView.descriptionHtml(t.description), hints: (t.hints || []).map(esc) });
+  const linked = (t) => (glossary && self.Glossary ? self.Glossary.linkTask(t, glossary) : { description: TaskView.descriptionHtml(t.description, t), hints: (t.hints || []).map(esc) });
 
   function header(t) {
     return '<h2 id="task-title">' + esc(t.title) + "</h2>" +

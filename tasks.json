@@ -412,7 +412,7 @@
     "level": 3,
     "type": "fill",
     "title": "Comment it out",
-    "description": "The middle line should NOT run. Fill in the blank so that Python ignores it. The program should print Merit twice.",
+    "description": "Fill in the blank so Python ignores the middle line. The program should then print `Merit` twice.",
     "starter": "print(\"Merit\")\n____print(\"Detention\")\nprint(\"Merit\")",
     "solution": "print(\"Merit\")\n#print(\"Detention\")\nprint(\"Merit\")",
     "answers": [
@@ -598,7 +598,7 @@
     "level": 4,
     "type": "fill",
     "title": "Canteen times",
-    "description": "Make the first line a comment, and make the program print:\nBreakfast club: 8am\nLunch: 12:30pm",
+    "description": "Fill in both blanks. Make the first line a comment, and make the program print:\nBreakfast club: 8am\nLunch: 12:30pm",
     "starter": "____ Print the canteen opening times\nprint(\"Breakfast club: 8am\")\nprint(\"Lunch: ____\")",
     "solution": "# Print the canteen opening times\nprint(\"Breakfast club: 8am\")\nprint(\"Lunch: 12:30pm\")",
     "answers": [
@@ -748,7 +748,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Trip details",
-    "description": "Start with a comment saying what the program does, then print:\nTrip to the Science Museum\nCoach leaves at 8:15\nOne line is not needed.",
+    "description": "Arrange the lines so the program starts with a comment saying what it does, then prints:\nTrip to the Science Museum\nCoach leaves at 8:15\nOne line is not needed.",
     "starter": "",
     "solution": "# School trip details\nprint(\"Trip to the Science Museum\")\nprint(\"Coach leaves at 8:15\")",
     "distractors": [
@@ -941,7 +941,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Concert running order",
-    "description": "Start with a comment, then print the running order:\nChoir\nBand\nDrama club\nTwo lines are not needed.",
+    "description": "Arrange the lines so the program starts with a comment, then prints the running order:\nChoir\nBand\nDrama club\nTwo lines are not needed.",
     "starter": "",
     "solution": "# Summer concert running order\nprint(\"Choir\")\nprint(\"Band\")\nprint(\"Drama club\")",
     "distractors": [
@@ -1055,7 +1055,7 @@
     "level": 7,
     "type": "fill",
     "title": "Address label",
-    "description": "Write ONE print() that prints the school address with a / between each part: Oakfield School/High Street/Leeds",
+    "description": "Write the missing line: ONE print() that prints the school address with a / between each part, `Oakfield School/High Street/Leeds`.",
     "starter": "# Print the address with / between each part\n____",
     "solution": "# Print the address with / between each part\nprint(\"Oakfield School\", \"High Street\", \"Leeds\", sep=\"/\")",
     "answers": [
@@ -1130,7 +1130,7 @@
     "level": 8,
     "type": "write",
     "title": "Name badge",
-    "description": "Add two lines between the rows of stars so the program prints:\n*********\nHello, my name is Ava\nForm 8R\n*********",
+    "description": "A name badge goes between two rows of stars.\n1. Add two print() lines between the rows of stars.\n2. The first prints `Hello, my name is Ava`. The second prints `Form 8R`.\nExample: It prints `*********` then `Hello, my name is Ava` then `Form 8R` then `*********`.",
     "starter": "print(\"*********\")\n# Write two lines here\nprint(\"*********\")",
     "solution": "print(\"*********\")\nprint(\"Hello, my name is Ava\")\nprint(\"Form 8R\")\nprint(\"*********\")",
     "tests": [
@@ -1165,7 +1165,7 @@
     "level": 8,
     "type": "write",
     "title": "Countdown",
-    "description": "Finish the program so it prints, on one line: 3 2 1 Lift off!\nUse a separate print() for each number.",
+    "description": "A countdown is printed on one line.\n1. Finish the program so it prints the countdown on one line.\n2. Use a separate print() for each number, then print `Lift off!`.\nExample: It prints `3 2 1 Lift off!`.",
     "starter": "print(3, end=\" \")\n# Finish the countdown",
     "solution": "print(3, end=\" \")\nprint(2, end=\" \")\nprint(1, end=\" \")\nprint(\"Lift off!\")",
     "tests": [
@@ -1198,7 +1198,7 @@
     "level": 8,
     "type": "write",
     "title": "Recipe in order",
-    "description": "The steps are in the wrong order. Fix the program so it prints Step 1, then Step 2, then Step 3.",
+    "description": "The steps of a recipe are in the wrong order.\n1. Change the order of the lines so the program prints Step 1, then Step 2, then Step 3.\nExample: It prints `Step 1: Mix the flour and sugar` then `Step 2: Add the eggs` then `Step 3: Bake for 20 minutes`.",
     "starter": "print(\"Step 3: Bake for 20 minutes\")\nprint(\"Step 1: Mix the flour and sugar\")\nprint(\"Step 2: Add the eggs\")",
     "solution": "print(\"Step 1: Mix the flour and sugar\")\nprint(\"Step 2: Add the eggs\")\nprint(\"Step 3: Bake for 20 minutes\")",
     "tests": [
@@ -1231,7 +1231,7 @@
     "level": 8,
     "type": "write",
     "title": "Teacher table",
-    "description": "Add a line for Maths, Mr Khan, room M4 in the same style, so the program prints:\nSubject | Teacher | Room\nMaths | Mr Khan | M4",
+    "description": "A timetable shows each subject, teacher and room.\n1. Add a line for Maths, Mr Khan, room M4.\n2. Print it in the same style as the first line.\nExample: It prints `Subject | Teacher | Room` then `Maths | Mr Khan | M4`.",
     "starter": "print(\"Subject\", \"Teacher\", \"Room\", sep=\" | \")\n# Add a line for Maths, Mr Khan, M4",
     "solution": "print(\"Subject\", \"Teacher\", \"Room\", sep=\" | \")\nprint(\"Maths\", \"Mr Khan\", \"M4\", sep=\" | \")",
     "tests": [
@@ -1265,7 +1265,7 @@
     "level": 9,
     "type": "write",
     "title": "Sports day poster",
-    "description": "Write a program that prints exactly:\nSPORTS DAY\nFriday 4th July\nBring water and a hat!",
+    "description": "Make a poster for sports day.\n1. Print the lines in the example exactly.\nExample: It prints `SPORTS DAY` then `Friday 4th July` then `Bring water and a hat!`.",
     "starter": "# Write your program here",
     "solution": "print(\"SPORTS DAY\")\nprint(\"Friday 4th July\")\nprint(\"Bring water and a hat!\")",
     "tests": [
@@ -1299,7 +1299,7 @@
     "level": 9,
     "type": "write",
     "title": "School week",
-    "description": "Using ONE print(), print the school days with dashes between them: Mon-Tue-Wed-Thu-Fri",
+    "description": "Show the school days with dashes between them.\n1. Use ONE print() to print the five school days.\n2. Put a dash between each day, as in the example.\nExample: It prints `Mon-Tue-Wed-Thu-Fri`.",
     "starter": "# Write your program here",
     "solution": "print(\"Mon\", \"Tue\", \"Wed\", \"Thu\", \"Fri\", sep=\"-\")",
     "tests": [
@@ -1332,7 +1332,7 @@
     "level": 9,
     "type": "write",
     "title": "Form box",
-    "description": "Write a program that prints this box exactly:\n+------+\n| 7KM  |\n+------+",
+    "description": "Draw a box around a room code.\n1. Print the box in the example exactly.\n2. Inside the box there are two spaces after `7KM`.\nExample: It prints `+------+` then `| 7KM  |` then `+------+`.",
     "starter": "# Write your program here",
     "solution": "print(\"+------+\")\nprint(\"| 7KM  |\")\nprint(\"+------+\")",
     "tests": [
@@ -1367,7 +1367,7 @@
     "level": 9,
     "type": "write",
     "title": "Quote marks",
-    "description": "Write a program that prints this, including the double quotes: She said \"Well done!\"",
+    "description": "Print what a teacher said.\n1. Print the line in the example, including the double quotes.\nExample: It prints `She said \"Well done!\"`.",
     "starter": "# Write your program here",
     "solution": "print('She said \"Well done!\"')",
     "tests": [
@@ -1400,7 +1400,7 @@
     "level": 10,
     "type": "write",
     "title": "Monday timetable",
-    "description": "Write a program that prints exactly:\nMonday timetable\n================\n9:00 | English\n10:00 | Maths\n11:15 | Science\nTip: sep=\" | \" can put the bars in for you.",
+    "description": "Make a Monday timetable.\n1. Print the lines in the example exactly.\n2. Tip: `sep=\" | \"` can put the bars in for you.\nExample: It prints `Monday timetable` then `================` then `9:00 | English` then `10:00 | Maths` then `11:15 | Science`.",
     "starter": "# Write your program here",
     "solution": "print(\"Monday timetable\")\nprint(\"================\")\nprint(\"9:00\", \"English\", sep=\" | \")\nprint(\"10:00\", \"Maths\", sep=\" | \")\nprint(\"11:15\", \"Science\", sep=\" | \")",
     "tests": [
@@ -1437,7 +1437,7 @@
     "level": 10,
     "type": "write",
     "title": "Canteen receipt",
-    "description": "Write a program that prints this receipt exactly:\nOakfield Canteen\nPasta  £2.10\nJuice  £0.80\nTotal  £2.90\nThank you!\n(There are two spaces before each £.)",
+    "description": "Print a receipt from the canteen.\n1. Print the lines in the example exactly.\n2. There are two spaces before each £.\nExample: It prints `Oakfield Canteen` then `Pasta  £2.10` then `Juice  £0.80` then `Total  £2.90` then `Thank you!`.",
     "starter": "# Write your program here",
     "solution": "print(\"Oakfield Canteen\")\nprint(\"Pasta  £2.10\")\nprint(\"Juice  £0.80\")\nprint(\"Total  £2.90\")\nprint(\"Thank you!\")",
     "tests": [
@@ -1472,7 +1472,7 @@
     "level": 10,
     "type": "write",
     "title": "Upload bar",
-    "description": "Write a program that prints:\nUploading homework\n[#####] 100%\nPrint each # with its own print(), so the bar builds up on one line.",
+    "description": "Show a progress bar for an upload.\n1. Print `Uploading homework`.\n2. On the next line, print the bar. Print each # with its own print(), so the bar builds up on one line.\nExample: It prints `Uploading homework` then `[#####] 100%`.",
     "starter": "# Write your program here",
     "solution": "print(\"Uploading homework\")\nprint(\"[\", end=\"\")\nprint(\"#\", end=\"\")\nprint(\"#\", end=\"\")\nprint(\"#\", end=\"\")\nprint(\"#\", end=\"\")\nprint(\"#\", end=\"\")\nprint(\"] 100%\")",
     "tests": [
@@ -1507,7 +1507,7 @@
     "level": 10,
     "type": "write",
     "title": "Fire drill",
-    "description": "Write a program that prints exactly:\nFire drill instructions:\n1. Leave by the \"nearest\" exit\n2. Don't run\n3. Line up on the field\nStart your program with a comment.",
+    "description": "Make a fire drill notice.\n1. Start your program with a comment.\n2. Print the lines in the example exactly, including the double quotes.\nExample: It prints `Fire drill instructions:` then `1. Leave by the \"nearest\" exit` then `2. Don't run` then `3. Line up on the field`.",
     "starter": "# Write your program here",
     "solution": "# Fire drill instructions for Year 7\nprint(\"Fire drill instructions:\")\nprint('1. Leave by the \"nearest\" exit')\nprint(\"2. Don't run\")\nprint(\"3. Line up on the field\")",
     "tests": [
@@ -1543,7 +1543,7 @@
     "level": 10,
     "type": "write",
     "title": "Sports day results",
-    "description": "Write a program that prints exactly:\nSports day results\nHouse Points\nPhoenix 42\nDragon 38\n\nWinner: Phoenix\nUse commas in print() to put the values on each line.",
+    "description": "Show the sports day results.\n1. Print the lines in the example exactly. One of them is empty.\n2. Use commas in print() to put the values on each line.\nExample: It prints `Sports day results` then `House Points` then `Phoenix 42` then `Dragon 38` then an empty line then `Winner: Phoenix`.",
     "starter": "# Write your program here",
     "solution": "print(\"Sports day results\")\nprint(\"House\", \"Points\")\nprint(\"Phoenix\", 42)\nprint(\"Dragon\", 38)\nprint()\nprint(\"Winner:\", \"Phoenix\")",
     "tests": [
@@ -1584,7 +1584,7 @@
     "level": 10,
     "type": "write",
     "title": "Club list",
-    "description": "Write a program that prints exactly:\nMonday: Chess club\nTuesday: Drama club\nWednesday: Coding club\nSee you there!\nUse commas in print() between the day, the club and the word club.",
+    "description": "Show the clubs for the week.\n1. Print the lines in the example exactly.\n2. Use commas in print() between the day, the club and the word club.\nExample: It prints `Monday: Chess club` then `Tuesday: Drama club` then `Wednesday: Coding club` then `See you there!`.",
     "starter": "# Write your program here",
     "solution": "print(\"Monday:\", \"Chess\", \"club\")\nprint(\"Tuesday:\", \"Drama\", \"club\")\nprint(\"Wednesday:\", \"Coding\", \"club\")\nprint(\"See you there!\")",
     "tests": [
@@ -1624,7 +1624,7 @@
     "level": 10,
     "type": "write",
     "title": "House points chart",
-    "description": "Write a program that prints this chart exactly (each name is followed by a colon and a space):\nHOUSE POINTS\nPhoenix: #######\nGriffin: ####\nDragon: #########\nPegasus: #####\nWinner: Dragon!",
+    "description": "Show a house points chart.\n1. Print the lines in the example exactly.\n2. Each name is followed by a colon and a space.\nExample: It prints `HOUSE POINTS` then `Phoenix: #######` then `Griffin: ####` then `Dragon: #########` then `Pegasus: #####` then `Winner: Dragon!`.",
     "starter": "# Write your program here",
     "solution": "print(\"HOUSE POINTS\")\nprint(\"Phoenix:\", \"#######\")\nprint(\"Griffin:\", \"####\")\nprint(\"Dragon:\", \"#########\")\nprint(\"Pegasus:\", \"#####\")\nprint(\"Winner: Dragon!\")",
     "tests": [
@@ -1658,7 +1658,7 @@
     "level": 10,
     "type": "write",
     "title": "Countdown in one print",
-    "description": "Use ONE print() with commas to print, on one line:\n5 4 3 2 1 Holidays!",
+    "description": "Count down to the holidays.\n1. Use ONE print() with commas to print the line in the example.\nExample: It prints `5 4 3 2 1 Holidays!`.",
     "starter": "# Write your program here",
     "solution": "print(5, 4, 3, 2, 1, \"Holidays!\")",
     "tests": [
@@ -1695,7 +1695,7 @@
     "level": 10,
     "type": "write",
     "title": "Play script",
-    "description": "Write a program that prints this play script exactly:\nSCENE 1\nTeacher: \"Where's your homework?\"\nPupil: \"The dog ate it!\"\nTeacher: 'Again?'",
+    "description": "Print part of a play script.\n1. Print the lines in the example exactly, with all their quotes.\nExample: It prints `SCENE 1` then `Teacher: \"Where's your homework?\"` then `Pupil: \"The dog ate it!\"` then `Teacher: 'Again?'`.",
     "starter": "# Write your program here",
     "solution": "print(\"SCENE 1\")\nprint('Teacher: \"Where\\'s your homework?\"')\nprint('Pupil: \"The dog ate it!\"')\nprint(\"Teacher: 'Again?'\")",
     "tests": [
@@ -1730,7 +1730,7 @@
     "level": 10,
     "type": "write",
     "title": "Science safety card",
-    "description": "Write a program that starts with a comment, then prints exactly:\nLAB RULES\n1. Wear goggles\n2. Tie hair back\n3. No food or drink\nAsk Mrs Patel if unsure.",
+    "description": "Make a safety card for the science lab.\n1. Start your program with a comment.\n2. Print the lines in the example exactly.\nExample: It prints `LAB RULES` then `1. Wear goggles` then `2. Tie hair back` then `3. No food or drink` then `Ask Mrs Patel if unsure.`.",
     "starter": "# Write your program here",
     "solution": "# Safety card for the science lab\nprint(\"LAB RULES\")\nprint(\"1. Wear goggles\")\nprint(\"2. Tie hair back\")\nprint(\"3. No food or drink\")\nprint(\"Ask Mrs Patel if unsure.\")",
     "tests": [
@@ -1765,7 +1765,7 @@
     "level": 10,
     "type": "write",
     "title": "Bus stop sign",
-    "description": "Use commas in print() to print this sign exactly:\nBus 42 to the station\nBus 17 to the park\nBus 9 to the hospital\nNo spaces are needed inside the quotes: the commas add them.",
+    "description": "Make a sign for the bus stop.\n1. Use commas in print() to print the lines in the example exactly.\n2. No spaces are needed inside the quotes: the commas add them.\nExample: It prints `Bus 42 to the station` then `Bus 17 to the park` then `Bus 9 to the hospital`.",
     "starter": "# Write your program here",
     "solution": "print(\"Bus\", 42, \"to the station\")\nprint(\"Bus\", 17, \"to the park\")\nprint(\"Bus\", 9, \"to the hospital\")",
     "tests": [
@@ -1803,7 +1803,7 @@
     "level": 10,
     "type": "write",
     "title": "Seven times table",
-    "description": "Print the first four lines of the 7 times table. Use numbers (not text) for 7, 1, 7 and so on:\n7 x 1 = 7\n7 x 2 = 14\n7 x 3 = 21\n7 x 4 = 28",
+    "description": "Print part of the 7 times table.\n1. Print the first four lines, as in the example.\n2. Use numbers, not text, for 7, 1, 7 and so on.\nExample: It prints `7 x 1 = 7` then `7 x 2 = 14` then `7 x 3 = 21` then `7 x 4 = 28`.",
     "starter": "# Write your program here",
     "solution": "print(7, \"x\", 1, \"=\", 7)\nprint(7, \"x\", 2, \"=\", 14)\nprint(7, \"x\", 3, \"=\", 21)\nprint(7, \"x\", 4, \"=\", 28)",
     "tests": [
@@ -1837,7 +1837,7 @@
     "level": 10,
     "type": "write",
     "title": "Certificate",
-    "description": "Print this certificate exactly. There are 2 spaces before \"Star of the Week\" and before \"Chloe Adams\":\n+--------------------+\n  Star of the Week\n  Chloe Adams\n+--------------------+\nWell done!",
+    "description": "Make a Star of the Week certificate.\n1. Print the lines in the example exactly.\n2. There are 2 spaces before `Star of the Week` and before `Chloe Adams`.\nExample: It prints `+--------------------+` then `  Star of the Week` then `  Chloe Adams` then `+--------------------+` then `Well done!`.",
     "starter": "# Write your program here",
     "solution": "print(\"+--------------------+\")\nprint(\"  Star of the Week\")\nprint(\"  Chloe Adams\")\nprint(\"+--------------------+\")\nprint(\"Well done!\")",
     "tests": [
@@ -1871,7 +1871,7 @@
     "level": 10,
     "type": "write",
     "title": "Register",
-    "description": "Print the title with end=, then all four names with ONE print() using sep=, then the last line:\nRegister for 8K: Ava, Ben, Chen, Dev\nAll present.",
+    "description": "Take the register for 8K.\n1. Print the title with end=.\n2. Print all four names with ONE print() using sep=.\n3. Print the last line.\nExample: It prints `Register for 8K: Ava, Ben, Chen, Dev` then `All present.`.",
     "starter": "# Write your program here",
     "solution": "print(\"Register for 8K:\", end=\" \")\nprint(\"Ava\", \"Ben\", \"Chen\", \"Dev\", sep=\", \")\nprint(\"All present.\")",
     "tests": [
@@ -2165,7 +2165,7 @@
     "level": 2,
     "type": "predict",
     "title": "Converted inputs",
-    "description": "Cast each input to a whole number with int() (this is called casting). What will this program print?",
+    "description": "Each input is cast to a whole number with int(). What will this program print?",
     "starter": "",
     "solution": "a = int(input(\"First number: \"))\nb = int(input(\"Second number: \"))\nprint(a + b)",
     "options": [
@@ -2253,7 +2253,7 @@
     "level": 2,
     "type": "predict",
     "title": "Joined or added?",
-    "description": "The user types 4, then 5. What will this program print?\nUsing int() on the input is called casting.",
+    "description": "The user types `4`, then `5`. What will this program print?",
     "starter": "",
     "solution": "a = input(\"First number: \")\nb = input(\"Second number: \")\nprint(\"Joined:\", a + b)\nprint(\"Added:\", int(a) + int(b))",
     "options": [
@@ -2400,7 +2400,7 @@
     "level": 3,
     "type": "fill",
     "title": "Age next year",
-    "description": "Cast the input to a whole number with int() (this is called casting). Fill in the blank so the program can add 1 to the age the user types.",
+    "description": "Fill in the blank so the program can add 1 to the age the user types. Cast the input to a whole number with int().",
     "starter": "age = ____(input(\"How old are you? \"))\nprint(\"Next year you will be\", age + 1)",
     "solution": "age = int(input(\"How old are you? \"))\nprint(\"Next year you will be\", age + 1)",
     "answers": [
@@ -2587,7 +2587,7 @@
     "level": 4,
     "type": "fill",
     "title": "Full name",
-    "description": "Fill in the blanks so the program builds the full name, with a space between the first and last name, stores it in full, then prints it.",
+    "description": "Fill in the blanks so the program builds the full name, with a space between the first and last name. It stores it in `full`, then prints it.",
     "starter": "first = input(\"First name: \")\nlast = input(\"Last name: \")\nfull = first ____ \" \" ____ last\nprint(full)",
     "solution": "first = input(\"First name: \")\nlast = input(\"Last name: \")\nfull = first + \" \" + last\nprint(full)",
     "answers": [
@@ -2636,7 +2636,7 @@
     "level": 4,
     "type": "fill",
     "title": "Test result",
-    "description": "Fill in the blanks so the program builds the sentence, stores it in result, then prints: You scored 18 out of 20",
+    "description": "Fill in the blanks so the program builds the sentence and stores it in `result`. Then it prints the sentence.\nExample: It prints `You scored 18 out of 20`.",
     "starter": "score = 18\ntotal = 20\nresult = \"You scored \" + ____(score) + \" out of \" + ____(total)\nprint(result)",
     "solution": "score = 18\ntotal = 20\nresult = \"You scored \" + str(score) + \" out of \" + str(total)\nprint(result)",
     "answers": [
@@ -2915,7 +2915,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Pocket money",
-    "description": "Cast each input to a whole number with int() (this is called casting). Arrange the lines so the program adds the money saved and the money earned, builds a message, and prints it, for example: You have £8\nTwo lines are not needed.",
+    "description": "Arrange the lines so the program adds the money saved and the money earned, then builds and prints a message. Each input is cast to a whole number with int().\nTwo lines are not needed.\nExample: you type `5` then `3`. It prints `You have £8`.",
     "starter": "",
     "solution": "saved = int(input(\"Money saved: \"))\nearned = int(input(\"Money earned: \"))\ntotal = saved + earned\nmessage = \"You have £\" + str(total)\nprint(message)",
     "distractors": [
@@ -2986,7 +2986,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Username",
-    "description": "Arrange the lines so the program makes a username from a first name and the year the pupil joined, for example: Your username is Amy2031\nTwo lines are not needed.",
+    "description": "Arrange the lines so the program makes a username from a first name and the year the pupil joined.\nTwo lines are not needed.\nExample: you type `Amy` then `2031`. It prints `Your username is Amy2031`.",
     "starter": "",
     "solution": "name = input(\"First name: \")\nyear = input(\"Year you joined: \")\nusername = name + year\nprint(\"Your username is\", username)",
     "distractors": [
@@ -3074,7 +3074,7 @@
     "level": 7,
     "type": "fill",
     "title": "Times three",
-    "description": "Cast the input to a whole number with int() (this is called casting). Write the missing line so the program asks for a whole number and stores it in n.",
+    "description": "Write the missing line so the program asks for a whole number and stores it in `n`. Cast the input with int().",
     "starter": "____\nprint(n, \"x 3 =\", n * 3)",
     "solution": "n = int(input(\"Enter a number: \"))\nprint(n, \"x 3 =\", n * 3)",
     "answers": [
@@ -3266,7 +3266,7 @@
     "level": 8,
     "type": "write",
     "title": "Double it",
-    "description": "The number has been read for you. Convert it to a whole number, then print double it.",
+    "description": "A number has been read for you, as text.\n1. Cast it to a whole number with int().\n2. Print double the number.\nExample: you type `6`. It prints `12`.",
     "starter": "number = input(\"Enter a number: \")\n# Convert number to a whole number, then print double it",
     "solution": "number = input(\"Enter a number: \")\nnumber = int(number)\nprint(number * 2)",
     "tests": [
@@ -3340,7 +3340,7 @@
     "level": 8,
     "type": "write",
     "title": "Theatre trip",
-    "description": "Adult tickets cost £5 and child tickets cost £3. Cast each input to a whole number with int() (this is called casting). Work out the total cost and print it like this: Total cost (£): 19",
+    "description": "Adult tickets cost £5. Child tickets cost £3.\n1. The program reads the number of adults, then children, and casts each to a whole number for you.\n2. Work out the total cost.\n3. Print `Total cost (£):` and then the total.\nExample: you type `2` then `3`. It prints `Total cost (£): 19`.",
     "starter": "adults = int(input(\"Adults: \"))\nchildren = int(input(\"Children: \"))\n# Work out the total and print it",
     "solution": "adults = int(input(\"Adults: \"))\nchildren = int(input(\"Children: \"))\ntotal = adults * 5 + children * 3\nprint(\"Total cost (£):\", total)",
     "tests": [
@@ -3392,7 +3392,7 @@
     "level": 8,
     "type": "write",
     "title": "Swap the words",
-    "description": "Swap the values of a and b, so the print shows the second word first.",
+    "description": "Two words are read for you.\n1. Swap the values of `a` and `b`.\n2. The print() at the end then shows the second word first.\nExample: you type `cat` then `dog`. It prints `dog cat`.",
     "starter": "a = input(\"First word: \")\nb = input(\"Second word: \")\n# Swap a and b here\nprint(a, b)",
     "solution": "a = input(\"First word: \")\nb = input(\"Second word: \")\ntemp = a\na = b\nb = temp\nprint(a, b)",
     "tests": [
@@ -3436,7 +3436,7 @@
     "level": 8,
     "type": "write",
     "title": "Weekly house points",
-    "description": "Cast each input to a whole number with int() (this is called casting). Ask for the house points from three lessons (one input each) and add each one to points.",
+    "description": "House points come from three lessons.\n1. Ask for the house points from each lesson, one at a time. Cast each input to a whole number with int().\n2. Add each one to `points`.\n3. The last line prints the total for you.\nExample: you type `2` then `3` then `1`. It prints `House points this week: 6`.",
     "starter": "points = 0\n# Ask three times and add each answer to points\nprint(\"House points this week:\", points)",
     "solution": "points = 0\npoints = points + int(input(\"Lesson 1: \"))\npoints = points + int(input(\"Lesson 2: \"))\npoints = points + int(input(\"Lesson 3: \"))\nprint(\"House points this week:\", points)",
     "tests": [
@@ -3484,7 +3484,7 @@
     "level": 9,
     "type": "write",
     "title": "Welcome to form",
-    "description": "Ask for the pupil's name and then their form. Print, for example: Welcome Ella to form 7G",
+    "description": "Welcome a new pupil.\n1. Ask for the pupil's name. Then ask for their form.\n2. Print `Welcome`, the name, `to form` and the form, on one line.\nExample: you type `Ella` then `7G`. It prints `Welcome Ella to form 7G`.",
     "starter": "# Write your program here",
     "solution": "name = input(\"Name: \")\nform = input(\"Form: \")\nprint(\"Welcome\", name, \"to form\", form)",
     "tests": [
@@ -3533,7 +3533,7 @@
     "level": 9,
     "type": "write",
     "title": "Minutes to seconds",
-    "description": "Ask how many minutes a PE warm-up lasts. Cast the input to a whole number with int() (this is called casting). Print, for example: That is 180 seconds",
+    "description": "A PE warm-up lasts some minutes.\n1. Ask how many minutes it lasts. Cast the input to a whole number with int().\n2. Print `That is`, the number of seconds, then `seconds`.\nExample: you type `3`. It prints `That is 180 seconds`.",
     "starter": "# Write your program here",
     "solution": "minutes = int(input(\"Minutes: \"))\nprint(\"That is\", minutes * 60, \"seconds\")",
     "tests": [
@@ -3605,7 +3605,7 @@
     "level": 9,
     "type": "write",
     "title": "Trip cost",
-    "description": "A school trip costs £12 per pupil. Cast the input to a whole number with int() (this is called casting). Ask how many pupils are going and print the total, for example: Total (£): 360",
+    "description": "A school trip costs £12 per pupil.\n1. Ask how many pupils are going. Cast the input to a whole number with int().\n2. Print `Total (£):` and then the total cost.\nExample: you type `30`. It prints `Total (£): 360`.",
     "starter": "# Write your program here",
     "solution": "pupils = int(input(\"Pupils: \"))\nprint(\"Total (£):\", pupils * 12)",
     "tests": [
@@ -3651,7 +3651,7 @@
     "level": 9,
     "type": "write",
     "title": "In five years",
-    "description": "Cast the input to a whole number with int() (this is called casting). Ask for the user's age and print, for example: In 5 years you will be 16",
+    "description": "Work out an age in 5 years' time.\n1. Ask for the user's age. Cast the input to a whole number with int().\n2. Print `In 5 years you will be` and then the age plus 5.\nExample: you type `11`. It prints `In 5 years you will be 16`.",
     "starter": "# Write your program here",
     "solution": "age = int(input(\"Age: \"))\nprint(\"In 5 years you will be\", age + 5)",
     "tests": [
@@ -3713,7 +3713,7 @@
     "level": 10,
     "type": "write",
     "title": "Canteen order",
-    "description": "Ask for the item name, its price in pence, and how many. Cast each input to a whole number with int() (this is called casting). Then print, for example:\n3 x Cookie = 150 pence\nThank you!",
+    "description": "A tuck shop prints receipts.\n1. Ask for the item name. Then ask for its price in pence, then how many.\n2. Cast the price and how many to whole numbers with int().\n3. Work out the total in pence.\n4. On one line, print how many, `x`, the item, `=`, the total, then `pence`.\n5. Print `Thank you!`.\nExample: you type `Cookie` then `50` then `3`. It prints `3 x Cookie = 150 pence` then `Thank you!`.",
     "starter": "# Write your program here",
     "solution": "item = input(\"Item: \")\nprice = int(input(\"Price in pence: \"))\nquantity = int(input(\"How many: \"))\ntotal = price * quantity\nprint(quantity, \"x\", item, \"=\", total, \"pence\")\nprint(\"Thank you!\")",
     "tests": [
@@ -3765,7 +3765,7 @@
     "level": 10,
     "type": "write",
     "title": "Team captains",
-    "description": "Ask for the captain's name, then the vice-captain's name. Print them, swap them, then print them again:\nCaptain: Mia\nVice: Josh\nCaptain: Josh\nVice: Mia",
+    "description": "Swap the captain and the vice-captain.\n1. Ask for the captain's name. Then ask for the vice-captain's name.\n2. Print `Captain:` and the captain, then `Vice:` and the vice-captain.\n3. Swap the two names.\n4. Print the same two lines again.\nExample: you type `Mia` then `Josh`. It prints `Captain: Mia` then `Vice: Josh` then `Captain: Josh` then `Vice: Mia`.",
     "starter": "# Write your program here",
     "solution": "captain = input(\"Captain: \")\nvice = input(\"Vice-captain: \")\nprint(\"Captain:\", captain)\nprint(\"Vice:\", vice)\ntemp = captain\ncaptain = vice\nvice = temp\nprint(\"Captain:\", captain)\nprint(\"Vice:\", vice)",
     "tests": [
@@ -3811,7 +3811,7 @@
     "level": 10,
     "type": "write",
     "title": "Reading log",
-    "description": "The class target is 100 pages. Cast each input to a whole number with int() (this is called casting). Ask how many pages were read on Monday, Tuesday and Wednesday, keeping a running total in ONE variable. Then print, for example:\nTotal pages: 70\nPages to go: 30",
+    "description": "The class target is 100 pages.\n1. Ask how many pages were read on Monday, then Tuesday, then Wednesday. Cast each input to a whole number with int().\n2. Keep a running total in ONE variable.\n3. Print `Total pages:` and then the total.\n4. Print `Pages to go:` and then how many pages are left to reach 100.\nExample: you type `20` then `35` then `15`. It prints `Total pages: 70` then `Pages to go: 30`.",
     "starter": "# Write your program here",
     "solution": "total = 0\ntotal = total + int(input(\"Monday: \"))\ntotal = total + int(input(\"Tuesday: \"))\ntotal = total + int(input(\"Wednesday: \"))\nprint(\"Total pages:\", total)\nprint(\"Pages to go:\", 100 - total)",
     "tests": [
@@ -3860,7 +3860,7 @@
     "level": 10,
     "type": "write",
     "title": "Student card",
-    "description": "Ask for the pupil's name and their year group (a number). Cast the input to a whole number with int() (this is called casting). Print, for example:\nName: Noah\nYear: 9\nNext year: Year 10",
+    "description": "Print a pupil's details.\n1. Ask for the pupil's name. Then ask for their year group, and cast it to a whole number with int().\n2. Print `Name:` and then the name.\n3. Print `Year:` and then the year group.\n4. Print `Next year: Year` and then the year group plus 1.\nExample: you type `Noah` then `9`. It prints `Name: Noah` then `Year: 9` then `Next year: Year 10`.",
     "starter": "# Write your program here",
     "solution": "name = input(\"Name: \")\nyear = int(input(\"Year group: \"))\nprint(\"Name:\", name)\nprint(\"Year:\", year)\nprint(\"Next year: Year\", year + 1)",
     "tests": [
@@ -3909,7 +3909,7 @@
     "level": 10,
     "type": "write",
     "title": "Pocket money tracker",
-    "description": "Ask how much money you start with, then how much you spent on Saturday and on Sunday (all whole pounds). Cast each input to a whole number with int() (this is called casting). Keep the money in ONE variable. Print, for example:\nStart (£): 20\nLeft (£): 12",
+    "description": "You spend some money over the weekend.\n1. Ask how much money you start with, in whole pounds. Cast it to a whole number with int().\n2. Print `Start (£):` and then that amount.\n3. Ask how much you spent on Saturday, then on Sunday. Cast each one with int().\n4. Take each one away from the SAME variable.\n5. Print `Left (£):` and then the money left.\nExample: you type `20` then `5` then `3`. It prints `Start (£): 20` then `Left (£): 12`.",
     "starter": "# Write your program here",
     "solution": "money = int(input(\"Start (£): \"))\nprint(\"Start (£):\", money)\nmoney = money - int(input(\"Spent Saturday (£): \"))\nmoney = money - int(input(\"Spent Sunday (£): \"))\nprint(\"Left (£):\", money)",
     "tests": [
@@ -3957,7 +3957,7 @@
     "level": 10,
     "type": "write",
     "title": "Name formatter",
-    "description": "Ask for a first name, then a surname. Print, for example:\nFull name: Ava Smith\nRegister name: Smith, Ava",
+    "description": "Show a name in two ways.\n1. Ask for a first name. Then ask for a surname.\n2. Print `Full name:`, then the first name and the surname.\n3. Build the register name: the surname, a comma and a space, then the first name.\n4. Print `Register name:` and then the register name.\nExample: you type `Ava` then `Smith`. It prints `Full name: Ava Smith` then `Register name: Smith, Ava`.",
     "starter": "# Write your program here",
     "solution": "first = input(\"First name: \")\nlast = input(\"Surname: \")\nprint(\"Full name:\", first, last)\nregister = last + \", \" + first\nprint(\"Register name:\", register)",
     "tests": [
@@ -4002,7 +4002,7 @@
     "level": 10,
     "type": "write",
     "title": "Rotate the seats",
-    "description": "Ask for the names in seats 1, 2 and 3. Everyone moves along one seat: seat 1 goes to seat 2, seat 2 to seat 3, and seat 3 to seat 1. Print the new seats, for example:\nSeat 1: Cal\nSeat 2: Ava\nSeat 3: Ben",
+    "description": "Everyone moves along one seat.\n1. Ask for the names in seats 1, 2 and 3, in that order.\n2. Move everyone along: seat 1 goes to seat 2, seat 2 to seat 3, and seat 3 to seat 1.\n3. Print `Seat 1:`, `Seat 2:` and `Seat 3:` on three lines, each with its new name.\nExample: you type `Ava` then `Ben` then `Cal`. It prints `Seat 1: Cal` then `Seat 2: Ava` then `Seat 3: Ben`.",
     "starter": "# Write your program here",
     "solution": "s1 = input(\"Seat 1: \")\ns2 = input(\"Seat 2: \")\ns3 = input(\"Seat 3: \")\ntemp = s3\ns3 = s2\ns2 = s1\ns1 = temp\nprint(\"Seat 1:\", s1)\nprint(\"Seat 2:\", s2)\nprint(\"Seat 3:\", s3)",
     "tests": [
@@ -4050,7 +4050,7 @@
     "level": 10,
     "type": "write",
     "title": "Age in months",
-    "description": "Ask for an age in years, then the extra months. Cast each input to a whole number with int() (this is called casting). Print the age in months, for example:\nYou are 154 months old",
+    "description": "Work out an age in months.\n1. Ask for an age in years, then the extra months. Cast each input to a whole number with int().\n2. Work out the age in months.\n3. Print `You are`, the months, then `months old`.\nExample: you type `12` then `10`. It prints `You are 154 months old`.",
     "starter": "# Write your program here",
     "solution": "years = int(input(\"Years: \"))\nmonths = int(input(\"Extra months: \"))\ntotal = years * 12 + months\nprint(\"You are\", total, \"months old\")",
     "tests": [
@@ -4105,7 +4105,7 @@
     "level": 10,
     "type": "write",
     "title": "House tally",
-    "description": "Ask for a house name, then the points from three events. Cast each input to a whole number with int() (this is called casting). Add them up in ONE variable and print, for example:\nPhoenix has 27 points",
+    "description": "Add up a house's points.\n1. Ask for a house name.\n2. Ask for the points from three events, one at a time. Cast each to a whole number with int().\n3. Add them up in ONE variable.\n4. Print the house name, `has`, the points, then `points`.\nExample: you type `Phoenix` then `10` then `8` then `9`. It prints `Phoenix has 27 points`.",
     "starter": "# Write your program here",
     "solution": "house = input(\"House: \")\npoints = 0\npoints = points + int(input(\"Event 1: \"))\npoints = points + int(input(\"Event 2: \"))\npoints = points + int(input(\"Event 3: \"))\nprint(house, \"has\", points, \"points\")",
     "tests": [
@@ -4155,7 +4155,7 @@
     "level": 10,
     "type": "write",
     "title": "Pancake recipe",
-    "description": "Each person needs 50g of flour and 100ml of milk. Cast the input to a whole number with int() (this is called casting). Ask how many people are eating. Print, for example:\nFor 4 people:\nFlour (g): 200\nMilk (ml): 400\nFor 1 person, print \"For 1 person:\" on the first line instead.",
+    "description": "A recipe needs 50g of flour and 100ml of milk for each person.\n1. Ask how many people are eating. Cast the input to a whole number with int().\n2. If it is 1 person, print `For 1 person:`. Otherwise, print `For`, the number, then `people:`.\n3. Print `Flour (g):` and then the flour needed.\n4. Print `Milk (ml):` and then the milk needed.\nExample: you type `4`. It prints `For 4 people:` then `Flour (g): 200` then `Milk (ml): 400`.",
     "starter": "# Write your program here",
     "solution": "people = int(input(\"People: \"))\nif people == 1:\n    print(\"For 1 person:\")\nelse:\n    print(\"For\", people, \"people:\")\nprint(\"Flour (g):\", people * 50)\nprint(\"Milk (ml):\", people * 100)",
     "tests": [
@@ -4207,7 +4207,7 @@
     "level": 10,
     "type": "write",
     "title": "Library card",
-    "description": "Ask for a name and a year group (a number). Cast the input to a whole number with int() (this is called casting). A library card lasts 2 years. Print, for example:\nCard for: Mia\nValid until the end of Year 9",
+    "description": "A library card lasts 2 years.\n1. Ask for a name. Then ask for a year group, and cast it to a whole number with int().\n2. Print `Card for:` and then the name.\n3. Print `Valid until the end of Year` and then the year group plus 2.\nExample: you type `Mia` then `7`. It prints `Card for: Mia` then `Valid until the end of Year 9`.",
     "starter": "# Write your program here",
     "solution": "name = input(\"Name: \")\nyear = int(input(\"Year group: \"))\nprint(\"Card for:\", name)\nprint(\"Valid until the end of Year\", year + 2)",
     "tests": [
@@ -4254,7 +4254,7 @@
     "level": 10,
     "type": "write",
     "title": "Running track",
-    "description": "One lap of the track is 400 metres. Cast each input to a whole number with int() (this is called casting). Ask how many laps were run on Monday and on Tuesday, keeping a running total of laps in ONE variable. Print, for example:\nTotal laps: 9\nDistance (m): 3600",
+    "description": "One lap of the track is 400 metres.\n1. Ask how many laps were run on Monday, then on Tuesday. Cast each input to a whole number with int().\n2. Keep a running total of laps in ONE variable.\n3. Print `Total laps:` and then the total.\n4. Print `Distance (m):` and then the distance in metres.\nExample: you type `4` then `5`. It prints `Total laps: 9` then `Distance (m): 3600`.",
     "starter": "# Write your program here",
     "solution": "laps = 0\nlaps = laps + int(input(\"Monday laps: \"))\nlaps = laps + int(input(\"Tuesday laps: \"))\nprint(\"Total laps:\", laps)\nprint(\"Distance (m):\", laps * 400)",
     "tests": [
@@ -4300,7 +4300,7 @@
     "level": 10,
     "type": "write",
     "title": "Shopping list",
-    "description": "Ask for three things to buy for the cake sale. Print them in one sentence, for example:\nYou need: flour, eggs and sugar",
+    "description": "Plan the shopping for the cake sale.\n1. Ask for three things to buy, one at a time.\n2. Build one sentence from them: a comma after the first, and the word \"and\" before the third.\n3. Print `You need:` and then the sentence.\nExample: you type `flour` then `eggs` then `sugar`. It prints `You need: flour, eggs and sugar`.",
     "starter": "# Write your program here",
     "solution": "a = input(\"Item 1: \")\nb = input(\"Item 2: \")\nc = input(\"Item 3: \")\nitems = a + \", \" + b + \" and \" + c\nprint(\"You need:\", items)",
     "tests": [
@@ -4347,7 +4347,7 @@
     "level": 10,
     "type": "write",
     "title": "Bonus points",
-    "description": "Ask for a quiz score, then a bonus. Cast each input to a whole number with int() (this is called casting). Print the score, add the bonus to the SAME variable, then print it again, for example:\nScore: 12\nWith bonus: 15",
+    "description": "A quiz score gets a bonus.\n1. Ask for a quiz score, then a bonus. Cast each input to a whole number with int().\n2. Print `Score:` and then the score.\n3. Add the bonus to the SAME variable.\n4. Print `With bonus:` and then the new score.\nExample: you type `12` then `3`. It prints `Score: 12` then `With bonus: 15`.",
     "starter": "# Write your program here",
     "solution": "score = int(input(\"Score: \"))\nbonus = int(input(\"Bonus: \"))\nprint(\"Score:\", score)\nscore = score + bonus\nprint(\"With bonus:\", score)",
     "tests": [
@@ -4901,7 +4901,7 @@
     "level": 4,
     "type": "fill",
     "title": "Mean score",
-    "description": "Fill in the blanks so the program works out the mean of three scores and prints it to 2 decimal places: Mean: 21.67",
+    "description": "Fill in the blanks so the program works out the mean of three scores. It prints the mean to 2 decimal places.\nExample: It prints `Mean: 21.67`.",
     "starter": "total = 25 + 18 + 22\nmean = total ____ 3\nprint(\"Mean:\", ____(mean, 2))",
     "solution": "total = 25 + 18 + 22\nmean = total / 3\nprint(\"Mean:\", round(mean, 2))",
     "answers": [
@@ -5141,7 +5141,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Circle area",
-    "description": "Arrange the lines to work out the area of a circle with radius 4 (π × r²) and print it to 1 decimal place: 50.3\nOne line is not needed.",
+    "description": "Arrange the lines to work out the area of a circle with radius 4 (π × r²). The program prints it to 1 decimal place.\nOne line is not needed.",
     "starter": "",
     "solution": "radius = 4\narea = 3.14159 * radius ** 2\nprint(round(area, 1))",
     "distractors": [
@@ -5243,7 +5243,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Average of three tests",
-    "description": "Arrange the lines so the program reads three scores and prints their average to 1 decimal place. Cast each input to a whole number with int() (this is called casting). Two lines are not needed.",
+    "description": "Arrange the lines so the program reads three scores and prints their average to 1 decimal place. Cast each input with int().\nTwo lines are not needed.",
     "starter": "",
     "solution": "a = int(input(\"Score 1: \"))\nb = int(input(\"Score 2: \"))\nc = int(input(\"Score 3: \"))\naverage = (a + b + c) / 3\nprint(\"Average:\", round(average, 1))",
     "distractors": [
@@ -5327,7 +5327,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Odd or even remainder",
-    "description": "Arrange the lines so the program prints the remainder when a number is divided by 2. Cast the input to a whole number with int() (this is called casting). Two lines are not needed.",
+    "description": "Arrange the lines so the program prints the remainder when a number is divided by 2. Cast the input with int().\nTwo lines are not needed.",
     "starter": "",
     "solution": "number = int(input(\"Enter a number: \"))\nremainder = number % 2\nprint(\"Remainder when divided by 2:\", remainder)",
     "distractors": [
@@ -5373,7 +5373,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Coaches",
-    "description": "Each coach holds 50 pupils. Cast the input to a whole number with int() (this is called casting). Arrange the lines to print how many coaches are full and how many pupils are left over. Two lines are not needed.",
+    "description": "Each coach holds 50 pupils. Arrange the lines to cast the input with int(), then print the full coaches and the pupils left over.\nTwo lines are not needed.",
     "starter": "",
     "solution": "pupils = int(input(\"Pupils going: \"))\nfull = pupils // 50\nleft = pupils % 50\nprint(\"Full coaches:\", full)\nprint(\"Pupils left over:\", left)",
     "distractors": [
@@ -5447,7 +5447,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Savings",
-    "description": "£100 is saved at 5% interest a year, so after n years it is worth 100 × 1.05ⁿ. Cast the input to a whole number with int() (this is called casting). Arrange the lines to print the amount to 2 decimal places. Two lines are not needed.",
+    "description": "£100 is saved at 5% interest a year, so after n years it is worth 100 × 1.05ⁿ. Arrange the lines to cast the input with int() and print the amount to 2 decimal places.\nTwo lines are not needed.",
     "starter": "",
     "solution": "years = int(input(\"Years: \"))\namount = 100 * 1.05 ** years\nprint(\"Total:\", round(amount, 2))",
     "distractors": [
@@ -5669,7 +5669,7 @@
     "level": 7,
     "type": "fill",
     "title": "Splitting the bill",
-    "description": "Cast each input to a decimal number or a whole number with float() and int() (this is called casting). Write the missing line so the program prints each person's share rounded to 2 decimal places, for example: Each pays (£): 3.33",
+    "description": "Write the missing line so the program prints each person's share, rounded to 2 decimal places. The inputs are cast with float() and int().\nExample: you type `10` then `3`. It prints `Each pays (£): 3.33`.",
     "starter": "bill = float(input(\"Bill (£): \"))\npeople = int(input(\"People: \"))\nshare = bill / people\n____",
     "solution": "bill = float(input(\"Bill (£): \"))\npeople = int(input(\"People: \"))\nshare = bill / people\nprint(\"Each pays (£):\", round(share, 2))",
     "answers": [
@@ -5718,7 +5718,7 @@
     "level": 8,
     "type": "write",
     "title": "Classroom floor",
-    "description": "The width and length of a classroom have been read for you. Print the area, for example: Area: 20",
+    "description": "The school needs the area of a classroom.\n1. The program reads the width, then the length, in metres for you.\n2. Print `Area:` and then the area.\nExample: you type `4` then `5`. It prints `Area: 20`.",
     "starter": "width = int(input(\"Width (m): \"))\nlength = int(input(\"Length (m): \"))\n# Print the area",
     "solution": "width = int(input(\"Width (m): \"))\nlength = int(input(\"Length (m): \"))\nprint(\"Area:\", width * length)",
     "tests": [
@@ -5769,7 +5769,7 @@
     "level": 8,
     "type": "write",
     "title": "Homework time",
-    "description": "The minutes spent on homework have been read for you. Print them as hours and minutes, for example: 2 h 15 min",
+    "description": "Homework time is shown in hours and minutes.\n1. The program reads the minutes for you.\n2. Print the whole hours, `h`, the minutes left over, then `min`.\nExample: you type `135`. It prints `2 h 15 min`.",
     "starter": "minutes = int(input(\"Minutes: \"))\n# Print hours and minutes",
     "solution": "minutes = int(input(\"Minutes: \"))\nprint(minutes // 60, \"h\", minutes % 60, \"min\")",
     "tests": [
@@ -5818,7 +5818,7 @@
     "level": 8,
     "type": "write",
     "title": "Square and cube",
-    "description": "The number has been read for you. Print it squared, then cubed, on separate lines.",
+    "description": "Work out powers of a number.\n1. The program reads a number for you.\n2. Print the number squared.\n3. On the next line, print the number cubed.\nExample: you type `3`. It prints `9` then `27`.",
     "starter": "n = int(input(\"Number: \"))\n# Print n squared, then n cubed",
     "solution": "n = int(input(\"Number: \"))\nprint(n ** 2)\nprint(n ** 3)",
     "tests": [
@@ -5866,7 +5866,7 @@
     "level": 8,
     "type": "write",
     "title": "Test percentage",
-    "description": "The score and the total have been read for you. Using int() on input() is called casting: it turns the text into a whole number. Print the percentage to 1 decimal place, for example: Percentage (%): 65.0",
+    "description": "A test has a score out of a total.\n1. The program reads the score, then the total, and casts each to a whole number for you.\n2. Work out the percentage.\n3. Print `Percentage (%):` and then the percentage, rounded to 1 decimal place.\nExample: you type `13` then `20`. It prints `Percentage (%): 65.0`.",
     "starter": "score = int(input(\"Score: \"))\ntotal = int(input(\"Out of: \"))\n# Print the percentage to 1 decimal place",
     "solution": "score = int(input(\"Score: \"))\ntotal = int(input(\"Out of: \"))\npercent = score / total * 100\nprint(\"Percentage (%):\", round(percent, 1))",
     "tests": [
@@ -5920,7 +5920,7 @@
     "level": 9,
     "type": "write",
     "title": "Trip cost per pupil",
-    "description": "Ask for the total cost of a trip in pounds and the number of pupils. Cast each input to a whole number with int() (this is called casting). Print what each pupil pays, using round(..., 2), for example: Each pupil pays (£): 83.33",
+    "description": "The cost of a trip is shared between the pupils.\n1. Ask for the total cost in pounds, then the number of pupils. Cast each input to a whole number with int().\n2. Print `Each pupil pays (£):` and then what each pupil pays. Use round(..., 2).\nExample: you type `250` then `3`. It prints `Each pupil pays (£): 83.33`.",
     "starter": "# Write your program here",
     "solution": "cost = int(input(\"Total cost (£): \"))\npupils = int(input(\"Pupils: \"))\nprint(\"Each pupil pays (£):\", round(cost / pupils, 2))",
     "tests": [
@@ -5973,7 +5973,7 @@
     "level": 9,
     "type": "write",
     "title": "Packs of pencils",
-    "description": "Pencils come in packs of 12. Cast the input to a whole number with int() (this is called casting). Ask how many pencils the art department has. Print how many full packs that is and how many loose pencils are left, for example:\nFull packs: 2\nLoose pencils: 6",
+    "description": "Pencils come in packs of 12.\n1. Ask how many pencils the art department has. Cast the input to a whole number with int().\n2. Print `Full packs:` and then how many full packs that is.\n3. Print `Loose pencils:` and then how many are left over.\nExample: you type `30`. It prints `Full packs: 2` then `Loose pencils: 6`.",
     "starter": "# Write your program here",
     "solution": "pencils = int(input(\"Pencils: \"))\nprint(\"Full packs:\", pencils // 12)\nprint(\"Loose pencils:\", pencils % 12)",
     "tests": [
@@ -6043,7 +6043,7 @@
     "level": 9,
     "type": "write",
     "title": "Temperature",
-    "description": "Ask for a temperature in °C. Cast the input to a whole number with int() (this is called casting). Convert it to °F with F = C × 9 ÷ 5 + 32, and print it to 1 decimal place, for example: Fahrenheit: 68.0",
+    "description": "Convert a temperature from °C to °F.\n1. Ask for a temperature in °C. Cast the input to a whole number with int().\n2. Work out F = C × 9 ÷ 5 + 32.\n3. Print `Fahrenheit:` and then F, rounded to 1 decimal place.\nExample: you type `20`. It prints `Fahrenheit: 68.0`.",
     "starter": "# Write your program here",
     "solution": "c = int(input(\"Celsius: \"))\nf = c * 9 / 5 + 32\nprint(\"Fahrenheit:\", round(f, 1))",
     "tests": [
@@ -6092,7 +6092,7 @@
     "level": 9,
     "type": "write",
     "title": "Square garden",
-    "description": "The school is planting a square garden. Cast the input to a whole number with int() (this is called casting). Ask for the side length in metres. Print the area (side squared) and the perimeter, for example:\nArea: 25\nPerimeter: 20",
+    "description": "The school is planting a square garden.\n1. Ask for the side length in metres. Cast the input to a whole number with int().\n2. Print `Area:` and then the area: the side squared.\n3. Print `Perimeter:` and then the perimeter.\nExample: you type `5`. It prints `Area: 25` then `Perimeter: 20`.",
     "starter": "# Write your program here",
     "solution": "side = int(input(\"Side (m): \"))\nprint(\"Area:\", side ** 2)\nprint(\"Perimeter:\", side * 4)",
     "tests": [
@@ -6135,7 +6135,7 @@
     "level": 10,
     "type": "write",
     "title": "Trip planner",
-    "description": "Each coach holds 50 pupils and costs £300. Cast the input to a whole number with int() (this is called casting). Ask how many pupils are going. Print the number of coaches needed (part-full coaches count), the total coach cost, and the cost per pupil rounded to 2 decimal places, for example:\nCoaches needed: 3\nCoach cost (£): 900\nCost per pupil (£): 7.5",
+    "description": "Each coach holds 50 pupils and costs £300.\n1. Ask how many pupils are going. Cast the input to a whole number with int().\n2. Work out how many coaches are needed. A part-full coach still counts.\n3. Print `Coaches needed:` and then the number of coaches.\n4. Print `Coach cost (£):` and then the total coach cost.\n5. Print `Cost per pupil (£):` and then the cost per pupil, rounded to 2 decimal places.\nExample: you type `120`. It prints `Coaches needed: 3` then `Coach cost (£): 900` then `Cost per pupil (£): 7.5`.",
     "starter": "# Write your program here",
     "solution": "pupils = int(input(\"Pupils: \"))\ncoaches = (pupils + 49) // 50\ncost = coaches * 300\nprint(\"Coaches needed:\", coaches)\nprint(\"Coach cost (£):\", cost)\nprint(\"Cost per pupil (£):\", round(cost / pupils, 2))",
     "tests": [
@@ -6186,7 +6186,7 @@
     "level": 10,
     "type": "write",
     "title": "Revision timer",
-    "description": "Ask how many seconds a revision session lasted. Cast the input to a whole number with int() (this is called casting). Print it in hours, minutes and seconds, for example: 1 hours, 2 minutes, 5 seconds",
+    "description": "A revision session lasted some seconds.\n1. Ask how many seconds it lasted. Cast the input to a whole number with int().\n2. Print the hours, `hours,`, the minutes, `minutes,`, the seconds, then `seconds`.\nExample: you type `3725`. It prints `1 hours, 2 minutes, 5 seconds`.",
     "starter": "# Write your program here",
     "solution": "total = int(input(\"Seconds: \"))\nhours = total // 3600\nminutes = total % 3600 // 60\nseconds = total % 60\nprint(hours, \"hours,\", minutes, \"minutes,\", seconds, \"seconds\")",
     "tests": [
@@ -6237,7 +6237,7 @@
     "level": 10,
     "type": "write",
     "title": "Test statistics",
-    "description": "Ask for three test scores, each out of 50. Cast each input to a whole number with int() (this is called casting). Print the total, the mean to 1 decimal place, and the percentage of 150 to 1 decimal place, for example:\nTotal: 68\nMean: 22.7\nPercentage (%): 45.3",
+    "description": "Three tests are each out of 50.\n1. Ask for the three scores, one at a time. Cast each input to a whole number with int().\n2. Print `Total:` and then the total.\n3. Print `Mean:` and then the mean, rounded to 1 decimal place.\n4. Print `Percentage (%):` and then the total as a percentage of 150, rounded to 1 decimal place.\nExample: you type `20` then `31` then `17`. It prints `Total: 68` then `Mean: 22.7` then `Percentage (%): 45.3`.",
     "starter": "# Write your program here",
     "solution": "a = int(input(\"Test 1: \"))\nb = int(input(\"Test 2: \"))\nc = int(input(\"Test 3: \"))\ntotal = a + b + c\nprint(\"Total:\", total)\nprint(\"Mean:\", round(total / 3, 1))\nprint(\"Percentage (%):\", round(total / 150 * 100, 1))",
     "tests": [
@@ -6286,7 +6286,7 @@
     "level": 10,
     "type": "write",
     "title": "Bouncing ball",
-    "description": "In a science experiment, a ball is dropped and each bounce reaches 0.6 of the height before. Cast the input to a whole number with int() (this is called casting). Ask for the drop height in metres. Print the height after 1, 2 and 3 bounces (height × 0.6ⁿ), each rounded to 2 decimal places, for example:\nBounce 1: 6.0\nBounce 2: 3.6\nBounce 3: 2.16",
+    "description": "In a science experiment, a ball is dropped. Each bounce reaches 0.6 of the height before.\n1. Ask for the drop height in metres. Cast the input to a whole number with int().\n2. Print `Bounce 1:` and then the height after 1 bounce: height × 0.6.\n3. Do the same for `Bounce 2:` (height × 0.6²) and `Bounce 3:` (height × 0.6³).\n4. Round each height to 2 decimal places.\nExample: you type `10`. It prints `Bounce 1: 6.0` then `Bounce 2: 3.6` then `Bounce 3: 2.16`.",
     "starter": "# Write your program here",
     "solution": "height = int(input(\"Drop height (m): \"))\nprint(\"Bounce 1:\", round(height * 0.6 ** 1, 2))\nprint(\"Bounce 2:\", round(height * 0.6 ** 2, 2))\nprint(\"Bounce 3:\", round(height * 0.6 ** 3, 2))",
     "tests": [
@@ -6330,7 +6330,7 @@
     "level": 10,
     "type": "write",
     "title": "Turf for the field",
-    "description": "Ask for the width and length of a field in metres. Cast each input to a whole number with int() (this is called casting). Print the area and the perimeter. Turf comes in rolls covering 10 m² – print how many rolls are needed (part rolls count), for example:\nArea: 24\nPerimeter: 20\nRolls: 3",
+    "description": "A field needs new turf. Each roll of turf covers 10 m².\n1. Ask for the width, then the length, of the field in metres. Cast each input to a whole number with int().\n2. Print `Area:` and then the area.\n3. Print `Perimeter:` and then the perimeter.\n4. Print `Rolls:` and then how many rolls are needed. A part roll still counts.\nExample: you type `4` then `6`. It prints `Area: 24` then `Perimeter: 20` then `Rolls: 3`.",
     "starter": "# Write your program here",
     "solution": "w = int(input(\"Width: \"))\nl = int(input(\"Length: \"))\narea = w * l\nprint(\"Area:\", area)\nprint(\"Perimeter:\", 2 * (w + l))\nprint(\"Rolls:\", (area + 9) // 10)",
     "tests": [
@@ -6383,7 +6383,7 @@
     "level": 10,
     "type": "write",
     "title": "Sprint speed",
-    "description": "Ask for a distance in metres and a time in seconds. Cast each input to a whole number with int() (this is called casting). Print the speed in metres per second, rounded to 2 decimal places with round(), for example: Speed: 6.67 m/s",
+    "description": "Work out how fast someone ran.\n1. Ask for a distance in metres, then a time in seconds. Cast each input to a whole number with int().\n2. Print `Speed:`, the speed in metres per second rounded to 2 decimal places with round(), then `m/s`.\nExample: you type `100` then `15`. It prints `Speed: 6.67 m/s`.",
     "starter": "# Write your program here",
     "solution": "d = int(input(\"Distance (m): \"))\nt = int(input(\"Time (s): \"))\nprint(\"Speed:\", round(d / t, 2), \"m/s\")",
     "tests": [
@@ -6435,7 +6435,7 @@
     "level": 10,
     "type": "write",
     "title": "Marks to go",
-    "description": "Ask for a score and the total marks. Cast each input to a whole number with int() (this is called casting). Print the percentage rounded to 1 decimal place, and how many marks were missed, for example:\nPercentage: 82.5\nMarks missed: 7",
+    "description": "A test has a score out of some total marks.\n1. Ask for the score, then the total marks. Cast each input to a whole number with int().\n2. Print `Percentage:` and then the percentage, rounded to 1 decimal place.\n3. Print `Marks missed:` and then how many marks were missed.\nExample: you type `33` then `40`. It prints `Percentage: 82.5` then `Marks missed: 7`.",
     "starter": "# Write your program here",
     "solution": "score = int(input(\"Score: \"))\ntotal = int(input(\"Total: \"))\nprint(\"Percentage:\", round(score / total * 100, 1))\nprint(\"Marks missed:\", total - score)",
     "tests": [
@@ -6487,7 +6487,7 @@
     "level": 10,
     "type": "write",
     "title": "Pizza party",
-    "description": "Each pupil eats 3 slices and each pizza has 8 slices. Cast the input to a whole number with int() (this is called casting). Ask how many pupils are coming. Print how many pizzas to order (part pizzas count) and how many slices will be left, for example:\nPizzas: 4\nSpare slices: 2",
+    "description": "Each pupil eats 3 slices of pizza. Each pizza has 8 slices.\n1. Ask how many pupils are coming. Cast the input to a whole number with int().\n2. Print `Pizzas:` and then how many pizzas to order. A part pizza still counts.\n3. Print `Spare slices:` and then how many slices will be left.\nExample: you type `10`. It prints `Pizzas: 4` then `Spare slices: 2`.",
     "starter": "# Write your program here",
     "solution": "pupils = int(input(\"Pupils: \"))\nslices = pupils * 3\npizzas = (slices + 7) // 8\nprint(\"Pizzas:\", pizzas)\nprint(\"Spare slices:\", pizzas * 8 - slices)",
     "tests": [
@@ -6536,7 +6536,7 @@
     "level": 10,
     "type": "write",
     "title": "Two temperature scales",
-    "description": "Ask for a temperature in °C (a whole number). Cast the input to a whole number with int() (this is called casting). Print it in °F (C × 9 ÷ 5 + 32, rounded to 1 decimal place) and in Kelvin (C + 273), for example:\nFahrenheit: 68.0\nKelvin: 293",
+    "description": "Convert a temperature to °F and to Kelvin.\n1. Ask for a temperature in °C. Cast the input to a whole number with int().\n2. Print `Fahrenheit:` and then C × 9 ÷ 5 + 32, rounded to 1 decimal place.\n3. Print `Kelvin:` and then C + 273.\nExample: you type `21`. It prints `Fahrenheit: 69.8` then `Kelvin: 294`.",
     "starter": "# Write your program here",
     "solution": "c = int(input(\"Celsius: \"))\nprint(\"Fahrenheit:\", round(c * 9 / 5 + 32, 1))\nprint(\"Kelvin:\", c + 273)",
     "tests": [
@@ -6585,7 +6585,7 @@
     "level": 10,
     "type": "write",
     "title": "Computer memory",
-    "description": "Ask for a number n. Cast the input to a whole number with int() (this is called casting). Print 2 to the power n (the number of bytes), then how many whole kilobytes that is (1 KB is 1024 bytes), for example:\nBytes: 4096\nKB: 4",
+    "description": "Computer memory is counted in bytes. 1 KB is 1024 bytes.\n1. Ask for a number n. Cast the input to a whole number with int().\n2. Print `Bytes:` and then 2 to the power n.\n3. Print `KB:` and then how many whole kilobytes that is.\nExample: you type `12`. It prints `Bytes: 4096` then `KB: 4`.",
     "starter": "# Write your program here",
     "solution": "n = int(input(\"n: \"))\nb = 2 ** n\nprint(\"Bytes:\", b)\nprint(\"KB:\", b // 1024)",
     "tests": [
@@ -6633,7 +6633,7 @@
     "level": 10,
     "type": "write",
     "title": "Round flower bed",
-    "description": "Ask for the radius of a circular flower bed in metres. Cast the input to a whole number with int() (this is called casting). Using 3.14159 for π, print the area (π r²) and the distance round the edge (2 π r), each rounded to 2 decimal places, for example:\nArea: 28.27\nEdge: 18.85",
+    "description": "A flower bed is a circle. Use 3.14159 for π.\n1. Ask for the radius in metres. Cast the input to a whole number with int().\n2. Print `Area:` and then the area, π r², rounded to 2 decimal places.\n3. Print `Edge:` and then the distance round the edge, 2 π r, rounded to 2 decimal places.\nExample: you type `3`. It prints `Area: 28.27` then `Edge: 18.85`.",
     "starter": "# Write your program here",
     "solution": "r = int(input(\"Radius: \"))\nprint(\"Area:\", round(3.14159 * r ** 2, 2))\nprint(\"Edge:\", round(2 * 3.14159 * r, 2))",
     "tests": [
@@ -6682,7 +6682,7 @@
     "level": 10,
     "type": "write",
     "title": "Sharing a taxi",
-    "description": "Ask for a taxi fare in pence and the number of people. Cast each input to a whole number with int() (this is called casting). Everyone pays the same whole number of pence, rounded UP so the fare is covered. Print, for example:\nEach pays (p): 334\nExtra collected (p): 2",
+    "description": "Some people share a taxi fare.\n1. Ask for the fare in pence, then the number of people. Cast each input to a whole number with int().\n2. Everyone pays the same whole number of pence, rounded UP so the fare is covered.\n3. Print `Each pays (p):` and then what each person pays.\n4. Print `Extra collected (p):` and then how much more than the fare is collected.\nExample: you type `1000` then `3`. It prints `Each pays (p): 334` then `Extra collected (p): 2`.",
     "starter": "# Write your program here",
     "solution": "fare = int(input(\"Fare (p): \"))\npeople = int(input(\"People: \"))\neach = (fare + people - 1) // people\nprint(\"Each pays (p):\", each)\nprint(\"Extra collected (p):\", each * people - fare)",
     "tests": [
@@ -6736,7 +6736,7 @@
     "level": 10,
     "type": "write",
     "title": "Until the bell",
-    "description": "School ends at 15:20. Cast each input to a whole number with int() (this is called casting). Ask for the time now as an hour and then minutes (24-hour clock, before 15:20). Print how long is left, for example: 1 h 35 min left",
+    "description": "School ends at 15:20.\n1. Ask for the time now: the hour, then the minutes, on the 24-hour clock. It is before 15:20.\n2. Cast each input to a whole number with int().\n3. Print the hours left, `h`, the minutes left, then `min left`.\nExample: you type `13` then `45`. It prints `1 h 35 min left`.",
     "starter": "# Write your program here",
     "solution": "h = int(input(\"Hour: \"))\nm = int(input(\"Minutes: \"))\nleft = (15 * 60 + 20) - (h * 60 + m)\nprint(left // 60, \"h\", left % 60, \"min left\")",
     "tests": [
@@ -6788,7 +6788,7 @@
     "level": 10,
     "type": "write",
     "title": "BIDMAS checker",
-    "description": "Ask for three whole numbers a, b and c. Cast each input to a whole number with int() (this is called casting). Print a + b × c, then (a + b) × c, then a² + b², for example with 2, 3, 4:\n14\n20\n13",
+    "description": "Practise the order of operations.\n1. Ask for three whole numbers a, b and c, in that order. Cast each input with int().\n2. Print a + b × c.\n3. Print (a + b) × c.\n4. Print a² + b².\nExample: you type `2` then `3` then `4`. It prints `14` then `20` then `13`.",
     "starter": "# Write your program here",
     "solution": "a = int(input(\"a: \"))\nb = int(input(\"b: \"))\nc = int(input(\"c: \"))\nprint(a + b * c)\nprint((a + b) * c)\nprint(a ** 2 + b ** 2)",
     "tests": [
@@ -6963,7 +6963,7 @@
     "level": 3,
     "type": "fill",
     "title": "Pass mark",
-    "description": "The pass mark for a Year 8 science test is 50. Using int() on input() is called casting: it turns the text into a whole number. Fill in the blank so the program prints \"You passed!\" when the score is 50 or more. Nothing should be printed otherwise.",
+    "description": "The pass mark for a Year 8 science test is 50, and the score is cast with int(). Fill in the blank so the program prints `You passed!` only when the score is 50 or more.",
     "starter": "score = int(input(\"Score: \"))\nif score ____ 50:\n    print(\"You passed!\")",
     "answers": [
       ">="
@@ -7044,7 +7044,7 @@
     "level": 4,
     "type": "fill",
     "title": "Free entry for under 5s",
-    "description": "A museum lets children under 5 in for free. Using int() on input() is called casting: it turns the text into a whole number. Fill in both blanks so the program prints \"Free entry\" only when the age is less than 5.",
+    "description": "A museum lets children under 5 in for free, and the age is cast with int(). Fill in both blanks so the program prints `Free entry` only when the age is less than 5.",
     "starter": "age = int(input(\"Age: \"))\n____ age < 5____\n    print(\"Free entry\")",
     "answers": [
       "if",
@@ -7185,7 +7185,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Bus pass",
-    "description": "People aged 60 or over get a free bus pass. Cast the input to a whole number with int() (this is called casting). Everyone sees \"Have a good journey\". Arrange the lines – two are not needed.",
+    "description": "Arrange the lines so ages of 60 or over get a free bus pass. Everyone sees `Have a good journey`, and the age is cast with int().\nTwo lines are not needed.",
     "starter": "",
     "solution": "age = int(input(\"Age: \"))\nif age >= 60:\n    print(\"Free bus pass\")\nprint(\"Have a good journey\")",
     "distractors": [
@@ -7327,7 +7327,7 @@
     "level": 8,
     "type": "write",
     "title": "Full marks",
-    "description": "A quiz is marked out of 10. Using int() on input() is called casting: it turns the text into a whole number. Add an if statement that prints \"Perfect score!\" only when the mark is exactly 10.",
+    "description": "A quiz is marked out of 10.\n1. The program reads the mark and casts it to a whole number for you.\n2. Add an if statement that prints `Perfect score!` only when the mark is exactly 10.\n3. For any other mark, print nothing.\nExample: you type `10`. It prints `Perfect score!`.",
     "starter": "mark = int(input(\"Mark: \"))\n# Write your if statement below\n",
     "solution": "mark = int(input(\"Mark: \"))\nif mark == 10:\n    print(\"Perfect score!\")",
     "tests": [
@@ -7405,7 +7405,7 @@
     "level": 9,
     "type": "write",
     "title": "Heatwave",
-    "description": "Read a temperature (a whole number). Cast the input to a whole number with int() (this is called casting). If it is 30 or more, print \"Heatwave!\". Then, for every temperature, print \"Have a nice day\".",
+    "description": "Some days are very hot.\n1. Ask for a temperature, as a whole number. Cast the input with int().\n2. If it is 30 or more, print `Heatwave!`.\n3. Then, for every temperature, print `Have a nice day`.\nExample: you type `30`. It prints `Heatwave!` then `Have a nice day`.",
     "starter": "# Write the whole program here\n",
     "solution": "temp = int(input(\"Temperature: \"))\nif temp >= 30:\n    print(\"Heatwave!\")\nprint(\"Have a nice day\")",
     "tests": [
@@ -7464,7 +7464,7 @@
     "level": 10,
     "type": "write",
     "title": "Every badge",
-    "description": "Read a score. Cast the input to a whole number with int() (this is called casting). Print \"Bronze badge\" if it is 10 or more, \"Silver badge\" if it is 20 or more and \"Gold badge\" if it is 30 or more. Print EVERY badge earned, in that order (so 35 earns all three).",
+    "description": "A quiz gives badges for high scores.\n1. Ask for a score. Cast the input to a whole number with int().\n2. Print `Bronze badge` if it is 10 or more.\n3. Print `Silver badge` if it is 20 or more.\n4. Print `Gold badge` if it is 30 or more.\n5. Print EVERY badge earned, in that order.\nExample: you type `35`. It prints `Bronze badge` then `Silver badge` then `Gold badge`.",
     "starter": "# Write the whole program here\n",
     "solution": "score = int(input(\"Score: \"))\nif score >= 10:\n    print(\"Bronze badge\")\nif score >= 20:\n    print(\"Silver badge\")\nif score >= 30:\n    print(\"Gold badge\")",
     "tests": [
@@ -7695,7 +7695,7 @@
     "level": 4,
     "type": "fill",
     "title": "Tall enough to ride",
-    "description": "Riders on the rollercoaster must be at least 120 cm tall. Using int() on input() is called casting: it turns the text into a whole number. Fill in both blanks.",
+    "description": "Riders on the rollercoaster must be at least 120 cm tall, and the height is cast with int(). Fill in both blanks.",
     "starter": "height = int(input(\"Height (cm): \"))\nif height ____ 120:\n    print(\"You can ride\")\n____:\n    print(\"Sorry, too short\")",
     "answers": [
       ">=",
@@ -7779,7 +7779,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Phone battery",
-    "description": "Warn the user when the battery is below 20%. Cast the input to a whole number with int() (this is called casting). One line is not needed.",
+    "description": "Arrange the lines to warn the user when the battery is below 20%. The input is cast with int().\nOne line is not needed.",
     "starter": "",
     "solution": "battery = int(input(\"Battery %: \"))\nif battery < 20:\n    print(\"Low battery - plug in\")\nelse:\n    print(\"Battery OK\")",
     "distractors": [
@@ -7838,7 +7838,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Meal deal",
-    "description": "A meal deal costs 250p. Cast the input to a whole number with int() (this is called casting). Say whether the student has enough money. Two lines are not needed.",
+    "description": "A meal deal costs 250p. Arrange the lines to cast the money with int() and say whether the student has enough.\nTwo lines are not needed.",
     "starter": "",
     "solution": "money = int(input(\"Money in pence: \"))\nif money >= 250:\n    print(\"You can buy a meal deal\")\nelse:\n    print(\"Not enough money\")",
     "distractors": [
@@ -7900,7 +7900,7 @@
     "level": 7,
     "type": "fill",
     "title": "Pass mark condition",
-    "description": "The pass mark is 40 or more. Using int() on input() is called casting: it turns the text into a whole number. Write the whole condition.",
+    "description": "The pass mark is 40 or more, and the mark is cast with int(). Write the whole condition.",
     "starter": "mark = int(input(\"Mark: \"))\nif ____:\n    print(\"Pass\")\nelse:\n    print(\"Fail\")",
     "answers": [
       "mark >= 40"
@@ -7962,7 +7962,7 @@
     "level": 8,
     "type": "write",
     "title": "Snow day",
-    "description": "The school closes if there are 10 cm of snow or more. Using int() on input() is called casting: it turns the text into a whole number. Print \"School closed\" or \"School open\".",
+    "description": "The school closes if there are 10 cm of snow or more.\n1. The program reads the snow in cm and casts it to a whole number for you.\n2. If there are 10 cm or more, print `School closed`.\n3. Otherwise, print `School open`.\nExample: you type `10`. It prints `School closed`.\nExample: you type `8`. It prints `School open`.",
     "starter": "snow_cm = int(input(\"Snow (cm): \"))\n# Write your if/else below\n",
     "solution": "snow_cm = int(input(\"Snow (cm): \"))\nif snow_cm >= 10:\n    print(\"School closed\")\nelse:\n    print(\"School open\")",
     "tests": [
@@ -8050,7 +8050,7 @@
     "level": 9,
     "type": "write",
     "title": "Game price",
-    "description": "Read the price of a game in whole pounds. Cast the input to a whole number with int() (this is called casting). If it is more than 20 print \"Too expensive\", otherwise print \"Add to basket\".",
+    "description": "A game shop sets a price limit.\n1. Ask for the price of a game in whole pounds. Cast the input with int().\n2. If it is more than 20, print `Too expensive`.\n3. Otherwise, print `Add to basket`.\nExample: you type `25`. It prints `Too expensive`.\nExample: you type `19`. It prints `Add to basket`.",
     "starter": "# Write the whole program here\n",
     "solution": "price = int(input(\"Price (£): \"))\nif price > 20:\n    print(\"Too expensive\")\nelse:\n    print(\"Add to basket\")",
     "tests": [
@@ -8321,7 +8321,7 @@
     "level": 3,
     "type": "fill",
     "title": "Grade boundaries",
-    "description": "70 or more is an A, 50 or more is a B, anything else is a C. Using int() on input() is called casting: it turns the text into a whole number. Fill in the blank so only ONE grade is printed.",
+    "description": "The mark is cast with int(): 70 or more is an A, 50 or more a B, else a C. Fill in the blank so only ONE grade is printed.",
     "starter": "mark = int(input(\"Mark: \"))\nif mark >= 70:\n    print(\"Grade A\")\n____ mark >= 50:\n    print(\"Grade B\")\nelse:\n    print(\"Grade C\")",
     "answers": [
       "elif"
@@ -8488,7 +8488,7 @@
     "level": 5,
     "type": "parsons",
     "title": "What to wear",
-    "description": "25 or more: shorts. Cast the input to a whole number with int() (this is called casting). 15 or more: jeans. Colder: coat. One line is not needed.",
+    "description": "Arrange the lines to cast the temperature with int() and pick the clothes. 25 or more: shorts, 15 or more: jeans, colder: coat.\nOne line is not needed.",
     "starter": "",
     "solution": "temp = int(input(\"Temperature: \"))\nif temp >= 25:\n    print(\"Shorts\")\nelif temp >= 15:\n    print(\"Jeans\")\nelse:\n    print(\"Coat\")",
     "distractors": [
@@ -8588,7 +8588,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Cinema tickets",
-    "description": "Under 12s pay £5, under 65s pay £9, and everyone else pays £6. Cast the input to a whole number with int() (this is called casting). Two lines are not needed.",
+    "description": "Under 12s pay £5, under 65s pay £9, and everyone else pays £6. Arrange the lines to cast the age with int() and print the price.\nTwo lines are not needed.",
     "starter": "",
     "solution": "age = int(input(\"Age: \"))\nif age < 12:\n    print(\"Child ticket: £5\")\nelif age < 65:\n    print(\"Adult ticket: £9\")\nelse:\n    print(\"Senior ticket: £6\")",
     "distractors": [
@@ -8740,7 +8740,7 @@
     "level": 8,
     "type": "write",
     "title": "Reading badges",
-    "description": "20 or more books: \"Platinum reader\". Using int() on input() is called casting: it turns the text into a whole number. 10 or more: \"Gold reader\". 5 or more: \"Silver reader\". Fewer: \"Keep reading!\"",
+    "description": "A reading scheme gives awards.\n1. The program reads the number of books and casts it to a whole number for you.\n2. Print `Platinum reader` for 20 or more books, and `Gold reader` for 10 or more.\n3. Print `Silver reader` for 5 or more, and `Keep reading!` for fewer than 5.\nExample: you type `20`. It prints `Platinum reader`.\nExample: you type `18`. It prints `Gold reader`.\nExample: you type `8`. It prints `Silver reader`.\nExample: you type `3`. It prints `Keep reading!`.",
     "starter": "books = int(input(\"Books read: \"))\n# Write your if/elif/else below\n",
     "solution": "books = int(input(\"Books read: \"))\nif books >= 20:\n    print(\"Platinum reader\")\nelif books >= 10:\n    print(\"Gold reader\")\nelif books >= 5:\n    print(\"Silver reader\")\nelse:\n    print(\"Keep reading!\")",
     "tests": [
@@ -8818,7 +8818,7 @@
     "level": 9,
     "type": "write",
     "title": "Who won?",
-    "description": "Read two scores (player 1 then player 2). Cast each input to a whole number with int() (this is called casting). Print \"Player 1 wins\", \"Player 2 wins\" or \"Draw\".",
+    "description": "Two players compare scores.\n1. Read player 1's score, then player 2's. Cast each input with int().\n2. Print `Player 1 wins` if player 1's score is higher, or `Player 2 wins` if player 2's is higher.\n3. If the scores are equal, print `Draw`.\nExample: you type `5` then `3`. It prints `Player 1 wins`.\nExample: you type `3` then `9`. It prints `Player 2 wins`.\nExample: you type `5` then `5`. It prints `Draw`.",
     "starter": "# Write the whole program here\n",
     "solution": "p1 = int(input(\"Player 1 score: \"))\np2 = int(input(\"Player 2 score: \"))\nif p1 > p2:\n    print(\"Player 1 wins\")\nelif p2 > p1:\n    print(\"Player 2 wins\")\nelse:\n    print(\"Draw\")",
     "tests": [
@@ -8884,7 +8884,7 @@
     "level": 10,
     "type": "write",
     "title": "GCSE grade",
-    "description": "Cast the input to a whole number with int() (this is called casting). Read a mark out of 100 and print the grade: 90+ \"Grade 9\", 80+ \"Grade 8\", 70+ \"Grade 7\", 60+ \"Grade 6\", 50+ \"Grade 5\", 40+ \"Grade 4\", otherwise \"Grade U\".",
+    "description": "Marks out of 100 get a grade.\n1. Read a mark. Cast the input to a whole number with int().\n2. Print `Grade 9` for 90 or more, `Grade 8` for 80 or more, and `Grade 7` for 70 or more.\n3. Print `Grade 6` for 60 or more, `Grade 5` for 50 or more, and `Grade 4` for 40 or more.\n4. Otherwise, print `Grade U`.\nExample: you type `90`. It prints `Grade 9`.\nExample: you type `86`. It prints `Grade 8`.\nExample: you type `71`. It prints `Grade 7`.\nExample: you type `66`. It prints `Grade 6`.\nExample: you type `51`. It prints `Grade 5`.\nExample: you type `41`. It prints `Grade 4`.\nExample: you type `38`. It prints `Grade U`.",
     "starter": "# Write the whole program here\n",
     "solution": "mark = int(input(\"Mark: \"))\nif mark >= 90:\n    print(\"Grade 9\")\nelif mark >= 80:\n    print(\"Grade 8\")\nelif mark >= 70:\n    print(\"Grade 7\")\nelif mark >= 60:\n    print(\"Grade 6\")\nelif mark >= 50:\n    print(\"Grade 5\")\nelif mark >= 40:\n    print(\"Grade 4\")\nelse:\n    print(\"Grade U\")",
     "tests": [
@@ -9056,7 +9056,7 @@
     "level": 3,
     "type": "fill",
     "title": "Speed limit",
-    "description": "Speeds of 30 mph or less are OK. Using int() on input() is called casting: it turns the text into a whole number. Fill in the blank.",
+    "description": "Speeds of 30 mph or less are OK, and the speed is cast with int(). Fill in the blank.",
     "starter": "speed = int(input(\"Speed: \"))\nif speed ____ 30:\n    print(\"OK\")\nelse:\n    print(\"Too fast\")",
     "answers": [
       "<="
@@ -9134,7 +9134,7 @@
     "level": 4,
     "type": "fill",
     "title": "Two boundaries",
-    "description": "Marks above 100 are invalid. Using int() on input() is called casting: it turns the text into a whole number. Otherwise 50 or more is a pass. Fill in both blanks.",
+    "description": "The mark is cast with int(). Fill in both blanks: marks above 100 are invalid, otherwise 50 or more is a pass.",
     "starter": "mark = int(input(\"Mark out of 100: \"))\nif mark ____ 100:\n    print(\"Invalid mark\")\nelif mark ____ 50:\n    print(\"Pass\")\nelse:\n    print(\"Fail\")",
     "answers": [
       ">",
@@ -9198,7 +9198,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Lift limit",
-    "description": "A lift can carry up to 800 kg (800 is OK). Cast the input to a whole number with int() (this is called casting). One line is not needed.",
+    "description": "A lift can carry up to 800 kg, and 800 is OK. Arrange the lines to cast the weight with int() and check it.\nOne line is not needed.",
     "starter": "",
     "solution": "weight = int(input(\"Total weight (kg): \"))\nif weight > 800:\n    print(\"Overloaded\")\nelse:\n    print(\"Lift OK\")",
     "distractors": [
@@ -9258,7 +9258,7 @@
     "level": 8,
     "type": "write",
     "title": "Bus fares",
-    "description": "Under 5s travel free (print \"Free\"). Using int() on input() is called casting: it turns the text into a whole number. Ages 5 to 15 print \"Child fare: £1\". Ages 16 and over print \"Adult fare: £2\".",
+    "description": "Bus fares depend on age.\n1. The program reads the age and casts it to a whole number for you.\n2. Under 5s travel free: print `Free`.\n3. Ages 5 to 15 print `Child fare: £1`.\n4. Ages 16 and over print `Adult fare: £2`.\nExample: you type `4`. It prints `Free`.\nExample: you type `6`. It prints `Child fare: £1`.\nExample: you type `17`. It prints `Adult fare: £2`.",
     "starter": "age = int(input(\"Age: \"))\n# Write your code below\n",
     "solution": "age = int(input(\"Age: \"))\nif age < 5:\n    print(\"Free\")\nelif age <= 15:\n    print(\"Child fare: £1\")\nelse:\n    print(\"Adult fare: £2\")",
     "tests": [
@@ -9346,7 +9346,7 @@
     "level": 9,
     "type": "write",
     "title": "Cheapest shop",
-    "description": "Read the price of the same item in Shop A, then Shop B (in pence). Cast each input to a whole number with int() (this is called casting). Print \"Shop A is cheaper\", \"Shop B is cheaper\" or \"Same price\".",
+    "description": "Two shops sell the same item.\n1. Read the price in Shop A, then in Shop B, in pence. Cast each input with int().\n2. If Shop A's price is lower, print `Shop A is cheaper`.\n3. If Shop B's price is lower, print `Shop B is cheaper`.\n4. If the prices are equal, print `Same price`.\nExample: you type `99` then `120`. It prints `Shop A is cheaper`.\nExample: you type `96` then `80`. It prints `Shop B is cheaper`.\nExample: you type `101` then `101`. It prints `Same price`.",
     "starter": "# Write the whole program here\n",
     "solution": "a = int(input(\"Shop A price: \"))\nb = int(input(\"Shop B price: \"))\nif a < b:\n    print(\"Shop A is cheaper\")\nelif b < a:\n    print(\"Shop B is cheaper\")\nelse:\n    print(\"Same price\")",
     "tests": [
@@ -9548,7 +9548,7 @@
     "level": 3,
     "type": "fill",
     "title": "Teenager",
-    "description": "A teenager is aged 13 to 19 (inclusive). Using int() on input() is called casting: it turns the text into a whole number. Fill in the blank.",
+    "description": "A teenager is aged 13 to 19, inclusive, and the age is cast with int(). Fill in the blank.",
     "starter": "age = int(input(\"Age: \"))\nif age >= 13 ____ age <= 19:\n    print(\"Teenager\")\nelse:\n    print(\"Not a teenager\")",
     "answers": [
       "and"
@@ -9674,7 +9674,7 @@
     "level": 4,
     "type": "fill",
     "title": "Leisure centre discount",
-    "description": "People aged 60 or over, or members, get a discount. Using int() on input() is called casting: it turns the text into a whole number. Fill in both blanks.",
+    "description": "Fill in both blanks so people aged 60 or over, or members, get a discount. The age is cast with int().",
     "starter": "age = int(input(\"Age: \"))\nmember = input(\"Member? (yes/no): \")\nif age >= 60 ____ member ____ \"yes\":\n    print(\"Discount\")\nelse:\n    print(\"Full price\")",
     "answers": [
       "or",
@@ -9794,7 +9794,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Theme park ride",
-    "description": "To ride you must be at least 120 cm tall AND at least 8 years old. Cast each input to a whole number with int() (this is called casting). One line is not needed.",
+    "description": "To ride you must be at least 120 cm tall AND at least 8 years old. Arrange the lines to cast each input with int() and check both.\nOne line is not needed.",
     "starter": "",
     "solution": "height = int(input(\"Height (cm): \"))\nage = int(input(\"Age: \"))\nif height >= 120 and age >= 8:\n    print(\"You can ride\")\nelse:\n    print(\"Sorry, not today\")",
     "distractors": [
@@ -9860,7 +9860,7 @@
     "level": 5,
     "type": "parsons",
     "title": "No school today",
-    "description": "Print \"No school today\" on Saturday or Sunday. One line is not needed.",
+    "description": "Arrange the lines to print `No school today` on Saturday or Sunday.\nOne line is not needed.",
     "starter": "",
     "solution": "day = input(\"Day: \")\nif day == \"Saturday\" or day == \"Sunday\":\n    print(\"No school today\")\nelse:\n    print(\"School day\")",
     "distractors": [
@@ -9916,7 +9916,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Discount",
-    "description": "Under 16s OR students get a discount. Cast the input to a whole number with int() (this is called casting). Two lines are not needed.",
+    "description": "Under 16s OR students get a discount. Arrange the lines to cast the age with int() and check both.\nTwo lines are not needed.",
     "starter": "",
     "solution": "age = int(input(\"Age: \"))\nstudent = input(\"Student? (yes/no): \")\nif age < 16 or student == \"yes\":\n    print(\"Discount applied\")\nelse:\n    print(\"Full price\")",
     "distractors": [
@@ -9984,7 +9984,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Outdoor PE",
-    "description": "PE is outdoors if it's 15 degrees or more AND it's not raining. Cast the input to a whole number with int() (this is called casting). Two lines are not needed.",
+    "description": "PE is outdoors if it's 15 degrees or more AND it's not raining. Arrange the lines to cast the temperature with int() and decide.\nTwo lines are not needed.",
     "starter": "",
     "solution": "temp = int(input(\"Temperature: \"))\nraining = input(\"Raining? (yes/no): \")\nif temp >= 15 and raining == \"no\":\n    print(\"Outdoor PE\")\nelse:\n    print(\"Indoor PE\")",
     "distractors": [
@@ -10119,7 +10119,7 @@
     "level": 8,
     "type": "write",
     "title": "Valid exam mark",
-    "description": "A mark is valid if it is between 0 and 100 inclusive. Using int() on input() is called casting: it turns the text into a whole number. Print \"Valid\" or \"Invalid\".",
+    "description": "A mark is valid if it is between 0 and 100, inclusive.\n1. The program reads the mark and casts it to a whole number for you.\n2. Print `Valid` if the mark is from 0 to 100.\n3. Otherwise, print `Invalid`.\nExample: you type `0`. It prints `Valid`.\nExample: you type `-2`. It prints `Invalid`.",
     "starter": "mark = int(input(\"Mark: \"))\n# Write your code below\n",
     "solution": "mark = int(input(\"Mark: \"))\nif mark >= 0 and mark <= 100:\n    print(\"Valid\")\nelse:\n    print(\"Invalid\")",
     "tests": [
@@ -10186,7 +10186,7 @@
     "level": 8,
     "type": "write",
     "title": "Snow closure",
-    "description": "The school closes if there is 10 cm or more of snow OR the temperature is below -5. Using int() on input() is called casting: it turns the text into a whole number. Print \"School closed\" or \"School open\". Snow is read first, then temperature.",
+    "description": "The school closes if there is 10 cm or more of snow, OR the temperature is below -5.\n1. The program reads the snow, then the temperature, and casts each to a whole number for you.\n2. Print `School closed` if either is true.\n3. Otherwise, print `School open`.\nExample: you type `10` then `0`. It prints `School closed`.\nExample: you type `3` then `-5`. It prints `School open`.",
     "starter": "snow = int(input(\"Snow (cm): \"))\ntemp = int(input(\"Temperature: \"))\n# Write your code below\n",
     "solution": "snow = int(input(\"Snow (cm): \"))\ntemp = int(input(\"Temperature: \"))\nif snow >= 10 or temp < -5:\n    print(\"School closed\")\nelse:\n    print(\"School open\")",
     "tests": [
@@ -10251,7 +10251,7 @@
     "level": 9,
     "type": "write",
     "title": "Key stage",
-    "description": "Read a year group number. Cast the input to a whole number with int() (this is called casting). Print \"KS3\" for years 7 to 9, \"KS4\" for years 10 and 11, otherwise \"Not secondary\".",
+    "description": "Year groups belong to key stages.\n1. Read a year group number. Cast the input with int().\n2. Print `KS3` for years from 7 to 9.\n3. Print `KS4` for years 10 and 11.\n4. Otherwise, print `Not secondary`.\nExample: you type `7`. It prints `KS3`.\nExample: you type `5`. It prints `Not secondary`.",
     "starter": "# Write the whole program here\n",
     "solution": "year = int(input(\"Year group: \"))\nif year >= 7 and year <= 9:\n    print(\"KS3\")\nelif year == 10 or year == 11:\n    print(\"KS4\")\nelse:\n    print(\"Not secondary\")",
     "tests": [
@@ -10330,7 +10330,7 @@
     "level": 10,
     "type": "write",
     "title": "Rock, paper, scissors",
-    "description": "Read player 1's choice, then player 2's (rock, paper or scissors). Print \"Draw\", \"Player 1 wins\" or \"Player 2 wins\". Rock beats scissors, scissors beats paper, paper beats rock.",
+    "description": "Two players play rock, paper, scissors.\n1. Read player 1's choice, then player 2's: `rock`, `paper` or `scissors`.\n2. Rock beats scissors, scissors beats paper, and paper beats rock.\n3. Print `Draw` if they chose the same, otherwise `Player 1 wins` or `Player 2 wins`.\nExample: you type `rock` then `rock`. It prints `Draw`.\nExample: you type `scissors` then `rock`. It prints `Player 2 wins`.",
     "starter": "# Write the whole program here\n",
     "solution": "p1 = input(\"Player 1: \")\np2 = input(\"Player 2: \")\nif p1 == p2:\n    print(\"Draw\")\nelif (p1 == \"rock\" and p2 == \"scissors\") or (p1 == \"scissors\" and p2 == \"paper\") or (p1 == \"paper\" and p2 == \"rock\"):\n    print(\"Player 1 wins\")\nelse:\n    print(\"Player 2 wins\")",
     "tests": [
@@ -10468,7 +10468,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Voting next year",
-    "description": "Work out the age next year and say whether the person can vote (18+). Cast the input to a whole number with int() (this is called casting). One line is not needed.",
+    "description": "Arrange the lines to work out the age next year and say if the person can vote (18 or over). The age is cast with int().\nOne line is not needed.",
     "starter": "",
     "solution": "age = int(input(\"Age: \"))\nnext_year = age + 1\nif next_year >= 18:\n    print(\"You can vote next year\")\nelse:\n    print(\"Not yet\")",
     "distractors": [
@@ -10533,7 +10533,7 @@
     "level": 9,
     "type": "write",
     "title": "Paying for lunch",
-    "description": "Read the cost of a meal, then the money paid (both can have decimals, e.g. Cast each input to a decimal number with float() (this is called casting). 3.75). Print \"Change due\", \"Exact money\" or \"Not enough money\".",
+    "description": "A cafe works out change.\n1. Read the cost of a meal, then the money paid. Both can have decimals, so cast each with float().\n2. Print `Change due` if more than the cost was paid.\n3. Print `Exact money` if the money paid is the same as the cost.\n4. Otherwise, print `Not enough money`.\nExample: you type `3.75` then `5`. It prints `Change due`.\nExample: you type `4.75` then `4.75`. It prints `Exact money`.\nExample: you type `4.75` then `2.5`. It prints `Not enough money`.",
     "starter": "# Write the whole program here\n",
     "solution": "cost = float(input(\"Cost: £\"))\npaid = float(input(\"Paid: £\"))\nif paid > cost:\n    print(\"Change due\")\nelif paid == cost:\n    print(\"Exact money\")\nelse:\n    print(\"Not enough money\")",
     "tests": [
@@ -10693,7 +10693,7 @@
     "level": 3,
     "type": "fill",
     "title": "Odd or even",
-    "description": "A number is even if it divides by 2 with no remainder. Using int() on input() is called casting: it turns the text into a whole number. Fill in the blank.",
+    "description": "The number is cast with int(). Fill in the blank: a number is even if it divides by 2 with no remainder.",
     "starter": "n = int(input(\"Number: \"))\nif n ____ 2 == 0:\n    print(\"Even\")\nelse:\n    print(\"Odd\")",
     "answers": [
       "%"
@@ -10761,7 +10761,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Teams of 4",
-    "description": "Say whether a class splits exactly into teams of 4, or how many pupils are left over. Cast the input to a whole number with int() (this is called casting). One line is not needed.",
+    "description": "Arrange the lines to say if a class splits exactly into teams of 4, or how many are left over. The input is cast with int().\nOne line is not needed.",
     "starter": "",
     "solution": "pupils = int(input(\"Pupils: \"))\nif pupils % 4 == 0:\n    print(\"Teams of 4 work exactly\")\nelse:\n    print(pupils % 4, \"pupils left over\")",
     "distractors": [
@@ -10819,7 +10819,7 @@
     "level": 6,
     "type": "parsons",
     "title": "FizzBuzz (one number)",
-    "description": "Multiples of 15: FizzBuzz. Cast the input to a whole number with int() (this is called casting). Multiples of 3: Fizz. Multiples of 5: Buzz. Otherwise print the number. Two lines are not needed.",
+    "description": "Arrange the lines for FizzBuzz, casting the input with int(). Multiples of 15 print FizzBuzz, of 3 Fizz, of 5 Buzz, and others the number.\nTwo lines are not needed.",
     "starter": "",
     "solution": "n = int(input(\"Number: \"))\nif n % 15 == 0:\n    print(\"FizzBuzz\")\nelif n % 3 == 0:\n    print(\"Fizz\")\nelif n % 5 == 0:\n    print(\"Buzz\")\nelse:\n    print(n)",
     "distractors": [
@@ -10961,7 +10961,7 @@
     "level": 9,
     "type": "write",
     "title": "Weeks and days",
-    "description": "Read a number of days. Cast the input to a whole number with int() (this is called casting). If it's an exact number of weeks print e.g. \"Exactly 2 weeks\". Otherwise print two lines, e.g. \"Weeks: 1\" then \"Days: 3\".",
+    "description": "Turn a number of days into weeks.\n1. Read a number of days. Cast the input with int().\n2. If it is an exact number of weeks, print `Exactly`, the weeks, then `weeks`.\n3. Otherwise, print `Weeks:` and the whole weeks. Then, on the next line, print `Days:` and the days left over.\nExample: you type `14`. It prints `Exactly 2 weeks`.\nExample: you type `15`. It prints `Weeks: 2` then `Days: 1`.",
     "starter": "# Write the whole program here\n",
     "solution": "days = int(input(\"Days: \"))\nweeks = days // 7\nleft = days % 7\nif left == 0:\n    print(\"Exactly\", weeks, \"weeks\")\nelse:\n    print(\"Weeks:\", weeks)\n    print(\"Days:\", left)",
     "tests": [
@@ -11024,7 +11024,7 @@
     "level": 10,
     "type": "write",
     "title": "Leap year in one condition",
-    "description": "Read a year. Cast the input to a whole number with int() (this is called casting). Print \"Leap year\" or \"Not a leap year\" using ONE if/else. A leap year divides by 4 but not by 100 – unless it also divides by 400.",
+    "description": "Check whether a year is a leap year.\n1. Read a year. Cast the input with int().\n2. A leap year divides by 4 but not by 100, unless it also divides by 400.\n3. Print `Leap year` or `Not a leap year`, using ONE if/else.\nExample: you type `2000`. It prints `Leap year`.\nExample: you type `1901`. It prints `Not a leap year`.",
     "starter": "# Write the whole program here\n",
     "solution": "year = int(input(\"Year: \"))\nif (year % 4 == 0 and year % 100 != 0) or year % 400 == 0:\n    print(\"Leap year\")\nelse:\n    print(\"Not a leap year\")",
     "tests": [
@@ -11210,7 +11210,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Email check",
-    "description": "An email must not be blank and must contain @. Two lines are not needed.",
+    "description": "Arrange the lines to check an email: it must not be blank and must contain @.\nTwo lines are not needed.",
     "starter": "",
     "solution": "email = input(\"Email: \")\nif email == \"\":\n    print(\"Email is required\")\nelif \"@\" not in email:\n    print(\"Email must contain @\")\nelse:\n    print(\"Email saved\")",
     "distractors": [
@@ -11271,7 +11271,7 @@
     "level": 7,
     "type": "fill",
     "title": "Invalid mark condition",
-    "description": "Valid marks are 0 to 100. Using int() on input() is called casting: it turns the text into a whole number. Write the whole condition for an INVALID mark.",
+    "description": "Valid marks are 0 to 100, and the mark is cast with int(). Write the whole condition for an INVALID mark.",
     "starter": "mark = int(input(\"Mark: \"))\nif ____:\n    print(\"Invalid mark\")\nelse:\n    print(\"Mark saved\")",
     "answers": [
       "mark < 0 or mark > 100"
@@ -11396,7 +11396,7 @@
     "level": 8,
     "type": "write",
     "title": "Percentage check",
-    "description": "If the text is not all digits print \"Not a number\". If it's a number above 100 print \"Too high\". Otherwise print \"OK\".",
+    "description": "Check a percentage the user types.\n1. The program reads the text for you.\n2. If the text is not all digits, print `Not a number`.\n3. If it is a number above 100, print `Too high`.\n4. Otherwise, print `OK`.\nExample: you type `abc`. It prints `Not a number`.\nExample: you type `102`. It prints `Too high`.\nExample: you type `99`. It prints `OK`.",
     "starter": "text = input(\"Percentage: \")\n# Write your code below\n",
     "solution": "text = input(\"Percentage: \")\nif not text.isdigit():\n    print(\"Not a number\")\nelif int(text) > 100:\n    print(\"Too high\")\nelse:\n    print(\"OK\")",
     "tests": [
@@ -11460,7 +11460,7 @@
     "level": 9,
     "type": "write",
     "title": "Yes or no",
-    "description": "Ask \"Save your game?\". Accept yes, y, no or n in any capitals (hint: .lower()). Print \"Saving...\" for yes/y, \"Not saved\" for no/n, otherwise \"Please answer yes or no\".",
+    "description": "A game asks before saving.\n1. Ask `Save your game?`. Accept yes, y, no or n in any capitals: .lower() helps.\n2. Print `Saving...` for yes or y.\n3. Print `Not saved` for no or n.\n4. Otherwise, print `Please answer yes or no`.\nExample: you type `YES`. It prints `Saving...`.\nExample: you type `N`. It prints `Not saved`.\nExample: you type `MAYBE`. It prints `Please answer yes or no`.",
     "starter": "# Write the whole program here\n",
     "solution": "answer = input(\"Save your game? \").lower()\nif answer == \"yes\" or answer == \"y\":\n    print(\"Saving...\")\nelif answer == \"no\" or answer == \"n\":\n    print(\"Not saved\")\nelse:\n    print(\"Please answer yes or no\")",
     "tests": [
@@ -11530,7 +11530,7 @@
     "level": 10,
     "type": "write",
     "title": "Username rules",
-    "description": "Read a username and print the FIRST problem found: \"Too short\" (under 3 characters), \"Too long\" (over 12), \"No spaces allowed\", \"That name is reserved\" (admin in any capitals). If there are no problems print \"Username OK\".",
+    "description": "Check a new username.\n1. Read a username.\n2. Print the FIRST problem found, checking in this order.\n3. `Too short`: under 3 characters. `Too long`: over 12 characters.\n4. `No spaces allowed`: it has a space. `That name is reserved`: it is admin, in any capitals.\n5. If there are no problems, print `Username OK`.\nExample: you type `ab`. It prints `Too short`.\nExample: you type `ABCDEFGHIJKLM`. It prints `Too long`.\nExample: you type `MY NAME`. It prints `No spaces allowed`.\nExample: you type `admin`. It prints `That name is reserved`.\nExample: you type `CODER99`. It prints `Username OK`.",
     "starter": "# Write the whole program here\n",
     "solution": "username = input(\"Username: \")\nif len(username) < 3:\n    print(\"Too short\")\nelif len(username) > 12:\n    print(\"Too long\")\nelif \" \" in username:\n    print(\"No spaces allowed\")\nelif username.lower() == \"admin\":\n    print(\"That name is reserved\")\nelse:\n    print(\"Username OK\")",
     "tests": [
@@ -11599,7 +11599,7 @@
     "level": 10,
     "type": "write",
     "title": "Swimming pool prices",
-    "description": "Ask for an age. Cast the input to a whole number with int() (this is called casting). Print \"Invalid age\" if it is below 0 or above 120. Otherwise: under 5 is free (\"Free\"), 5–15 is \"£2\", 16–64 is \"£4\", and 65 or over is \"£2\".",
+    "description": "A leisure centre charges by age.\n1. Ask for an age. Cast the input with int().\n2. Print `Invalid age` if it is below 0 or above 120.\n3. Otherwise, under 5 print `Free`. From 5 to 15, print `£2`.\n4. From 16 to 64, print `£4`. At 65 or over, print `£2`.\nExample: you type `-1`. It prints `Invalid age`.\nExample: you type `3`. It prints `Free`.\nExample: you type `6`. It prints `£2`.\nExample: you type `17`. It prints `£4`.\nExample: you type `66`. It prints `£2`.",
     "starter": "# Write your program here",
     "solution": "age = int(input(\"Age: \"))\nif age < 0 or age > 120:\n    print(\"Invalid age\")\nelif age < 5:\n    print(\"Free\")\nelif age <= 15:\n    print(\"£2\")\nelif age <= 64:\n    print(\"£4\")\nelse:\n    print(\"£2\")",
     "tests": [
@@ -11688,7 +11688,7 @@
     "level": 10,
     "type": "write",
     "title": "Lunch chooser",
-    "description": "Ask for the day, then \"v\" for vegetarian or \"m\" for meat. Monday is Pasta bake (v) or Lasagne (m). Friday is Veggie burger (v) or Fish and chips (m). Any other day prints \"Check the menu board\".",
+    "description": "The menu depends on the day.\n1. Ask for the day, then `v` for vegetarian or `m` for meat.\n2. On Monday, print `Pasta bake` for v or `Lasagne` for m.\n3. On Friday, print `Veggie burger` for v or `Fish and chips` for m.\n4. On any other day, print `Check the menu board`.\nExample: you type `Monday` then `v`. It prints `Pasta bake`.\nExample: you type `Sunday` then `m`. It prints `Check the menu board`.",
     "starter": "# Write your program here",
     "solution": "day = input(\"Day: \")\ndiet = input(\"v or m: \")\nif day == \"Monday\":\n    if diet == \"v\":\n        print(\"Pasta bake\")\n    else:\n        print(\"Lasagne\")\nelif day == \"Friday\":\n    if diet == \"v\":\n        print(\"Veggie burger\")\n    else:\n        print(\"Fish and chips\")\nelse:\n    print(\"Check the menu board\")",
     "tests": [
@@ -11836,7 +11836,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Making tea",
-    "description": "Put the lines in order so the program prints the three steps for making a cup of tea, starting with Step 1.",
+    "description": "Put the lines in order so the program prints the three steps for making tea, starting with Step 1.",
     "starter": "",
     "solution": "print(\"Step 1: Fill the kettle\")\nprint(\"Step 2: Boil the water\")\nprint(\"Step 3: Pour into the cup\")",
     "distractors": [
@@ -11963,7 +11963,7 @@
     "level": 9,
     "type": "write",
     "title": "Cafe receipt",
-    "description": "Write a program that prints this receipt exactly:\nCafe Python\nTea 1.50\nThank you!",
+    "description": "Print a receipt from a cafe.\n1. Print the lines in the example exactly.\nExample: It prints `Cafe Python` then `Tea 1.50` then `Thank you!`.",
     "starter": "# Write the whole program here\n",
     "solution": "print(\"Cafe Python\")\nprint(\"Tea\", \"1.50\")\nprint(\"Thank you!\")",
     "tests": [
@@ -12005,7 +12005,7 @@
     "level": 9,
     "type": "write",
     "title": "Python is fun",
-    "description": "Write a program that prints the words Python, is and fun on three separate lines. Then print them again on one line, with a dash between each word:\nPython-is-fun",
+    "description": "Print three words in two ways.\n1. Print `Python`, `is` and `fun` on three separate lines.\n2. Then print them again on one line, with a dash between each word.\nExample: It prints `Python` then `is` then `fun` then `Python-is-fun`.",
     "starter": "# Write the whole program here\n",
     "solution": "print(\"Python\")\nprint(\"is\")\nprint(\"fun\")\nprint(\"Python\", \"is\", \"fun\", sep=\"-\")",
     "tests": [
@@ -12119,7 +12119,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Next birthday",
-    "description": "Put the lines in order. Cast the input to a whole number with int() (this is called casting). The program asks for a name and an age, builds a sentence, stores it, then prints it, for example:\nSam will be 13 next year",
+    "description": "Put the lines in order. The program asks for a name and an age, then builds, stores and prints a sentence.\nExample: you type `Sam` then `12`. It prints `Sam will be 13 next year`.",
     "starter": "",
     "solution": "name = input(\"Name: \")\nage = int(input(\"Age: \"))\nsentence = name + \" will be \" + str(age + 1) + \" next year\"\nprint(sentence)",
     "distractors": [
@@ -12178,7 +12178,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Bonus coins",
-    "description": "Put the lines in order. Cast the input to a whole number with int() (this is called casting). The program asks how many coins you have, adds a bonus of 10, and prints the new total.",
+    "description": "Put the lines in order. It asks how many coins you have, casts it with int(), adds a bonus of 10 and prints the total.",
     "starter": "",
     "solution": "coins = int(input(\"Coins: \"))\ncoins = coins + 10\nprint(\"You now have\", coins, \"coins\")",
     "distractors": [
@@ -12234,7 +12234,7 @@
     "level": 7,
     "type": "fill",
     "title": "Ready in…",
-    "description": "Complete the first line. Cast the input to a whole number with int() (this is called casting). It should ask for a number of minutes and store it as a whole number in minutes.",
+    "description": "Complete the first line. It asks for a number of minutes, casts it to a whole number and stores it in `minutes`.",
     "starter": "____\nlater = minutes + 15\nprint(\"Ready in\", later, \"minutes\")",
     "solution": "minutes = int(input(\"Minutes: \"))\nlater = minutes + 15\nprint(\"Ready in\", later, \"minutes\")",
     "answers": [
@@ -12291,7 +12291,7 @@
     "level": 7,
     "type": "fill",
     "title": "Points message",
-    "description": "Complete the missing line. Cast the input to a whole number with int() (this is called casting). It builds the text with + and stores it in message, which is then printed, for example:\nAva has 12 points",
+    "description": "Complete the missing line. It builds the text with + and stores it in `message`, which is then printed.\nExample: you type `Ava` then `12`. It prints `Ava has 12 points`.",
     "starter": "name = input(\"Name: \")\npoints = int(input(\"Points: \"))\n____\nprint(message)",
     "solution": "name = input(\"Name: \")\npoints = int(input(\"Points: \"))\nmessage = name + \" has \" + str(points) + \" points\"\nprint(message)",
     "answers": [
@@ -12350,7 +12350,7 @@
     "level": 9,
     "type": "write",
     "title": "Pet's age",
-    "description": "Ask for a pet's name, then its age in years (a whole number). Cast the input to a whole number with int() (this is called casting). Print two lines, for example:\nRex is 3 years old\nNext year Rex will be 4",
+    "description": "Tell the user about their pet.\n1. Ask for a pet's name. Then ask for its age in whole years, and cast it with int().\n2. Print the name, `is`, the age, then `years old`.\n3. Print `Next year`, the name, `will be`, then the age plus 1.\nExample: you type `Rex` then `3`. It prints `Rex is 3 years old` then `Next year Rex will be 4`.",
     "starter": "# Write the whole program here\n",
     "solution": "pet = input(\"Pet's name: \")\nage = int(input(\"Age: \"))\nprint(pet, \"is\", age, \"years old\")\nprint(\"Next year\", pet, \"will be\", age + 1)",
     "tests": [
@@ -12423,7 +12423,7 @@
     "level": 9,
     "type": "write",
     "title": "Laps",
-    "description": "Ask how many laps were run on Monday, then on Tuesday (whole numbers). Cast each input to a whole number with int() (this is called casting). Print the total, and how many more laps are needed to reach 20, for example:\nTotal laps: 12\nLaps to reach 20: 8",
+    "description": "The target is 20 laps.\n1. Ask how many laps were run on Monday, then on Tuesday. Cast each input to a whole number with int().\n2. Print `Total laps:` and then the total.\n3. Print `Laps to reach 20:` and then how many more laps are needed.\nExample: you type `5` then `7`. It prints `Total laps: 12` then `Laps to reach 20: 8`.",
     "starter": "# Write the whole program here\n",
     "solution": "monday = int(input(\"Monday laps: \"))\ntuesday = int(input(\"Tuesday laps: \"))\ntotal = monday + tuesday\nprint(\"Total laps:\", total)\nprint(\"Laps to reach 20:\", 20 - total)",
     "tests": [
@@ -12603,7 +12603,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Hours and minutes",
-    "description": "Put the lines in order. Cast the input to a whole number with int() (this is called casting). The program turns a number of minutes into hours and minutes. For example, 135 gives:\n2 hours and 15 minutes",
+    "description": "Put the lines in order. The program casts the input with int(), then turns a number of minutes into hours and minutes.\nExample: you type `135`. It prints `2 hours and 15 minutes`.",
     "starter": "",
     "solution": "minutes = int(input(\"Minutes: \"))\nhours = minutes // 60\nleft = minutes % 60\nprint(hours, \"hours and\", left, \"minutes\")",
     "distractors": [
@@ -12659,7 +12659,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Delivery charge",
-    "description": "Put the lines in order. Cast each input to a whole number with int() (this is called casting). The program works out price × quantity, then adds £2 for delivery.",
+    "description": "Put the lines in order. The program casts each input with int(), works out price × quantity, then adds £2 for delivery.",
     "starter": "",
     "solution": "price = int(input(\"Price: \"))\nqty = int(input(\"Quantity: \"))\ntotal = price * qty + 2\nprint(\"Total with delivery:\", total)",
     "distractors": [
@@ -12717,7 +12717,7 @@
     "level": 7,
     "type": "fill",
     "title": "Mean of three",
-    "description": "Complete the missing line so that it works out the mean (average) of the three marks and stores it in mean.",
+    "description": "Complete the missing line so it works out the mean of the three marks and stores it in `mean`.",
     "starter": "a = int(input(\"First mark: \"))\nb = int(input(\"Second mark: \"))\nc = int(input(\"Third mark: \"))\n____\nprint(\"Mean:\", round(mean, 1))",
     "solution": "a = int(input(\"First mark: \"))\nb = int(input(\"Second mark: \"))\nc = int(input(\"Third mark: \"))\nmean = (a + b + c) / 3\nprint(\"Mean:\", round(mean, 1))",
     "answers": [
@@ -12839,7 +12839,7 @@
     "level": 9,
     "type": "write",
     "title": "Minibuses",
-    "description": "A minibus holds 12 pupils. Cast the input to a whole number with int() (this is called casting). Ask for the number of pupils (a whole number). Print how many minibuses are completely full and how many pupils are left over. For example, for 30:\nFull minibuses: 2\nPupils left: 6",
+    "description": "A minibus holds 12 pupils.\n1. Ask for the number of pupils. Cast the input to a whole number with int().\n2. Print `Full minibuses:` and then how many minibuses are completely full.\n3. Print `Pupils left:` and then how many pupils are left over.\nExample: you type `30`. It prints `Full minibuses: 2` then `Pupils left: 6`.",
     "starter": "# Write the whole program here\n",
     "solution": "pupils = int(input(\"Pupils: \"))\nprint(\"Full minibuses:\", pupils // 12)\nprint(\"Pupils left:\", pupils % 12)",
     "tests": [
@@ -12923,7 +12923,7 @@
     "level": 9,
     "type": "write",
     "title": "Rectangle",
-    "description": "Ask for the length and then the width of a rectangle (whole numbers). Cast each input to a whole number with int() (this is called casting). Print its area and its perimeter. For example, for 4 and 6:\nArea: 24\nPerimeter: 20\nThe perimeter is 2 × (length + width).",
+    "description": "Work out the area and perimeter of a rectangle.\n1. Ask for the length, then the width. Cast each input to a whole number with int().\n2. Print `Area:` and then the area.\n3. Print `Perimeter:` and then the perimeter: 2 × (length + width).\nExample: you type `4` then `6`. It prints `Area: 24` then `Perimeter: 20`.",
     "starter": "# Write the whole program here\n",
     "solution": "length = int(input(\"Length: \"))\nwidth = int(input(\"Width: \"))\nprint(\"Area:\", length * width)\nprint(\"Perimeter:\", 2 * (length + width))",
     "tests": [
@@ -13104,7 +13104,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Club age",
-    "description": "Put the lines in order. Cast the input to a whole number with int() (this is called casting). Members must be 13 or older.",
+    "description": "Put the lines in order. Members must be 13 or older, and the age is cast with int().",
     "starter": "",
     "solution": "age = int(input(\"Age: \"))\nif age >= 13:\n    print(\"You can join the club\")\nelse:\n    print(\"Sorry, too young\")",
     "distractors": [
@@ -13227,7 +13227,7 @@
     "level": 7,
     "type": "fill",
     "title": "Distinction or pass",
-    "description": "Complete the missing line. A mark from 40 to 69 should print Pass. Only one message should ever be printed.",
+    "description": "Complete the missing line so a mark from 40 to 69 prints `Pass`. Only one message should ever be printed.",
     "starter": "mark = int(input(\"Mark: \"))\nif mark >= 70:\n    print(\"Distinction\")\n____\n    print(\"Pass\")\nelse:\n    print(\"Not yet\")",
     "solution": "mark = int(input(\"Mark: \"))\nif mark >= 70:\n    print(\"Distinction\")\nelif mark >= 40:\n    print(\"Pass\")\nelse:\n    print(\"Not yet\")",
     "answers": [
@@ -13397,7 +13397,7 @@
     "level": 9,
     "type": "write",
     "title": "Theatre programme",
-    "description": "Ask for a ticket price in pounds (a whole number). Cast the input to a whole number with int() (this is called casting). If it is 10 or more, print Free programme. Otherwise print Programme: £2. Then, whatever the price, print Enjoy the show.",
+    "description": "A theatre gives free programmes with dearer tickets.\n1. Ask for a ticket price in whole pounds. Cast the input with int().\n2. If it is 10 or more, print `Free programme`. Otherwise print `Programme: £2`.\n3. Then, whatever the price, print `Enjoy the show`.\nExample: you type `10`. It prints `Free programme` then `Enjoy the show`.\nExample: you type `8`. It prints `Programme: £2` then `Enjoy the show`.",
     "starter": "# Write the whole program here\n",
     "solution": "price = int(input(\"Price: \"))\nif price >= 10:\n    print(\"Free programme\")\nelse:\n    print(\"Programme: £2\")\nprint(\"Enjoy the show\")",
     "tests": [
@@ -13501,7 +13501,7 @@
     "level": 9,
     "type": "write",
     "title": "Late to school",
-    "description": "Ask how many minutes late a pupil is. Cast the input to a whole number with int() (this is called casting). Print \"Invalid\" if it is below 0, \"On time\" for 0, \"Late\" for 1 to 10, and \"Very late\" for more than 10.",
+    "description": "Check how late a pupil is.\n1. Ask how many minutes late they are. Cast the input with int().\n2. Print `Invalid` if it is below 0, and `On time` if it is 0.\n3. Print `Late` for 1 to 10 minutes, and `Very late` for more than 10.\nExample: you type `0`. It prints `On time`.\nExample: you type `9`. It prints `Late`.\nExample: you type `12`. It prints `Very late`.\nExample: you type `-2`. It prints `Invalid`.",
     "starter": "# Write the whole program here\n",
     "solution": "minutes = int(input(\"Minutes late: \"))\nif minutes < 0:\n    print(\"Invalid\")\nelif minutes == 0:\n    print(\"On time\")\nelif minutes <= 10:\n    print(\"Late\")\nelse:\n    print(\"Very late\")",
     "tests": [
@@ -14017,7 +14017,7 @@
     "level": 3,
     "type": "fill",
     "title": "Counting passes",
-    "description": "Five scores are entered. Using int() on input() is called casting: it turns the text into a whole number. Count how many are passes (50 or more). Fill in the blank.",
+    "description": "Five scores are entered and cast with int(). Fill in the blank to count how many are passes, 50 or more.",
     "starter": "passes = 0\ncount = 0\nwhile count < 5:\n    score = int(input(\"Score: \"))\n    if score ____ 50:\n        passes = passes + 1\n    count = count + 1\nprint(\"Passes:\", passes)",
     "solution": "passes = 0\ncount = 0\nwhile count < 5:\n    score = int(input(\"Score: \"))\n    if score >= 50:\n        passes = passes + 1\n    count = count + 1\nprint(\"Passes:\", passes)",
     "answers": [
@@ -14085,7 +14085,7 @@
     "level": 3,
     "type": "fill",
     "title": "Higher or lower",
-    "description": "The secret number is 7. Using int() on input() is called casting: it turns the text into a whole number. Fill in the blank so the game says \"Too low\" or \"Too high\" until the guess is right.",
+    "description": "The secret number is 7, and each guess is cast with int(). Fill in the blank so the game says `Too low` or `Too high` until the guess is right.",
     "starter": "secret = 7\nguess = int(input(\"Guess: \"))\nwhile guess != secret:\n    if guess < secret:\n        print(\"Too low\")\n    ____:\n        print(\"Too high\")\n    guess = int(input(\"Guess: \"))\nprint(\"Correct!\")",
     "solution": "secret = 7\nguess = int(input(\"Guess: \"))\nwhile guess != secret:\n    if guess < secret:\n        print(\"Too low\")\n    else:\n        print(\"Too high\")\n    guess = int(input(\"Guess: \"))\nprint(\"Correct!\")",
     "answers": [
@@ -14283,7 +14283,7 @@
     "level": 4,
     "type": "fill",
     "title": "Running total",
-    "description": "Add up numbers until 0 is entered. Using int() on input() is called casting: it turns the text into a whole number. Fill in both blanks so the loop stops at 0.",
+    "description": "Add up numbers until 0 is entered, casting each with int(). Fill in both blanks so the loop stops at 0.",
     "starter": "total = 0\nwhile True:\n    n = int(input(\"Number (0 to stop): \"))\n    if n ____ 0:\n        ____\n    total = total + n\nprint(\"Total:\", total)",
     "solution": "total = 0\nwhile True:\n    n = int(input(\"Number (0 to stop): \"))\n    if n == 0:\n        break\n    total = total + n\nprint(\"Total:\", total)",
     "answers": [
@@ -14473,7 +14473,7 @@
     "level": 4,
     "type": "fill",
     "title": "Minibus register",
-    "description": "Count pupils onto the minibus until done is typed. The minibus holds 5, so stop at 5 even if more names are typed. Fill in both blanks.",
+    "description": "Count pupils onto the minibus until `done` is typed, but stop at 5 because it holds 5. Fill in both blanks.",
     "starter": "count = 0\nname = input(\"Name (done to finish): \")\nwhile name ____ \"done\" ____ count < 5:\n    count = count + 1\n    name = input(\"Name (done to finish): \")\nprint(\"On the minibus:\", count)",
     "solution": "count = 0\nname = input(\"Name (done to finish): \")\nwhile name != \"done\" and count < 5:\n    count = count + 1\n    name = input(\"Name (done to finish): \")\nprint(\"On the minibus:\", count)",
     "answers": [
@@ -14532,7 +14532,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Valid age",
-    "description": "Keep asking until the age is from 0 to 120, then say Adult (18+) or Child. Cast each input to a whole number with int() (this is called casting). One line is not needed.",
+    "description": "Arrange the lines to keep asking until the age is from 0 to 120, then say Adult (18+) or Child. Each input is cast with int().\nOne line is not needed.",
     "starter": "",
     "solution": "age = int(input(\"Age: \"))\nwhile age < 0 or age > 120:\n    print(\"Invalid age\")\n    age = int(input(\"Age: \"))\nif age >= 18:\n    print(\"Adult\")\nelse:\n    print(\"Child\")",
     "distractors": [
@@ -14636,7 +14636,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Positive scores",
-    "description": "Read 3 scores and add up only the positive ones. Cast the input to a whole number with int() (this is called casting). One line is not needed.",
+    "description": "Arrange the lines to read 3 scores and add up only the positive ones. Each input is cast with int().\nOne line is not needed.",
     "starter": "",
     "solution": "total = 0\ncount = 0\nwhile count < 3:\n    score = int(input(\"Score: \"))\n    if score > 0:\n        total = total + score\n    count = count + 1\nprint(\"Total of positive scores:\", total)",
     "distractors": [
@@ -14704,7 +14704,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Shop total",
-    "description": "Add up prices in a shop till until 0 is entered, then print the total. Cast each input to a whole number with int() (this is called casting). One line is not needed.",
+    "description": "Arrange the lines to add up prices in a shop till until 0 is entered, then print the total. Each input is cast with int().\nOne line is not needed.",
     "starter": "",
     "solution": "total = 0\nprice = int(input(\"Price (0 to finish): \"))\nwhile price != 0:\n    total = total + price\n    price = int(input(\"Price (0 to finish): \"))\nprint(\"Total (£):\", total)",
     "distractors": [
@@ -14785,7 +14785,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Register menu",
-    "description": "A menu repeats until Q is chosen. A prints \"Add a pupil\" and anything else prints \"Show the register\". One line is not needed.",
+    "description": "Arrange the lines so a menu repeats until `Q` is chosen. `A` prints `Add a pupil`, and anything else prints `Show the register`.\nOne line is not needed.",
     "starter": "",
     "solution": "choice = input(\"Choose A, B or Q: \")\nwhile choice != \"Q\":\n    if choice == \"A\":\n        print(\"Add a pupil\")\n    else:\n        print(\"Show the register\")\n    choice = input(\"Choose A, B or Q: \")\nprint(\"Goodbye\")",
     "distractors": [
@@ -14866,7 +14866,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Counting fails",
-    "description": "Read marks until -1 is entered. Cast each input to a whole number with int() (this is called casting). Count the marks below 40. Two lines are not needed.",
+    "description": "Arrange the lines to read marks until -1 is entered and count the marks below 40. Each input is cast with int().\nTwo lines are not needed.",
     "starter": "",
     "solution": "fails = 0\nmark = int(input(\"Mark (-1 to stop): \"))\nwhile mark != -1:\n    if mark < 40:\n        fails = fails + 1\n    mark = int(input(\"Mark (-1 to stop): \"))\nprint(\"Fails:\", fails)",
     "distractors": [
@@ -14976,7 +14976,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Vending machine",
-    "description": "Accept 10p, 20p and 50p coins until at least 100p is paid. Cast the input to a whole number with int() (this is called casting). Reject other coins. Two lines are not needed.",
+    "description": "Arrange the lines to accept 10p, 20p and 50p coins, cast with int(), until at least 100p is paid. Other coins are rejected.\nTwo lines are not needed.",
     "starter": "",
     "solution": "credit = 0\nwhile credit < 100:\n    coin = int(input(\"Coin (p): \"))\n    if coin == 10 or coin == 20 or coin == 50:\n        credit = credit + coin\n    else:\n        print(\"Coin rejected\")\nprint(\"Credit:\", credit)",
     "distractors": [
@@ -15045,7 +15045,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Countdown to lunch",
-    "description": "Count down to lunch in steps of 10 minutes. Cast the input to a whole number with int() (this is called casting). Two lines are not needed. One of them never changes minutes, so if you used it the loop would never end.",
+    "description": "Arrange the lines to count down to lunch in steps of 10 minutes, casting the input with int(). One unneeded line never changes minutes, so with it the loop would never end.\nTwo lines are not needed.",
     "starter": "",
     "solution": "minutes = int(input(\"Minutes to lunch: \"))\nwhile minutes > 0:\n    print(minutes, \"minutes to go\")\n    minutes = minutes - 10\nprint(\"Lunch time!\")",
     "distractors": [
@@ -15136,7 +15136,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Bus stop number",
-    "description": "Keep asking for a stop number until it is from 1 to 12, then print the ticket. Cast each input to a whole number with int() (this is called casting). Two lines are not needed.",
+    "description": "Arrange the lines to ask for a stop number until it is from 1 to 12, then print the ticket. Each input is cast with int().\nTwo lines are not needed.",
     "starter": "",
     "solution": "stop = int(input(\"Stop number (1-12): \"))\nwhile stop < 1 or stop > 12:\n    print(\"No such stop\")\n    stop = int(input(\"Stop number (1-12): \"))\nprint(\"Ticket to stop\", stop)",
     "distractors": [
@@ -15216,7 +15216,7 @@
     "level": 7,
     "type": "fill",
     "title": "Too high or too low",
-    "description": "The secret number is 7. Using int() on input() is called casting: it turns the text into a whole number. Write the whole missing line inside the loop.",
+    "description": "The secret number is 7, and each guess is cast with int(). Write the whole missing line inside the loop.",
     "starter": "guess = int(input(\"Guess: \"))\nwhile guess != 7:\n    ____\n        print(\"Too high\")\n    else:\n        print(\"Too low\")\n    guess = int(input(\"Guess: \"))\nprint(\"Got it!\")",
     "solution": "guess = int(input(\"Guess: \"))\nwhile guess != 7:\n    if guess > 7:\n        print(\"Too high\")\n    else:\n        print(\"Too low\")\n    guess = int(input(\"Guess: \"))\nprint(\"Got it!\")",
     "answers": [
@@ -15277,7 +15277,7 @@
     "level": 7,
     "type": "fill",
     "title": "Pass counter",
-    "description": "A pass is 40 or more. Using int() on input() is called casting: it turns the text into a whole number. Write the whole condition.",
+    "description": "A pass is 40 or more, and each mark is cast with int(). Write the whole condition.",
     "starter": "passes = 0\ncount = 0\nwhile count < 4:\n    mark = int(input(\"Mark: \"))\n    if ____:\n        passes = passes + 1\n    count = count + 1\nprint(\"Passes:\", passes)",
     "solution": "passes = 0\ncount = 0\nwhile count < 4:\n    mark = int(input(\"Mark: \"))\n    if mark >= 40:\n        passes = passes + 1\n    count = count + 1\nprint(\"Passes:\", passes)",
     "answers": [
@@ -15343,7 +15343,7 @@
     "level": 7,
     "type": "fill",
     "title": "Quiz total",
-    "description": "Read 4 quiz scores and add them up. Cast the input to a whole number with int() (this is called casting). Write the whole missing line.",
+    "description": "Read 4 quiz scores, cast with int(), and add them up. Write the whole missing line.",
     "starter": "total = 0\ncount = 0\nwhile count < 4:\n    points = int(input(\"Quiz points: \"))\n    ____\n    count = count + 1\nprint(\"Quiz total:\", total)",
     "solution": "total = 0\ncount = 0\nwhile count < 4:\n    points = int(input(\"Quiz points: \"))\n    total = total + points\n    count = count + 1\nprint(\"Quiz total:\", total)",
     "answers": [
@@ -15409,7 +15409,7 @@
     "level": 7,
     "type": "fill",
     "title": "The game that never ends",
-    "description": "This game should end when lives reaches 0. Without the missing line, lives never changes and the loop never ends. Write the whole missing line.",
+    "description": "This game should end when `lives` reaches 0, but without the missing line it never changes. Write the whole missing line.",
     "starter": "lives = 3\nwhile lives > 0:\n    hit = input(\"Hit? (y/n): \")\n    if hit == \"y\":\n        ____\n    print(\"Lives:\", lives)\nprint(\"Game over\")",
     "solution": "lives = 3\nwhile lives > 0:\n    hit = input(\"Hit? (y/n): \")\n    if hit == \"y\":\n        lives = lives - 1\n    print(\"Lives:\", lives)\nprint(\"Game over\")",
     "answers": [
@@ -15491,7 +15491,7 @@
     "level": 8,
     "type": "write",
     "title": "Three tries",
-    "description": "The password is letmein. Allow up to 3 tries. Print \"Wrong password\" after each wrong try. Print \"Welcome\" if they get it right, or \"Locked out\" after 3 wrong tries.",
+    "description": "A computer asks for a password. The password is `letmein`.\n1. Allow up to 3 tries.\n2. After each wrong try, print `Wrong password`.\n3. If they get it right, print `Welcome`.\n4. After 3 wrong tries, print `Locked out`.\nExample: you type `letmein`. It prints `Welcome`.\nExample: you type `A` then `letmein`. It prints `Wrong password` then `Welcome`.\nExample: you type `A` then `b` then `c`. It prints `Wrong password` then `Wrong password` then `Wrong password` then `Locked out`.",
     "starter": "attempts = 0\nlogged_in = False\n# Write your loop below\n",
     "solution": "attempts = 0\nlogged_in = False\nwhile attempts < 3 and not logged_in:\n    password = input(\"Password: \")\n    if password == \"letmein\":\n        logged_in = True\n        print(\"Welcome\")\n    else:\n        print(\"Wrong password\")\n        attempts = attempts + 1\nif not logged_in:\n    print(\"Locked out\")",
     "tests": [
@@ -15553,7 +15553,7 @@
     "level": 8,
     "type": "write",
     "title": "Highest score",
-    "description": "The first score is read for you. Using int() on input() is called casting: it turns the text into a whole number. Read 4 more scores and print the highest, like: Highest: 9. Scores can be negative!",
+    "description": "Find the highest of five scores.\n1. The program reads the first score and casts it to a whole number for you.\n2. Read 4 more scores, casting each with int(). Scores can be negative.\n3. Print `Highest:` and then the highest score.\nExample: you type `3` then `9` then `2` then `9` then `1`. It prints `Highest: 9`.\nExample: you type `0` then `-5` then `-2` then `-8` then `-3`. It prints `Highest: 0`.",
     "starter": "best = int(input(\"Score: \"))\ncount = 1\n# Read 4 more scores and keep track of the highest\n",
     "solution": "best = int(input(\"Score: \"))\ncount = 1\nwhile count < 5:\n    score = int(input(\"Score: \"))\n    if score > best:\n        best = score\n    count = count + 1\nprint(\"Highest:\", best)",
     "tests": [
@@ -15658,7 +15658,7 @@
     "level": 8,
     "type": "write",
     "title": "Bus fares total",
-    "description": "A bus fare is £1 for under-16s and £2 for everyone else. Using int() on input() is called casting: it turns the text into a whole number. The first age is read for you. Keep reading ages until 0 is entered, adding each fare to total.",
+    "description": "A bus fare is £1 for under-16s and £2 for everyone else.\n1. The program reads the first age and casts it to a whole number for you.\n2. Keep reading ages until 0 is entered, casting each with int().\n3. Add each fare to `total`.\n4. The last line prints the total for you.\nExample: you type `10` then `40` then `15` then `0`. It prints `Total fares (£): 4`.",
     "starter": "total = 0\nage = int(input(\"Age (0 to finish): \"))\n# Add the loop here\nprint(\"Total fares (£):\", total)\n",
     "solution": "total = 0\nage = int(input(\"Age (0 to finish): \"))\nwhile age != 0:\n    if age < 16:\n        total = total + 1\n    else:\n        total = total + 2\n    age = int(input(\"Age (0 to finish): \"))\nprint(\"Total fares (£):\", total)",
     "tests": [
@@ -15794,7 +15794,7 @@
     "level": 8,
     "type": "write",
     "title": "Game menu",
-    "description": "The menu loop is written for you. Inside it, print \"Playing...\" for P, \"High score: 120\" for H, and \"Unknown option\" for anything else except Q.",
+    "description": "A game menu is written for you.\n1. Inside the loop, print `Playing...` when `P` is typed.\n2. Print `High score: 120` when `H` is typed.\n3. For anything else except `Q`, print `Unknown option`.\nExample: you type `P` then `H` then `X` then `Q`. It prints `Playing...` then `High score: 120` then `Unknown option` then `Bye`.",
     "starter": "choice = \"\"\nwhile choice != \"Q\":\n    choice = input(\"P = play, H = high score, Q = quit: \")\n    # Write the if/elif here\nprint(\"Bye\")\n",
     "solution": "choice = \"\"\nwhile choice != \"Q\":\n    choice = input(\"P = play, H = high score, Q = quit: \")\n    if choice == \"P\":\n        print(\"Playing...\")\n    elif choice == \"H\":\n        print(\"High score: 120\")\n    elif choice != \"Q\":\n        print(\"Unknown option\")\nprint(\"Bye\")",
     "tests": [
@@ -15907,7 +15907,7 @@
     "level": 9,
     "type": "write",
     "title": "Basket total",
-    "description": "Read prices (whole pounds) until 0 is entered. Cast each input to a whole number with int() (this is called casting). Print \"Total:\" and the total, then \"Free delivery\" if the total is 20 or more, otherwise \"Delivery: £3\".",
+    "description": "An online shop charges for delivery.\n1. Read prices in whole pounds until 0 is entered. Cast each input with int().\n2. Print `Total:` and then the total.\n3. If the total is 20 or more, print `Free delivery`. Otherwise print `Delivery: £3`.\nExample: you type `5` then `10` then `6` then `0`. It prints `Total: 21` then `Free delivery`.\nExample: you type `6` then `0`. It prints `Total: 6` then `Delivery: £3`.",
     "starter": "# Write the whole program here\n",
     "solution": "total = 0\nprice = int(input(\"Price (0 to finish): \"))\nwhile price != 0:\n    total = total + price\n    price = int(input(\"Price (0 to finish): \"))\nprint(\"Total:\", total)\nif total >= 20:\n    print(\"Free delivery\")\nelse:\n    print(\"Delivery: £3\")",
     "tests": [
@@ -16025,7 +16025,7 @@
     "level": 9,
     "type": "write",
     "title": "Frosty week",
-    "description": "Read 5 temperatures. Cast the input to a whole number with int() (this is called casting). Count how many are below 0 and print \"Frosty days:\" and the count. If there were 3 or more, also print \"Cold week!\".",
+    "description": "Check a week for frost.\n1. Read 5 temperatures, one at a time. Cast each input with int().\n2. Count how many are below 0.\n3. Print `Frosty days:` and then the count.\n4. If there were 3 or more, also print `Cold week!`.\nExample: you type `-1` then `2` then `-3` then `-4` then `5`. It prints `Frosty days: 3` then `Cold week!`.",
     "starter": "# Write the whole program here\n",
     "solution": "frosty = 0\nday = 0\nwhile day < 5:\n    temp = int(input(\"Temperature: \"))\n    if temp < 0:\n        frosty = frosty + 1\n    day = day + 1\nprint(\"Frosty days:\", frosty)\nif frosty >= 3:\n    print(\"Cold week!\")",
     "tests": [
@@ -16150,7 +16150,7 @@
     "level": 9,
     "type": "write",
     "title": "Quiz scores",
-    "description": "Read quiz scores until -1 is entered. Cast each input to a whole number with int() (this is called casting). Then print how many scores were entered and their total, like:\nScores: 3\nTotal: 20",
+    "description": "Total up some quiz scores.\n1. Read quiz scores until -1 is entered. Cast each input with int().\n2. Print `Scores:` and then how many scores were entered.\n3. Print `Total:` and then their total.\nExample: you type `7` then `9` then `4` then `-1`. It prints `Scores: 3` then `Total: 20`.",
     "starter": "# Write the whole program here\n",
     "solution": "count = 0\ntotal = 0\nscore = int(input(\"Score (-1 to finish): \"))\nwhile score != -1:\n    count = count + 1\n    total = total + score\n    score = int(input(\"Score (-1 to finish): \"))\nprint(\"Scores:\", count)\nprint(\"Total:\", total)",
     "tests": [
@@ -16265,7 +16265,7 @@
     "level": 9,
     "type": "write",
     "title": "Library fine checker",
-    "description": "Ask how many days a book is late. Cast each input to a whole number with int() (this is called casting). If the number is below 0, print \"Days can't be negative\" and ask again, until it is 0 or more. The fine is 20p a day, but never more than 300p. Print it like: Fine (p): 140",
+    "description": "A library fines late books.\n1. Ask how many days a book is late. Cast each input with int().\n2. If the number is below 0, print `Days can't be negative` and ask again. Repeat until it is 0 or more.\n3. The fine is 20p a day, but never more than 300p.\n4. Print `Fine (p):` and then the fine.\nExample: you type `-2` then `7`. It prints `Days can't be negative` then `Fine (p): 140`.",
     "starter": "# Write the whole program here\n",
     "solution": "days = int(input(\"Days late: \"))\nwhile days < 0:\n    print(\"Days can't be negative\")\n    days = int(input(\"Days late: \"))\nfine = days * 20\nif fine > 300:\n    fine = 300\nprint(\"Fine (p):\", fine)",
     "tests": [
@@ -16374,7 +16374,7 @@
     "level": 10,
     "type": "write",
     "title": "Guessing game",
-    "description": "The secret number is 42. Cast each input to a whole number with int() (this is called casting). Keep reading guesses. Print \"Too high\" or \"Too low\" for each wrong guess. When it's right, print e.g. \"Correct in 3 guesses\".",
+    "description": "Play a guessing game. The secret number is 42.\n1. Keep reading guesses. Cast each input with int().\n2. For each wrong guess, print `Too high` if it is more than 42, or `Too low` if it is less.\n3. When the guess is right, print `Correct in`, the number of guesses, then `guesses`.\nExample: you type `50` then `30` then `42`. It prints `Too high` then `Too low` then `Correct in 3 guesses`.",
     "starter": "# Write the whole program here\n",
     "solution": "guesses = 1\nguess = int(input(\"Guess: \"))\nwhile guess != 42:\n    if guess > 42:\n        print(\"Too high\")\n    else:\n        print(\"Too low\")\n    guess = int(input(\"Guess: \"))\n    guesses = guesses + 1\nprint(\"Correct in\", guesses, \"guesses\")",
     "tests": [
@@ -16479,7 +16479,7 @@
     "level": 10,
     "type": "write",
     "title": "Class register",
-    "description": "Read marks until -1 is entered. Cast each input to a whole number with int() (this is called casting). Then print \"Highest:\", \"Lowest:\" and \"Passes:\" (40 or more), each on its own line. If no marks were entered, print \"No marks entered\" instead.",
+    "description": "Summarise a set of marks.\n1. Read marks until -1 is entered. Cast each input with int().\n2. If no marks were entered, print `No marks entered`.\n3. Otherwise, print `Highest:` and the highest mark, then `Lowest:` and the lowest mark.\n4. Then print `Passes:` and how many marks are 40 or more.\nExample: you type `55` then `30` then `90` then `-1`. It prints `Highest: 90` then `Lowest: 30` then `Passes: 2`.",
     "starter": "# Write the whole program here\n",
     "solution": "count = 0\npasses = 0\nhighest = 0\nlowest = 0\nmark = int(input(\"Mark (-1 to stop): \"))\nwhile mark != -1:\n    if count == 0 or mark > highest:\n        highest = mark\n    if count == 0 or mark < lowest:\n        lowest = mark\n    if mark >= 40:\n        passes = passes + 1\n    count = count + 1\n    mark = int(input(\"Mark (-1 to stop): \"))\nif count == 0:\n    print(\"No marks entered\")\nelse:\n    print(\"Highest:\", highest)\n    print(\"Lowest:\", lowest)\n    print(\"Passes:\", passes)",
     "tests": [
@@ -16551,7 +16551,7 @@
     "level": 10,
     "type": "write",
     "title": "Tuck shop till",
-    "description": "Read prices in pence until 0 is entered. Cast each input to a whole number with int() (this is called casting). A price must be from 1 to 500: for any other price print \"Invalid price\" and don't add it. At the end print the number of items and the total, like:\nItems: 3\nTotal (p): 245",
+    "description": "A till checks prices.\n1. Read prices in pence until 0 is entered. Cast each input with int().\n2. A price must be from 1 to 500. For any other price, print `Invalid price` and don't add it.\n3. At the end, print `Items:` and then the number of items.\n4. Print `Total (p):` and then the total.\nExample: you type `50` then `120` then `75` then `0`. It prints `Items: 3` then `Total (p): 245`.",
     "starter": "# Write the whole program here\n",
     "solution": "total = 0\nitems = 0\nprice = int(input(\"Price in pence (0 to finish): \"))\nwhile price != 0:\n    if price < 1 or price > 500:\n        print(\"Invalid price\")\n    else:\n        total = total + price\n        items = items + 1\n    price = int(input(\"Price in pence (0 to finish): \"))\nprint(\"Items:\", items)\nprint(\"Total (p):\", total)",
     "tests": [
@@ -16668,7 +16668,7 @@
     "level": 10,
     "type": "write",
     "title": "Coin collector",
-    "description": "A game starts with 3 lives and 0 points. Keep reading moves until the player has no lives left or types quit. \"coin\" adds 10 points, \"hit\" loses a life, \"quit\" ends the game, and anything else prints \"Unknown move\". At the end print the points and lives, like:\nPoints: 20\nLives: 2",
+    "description": "A game starts with 3 lives and 0 points.\n1. Keep reading moves until the player has no lives left or types `quit`.\n2. `coin` adds 10 points, and `hit` loses a life.\n3. For anything else except `quit`, print `Unknown move`.\n4. At the end, print `Points:` and the points, then `Lives:` and the lives.\nExample: you type `coin` then `coin` then `hit` then `jump` then `quit`. It prints `Unknown move` then `Points: 20` then `Lives: 2`.",
     "starter": "# Write the whole program here\n",
     "solution": "lives = 3\npoints = 0\nmove = \"\"\nwhile lives > 0 and move != \"quit\":\n    move = input(\"Move: \")\n    if move == \"coin\":\n        points = points + 10\n    elif move == \"hit\":\n        lives = lives - 1\n    elif move != \"quit\":\n        print(\"Unknown move\")\nprint(\"Points:\", points)\nprint(\"Lives:\", lives)",
     "tests": [
@@ -16934,7 +16934,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Word counter",
-    "description": "Count words until stop is typed. One line is not needed.",
+    "description": "Arrange the lines to count words until `stop` is typed.\nOne line is not needed.",
     "starter": "",
     "solution": "count = 0\nword = input(\"Word (stop to end): \")\nwhile word != \"stop\":\n    count = count + 1\n    word = input(\"Word (stop to end): \")\nprint(\"Words:\", count)",
     "distractors": [
@@ -17004,7 +17004,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Pass the parcel",
-    "description": "Count down from the number entered to 1, then print Go!. Cast the input to a whole number with int() (this is called casting). One line is not needed.",
+    "description": "Arrange the lines to count down from the number entered to 1, then print `Go!`. The input is cast with int().\nOne line is not needed.",
     "starter": "",
     "solution": "n = int(input(\"Start from: \"))\nwhile n > 0:\n    print(n)\n    n = n - 1\nprint(\"Go!\")",
     "distractors": [
@@ -17070,7 +17070,7 @@
     "level": 7,
     "type": "fill",
     "title": "Till total",
-    "description": "Add up prices until 0 is entered. Cast each input to a whole number with int() (this is called casting). Write the whole missing line, so the loop can end.",
+    "description": "Add up prices until 0 is entered, casting each with int(). Write the whole missing line, so the loop can end.",
     "starter": "total = 0\nprice = int(input(\"Price (0 to stop): \"))\nwhile price != 0:\n    total = total + price\n    ____\nprint(\"Total:\", total)",
     "solution": "total = 0\nprice = int(input(\"Price (0 to stop): \"))\nwhile price != 0:\n    total = total + price\n    price = int(input(\"Price (0 to stop): \"))\nprint(\"Total:\", total)",
     "answers": [
@@ -17140,7 +17140,7 @@
     "level": 7,
     "type": "fill",
     "title": "Three more tries",
-    "description": "After the first try, allow up to 3 more. Write the whole loop condition: keep asking while the password is not secret AND fewer than 3 more tries have been used.",
+    "description": "After the first try, allow up to 3 more. Write the whole loop condition: ask again while the password isn't `secret` AND fewer than 3 more tries are used.",
     "starter": "tries = 0\npassword = input(\"Password: \")\nwhile ____:\n    tries = tries + 1\n    password = input(\"Password: \")\nif password == \"secret\":\n    print(\"Welcome\")\nelse:\n    print(\"Locked out\")",
     "solution": "tries = 0\npassword = input(\"Password: \")\nwhile password != \"secret\" and tries < 3:\n    tries = tries + 1\n    password = input(\"Password: \")\nif password == \"secret\":\n    print(\"Welcome\")\nelse:\n    print(\"Locked out\")",
     "answers": [
@@ -17224,7 +17224,7 @@
     "level": 9,
     "type": "write",
     "title": "One to ten",
-    "description": "Ask for a number from 1 to 10. Cast each input to a whole number with int() (this is called casting). While the number is outside that range, print Try again and ask again. When it is in range, print Thanks.",
+    "description": "Ask for a number in a range.\n1. Ask for a number from 1 to 10. Cast each input with int().\n2. While the number is outside that range, print `Try again` and ask again.\n3. When it is in range, print `Thanks`.\nExample: you type `5`. It prints `Thanks`.\nExample: you type `0` then `12` then `10`. It prints `Try again` then `Try again` then `Thanks`.",
     "starter": "# Write the whole program here\n",
     "solution": "n = int(input(\"Number (1-10): \"))\nwhile n < 1 or n > 10:\n    print(\"Try again\")\n    n = int(input(\"Number (1-10): \"))\nprint(\"Thanks\")",
     "tests": [
@@ -17314,7 +17314,7 @@
     "level": 9,
     "type": "write",
     "title": "Bus journeys",
-    "description": "Each bus journey costs £2. Keep asking \"Another journey? (y/n)\" while the answer is y, counting the journeys. Then print the journeys and the total cost, like:\nJourneys: 2\nTotal (£): 4",
+    "description": "Each bus journey costs £2.\n1. Keep asking `Another journey? (y/n)` while the answer is `y`, counting the journeys.\n2. Print `Journeys:` and then the number of journeys.\n3. Print `Total (£):` and then the total cost.\nExample: you type `y` then `y` then `n`. It prints `Journeys: 2` then `Total (£): 4`.",
     "starter": "# Write the whole program here\n",
     "solution": "journeys = 0\nanswer = input(\"Another journey? (y/n): \")\nwhile answer == \"y\":\n    journeys = journeys + 1\n    answer = input(\"Another journey? (y/n): \")\nprint(\"Journeys:\", journeys)\nprint(\"Total (£):\", journeys * 2)",
     "tests": [
@@ -18255,7 +18255,7 @@
     "level": 5,
     "type": "parsons",
     "title": "The right loop for the job",
-    "description": "You know exactly how many tickets to print, so a for loop is the right choice. Cast the input to a whole number with int() (this is called casting). Arrange the lines to print a numbered ticket for each one. One line is not needed – it starts a while loop that would never end.",
+    "description": "Arrange the lines to print a numbered ticket for each one, casting the number with int(). The unneeded line starts a while loop that would never end.\nOne line is not needed.",
     "starter": "",
     "solution": "tickets = int(input(\"Tickets: \"))\nfor t in range(1, tickets + 1):\n    print(\"Ticket\", t)\nprint(\"All printed\")",
     "distractors": [
@@ -18307,7 +18307,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Bus fares total",
-    "description": "Ask how many journeys, then read each fare and add them up. Cast each input to a whole number with int() (this is called casting). One line is not needed.",
+    "description": "Arrange the lines to ask how many journeys, then read each fare and add them up. Each input is cast with int().\nOne line is not needed.",
     "starter": "",
     "solution": "total = 0\njourneys = int(input(\"Journeys: \"))\nfor j in range(journeys):\n    fare = int(input(\"Fare: \"))\n    total = total + fare\nprint(\"Total (£):\", total)",
     "distractors": [
@@ -18388,7 +18388,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Count the e's",
-    "description": "Count how many times the letter e appears in a word. One line is not needed.",
+    "description": "Arrange the lines to count how many times the letter e appears in a word.\nOne line is not needed.",
     "starter": "",
     "solution": "word = input(\"Word: \")\ncount = 0\nfor letter in word:\n    if letter == \"e\":\n        count = count + 1\nprint(\"e appears\", count, \"times\")",
     "distractors": [
@@ -18446,7 +18446,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Star grid",
-    "description": "Print 3 rows of 4 stars. One line is not needed.",
+    "description": "Arrange the lines to print 3 rows of 4 stars.\nOne line is not needed.",
     "starter": "",
     "solution": "for row in range(3):\n    for col in range(4):\n        print(\"*\", end=\"\")\n    print()",
     "distractors": [
@@ -18495,7 +18495,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Library fines",
-    "description": "Each late book is fined 20p per day. Cast each input to a whole number with int() (this is called casting). Read how many books are late, then the days late for each, and print the total fine. Two lines are not needed.",
+    "description": "Each late book is fined 20p per day, and each input is cast with int(). Arrange the lines to read the books and days late, then print the total fine.\nTwo lines are not needed.",
     "starter": "",
     "solution": "books = int(input(\"How many late books? \"))\nfine = 0\nfor b in range(books):\n    days = int(input(\"Days late: \"))\n    fine = fine + days * 20\nprint(\"Fine (p):\", fine)",
     "distractors": [
@@ -18579,7 +18579,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Multiplication grid",
-    "description": "Print a 3 by 3 multiplication grid. Two lines are not needed.",
+    "description": "Arrange the lines to print a 3 by 3 multiplication grid.\nTwo lines are not needed.",
     "starter": "",
     "solution": "for row in range(1, 4):\n    line = \"\"\n    for col in range(1, 4):\n        line = line + str(row * col) + \" \"\n    print(line)",
     "distractors": [
@@ -18641,7 +18641,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Countdown in twos",
-    "description": "Count down in twos from the number entered, then print Go!. Cast the input to a whole number with int() (this is called casting). Two lines are not needed.",
+    "description": "Arrange the lines to count down in twos from the number entered, then print `Go!`. The input is cast with int().\nTwo lines are not needed.",
     "starter": "",
     "solution": "start = int(input(\"Start: \"))\nfor i in range(start, 0, -2):\n    print(i)\nprint(\"Go!\")",
     "distractors": [
@@ -18713,7 +18713,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Add up to n",
-    "description": "Add up the whole numbers from 1 to n. Cast the input to a whole number with int() (this is called casting). Two lines are not needed.",
+    "description": "Arrange the lines to add up the whole numbers from 1 to n. The input is cast with int().\nTwo lines are not needed.",
     "starter": "",
     "solution": "n = int(input(\"Up to: \"))\ntotal = 0\nfor i in range(1, n + 1):\n    total = total + i\nprint(\"Total:\", total)",
     "distractors": [
@@ -18809,7 +18809,7 @@
     "level": 7,
     "type": "fill",
     "title": "Times table line",
-    "description": "Print lines like 1 x 8 = 8 for i from 1 to 5. Cast the input to a whole number with int() (this is called casting). Write the whole missing line.",
+    "description": "The input is cast with int(). Write the whole missing line to print lines like `1 x 8 = 8`, for i from 1 to 5.",
     "starter": "n = int(input(\"Times table: \"))\nfor i in range(1, 6):\n    ____",
     "solution": "n = int(input(\"Times table: \"))\nfor i in range(1, 6):\n    print(i, \"x\", n, \"=\", i * n)",
     "answers": [
@@ -19097,7 +19097,7 @@
     "level": 8,
     "type": "write",
     "title": "Times table",
-    "description": "The number is read for you. Print 1 x n to 10 x n, one per line, like: 3 x 7 = 21",
+    "description": "Print a times table.\n1. The program reads the number and casts it to a whole number for you.\n2. Print 1 x n up to 10 x n, one per line, with the answer after `=`.\nExample: you type `7`. It prints `1 x 7 = 7` then `2 x 7 = 14` then `3 x 7 = 21` then `4 x 7 = 28` then `5 x 7 = 35` then `6 x 7 = 42` then `7 x 7 = 49` then `8 x 7 = 56` then `9 x 7 = 63` then `10 x 7 = 70`.",
     "starter": "n = int(input(\"Times table: \"))\n# Print the times table here\n",
     "solution": "n = int(input(\"Times table: \"))\nfor i in range(1, 11):\n    print(i, \"x\", n, \"=\", i * n)",
     "tests": [
@@ -19204,7 +19204,7 @@
     "level": 8,
     "type": "write",
     "title": "Register",
-    "description": "Ask \"Present? (y/n): \" once for each pupil in the class and count the y answers. The rest of the program is written for you.",
+    "description": "Take the register.\n1. The program reads the number of pupils and casts it to a whole number for you.\n2. Ask `Present? (y/n):` once for each pupil.\n3. Count the `y` answers.\n4. The rest of the program is written for you.\nExample: you type `4` then `y` then `n` then `y` then `y`. It prints `Present: 3` then `Absent: 1`.",
     "starter": "pupils = int(input(\"Pupils in class: \"))\npresent = 0\n# Ask about each pupil here\nprint(\"Present:\", present)\nprint(\"Absent:\", pupils - present)\n",
     "solution": "pupils = int(input(\"Pupils in class: \"))\npresent = 0\nfor p in range(pupils):\n    answer = input(\"Present? (y/n): \")\n    if answer == \"y\":\n        present = present + 1\nprint(\"Present:\", present)\nprint(\"Absent:\", pupils - present)",
     "tests": [
@@ -19288,7 +19288,7 @@
     "level": 8,
     "type": "write",
     "title": "Seating plan",
-    "description": "The rows and seats are read for you. Print one line per row, with each seat as row-seat and a space after each, like:\n1-1 1-2 1-3\n2-1 2-2 2-3",
+    "description": "Print a seating plan.\n1. The program reads the rows, then the seats per row, and casts each to a whole number for you.\n2. Print one line per row. Show each seat as its row, a dash and its seat number, with a space after each seat.\nExample: you type `2` then `3`. It prints `1-1 1-2 1-3` then `2-1 2-2 2-3`.",
     "starter": "rows = int(input(\"Rows: \"))\nseats = int(input(\"Seats per row: \"))\n# Print the seating plan here\n",
     "solution": "rows = int(input(\"Rows: \"))\nseats = int(input(\"Seats per row: \"))\nfor r in range(1, rows + 1):\n    line = \"\"\n    for s in range(1, seats + 1):\n        line = line + str(r) + \"-\" + str(s) + \" \"\n    print(line)",
     "tests": [
@@ -19379,7 +19379,7 @@
     "level": 8,
     "type": "write",
     "title": "Shop basket",
-    "description": "The number of items is read for you. Read the price of each item in pence and add it to total.",
+    "description": "Add up a shopping bill.\n1. The program reads the number of items and casts it to a whole number for you.\n2. Read the price of each item in pence, casting each with int().\n3. Add each price to `total`. The last line prints it for you.\nExample: you type `3` then `120` then `80` then `45`. It prints `Total (p): 245`.",
     "starter": "items = int(input(\"How many items? \"))\ntotal = 0\n# Read each price here\nprint(\"Total (p):\", total)\n",
     "solution": "items = int(input(\"How many items? \"))\ntotal = 0\nfor i in range(items):\n    price = int(input(\"Price: \"))\n    total = total + price\nprint(\"Total (p):\", total)",
     "tests": [
@@ -19437,7 +19437,7 @@
     "level": 9,
     "type": "write",
     "title": "Count the evens",
-    "description": "Ask how many numbers there will be. Cast each input to a whole number with int() (this is called casting). Then read that many numbers and count how many are even. Print it like: Even numbers: 2",
+    "description": "Count the even numbers.\n1. Ask how many numbers there will be. Cast the input with int().\n2. Read that many numbers, casting each with int().\n3. Count how many are even.\n4. Print `Even numbers:` and then the count.\nExample: you type `4` then `3` then `8` then `10` then `7`. It prints `Even numbers: 2`.",
     "starter": "# Write the whole program here\n",
     "solution": "how_many = int(input(\"How many numbers? \"))\nevens = 0\nfor i in range(how_many):\n    n = int(input(\"Number: \"))\n    if n % 2 == 0:\n        evens = evens + 1\nprint(\"Even numbers:\", evens)",
     "tests": [
@@ -19521,7 +19521,7 @@
     "level": 9,
     "type": "write",
     "title": "Square pattern",
-    "description": "Ask for a size. Cast the input to a whole number with int() (this is called casting). Print a square of * that size, for example size 3:\n***\n***\n***",
+    "description": "Draw a square of stars.\n1. Ask for a size. Cast the input with int().\n2. Print a square of `*` that size: size rows, each with size stars.\nExample: you type `3`. It prints `***` then `***` then `***`.",
     "starter": "# Write the whole program here\n",
     "solution": "size = int(input(\"Size: \"))\nfor r in range(size):\n    line = \"\"\n    for c in range(size):\n        line = line + \"*\"\n    print(line)",
     "tests": [
@@ -19609,7 +19609,7 @@
     "level": 9,
     "type": "write",
     "title": "Letter by letter",
-    "description": "Ask for a word. Print each letter on its own line with its position, starting at 1, like:\n1 c\n2 a\n3 t",
+    "description": "Spell out a word.\n1. Ask for a word.\n2. Print each letter on its own line, with its position first. Positions start at 1.\nExample: you type `cat`. It prints `1 c` then `2 a` then `3 t`.",
     "starter": "# Write the whole program here\n",
     "solution": "word = input(\"Word: \")\npos = 1\nfor letter in word:\n    print(pos, letter)\n    pos = pos + 1",
     "tests": [
@@ -19657,7 +19657,7 @@
     "level": 9,
     "type": "write",
     "title": "Highest quiz score",
-    "description": "Ask how many pupils took a quiz. Cast each input to a whole number with int() (this is called casting). Read each pupil's score and print the highest, like: Highest: 18. Scores are 0 or more.",
+    "description": "Find the top quiz score.\n1. Ask how many pupils took a quiz. Cast the input with int().\n2. Read each pupil's score, casting each with int(). Scores are 0 or more.\n3. Print `Highest:` and then the highest score.\nExample: you type `3` then `12` then `18` then `9`. It prints `Highest: 18`.\nExample: you type `4` then `5` then `5` then `21` then `19`. It prints `Highest: 21`.",
     "starter": "# Write the whole program here\n",
     "solution": "pupils = int(input(\"Pupils: \"))\nhighest = 0\nfor p in range(pupils):\n    score = int(input(\"Score: \"))\n    if score > highest:\n        highest = score\nprint(\"Highest:\", highest)",
     "tests": [
@@ -19734,7 +19734,7 @@
     "level": 10,
     "type": "write",
     "title": "Class report",
-    "description": "Ask how many marks there are, then read each mark. Cast each input to a whole number with int() (this is called casting). Print the total, the mean rounded down with //, and how many marks are passes (40 or more), like:\nTotal: 150\nMean: 50\nPasses: 2\nIf there are no marks, print \"No marks\" instead.",
+    "description": "Summarise a set of marks.\n1. Ask how many marks there are, then read each mark. Cast each input with int().\n2. If there are no marks, print `No marks`.\n3. Otherwise, print `Total:` and the total, then `Mean:` and the mean rounded down with //.\n4. Then print `Passes:` and how many marks are 40 or more.\nExample: you type `3` then `60` then `35` then `55`. It prints `Total: 150` then `Mean: 50` then `Passes: 2`.",
     "starter": "# Write the whole program here\n",
     "solution": "count = int(input(\"How many marks? \"))\ntotal = 0\npasses = 0\nfor i in range(count):\n    mark = int(input(\"Mark: \"))\n    total = total + mark\n    if mark >= 40:\n        passes = passes + 1\nif count == 0:\n    print(\"No marks\")\nelse:\n    print(\"Total:\", total)\n    print(\"Mean:\", total // count)\n    print(\"Passes:\", passes)",
     "tests": [
@@ -19851,7 +19851,7 @@
     "level": 10,
     "type": "write",
     "title": "Times grid",
-    "description": "Ask for a size. Cast the input to a whole number with int() (this is called casting). Print a multiplication grid with that many rows and columns. Put a space after each number, for example size 3:\n1 2 3\n2 4 6\n3 6 9",
+    "description": "Print a multiplication grid.\n1. Ask for a size. Cast the input with int().\n2. Print a grid with that many rows and columns. Each number is its row times its column.\n3. Put a space after each number.\nExample: you type `3`. It prints `1 2 3` then `2 4 6` then `3 6 9`.",
     "starter": "# Write the whole program here\n",
     "solution": "size = int(input(\"Size: \"))\nfor row in range(1, size + 1):\n    line = \"\"\n    for col in range(1, size + 1):\n        line = line + str(row * col) + \" \"\n    print(line)",
     "tests": [
@@ -19940,7 +19940,7 @@
     "level": 10,
     "type": "write",
     "title": "Bus fares",
-    "description": "Ask how many passengers are getting on the bus, then read each passenger's age. Cast each input to a whole number with int() (this is called casting). Under 5s travel free, 5 to 15 pay £1, and 16 or over pay £2. Print the total and how many travelled free, like:\nTotal (£): 5\nFree: 1",
+    "description": "Work out the bus fares for a group.\n1. Ask how many passengers are getting on, then each one's age. Cast each input with int().\n2. Under 5s travel free. Ages 5 to 15 pay £1, and 16 or over pay £2.\n3. Print `Total (£):` and then the total.\n4. Print `Free:` and then how many travelled free.\nExample: you type `4` then `3` then `10` then `40` then `16`. It prints `Total (£): 5` then `Free: 1`.",
     "starter": "# Write the whole program here\n",
     "solution": "passengers = int(input(\"Passengers: \"))\ntotal = 0\nfree = 0\nfor p in range(passengers):\n    age = int(input(\"Age: \"))\n    if age < 5:\n        free = free + 1\n    elif age < 16:\n        total = total + 1\n    else:\n        total = total + 2\nprint(\"Total (£):\", total)\nprint(\"Free:\", free)",
     "tests": [
@@ -20058,7 +20058,7 @@
     "level": 10,
     "type": "write",
     "title": "Pocket money",
-    "description": "Ask how many weeks. Cast each input to a whole number with int() (this is called casting). For each week, read how much was saved (whole pounds). If it was more than £5, print e.g. \"Great saving in week 2\". At the end print the total, like: Total saved (£): 14",
+    "description": "Track savings over some weeks.\n1. Ask how many weeks. Cast each input with int().\n2. For each week, read how much was saved, in whole pounds.\n3. If it was more than £5, print `Great saving in week` and then the week number.\n4. At the end, print `Total saved (£):` and then the total.\nExample: you type `3` then `2` then `8` then `4`. It prints `Great saving in week 2` then `Total saved (£): 14`.\nExample: you type `2` then `5` then `7`. It prints `Great saving in week 2` then `Total saved (£): 12`.",
     "starter": "# Write the whole program here\n",
     "solution": "weeks = int(input(\"Weeks: \"))\ntotal = 0\nfor week in range(1, weeks + 1):\n    saved = int(input(\"Saved: \"))\n    total = total + saved\n    if saved > 5:\n        print(\"Great saving in week\", week)\nprint(\"Total saved (£):\", total)",
     "tests": [
@@ -20275,7 +20275,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Laps of the field",
-    "description": "Print a line for each lap, numbered from 1, then Done. Cast the input to a whole number with int() (this is called casting). One line is not needed.",
+    "description": "Arrange the lines to print a line for each lap, numbered from 1, then `Done`. The input is cast with int().\nOne line is not needed.",
     "starter": "",
     "solution": "laps = int(input(\"Laps: \"))\nfor i in range(laps):\n    print(\"Lap\", i + 1)\nprint(\"Done\")",
     "distractors": [
@@ -20331,7 +20331,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Pass count",
-    "description": "Read 4 scores and count the passes (50 or more). Cast the input to a whole number with int() (this is called casting). One line is not needed.",
+    "description": "Arrange the lines to read 4 scores and count the passes, 50 or more. Each input is cast with int().\nOne line is not needed.",
     "starter": "",
     "solution": "count = 0\nfor i in range(4):\n    score = int(input(\"Score: \"))\n    if score >= 50:\n        count = count + 1\nprint(\"Passes:\", count)",
     "distractors": [
@@ -20504,7 +20504,7 @@
     "level": 9,
     "type": "write",
     "title": "Sum to n",
-    "description": "Ask for a number n. Cast the input to a whole number with int() (this is called casting). Add up all the whole numbers from 1 to n and print the total, like: Total: 15",
+    "description": "Add up whole numbers.\n1. Ask for a number n. Cast the input with int().\n2. Add up all the whole numbers from 1 to n.\n3. Print `Total:` and then the total.\nExample: you type `5`. It prints `Total: 15`.",
     "starter": "# Write the whole program here\n",
     "solution": "n = int(input(\"Number: \"))\ntotal = 0\nfor i in range(1, n + 1):\n    total = total + i\nprint(\"Total:\", total)",
     "tests": [
@@ -20586,7 +20586,7 @@
     "level": 9,
     "type": "write",
     "title": "Passed the test",
-    "description": "Ask how many pupils there are. Cast each input to a whole number with int() (this is called casting). Read each pupil's mark and count how many are 40 or more. Print it like: Passed: 2",
+    "description": "Count the passes in a class.\n1. Ask how many pupils there are. Cast the input with int().\n2. Read each pupil's mark, casting each with int().\n3. Count how many are 40 or more.\n4. Print `Passed:` and then the count.\nExample: you type `3` then `40` then `39` then `90`. It prints `Passed: 2`.",
     "starter": "# Write the whole program here\n",
     "solution": "pupils = int(input(\"Pupils: \"))\npassed = 0\nfor p in range(pupils):\n    mark = int(input(\"Mark: \"))\n    if mark >= 40:\n        passed = passed + 1\nprint(\"Passed:\", passed)",
     "tests": [
@@ -21180,7 +21180,7 @@
     "level": 3,
     "type": "fill",
     "title": "Open or closed",
-    "description": "Fill in the blank so is_open is True only when the user types yes.",
+    "description": "Fill in the blank so `is_open` is True only when the user types `yes`.",
     "starter": "answer = input(\"Is the library open? (yes/no): \")\nis_open = answer ____ \"yes\"\nprint(\"Open:\", is_open)",
     "solution": "answer = input(\"Is the library open? (yes/no): \")\nis_open = answer == \"yes\"\nprint(\"Open:\", is_open)",
     "answers": [
@@ -22009,7 +22009,7 @@
     "level": 7,
     "type": "fill",
     "title": "Library card",
-    "description": "Write the missing line that builds the text for the card, for example Age 12, and stores it in card.",
+    "description": "Write the missing line that builds the text for the card and stores it in `card`.\nExample: you type `12`. It prints `Card: Age 12`.",
     "starter": "age = int(input(\"Age: \"))\n____\nprint(\"Card:\", card)",
     "solution": "age = int(input(\"Age: \"))\ncard = \"Age \" + str(age)\nprint(\"Card:\", card)",
     "answers": [

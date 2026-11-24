@@ -272,6 +272,10 @@ button.danger { background: var(--fail); border-color: var(--fail); color: var(-
    exactly (pre-wrap, so a long one still wraps on a phone instead of scrolling sideways). */
 .description code { font-family: Consolas, "Cascadia Mono", "Courier New", monospace; font-size: .95em; white-space: pre-wrap; overflow-wrap: anywhere;
   background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 0 .3em; }
+/* A description with numbered steps (prompt 32): each line is its own block, with a small gap above each step and each
+   example line, so a long write task isn't one dense block on a phone. */
+.description .desc-line { display: block; }
+.description .desc-step, .description .desc-example { margin-top: .35rem; }
 .small { font-size: .9rem; color: var(--muted); }
 
 /* ---------- Code ---------- */

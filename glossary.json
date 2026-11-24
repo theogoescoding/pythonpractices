@@ -406,6 +406,9 @@
     "slice",
     "slices",
     "slicing"
+   ],
+   "notUnits": [
+    "maths"
    ]
   },
   {
@@ -552,6 +555,37 @@
    "match": [
     "call",
     "calls"
+   ],
+   "units": [
+    "functions-basic",
+    "functions-return",
+    "arrays-2d",
+    "validation",
+    "validation-presence",
+    "validation-type",
+    "validation-range",
+    "validation-format",
+    "validation-length",
+    "authentication",
+    "debugging-gcse",
+    "trace-tables",
+    "linear-search",
+    "binary-search",
+    "bubble-sort",
+    "insertion-sort",
+    "merge-sort",
+    "recursion",
+    "scope-parameters",
+    "oop-classes",
+    "oop-methods",
+    "oop-encapsulation",
+    "oop-inheritance",
+    "debugging",
+    "records-tuples",
+    "stacks-queues",
+    "linked-lists",
+    "hash-tables",
+    "arrays-3d"
    ]
   },
   {

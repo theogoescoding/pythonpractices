@@ -69,7 +69,7 @@
       '<p class="meta"><span class="cat-tag">' + esc(unitTitle ? unitTitle(v.unit) : v.unit) + "</span> Level " + v.level + " · " + esc(v.typeName) +
         (v.placement ? ' · <span class="flag">placement</span>' : "") + (v.formerIds.length ? " · old id: " + esc(v.formerIds.join(", ")) : "") + "</p>" +
       "<h4>The question, as students see it</h4>" +
-      '<p class="description">' + TaskView.descriptionHtml(v.description) + "</p>" + student +
+      '<p class="description">' + TaskView.descriptionHtml(v.description, t) + "</p>" + student +
       "<h4>Expected output</h4>" +
       (v.studentsSeeExpectedBox ? TaskView.expectedBoxHtml(t)
         : '<p class="small">Students don\'t see this box on predict and trace tasks: it is (part of) the answer.</p>' + pre(v.expectedOutput, "output expected-output")) +

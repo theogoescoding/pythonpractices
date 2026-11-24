@@ -94,16 +94,21 @@
   // total.") are linked (prompt 31). Example lines and other lines are usually what the program prints, so they never
   // are; nor is text in a `code span`, which shows as code (codeHtml). A numbered line that is a line of the task's
   // own output ("1. Open the file" printed by the program) is output, not a step. -> { description, hints: [] }
+  // A description with numbered steps shows each line as its own block (prompt 32), so the steps and example lines can
+  // have a small gap between them on a phone (styles.css .desc-step, .desc-example). Without steps the lines are joined
+  // as before. task-view.js descriptionHtml builds the same blocks, without links.
   const STEP = /^\s*\d+\.\s/;
+  const EXAMPLE = /^\s*Examples?\b/;
   function linkTask(task, compiled) {
     const used = new Set();
     const units = task.units && task.units.length ? task.units : task.unit ? [task.unit] : null;
     const outputLines = new Set((task.tests || []).flatMap((t) => String(t.expected || "").split("\n").map((l) => l.trim())));
     const lines = String(task.description || "").split("\n");
-    const description = lines.map((line, i) => {
-      const linkable = i === 0 || (STEP.test(line) && !outputLines.has(line.trim()));
-      return codeHtml(line, linkable ? (s) => linkText(s, compiled, used, units) : esc);
-    }).join("\n");
+    const step = lines.map((line, i) => i > 0 && STEP.test(line) && !outputLines.has(line.trim()));
+    const html = lines.map((line, i) => codeHtml(line, i === 0 || step[i] ? (s) => linkText(s, compiled, used, units) : esc));
+    const description = step.some(Boolean)
+      ? html.map((h, i) => '<span class="desc-line' + (step[i] ? " desc-step" : EXAMPLE.test(lines[i]) ? " desc-example" : "") + '">' + h + "</span>").join("")
+      : html.join("\n");
     return { description, hints: (task.hints || []).map((h) => linkText(h, compiled, used, units)) };
   }
   // A line of description text as HTML: each `code span` as <code> (its text escaped, every space kept), the rest
