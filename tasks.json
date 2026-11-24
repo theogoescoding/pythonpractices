@@ -1130,7 +1130,7 @@
     "level": 8,
     "type": "write",
     "title": "Name badge",
-    "description": "A name badge goes between two rows of stars.\n1. Add two print() lines between the rows of stars.\n2. The first prints `Hello, my name is Ava`. The second prints `Form 8R`.\nExample: It prints `*********` then `Hello, my name is Ava` then `Form 8R` then `*********`.",
+    "description": "A name badge goes between two rows of stars.\n1. Add two print() lines between the rows of stars.\n2. The first prints `Hello, my name is Ava`. The second prints `Form 8R`.",
     "starter": "print(\"*********\")\n# Write two lines here\nprint(\"*********\")",
     "solution": "print(\"*********\")\nprint(\"Hello, my name is Ava\")\nprint(\"Form 8R\")\nprint(\"*********\")",
     "tests": [
@@ -1165,7 +1165,7 @@
     "level": 8,
     "type": "write",
     "title": "Countdown",
-    "description": "A countdown is printed on one line.\n1. Finish the program so it prints the countdown on one line.\n2. Use a separate print() for each number, then print `Lift off!`.\nExample: It prints `3 2 1 Lift off!`.",
+    "description": "A countdown is printed on one line.\n1. Finish the program so it prints the countdown on one line.\n2. Use a separate print() for each number, then print `Lift off!`.",
     "starter": "print(3, end=\" \")\n# Finish the countdown",
     "solution": "print(3, end=\" \")\nprint(2, end=\" \")\nprint(1, end=\" \")\nprint(\"Lift off!\")",
     "tests": [
@@ -1198,7 +1198,7 @@
     "level": 8,
     "type": "write",
     "title": "Recipe in order",
-    "description": "The steps of a recipe are in the wrong order.\n1. Change the order of the lines so the program prints Step 1, then Step 2, then Step 3.\nExample: It prints `Step 1: Mix the flour and sugar` then `Step 2: Add the eggs` then `Step 3: Bake for 20 minutes`.",
+    "description": "The steps of a recipe are in the wrong order.\n1. Change the order of the lines so the program prints Step 1, then Step 2, then Step 3.\n2. The Expected output box shows every line.",
     "starter": "print(\"Step 3: Bake for 20 minutes\")\nprint(\"Step 1: Mix the flour and sugar\")\nprint(\"Step 2: Add the eggs\")",
     "solution": "print(\"Step 1: Mix the flour and sugar\")\nprint(\"Step 2: Add the eggs\")\nprint(\"Step 3: Bake for 20 minutes\")",
     "tests": [
@@ -1231,7 +1231,7 @@
     "level": 8,
     "type": "write",
     "title": "Teacher table",
-    "description": "A timetable shows each subject, teacher and room.\n1. Add a line for Maths, Mr Khan, room M4.\n2. Print it in the same style as the first line.\nExample: It prints `Subject | Teacher | Room` then `Maths | Mr Khan | M4`.",
+    "description": "A timetable shows each subject, teacher and room.\n1. Add a line for Maths, Mr Khan, room M4.\n2. Print it in the same style as the first line, as in the Expected output box.",
     "starter": "print(\"Subject\", \"Teacher\", \"Room\", sep=\" | \")\n# Add a line for Maths, Mr Khan, M4",
     "solution": "print(\"Subject\", \"Teacher\", \"Room\", sep=\" | \")\nprint(\"Maths\", \"Mr Khan\", \"M4\", sep=\" | \")",
     "tests": [
@@ -1265,7 +1265,7 @@
     "level": 9,
     "type": "write",
     "title": "Sports day poster",
-    "description": "Make a poster for sports day.\n1. Print the lines in the example exactly.\nExample: It prints `SPORTS DAY` then `Friday 4th July` then `Bring water and a hat!`.",
+    "description": "Make a poster for sports day.\n1. Print the lines in the Expected output box exactly.",
     "starter": "# Write your program here",
     "solution": "print(\"SPORTS DAY\")\nprint(\"Friday 4th July\")\nprint(\"Bring water and a hat!\")",
     "tests": [
@@ -1299,7 +1299,7 @@
     "level": 9,
     "type": "write",
     "title": "School week",
-    "description": "Show the school days with dashes between them.\n1. Use ONE print() to print the five school days.\n2. Put a dash between each day, as in the example.\nExample: It prints `Mon-Tue-Wed-Thu-Fri`.",
+    "description": "Show the school days with dashes between them.\n1. Use ONE print() to print the five school days.\n2. Put a dash between each day, as in the Expected output box.",
     "starter": "# Write your program here",
     "solution": "print(\"Mon\", \"Tue\", \"Wed\", \"Thu\", \"Fri\", sep=\"-\")",
     "tests": [
@@ -1332,7 +1332,7 @@
     "level": 9,
     "type": "write",
     "title": "Form box",
-    "description": "Draw a box around a room code.\n1. Print the box in the example exactly.\n2. Inside the box there are two spaces after `7KM`.\nExample: It prints `+------+` then `| 7KM  |` then `+------+`.",
+    "description": "Draw a box around a room code.\n1. Print the box shown under Expected output, exactly.\n2. Inside the box there are two spaces after `7KM`.",
     "starter": "# Write your program here",
     "solution": "print(\"+------+\")\nprint(\"| 7KM  |\")\nprint(\"+------+\")",
     "tests": [
@@ -1367,7 +1367,7 @@
     "level": 9,
     "type": "write",
     "title": "Quote marks",
-    "description": "Print what a teacher said.\n1. Print the line in the example, including the double quotes.\nExample: It prints `She said \"Well done!\"`.",
+    "description": "Print what a teacher said.\n1. Print the line in the Expected output box, including the double quotes.",
     "starter": "# Write your program here",
     "solution": "print('She said \"Well done!\"')",
     "tests": [
@@ -1400,7 +1400,7 @@
     "level": 10,
     "type": "write",
     "title": "Monday timetable",
-    "description": "Make a Monday timetable.\n1. Print the lines in the example exactly.\n2. Tip: `sep=\" | \"` can put the bars in for you.\nExample: It prints `Monday timetable` then `================` then `9:00 | English` then `10:00 | Maths` then `11:15 | Science`.",
+    "description": "Make a Monday timetable.\n1. Print the lines in the Expected output box exactly.\n2. Tip: `sep=\" | \"` can put the bars in for you.",
     "starter": "# Write your program here",
     "solution": "print(\"Monday timetable\")\nprint(\"================\")\nprint(\"9:00\", \"English\", sep=\" | \")\nprint(\"10:00\", \"Maths\", sep=\" | \")\nprint(\"11:15\", \"Science\", sep=\" | \")",
     "tests": [
@@ -1437,7 +1437,7 @@
     "level": 10,
     "type": "write",
     "title": "Canteen receipt",
-    "description": "Print a receipt from the canteen.\n1. Print the lines in the example exactly.\n2. There are two spaces before each £.\nExample: It prints `Oakfield Canteen` then `Pasta  £2.10` then `Juice  £0.80` then `Total  £2.90` then `Thank you!`.",
+    "description": "Print a receipt from the canteen.\n1. Print the lines in the Expected output box exactly.\n2. There are two spaces before each £.",
     "starter": "# Write your program here",
     "solution": "print(\"Oakfield Canteen\")\nprint(\"Pasta  £2.10\")\nprint(\"Juice  £0.80\")\nprint(\"Total  £2.90\")\nprint(\"Thank you!\")",
     "tests": [
@@ -1472,7 +1472,7 @@
     "level": 10,
     "type": "write",
     "title": "Upload bar",
-    "description": "Show a progress bar for an upload.\n1. Print `Uploading homework`.\n2. On the next line, print the bar. Print each # with its own print(), so the bar builds up on one line.\nExample: It prints `Uploading homework` then `[#####] 100%`.",
+    "description": "Show a progress bar for an upload.\n1. Print `Uploading homework`.\n2. On the next line, print the bar. Print each # with its own print(), so the bar builds up on one line.",
     "starter": "# Write your program here",
     "solution": "print(\"Uploading homework\")\nprint(\"[\", end=\"\")\nprint(\"#\", end=\"\")\nprint(\"#\", end=\"\")\nprint(\"#\", end=\"\")\nprint(\"#\", end=\"\")\nprint(\"#\", end=\"\")\nprint(\"] 100%\")",
     "tests": [
@@ -1507,7 +1507,7 @@
     "level": 10,
     "type": "write",
     "title": "Fire drill",
-    "description": "Make a fire drill notice.\n1. Start your program with a comment.\n2. Print the lines in the example exactly, including the double quotes.\nExample: It prints `Fire drill instructions:` then `1. Leave by the \"nearest\" exit` then `2. Don't run` then `3. Line up on the field`.",
+    "description": "Make a fire drill notice.\n1. Start your program with a comment.\n2. Print the lines in the Expected output box exactly, including the double quotes.",
     "starter": "# Write your program here",
     "solution": "# Fire drill instructions for Year 7\nprint(\"Fire drill instructions:\")\nprint('1. Leave by the \"nearest\" exit')\nprint(\"2. Don't run\")\nprint(\"3. Line up on the field\")",
     "tests": [
@@ -1543,7 +1543,7 @@
     "level": 10,
     "type": "write",
     "title": "Sports day results",
-    "description": "Show the sports day results.\n1. Print the lines in the example exactly. One of them is empty.\n2. Use commas in print() to put the values on each line.\nExample: It prints `Sports day results` then `House Points` then `Phoenix 42` then `Dragon 38` then an empty line then `Winner: Phoenix`.",
+    "description": "Show the sports day results.\n1. Print the lines in the Expected output box exactly. One of them is empty.\n2. Use commas in print() to put the values on each line.",
     "starter": "# Write your program here",
     "solution": "print(\"Sports day results\")\nprint(\"House\", \"Points\")\nprint(\"Phoenix\", 42)\nprint(\"Dragon\", 38)\nprint()\nprint(\"Winner:\", \"Phoenix\")",
     "tests": [
@@ -1584,7 +1584,7 @@
     "level": 10,
     "type": "write",
     "title": "Club list",
-    "description": "Show the clubs for the week.\n1. Print the lines in the example exactly.\n2. Use commas in print() between the day, the club and the word club.\nExample: It prints `Monday: Chess club` then `Tuesday: Drama club` then `Wednesday: Coding club` then `See you there!`.",
+    "description": "Show the clubs for the week.\n1. Print the lines in the Expected output box exactly.\n2. Use commas in print() between the day, the club and the word club.",
     "starter": "# Write your program here",
     "solution": "print(\"Monday:\", \"Chess\", \"club\")\nprint(\"Tuesday:\", \"Drama\", \"club\")\nprint(\"Wednesday:\", \"Coding\", \"club\")\nprint(\"See you there!\")",
     "tests": [
@@ -1624,7 +1624,7 @@
     "level": 10,
     "type": "write",
     "title": "House points chart",
-    "description": "Show a house points chart.\n1. Print the lines in the example exactly.\n2. Each name is followed by a colon and a space.\nExample: It prints `HOUSE POINTS` then `Phoenix: #######` then `Griffin: ####` then `Dragon: #########` then `Pegasus: #####` then `Winner: Dragon!`.",
+    "description": "Show a house points chart.\n1. Print the lines in the Expected output box exactly.\n2. Each name is followed by a colon and a space.",
     "starter": "# Write your program here",
     "solution": "print(\"HOUSE POINTS\")\nprint(\"Phoenix:\", \"#######\")\nprint(\"Griffin:\", \"####\")\nprint(\"Dragon:\", \"#########\")\nprint(\"Pegasus:\", \"#####\")\nprint(\"Winner: Dragon!\")",
     "tests": [
@@ -1658,7 +1658,7 @@
     "level": 10,
     "type": "write",
     "title": "Countdown in one print",
-    "description": "Count down to the holidays.\n1. Use ONE print() with commas to print the line in the example.\nExample: It prints `5 4 3 2 1 Holidays!`.",
+    "description": "Count down to the holidays.\n1. Use ONE print() with commas to print the line in the Expected output box.",
     "starter": "# Write your program here",
     "solution": "print(5, 4, 3, 2, 1, \"Holidays!\")",
     "tests": [
@@ -1695,7 +1695,7 @@
     "level": 10,
     "type": "write",
     "title": "Play script",
-    "description": "Print part of a play script.\n1. Print the lines in the example exactly, with all their quotes.\nExample: It prints `SCENE 1` then `Teacher: \"Where's your homework?\"` then `Pupil: \"The dog ate it!\"` then `Teacher: 'Again?'`.",
+    "description": "Print part of a play script.\n1. Print the lines in the Expected output box exactly, with all their quotes.",
     "starter": "# Write your program here",
     "solution": "print(\"SCENE 1\")\nprint('Teacher: \"Where\\'s your homework?\"')\nprint('Pupil: \"The dog ate it!\"')\nprint(\"Teacher: 'Again?'\")",
     "tests": [
@@ -1730,7 +1730,7 @@
     "level": 10,
     "type": "write",
     "title": "Science safety card",
-    "description": "Make a safety card for the science lab.\n1. Start your program with a comment.\n2. Print the lines in the example exactly.\nExample: It prints `LAB RULES` then `1. Wear goggles` then `2. Tie hair back` then `3. No food or drink` then `Ask Mrs Patel if unsure.`.",
+    "description": "Make a safety card for the science lab.\n1. Start your program with a comment.\n2. Print the lines in the Expected output box exactly.",
     "starter": "# Write your program here",
     "solution": "# Safety card for the science lab\nprint(\"LAB RULES\")\nprint(\"1. Wear goggles\")\nprint(\"2. Tie hair back\")\nprint(\"3. No food or drink\")\nprint(\"Ask Mrs Patel if unsure.\")",
     "tests": [
@@ -1765,7 +1765,7 @@
     "level": 10,
     "type": "write",
     "title": "Bus stop sign",
-    "description": "Make a sign for the bus stop.\n1. Use commas in print() to print the lines in the example exactly.\n2. No spaces are needed inside the quotes: the commas add them.\nExample: It prints `Bus 42 to the station` then `Bus 17 to the park` then `Bus 9 to the hospital`.",
+    "description": "Make a sign for the bus stop.\n1. Use commas in print() to print the lines in the Expected output box exactly.\n2. No spaces are needed inside the quotes: the commas add them.",
     "starter": "# Write your program here",
     "solution": "print(\"Bus\", 42, \"to the station\")\nprint(\"Bus\", 17, \"to the park\")\nprint(\"Bus\", 9, \"to the hospital\")",
     "tests": [
@@ -1803,7 +1803,7 @@
     "level": 10,
     "type": "write",
     "title": "Seven times table",
-    "description": "Print part of the 7 times table.\n1. Print the first four lines, as in the example.\n2. Use numbers, not text, for 7, 1, 7 and so on.\nExample: It prints `7 x 1 = 7` then `7 x 2 = 14` then `7 x 3 = 21` then `7 x 4 = 28`.",
+    "description": "Print part of the 7 times table.\n1. Print the first four lines, as in the Expected output box.\n2. Use numbers, not text, for 7, 1, 7 and so on.",
     "starter": "# Write your program here",
     "solution": "print(7, \"x\", 1, \"=\", 7)\nprint(7, \"x\", 2, \"=\", 14)\nprint(7, \"x\", 3, \"=\", 21)\nprint(7, \"x\", 4, \"=\", 28)",
     "tests": [
@@ -1837,7 +1837,7 @@
     "level": 10,
     "type": "write",
     "title": "Certificate",
-    "description": "Make a Star of the Week certificate.\n1. Print the lines in the example exactly.\n2. There are 2 spaces before `Star of the Week` and before `Chloe Adams`.\nExample: It prints `+--------------------+` then `  Star of the Week` then `  Chloe Adams` then `+--------------------+` then `Well done!`.",
+    "description": "Make a Star of the Week certificate.\n1. Print the lines in the Expected output box exactly.\n2. There are 2 spaces before `Star of the Week` and before `Chloe Adams`.",
     "starter": "# Write your program here",
     "solution": "print(\"+--------------------+\")\nprint(\"  Star of the Week\")\nprint(\"  Chloe Adams\")\nprint(\"+--------------------+\")\nprint(\"Well done!\")",
     "tests": [
@@ -1871,7 +1871,7 @@
     "level": 10,
     "type": "write",
     "title": "Register",
-    "description": "Take the register for 8K.\n1. Print the title with end=.\n2. Print all four names with ONE print() using sep=.\n3. Print the last line.\nExample: It prints `Register for 8K: Ava, Ben, Chen, Dev` then `All present.`.",
+    "description": "Take the register for 8K.\n1. Print the title with end=.\n2. Print all four names with ONE print() using sep=.\n3. Print the last line. The Expected output box shows every line.",
     "starter": "# Write your program here",
     "solution": "print(\"Register for 8K:\", end=\" \")\nprint(\"Ava\", \"Ben\", \"Chen\", \"Dev\", sep=\", \")\nprint(\"All present.\")",
     "tests": [
@@ -11963,7 +11963,7 @@
     "level": 9,
     "type": "write",
     "title": "Cafe receipt",
-    "description": "Print a receipt from a cafe.\n1. Print the lines in the example exactly.\nExample: It prints `Cafe Python` then `Tea 1.50` then `Thank you!`.",
+    "description": "Print a receipt from a cafe.\n1. Print the lines in the Expected output box exactly.",
     "starter": "# Write the whole program here\n",
     "solution": "print(\"Cafe Python\")\nprint(\"Tea\", \"1.50\")\nprint(\"Thank you!\")",
     "tests": [
@@ -12005,7 +12005,7 @@
     "level": 9,
     "type": "write",
     "title": "Python is fun",
-    "description": "Print three words in two ways.\n1. Print `Python`, `is` and `fun` on three separate lines.\n2. Then print them again on one line, with a dash between each word.\nExample: It prints `Python` then `is` then `fun` then `Python-is-fun`.",
+    "description": "Print three words in two ways.\n1. Print `Python`, `is` and `fun` on three separate lines.\n2. Then print them again on one line, with a dash between each word.",
     "starter": "# Write the whole program here\n",
     "solution": "print(\"Python\")\nprint(\"is\")\nprint(\"fun\")\nprint(\"Python\", \"is\", \"fun\", sep=\"-\")",
     "tests": [
@@ -23861,7 +23861,7 @@
     "level": 4,
     "type": "fill",
     "title": "Find the cat",
-    "description": "Fill in both blanks: check whether cat is in the sentence, and if it is, print the index where it starts.",
+    "description": "Fill in both blanks. Check whether `cat` is in the sentence, and if it is, print the index where it starts.",
     "starter": "sentence = input(\"Sentence: \")\nif \"cat\" ____ sentence:\n    print(\"Found at index\", sentence.____(\"cat\"))\nelse:\n    print(\"No cat\")",
     "solution": "sentence = input(\"Sentence: \")\nif \"cat\" in sentence:\n    print(\"Found at index\", sentence.find(\"cat\"))\nelse:\n    print(\"No cat\")",
     "answers": [
@@ -24051,7 +24051,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Name length",
-    "description": "Arrange the lines so the program prints how many letters are in a name, for example:\nJo has 2 letters\nOne line is not needed.",
+    "description": "Arrange the lines so the program prints how many letters are in a name.\nOne line is not needed.\nExample: you type `Mohammed`. It prints `Mohammed has 8 letters`.",
     "starter": "",
     "solution": "name = input(\"Name: \")\nlength = len(name)\nprint(name, \"has\", length, \"letters\")",
     "distractors": [
@@ -24102,7 +24102,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Gamer tag",
-    "description": "Arrange the lines so the program makes a gamer tag: the first 3 letters of the first name in small letters, then the last 2 digits of the year, for example:\nGamer tag: zar24\nTwo lines are not needed.",
+    "description": "Arrange the lines to make a gamer tag. It has the first name's first 3 letters in small letters, then the year's last 2 digits.\nTwo lines are not needed.\nExample: you type `Zara` then `2024`. It prints `Gamer tag: zar24`.",
     "starter": "",
     "solution": "first = input(\"First name: \")\nyear = input(\"Year you joined: \")\ntag = first[0:3].lower() + year[2:4]\nprint(\"Gamer tag:\", tag)",
     "distractors": [
@@ -24179,7 +24179,7 @@
     "level": 6,
     "type": "parsons",
     "title": "First and last name",
-    "description": "Arrange the lines so the program finds the space in a full name, then slices out the first and last names.\nTwo lines are not needed.",
+    "description": "Arrange the lines to find the space in a full name. Then slice out the first and last names.\nTwo lines are not needed.",
     "starter": "",
     "solution": "full = input(\"Full name: \")\nspace = full.find(\" \")\nfirst = full[0:space]\nlast = full[space + 1:len(full)]\nprint(\"First:\", first)\nprint(\"Last:\", last)",
     "distractors": [
@@ -24509,7 +24509,7 @@
     "level": 8,
     "type": "write",
     "title": "Name facts",
-    "description": "The name is read for you. Print its length, then its first and last characters, for example:\nLength: 5\nFirst: P\nLast: a",
+    "description": "Look at a name.\n1. The program reads the name for you.\n2. Print `Length:` and then its length.\n3. Print `First:` and then its first character.\n4. Print `Last:` and then its last character.\nExample: you type `Priya`. It prints `Length: 5` then `First: P` then `Last: a`.",
     "starter": "name = input(\"Name: \")\n# Print the length, then the first and last characters",
     "solution": "name = input(\"Name: \")\nprint(\"Length:\", len(name))\nprint(\"First:\", name[0])\nprint(\"Last:\", name[len(name) - 1])",
     "tests": [
@@ -24579,7 +24579,7 @@
     "level": 8,
     "type": "write",
     "title": "Spell out and",
-    "description": "Some text is read for you. Replace every & with and, then print the new text and its length, for example:\nfish and chips\nLength: 14",
+    "description": "Tidy up some text.\n1. The program reads the text for you.\n2. Replace every `&` with `and`.\n3. Print the new text.\n4. Print `Length:` and then its length.\nExample: you type `fish & chips`. It prints `fish and chips` then `Length: 14`.",
     "starter": "text = input(\"Text: \")\n# Replace every & with and, then print the text and its length",
     "solution": "text = input(\"Text: \")\ntext = text.replace(\"&\", \"and\")\nprint(text)\nprint(\"Length:\", len(text))",
     "tests": [
@@ -24649,7 +24649,7 @@
     "level": 8,
     "type": "write",
     "title": "Club finder",
-    "description": "The clubs are stored for you in one string. Ask for a club, use lower() on it so capital letters don't matter, then print whether it is in clubs and the index where it starts (find() gives -1 if it isn't there), for example:\nRunning: True\nIndex: 7",
+    "description": "The clubs are stored for you in one string.\n1. Ask for a club. Use lower() on it so capital letters don't matter.\n2. Print `Running:` and then whether it is in clubs.\n3. Print `Index:` and then the index where it starts. find() gives -1 if it isn't there.\nExample: you type `Drama`. It prints `Running: True` then `Index: 7`.",
     "starter": "clubs = \"chess, drama, coding, choir\"\n# Ask for a club, then print whether it is in clubs and where it starts",
     "solution": "clubs = \"chess, drama, coding, choir\"\nclub = input(\"Club: \").lower()\nprint(\"Running:\", club in clubs)\nprint(\"Index:\", clubs.find(club))",
     "tests": [
@@ -24701,7 +24701,7 @@
     "level": 9,
     "type": "write",
     "title": "Letters from words",
-    "description": "Ask for three words. Print the first letter of each, joined together in capital letters, for example:\nLetters: BBC",
+    "description": "Make an abbreviation.\n1. Ask for three words, one at a time.\n2. Join the first letter of each word, in capital letters.\n3. Print `Letters:` and then those letters.\nExample: you type `british` then `broadcasting` then `corporation`. It prints `Letters: BBC`.",
     "starter": "# Write your program here",
     "solution": "a = input(\"Word 1: \")\nb = input(\"Word 2: \")\nc = input(\"Word 3: \")\nletters = a[0] + b[0] + c[0]\nprint(\"Letters:\", letters.upper())",
     "tests": [
@@ -24777,7 +24777,7 @@
     "level": 9,
     "type": "write",
     "title": "The middle",
-    "description": "Ask for a word. Print the middle of it: everything except the first and last characters, using slicing, for example:\nMiddle: ytho",
+    "description": "Find the middle of a word.\n1. Ask for a word.\n2. Use slicing to take everything except the first and last characters.\n3. Print `Middle:` and then that middle part.\nExample: you type `python`. It prints `Middle: ytho`.",
     "starter": "# Write your program here",
     "solution": "word = input(\"Word: \")\nmiddle = word[1:len(word) - 1]\nprint(\"Middle:\", middle)",
     "tests": [
@@ -24847,7 +24847,7 @@
     "level": 9,
     "type": "write",
     "title": "Fill in the name",
-    "description": "Ask for a message and a name. Replace every NAME in the message with the name, then print the message and how many characters it has, for example:\nHi Ava, see you at 3\nCharacters: 20",
+    "description": "Put a name into a message.\n1. Ask for a message. Then ask for a name.\n2. Replace every `NAME` in the message with the name.\n3. Print the message.\n4. Print `Characters:` and then how many characters it has.\nExample: you type `Hi NAME, see you at 3` then `Ava`. It prints `Hi Ava, see you at 3` then `Characters: 20`.",
     "starter": "# Write your program here",
     "solution": "message = input(\"Message: \")\nname = input(\"Name: \")\nmessage = message.replace(\"NAME\", name)\nprint(message)\nprint(\"Characters:\", len(message))",
     "tests": [
@@ -24920,7 +24920,7 @@
     "level": 10,
     "type": "write",
     "title": "Sentence report",
-    "description": "Ask for a sentence. Print its length, the sentence in capital letters, whether it contains the (ignoring capital letters), and the index of the first space, for example:\nLength: 11\nShouting: THE CAT SAT\nContains the: True\nFirst space at: 3",
+    "description": "Look closely at a sentence.\n1. Ask for a sentence.\n2. Print `Length:` and then its length.\n3. Print `Shouting:` and then the sentence in capital letters.\n4. Print `Contains the:` and then whether it contains `the`, ignoring capital letters.\n5. Print `First space at:` and then the index of the first space.\nExample: you type `The cat sat`. It prints `Length: 11` then `Shouting: THE CAT SAT` then `Contains the: True` then `First space at: 3`.",
     "starter": "# Write your program here",
     "solution": "sentence = input(\"Sentence: \")\nprint(\"Length:\", len(sentence))\nprint(\"Shouting:\", sentence.upper())\nprint(\"Contains the:\", \"the\" in sentence.lower())\nprint(\"First space at:\", sentence.find(\" \"))",
     "tests": [
@@ -24973,7 +24973,7 @@
     "level": 10,
     "type": "write",
     "title": "Member code",
-    "description": "A club makes a member code from the first 3 letters of the surname in capital letters, the last 2 digits of the year, then the length of the first name. Ask for the first name, the surname and the year. Print, for example:\nCode: KHA243",
+    "description": "A club makes a member code.\n1. Ask for the first name, then the surname, then the year.\n2. Start the code with the first 3 letters of the surname, in capital letters.\n3. Add the last 2 digits of the year, then the length of the first name.\n4. Print `Code:` and then the code.\nExample: you type `Ava` then `Khan` then `2024`. It prints `Code: KHA243`.",
     "starter": "# Write your program here",
     "solution": "first = input(\"First name: \")\nsurname = input(\"Surname: \")\nyear = input(\"Year: \")\ncode = surname[0:3].upper() + year[2:4] + str(len(first))\nprint(\"Code:\", code)",
     "tests": [
@@ -25069,7 +25069,7 @@
     "level": 10,
     "type": "write",
     "title": "Hide a word",
-    "description": "Ask for a message and a word to hide, and use lower() on both. If the word is in the message, replace it with stars, one for each letter (\"*\" * len(word)), and print the message. Otherwise print Nothing to hide. For example:\nMessage: i love *****",
+    "description": "Hide a word in a message.\n1. Ask for a message, then a word to hide. Use lower() on both.\n2. If the word is in the message, replace it with stars: one `*` for each letter.\n3. Then print `Message:` and then the message.\n4. Otherwise, print `Nothing to hide`.\nExample: you type `I love maths` then `maths`. It prints `Message: i love *****`.\nExample: you type `I love maths` then `bye`. It prints `Nothing to hide`.",
     "starter": "# Write your program here",
     "solution": "message = input(\"Message: \").lower()\nword = input(\"Word to hide: \").lower()\nif word in message:\n    stars = \"*\" * len(word)\n    message = message.replace(word, stars)\n    print(\"Message:\", message)\nelse:\n    print(\"Nothing to hide\")",
     "tests": [
@@ -25369,7 +25369,7 @@
     "level": 9,
     "type": "write",
     "title": "Word start",
-    "description": "Ask for a word. Print its length and its first 2 characters, for example:\nLength: 6\nStart: py",
+    "description": "Look at the start of a word.\n1. Ask for a word.\n2. Print `Length:` and then its length.\n3. Print `Start:` and then its first 2 characters.\nExample: you type `python`. It prints `Length: 6` then `Start: py`.",
     "starter": "# Write the whole program here",
     "solution": "word = input(\"Word: \")\nprint(\"Length:\", len(word))\nprint(\"Start:\", word[0:2])",
     "tests": [
@@ -25406,7 +25406,7 @@
     "level": 9,
     "type": "write",
     "title": "Find and",
-    "description": "Ask for a sentence. Print the index where and starts (find() gives -1 if it isn't there), then the sentence in capital letters, for example:\nand starts at: 5\nFISH AND CHIPS",
+    "description": "Search a sentence.\n1. Ask for a sentence.\n2. Print `and starts at:` and then the index where `and` starts. find() gives -1 if it isn't there.\n3. Print the sentence in capital letters.\nExample: you type `fish and chips`. It prints `and starts at: 5` then `FISH AND CHIPS`.",
     "starter": "# Write the whole program here",
     "solution": "sentence = input(\"Sentence: \")\nprint(\"and starts at:\", sentence.find(\"and\"))\nprint(sentence.upper())",
     "tests": [
@@ -25944,7 +25944,7 @@
     "level": 4,
     "type": "fill",
     "title": "Any dice",
-    "description": "Fill in both blanks: cast the number of sides to an integer, then roll a dice with that many sides (from 1 up to sides).",
+    "description": "Fill in both blanks: cast the number of sides to an integer, then roll a dice from 1 to sides.",
     "starter": "import random\nsides = ____(input(\"Sides on the dice: \"))\nroll = random.randint(____, sides)\nprint(\"Rolled:\", roll)",
     "solution": "import random\nsides = int(input(\"Sides on the dice: \"))\nroll = random.randint(1, sides)\nprint(\"Rolled:\", roll)",
     "answers": [
@@ -26017,7 +26017,7 @@
     "level": 4,
     "type": "fill",
     "title": "Heads or tails",
-    "description": "Fill in both blanks: pick 1 or 2 at random (1 is heads), and print tails the rest of the time.",
+    "description": "Fill in both blanks. Pick 1 or 2 at random, where 1 is heads, and print tails the rest of the time.",
     "starter": "import random\nname = input(\"Name: \")\ncoin = random.____(1, 2)\nif coin == 1:\n    print(name, \"got heads\")\n____:\n    print(name, \"got tails\")",
     "solution": "import random\nname = input(\"Name: \")\ncoin = random.randint(1, 2)\nif coin == 1:\n    print(name, \"got heads\")\nelse:\n    print(name, \"got tails\")",
     "answers": [
@@ -26288,7 +26288,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Guess the number",
-    "description": "Arrange the lines so the program picks a secret number from 1 to 3 and tells the player whether their guess was right. The guess is cast to an integer.\nOne line is not needed.",
+    "description": "Arrange the lines to pick a secret number from 1 to 3 and say if the guess was right. The guess is cast to an integer.\nOne line is not needed.",
     "starter": "",
     "solution": "import random\nname = input(\"Name: \")\nguess = int(input(\"Guess 1 to 3: \"))\nsecret = random.randint(1, 3)\nif guess == secret:\n    print(\"Correct,\", name)\nelse:\n    print(\"It was\", secret)",
     "distractors": [
@@ -26364,7 +26364,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Several rolls",
-    "description": "Arrange the lines so the program rolls a dice as many times as the user asks (cast to an integer), with a new roll each time.\nTwo lines are not needed.",
+    "description": "Arrange the lines to roll a dice as many times as the user asks, with a new roll each time. The number is cast to an integer.\nTwo lines are not needed.",
     "starter": "",
     "solution": "import random\nrolls = int(input(\"How many rolls? \"))\nfor i in range(rolls):\n    roll = random.randint(1, 6)\n    print(\"Roll\", i + 1, \"is\", roll)",
     "distractors": [
@@ -26492,7 +26492,7 @@
     "level": 6,
     "type": "parsons",
     "title": "House picker",
-    "description": "Arrange the lines so the program puts a pupil in Red or Blue house at random and says where to meet.\nTwo lines are not needed.",
+    "description": "Arrange the lines to put a pupil in Red or Blue house at random and say where to meet.\nTwo lines are not needed.",
     "starter": "",
     "solution": "import random\nname = input(\"Name: \")\nhouse = random.choice([\"Red\", \"Blue\"])\nif house == \"Red\":\n    print(name, \"joins Red. Meet in the hall.\")\nelse:\n    print(name, \"joins Blue. Meet in the gym.\")",
     "distractors": [
@@ -26730,7 +26730,7 @@
     "level": 8,
     "type": "write",
     "title": "Dice total",
-    "description": "The number of rolls is read and cast for you. Roll a dice (random.randint(1, 6)) that many times, adding each roll to a total, then print the total, for example:\nTotal: 15",
+    "description": "Roll a dice many times.\n1. The program reads the number of rolls and casts it for you.\n2. Roll a dice that many times with random.randint(1, 6). Add each roll to a total.\n3. Print `Total:` and then the total.\nExample: you type `3`. It prints `Total: 15`.",
     "starter": "import random\nrolls = int(input(\"Rolls: \"))\n# Roll a dice that many times, adding each roll to a total, then print the total",
     "solution": "import random\nrolls = int(input(\"Rolls: \"))\ntotal = 0\nfor i in range(rolls):\n    total = total + random.randint(1, 6)\nprint(\"Total:\", total)",
     "tests": [
@@ -26800,7 +26800,7 @@
     "level": 8,
     "type": "write",
     "title": "Coin flips",
-    "description": "The number of flips is read and cast for you. Flip a coin that many times: random.randint(1, 2) gives 1 for heads. Count the heads, then print the heads and tails, for example:\nHeads: 5\nTails: 5",
+    "description": "Flip a coin many times.\n1. The program reads the number of flips and casts it for you.\n2. Flip a coin that many times: random.randint(1, 2) gives 1 for heads. Count the heads.\n3. Print `Heads:` and then the heads.\n4. Print `Tails:` and then the tails.\nExample: you type `10`. It prints `Heads: 5` then `Tails: 5`.",
     "starter": "import random\nflips = int(input(\"Flips: \"))\nheads = 0\n# Flip the coin that many times and count the heads",
     "solution": "import random\nflips = int(input(\"Flips: \"))\nheads = 0\nfor i in range(flips):\n    if random.randint(1, 2) == 1:\n        heads = heads + 1\nprint(\"Heads:\", heads)\nprint(\"Tails:\", flips - heads)",
     "tests": [
@@ -26870,7 +26870,7 @@
     "level": 8,
     "type": "write",
     "title": "Times-table question",
-    "description": "The name is read for you. Pick two random whole numbers from 1 to 12 (first a, then b), then print the question and its answer, for example:\nAva what is 6 x 8\nAnswer: 48",
+    "description": "Make a times table question.\n1. The program reads the name for you.\n2. Pick a random whole number a from 1 to 12, then b the same way.\n3. Print the name, `what is`, a, `x` and b.\n4. Print `Answer:` and then a times b.\nExample: you type `Ava`. It prints `Ava what is 6 x 8` then `Answer: 48`.",
     "starter": "import random\nname = input(\"Name: \")\n# Pick a, then b, from 1 to 12, then print the question and the answer",
     "solution": "import random\nname = input(\"Name: \")\na = random.randint(1, 12)\nb = random.randint(1, 12)\nprint(name, \"what is\", a, \"x\", b)\nprint(\"Answer:\", a * b)",
     "tests": [
@@ -26918,7 +26918,7 @@
     "level": 9,
     "type": "write",
     "title": "Higher or lower",
-    "description": "Make a game: pick a secret number from 1 to 10 with random.randint(1, 10). Ask for a guess and cast it to an integer. Print Correct!, Too high or Too low, then the secret number, for example:\nToo high\nThe number was 3",
+    "description": "Make a guessing game.\n1. Pick a secret number from 1 to 10 with random.randint(1, 10).\n2. Ask for a guess and cast it to an integer.\n3. Print `Correct!` if the guess is the secret number.\n4. Otherwise, print `Too high` if it is more, or `Too low` if it is less.\n5. Then print `The number was` and the secret number.\nExample: you type `5`. It prints `Too high` then `The number was 3`.\nExample: you type `2`. It prints `Too low` then `The number was 7`.",
     "starter": "# Write your program here",
     "solution": "import random\nsecret = random.randint(1, 10)\nguess = int(input(\"Guess: \"))\nif guess == secret:\n    print(\"Correct!\")\nelif guess > secret:\n    print(\"Too high\")\nelse:\n    print(\"Too low\")\nprint(\"The number was\", secret)",
     "tests": [
@@ -27022,7 +27022,7 @@
     "level": 9,
     "type": "write",
     "title": "Two teams",
-    "description": "Ask for two names. Use random.choice([\"Red\", \"Blue\"]) to pick a team for the first name, then again for the second. Print, for example:\nAva is in Red\nBen is in Blue",
+    "description": "Put two pupils into teams.\n1. Ask for two names, one at a time.\n2. Use random.choice([\"Red\", \"Blue\"]) to pick a team for the first name, then again for the second.\n3. Print each name, `is in`, then its team.\nExample: you type `Ava` then `Ben`. It prints `Ava is in Red` then `Ben is in Blue`.",
     "starter": "# Write your program here",
     "solution": "import random\na = input(\"Name 1: \")\nb = input(\"Name 2: \")\nprint(a, \"is in\", random.choice([\"Red\", \"Blue\"]))\nprint(b, \"is in\", random.choice([\"Red\", \"Blue\"]))",
     "tests": [
@@ -27082,7 +27082,7 @@
     "level": 9,
     "type": "write",
     "title": "Dice battle",
-    "description": "Ask for two players' names. Roll a dice for player 1, then for player 2 (each random.randint(1, 6)). Print both rolls, then who wins, or Draw, for example:\nAva rolled 3\nBen rolled 4\nBen wins",
+    "description": "Two players roll a dice.\n1. Ask for two players' names.\n2. Roll a dice for player 1, then for player 2, each with random.randint(1, 6).\n3. Print each name, `rolled`, then the roll.\n4. Print the name of the player with the higher roll and `wins`. If the rolls are equal, print `Draw`.\nExample: you type `Ava` then `Ben`. It prints `Ava rolled 3` then `Ben rolled 4` then `Ben wins`.\nExample: you type `Ivy` then `Max`. It prints `Ivy rolled 6` then `Max rolled 2` then `Ivy wins`.\nExample: you type `Rosa` then `Ivy`. It prints `Rosa rolled 3` then `Ivy rolled 3` then `Draw`.",
     "starter": "# Write your program here",
     "solution": "import random\np1 = input(\"Player 1: \")\np2 = input(\"Player 2: \")\nr1 = random.randint(1, 6)\nr2 = random.randint(1, 6)\nprint(p1, \"rolled\", r1)\nprint(p2, \"rolled\", r2)\nif r1 > r2:\n    print(p1, \"wins\")\nelif r2 > r1:\n    print(p2, \"wins\")\nelse:\n    print(\"Draw\")",
     "tests": [
@@ -27166,7 +27166,7 @@
     "level": 10,
     "type": "write",
     "title": "Dice survey",
-    "description": "Ask how many times to roll, and cast it to an integer. Roll a dice (random.randint(1, 6)) that many times. Count the sixes and the ones, and add up all the rolls. Print, for example:\nSixes: 2\nOnes: 2\nTotal: 37",
+    "description": "Count the rolls of a dice.\n1. Ask how many times to roll. Cast it to an integer.\n2. Roll a dice that many times with random.randint(1, 6).\n3. Count the sixes and the ones, and add up all the rolls.\n4. Print `Sixes:`, `Ones:` and `Total:` on three lines, each with its number.\nExample: you type `10`. It prints `Sixes: 2` then `Ones: 2` then `Total: 37`.",
     "starter": "# Write your program here",
     "solution": "import random\nrolls = int(input(\"Rolls: \"))\nsixes = 0\nones = 0\ntotal = 0\nfor i in range(rolls):\n    roll = random.randint(1, 6)\n    total = total + roll\n    if roll == 6:\n        sixes = sixes + 1\n    elif roll == 1:\n        ones = ones + 1\nprint(\"Sixes:\", sixes)\nprint(\"Ones:\", ones)\nprint(\"Total:\", total)",
     "tests": [
@@ -27256,7 +27256,7 @@
     "level": 10,
     "type": "write",
     "title": "Higher or lower cards",
-    "description": "Make a card game. Draw a card: random.randint(1, 13). Then 3 times: print the card, ask Higher or lower? (h/l), draw a new card, and add 1 to the score if the guess was right. The new card becomes the card. At the end print the last card and the score, for example:\nLast card: 10\nScore: 0",
+    "description": "Make a higher or lower card game.\n1. Draw a card with random.randint(1, 13). Start the score at 0.\n2. Then do this 3 times: print `Card:` and the card, and ask `Higher or lower? (h/l)`.\n3. Draw a new card. Add 1 to the score if the guess was right.\n4. The new card becomes the card.\n5. At the end, print `Last card:` and the card, then `Score:` and the score.\nExample: you type `h` then `l` then `h`. It prints `Card: 9` then `Card: 2` then `Card: 13` then `Last card: 10` then `Score: 0`.",
     "starter": "# Write your program here",
     "solution": "import random\nscore = 0\ncard = random.randint(1, 13)\nfor i in range(3):\n    print(\"Card:\", card)\n    guess = input(\"Higher or lower? (h/l): \")\n    new = random.randint(1, 13)\n    if (guess == \"h\" and new > card) or (guess == \"l\" and new < card):\n        score = score + 1\n    card = new\nprint(\"Last card:\", card)\nprint(\"Score:\", score)",
     "tests": [
@@ -27333,7 +27333,7 @@
     "level": 10,
     "type": "write",
     "title": "Times-table quiz",
-    "description": "Ask for the player's name. Then ask 3 questions: each time pick a, then b, with random.randint(2, 12), print What is a x b, read the answer (cast it to an integer) and add 1 to the score if it is right. At the end print, for example:\nAva scored 2 out of 3",
+    "description": "Make a times table quiz.\n1. Ask for the player's name.\n2. Then ask 3 questions. For each one, pick a and then b with random.randint(2, 12).\n3. Print `What is`, a, `x` and b. Read the answer and cast it to an integer.\n4. Add 1 to the score if the answer is right.\n5. At the end, print the name, `scored`, the score, then `out of 3`.\nExample: you type `Ava` then `48` then `19` then `16`. It prints `What is 6 x 8` then `What is 9 x 2` then `What is 2 x 8` then `Ava scored 2 out of 3`.",
     "starter": "# Write your program here",
     "solution": "import random\nname = input(\"Name: \")\nscore = 0\nfor i in range(3):\n    a = random.randint(2, 12)\n    b = random.randint(2, 12)\n    print(\"What is\", a, \"x\", b)\n    answer = int(input(\"Answer: \"))\n    if answer == a * b:\n        score = score + 1\nprint(name, \"scored\", score, \"out of 3\")",
     "tests": [
@@ -27575,7 +27575,7 @@
     "level": 7,
     "type": "fill",
     "title": "Roll for it",
-    "description": "Write the missing line that stores a dice roll (a random whole number from 1 to 6) in roll.",
+    "description": "Write the missing line that stores a dice roll in `roll`: a random whole number from 1 to 6.",
     "starter": "import random\nname = input(\"Name: \")\n____\nprint(name, \"rolled\", roll)",
     "solution": "import random\nname = input(\"Name: \")\nroll = random.randint(1, 6)\nprint(name, \"rolled\", roll)",
     "answers": [
@@ -27653,7 +27653,7 @@
     "level": 9,
     "type": "write",
     "title": "Count the heads",
-    "description": "Ask how many times to flip a coin, and cast it to an integer. Flip it that many times with random.randint(1, 2), where 1 is heads, and print the number of heads, for example:\nHeads: 5",
+    "description": "Flip a coin many times.\n1. Ask how many times to flip a coin. Cast it to an integer.\n2. Flip it that many times with random.randint(1, 2), where 1 is heads.\n3. Print `Heads:` and then the number of heads.\nExample: you type `6`. It prints `Heads: 5`.",
     "starter": "# Write the whole program here",
     "solution": "import random\nflips = int(input(\"Flips: \"))\nheads = 0\nfor i in range(flips):\n    if random.randint(1, 2) == 1:\n        heads = heads + 1\nprint(\"Heads:\", heads)",
     "tests": [
@@ -27690,7 +27690,7 @@
     "level": 9,
     "type": "write",
     "title": "Bonus roll",
-    "description": "Ask for a name. Roll a dice with random.randint(1, 6). Print the name and the roll, then Bonus! if it is a 6, for example:\nAva rolled 6\nBonus!",
+    "description": "Roll a dice for a bonus.\n1. Ask for a name.\n2. Roll a dice with random.randint(1, 6).\n3. Print the name, `rolled`, then the roll.\n4. If the roll is 6, also print `Bonus!`.\nExample: you type `Ava`. It prints `Ava rolled 3`.",
     "starter": "# Write the whole program here",
     "solution": "import random\nname = input(\"Name: \")\nroll = random.randint(1, 6)\nprint(name, \"rolled\", roll)\nif roll == 6:\n    print(\"Bonus!\")",
     "tests": [
@@ -28109,7 +28109,7 @@
     "level": 3,
     "type": "fill",
     "title": "Pick a snack",
-    "description": "People count from 1, but indexing counts from 0. Fill in the blank so position 1 gives the first snack. The position is cast to an integer for you.",
+    "description": "Indexing counts from 0, but people count from 1, and the position is cast to an integer for you. Fill in the blank so position 1 gives the first snack.",
     "starter": "snacks = [\"crisps\", \"apple\", \"biscuit\"]\nn = int(input(\"Which snack (1 to 3)? \"))\nprint(\"You chose\", snacks[n - ____])",
     "solution": "snacks = [\"crisps\", \"apple\", \"biscuit\"]\nn = int(input(\"Which snack (1 to 3)? \"))\nprint(\"You chose\", snacks[n - 1])",
     "answers": [
@@ -28596,7 +28596,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Score sheet",
-    "description": "Arrange the lines so the program reads how many scores there are, reads each one (cast to an integer) into the list, then prints the list and the first score.\nTwo lines are not needed.",
+    "description": "Arrange the lines to read the scores into the list and print the list and the first score. Each score is cast to an integer.\nTwo lines are not needed.",
     "starter": "",
     "solution": "scores = []\nn = int(input(\"How many scores? \"))\nfor i in range(n):\n    score = int(input(\"Score: \"))\n    scores.append(score)\nprint(\"Scores:\", scores)\nprint(\"First:\", scores[0])",
     "distractors": [
@@ -28757,7 +28757,7 @@
     "level": 7,
     "type": "fill",
     "title": "Add a fruit",
-    "description": "Write the missing line that reads a fruit with input(\"Add a fruit: \") and appends it to the end of the fruit list.",
+    "description": "Write the missing line. It reads a fruit with input(\"Add a fruit: \") and appends it to the end of the fruit list.",
     "starter": "fruit = [\"apple\", \"pear\"]\n____\nprint(fruit)",
     "solution": "fruit = [\"apple\", \"pear\"]\nfruit.append(input(\"Add a fruit: \"))\nprint(fruit)",
     "answers": [
@@ -28872,7 +28872,7 @@
     "level": 8,
     "type": "write",
     "title": "Score total",
-    "description": "A new score is read for you (cast to an integer) and added to the list. Use a loop to add up all the scores, then print the total and the mean, for example:\nTotal: 53\nMean: 10.6",
+    "description": "Find the total and the mean of some scores.\n1. The program reads a new score, casts it to an integer and adds it to the list for you.\n2. Use a loop to add up all the scores.\n3. Print `Total:` and then the total.\n4. Print `Mean:` and then the mean.\nExample: you type `10`. It prints `Total: 53` then `Mean: 10.6`.",
     "starter": "scores = [12, 7, 15, 9]\nscores.append(int(input(\"New score: \")))\n# Use a for loop to add up the scores, then print the total and the mean",
     "solution": "scores = [12, 7, 15, 9]\nscores.append(int(input(\"New score: \")))\ntotal = 0\nfor s in scores:\n    total = total + s\nprint(\"Total:\", total)\nprint(\"Mean:\", total / len(scores))",
     "tests": [
@@ -28921,7 +28921,7 @@
     "level": 8,
     "type": "write",
     "title": "Three names",
-    "description": "An empty list is made for you. Ask for 3 names, appending each one to names, then print the list and how many there are, for example:\nNames: ['Ava', 'Ben', 'Cal']\nCount: 3",
+    "description": "Make a list of names.\n1. An empty list called `names` is made for you.\n2. Ask for 3 names, appending each one to `names`.\n3. Print `Names:` and then the list.\n4. Print `Count:` and then how many there are.\nExample: you type `Ava` then `Ben` then `Cal`. It prints `Names: ['Ava', 'Ben', 'Cal']` then `Count: 3`.",
     "starter": "names = []\n# Ask for 3 names, appending each to names, then print the list and how many there are",
     "solution": "names = []\nfor i in range(3):\n    names.append(input(\"Name: \"))\nprint(\"Names:\", names)\nprint(\"Count:\", len(names))",
     "tests": [
@@ -28986,7 +28986,7 @@
     "level": 8,
     "type": "write",
     "title": "Lunch menu",
-    "description": "The week's lunches are stored for you. Ask for a day number from 1 to 5, cast it to an integer, and print that day's lunch, for example:\nLunch: curry",
+    "description": "The week's lunches are stored for you.\n1. Ask for a day number from 1 to 5. Cast it to an integer.\n2. Print `Lunch:` and then that day's lunch.\nExample: you type `1`. It prints `Lunch: pizza`.",
     "starter": "lunch = [\"pizza\", \"pasta\", \"curry\", \"salad\", \"soup\"]\n# Ask for a day number from 1 to 5, then print that day's lunch",
     "solution": "lunch = [\"pizza\", \"pasta\", \"curry\", \"salad\", \"soup\"]\nday = int(input(\"Day (1 to 5): \"))\nprint(\"Lunch:\", lunch[day - 1])",
     "tests": [
@@ -29055,7 +29055,7 @@
     "level": 9,
     "type": "write",
     "title": "Highest and lowest",
-    "description": "Ask how many marks there are (cast it to an integer), then read each mark (cast it too) and append it to a list. Print the list, then the highest and lowest marks, found with a loop, for example:\nMarks: [7, 3, 9, 5]\nHighest: 9\nLowest: 3",
+    "description": "Find the highest and lowest marks.\n1. Ask how many marks there are, then read each mark. Cast every input to an integer.\n2. Append each mark to a list.\n3. Print `Marks:` and then the list.\n4. Use a loop to find the highest and lowest marks. Print `Highest:` and the highest, then `Lowest:` and the lowest.\nExample: you type `4` then `7` then `3` then `9` then `5`. It prints `Marks: [7, 3, 9, 5]` then `Highest: 9` then `Lowest: 3`.\nExample: you type `1` then `7`. It prints `Marks: [7]` then `Highest: 7` then `Lowest: 7`.",
     "starter": "# Write your program here",
     "solution": "n = int(input(\"How many marks? \"))\nmarks = []\nfor i in range(n):\n    marks.append(int(input(\"Mark: \")))\nhigh = marks[0]\nlow = marks[0]\nfor m in marks:\n    if m > high:\n        high = m\n    if m < low:\n        low = m\nprint(\"Marks:\", marks)\nprint(\"Highest:\", high)\nprint(\"Lowest:\", low)",
     "tests": [
@@ -29133,7 +29133,7 @@
     "level": 9,
     "type": "write",
     "title": "Pizza vote",
-    "description": "Ask for 4 votes and append each one to a list. Then loop over the list to count the votes for pizza. Print the pizza votes and the other votes, for example:\nPizza: 3\nOther: 1",
+    "description": "Count the votes for pizza.\n1. Ask for 4 votes, appending each one to a list.\n2. Loop over the list to count the votes for `pizza`.\n3. Print `Pizza:` and then the pizza votes.\n4. Print `Other:` and then the other votes.\nExample: you type `pizza` then `pasta` then `pizza` then `pizza`. It prints `Pizza: 3` then `Other: 1`.",
     "starter": "# Write your program here",
     "solution": "votes = []\nfor i in range(4):\n    votes.append(input(\"Vote: \"))\npizza = 0\nfor v in votes:\n    if v == \"pizza\":\n        pizza = pizza + 1\nprint(\"Pizza:\", pizza)\nprint(\"Other:\", len(votes) - pizza)",
     "tests": [
@@ -29192,7 +29192,7 @@
     "level": 9,
     "type": "write",
     "title": "Backwards",
-    "description": "Ask for 3 words and append each one to a list. Then print the words in reverse order, one per line, using a loop over the indexes from the last index down to 0: range(len(words) - 1, -1, -1).",
+    "description": "Print some words in reverse order.\n1. Ask for 3 words, appending each one to a list.\n2. Print the words in reverse order, one per line.\n3. Use a loop over the indexes from the last index down to 0: range(len(words) - 1, -1, -1).\nExample: you type `one` then `two` then `three`. It prints `three` then `two` then `one`.",
     "starter": "# Write your program here",
     "solution": "words = []\nfor i in range(3):\n    words.append(input(\"Word: \"))\nfor i in range(len(words) - 1, -1, -1):\n    print(words[i])",
     "tests": [
@@ -29257,7 +29257,7 @@
     "level": 10,
     "type": "write",
     "title": "Class register",
-    "description": "Ask for names until the user types stop, appending each name to a list (but not stop). Then print how many pupils there are, and each name with its number, starting at 1, for example:\nPupils: 2\n1 Ava\n2 Ben",
+    "description": "Take a register.\n1. Ask for names until the user types `stop`. Append each name to a list, but not `stop`.\n2. Print `Pupils:` and then how many names there are.\n3. Then print each name with its number, starting at 1.\nExample: you type `Ava` then `Ben` then `Cal` then `stop`. It prints `Pupils: 3` then `1 Ava` then `2 Ben` then `3 Cal`.",
     "starter": "# Write your program here",
     "solution": "names = []\nname = input(\"Name (or stop): \")\nwhile name != \"stop\":\n    names.append(name)\n    name = input(\"Name (or stop): \")\nprint(\"Pupils:\", len(names))\nfor i in range(len(names)):\n    print(i + 1, names[i])",
     "tests": [
@@ -29333,7 +29333,7 @@
     "level": 10,
     "type": "write",
     "title": "Temperature log",
-    "description": "Ask for 5 temperatures (they can have decimals, so cast each with float()) and append each to a list. Work out the mean with a loop. Print the mean rounded to 1 place, then how many temperatures are above the mean, for example:\nMean: 14.2\nAbove the mean: 2",
+    "description": "Compare temperatures with their mean.\n1. Ask for 5 temperatures. They can have decimals, so cast each with float().\n2. Append each one to a list. Work out the mean with a loop.\n3. Print `Mean:` and then the mean, rounded to 1 place.\n4. Print `Above the mean:` and then how many temperatures are above the mean.\nExample: you type `12` then `15.5` then `9` then `20` then `14.5`. It prints `Mean: 14.2` then `Above the mean: 3`.",
     "starter": "# Write your program here",
     "solution": "temps = []\nfor i in range(5):\n    temps.append(float(input(\"Temperature: \")))\ntotal = 0\nfor t in temps:\n    total = total + t\nmean = total / len(temps)\nabove = 0\nfor t in temps:\n    if t > mean:\n        above = above + 1\nprint(\"Mean:\", round(mean, 1))\nprint(\"Above the mean:\", above)",
     "tests": [
@@ -29396,7 +29396,7 @@
     "level": 10,
     "type": "write",
     "title": "Top scorer",
-    "description": "Four players and their scores are in two lists, in the same order. Ask for a new player and their score (cast it to an integer), and append each to its list. Then loop over the indexes to find the highest score (the first one if two are equal) and print, for example:\nWinner: Ben\nScore: 18",
+    "description": "Four players and their scores are in two lists, in the same order.\n1. Ask for a new player, then their score. Cast the score to an integer.\n2. Append each to its list.\n3. Loop over the indexes to find the highest score. If two are equal, keep the first one.\n4. Print `Winner:` and the winner's name, then `Score:` and the score.\nExample: you type `Eve` then `20`. It prints `Winner: Eve` then `Score: 20`.",
     "starter": "names = [\"Ava\", \"Ben\", \"Cal\", \"Dev\"]\nscores = [12, 18, 9, 15]\n# Add the new player, then find and print the winner",
     "solution": "names = [\"Ava\", \"Ben\", \"Cal\", \"Dev\"]\nscores = [12, 18, 9, 15]\nnames.append(input(\"New player: \"))\nscores.append(int(input(\"Their score: \")))\nbest = 0\nfor i in range(len(scores)):\n    if scores[i] > scores[best]:\n        best = i\nprint(\"Winner:\", names[best])\nprint(\"Score:\", scores[best])",
     "tests": [
@@ -29648,7 +29648,7 @@
     "level": 9,
     "type": "write",
     "title": "Three numbers",
-    "description": "Make an empty list. Ask for 3 numbers, cast each one to an integer and append it. Print the list and its first item, for example:\nNumbers: [4, 8, 1]\nFirst: 4",
+    "description": "Make a list of numbers.\n1. Make an empty list.\n2. Ask for 3 numbers. Cast each one to an integer and append it.\n3. Print `Numbers:` and then the list.\n4. Print `First:` and then its first item.\nExample: you type `4` then `8` then `1`. It prints `Numbers: [4, 8, 1]` then `First: 4`.",
     "starter": "# Write the whole program here",
     "solution": "numbers = []\nfor i in range(3):\n    numbers.append(int(input(\"Number: \")))\nprint(\"Numbers:\", numbers)\nprint(\"First:\", numbers[0])",
     "tests": [
@@ -29688,7 +29688,7 @@
     "level": 9,
     "type": "write",
     "title": "Sweet shop",
-    "description": "The list sweets = [\"mint\", \"toffee\", \"fudge\"] is in the shop. Ask for one more sweet, append it, then print each sweet on its own line with a loop.",
+    "description": "The list `sweets = [\"mint\", \"toffee\", \"fudge\"]` is in the shop.\n1. Ask for one more sweet and append it.\n2. Print each sweet on its own line, using a loop.\nExample: you type `jelly`. It prints `mint` then `toffee` then `fudge` then `jelly`.",
     "starter": "# Write the whole program here",
     "solution": "sweets = [\"mint\", \"toffee\", \"fudge\"]\nsweets.append(input(\"New sweet: \"))\nfor sweet in sweets:\n    print(sweet)",
     "tests": [
@@ -29725,7 +29725,7 @@
     "level": 1,
     "type": "predict",
     "title": "Your first function",
-    "description": "def makes a function. The last line calls it. What will this program print?",
+    "description": "def makes a function, and the last line calls it. What will this program print?",
     "starter": "",
     "solution": "def hello():\n    print(\"Hello!\")\n\nhello()",
     "options": [
@@ -30616,7 +30616,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Title with lines",
-    "description": "Arrange the lines so title() prints a line of dashes, the title, and another line, each line as long as the title. title() calls line().\nTwo lines are not needed.",
+    "description": "Arrange the lines so title() calls line() to print dashes above and below the title. Each line of dashes is as long as the title.\nTwo lines are not needed.",
     "starter": "",
     "solution": "def line(length):\n    print(\"-\" * length)\ndef title(text):\n    line(len(text))\n    print(text)\n    line(len(text))\ntitle(input(\"Title: \"))",
     "distractors": [
@@ -30798,7 +30798,7 @@
     "level": 8,
     "type": "write",
     "title": "Star row",
-    "description": "Write the body of stars(n): it prints n stars on one line, for example:\n*****\nThe number is read and cast for you.",
+    "description": "Print a row of stars with a function.\n1. Write the body of `stars(n)`. It prints n stars on one line.\n2. The program reads the number, casts it and calls `stars()` for you.\nExample: you type `5`. It calls `stars(5)`. It prints `*****`.",
     "starter": "def stars(n):\n    # Print n stars on one line\n\nstars(int(input(\"How many? \")))",
     "solution": "def stars(n):\n    print(\"*\" * n)\n\nstars(int(input(\"How many? \")))",
     "tests": [
@@ -30847,7 +30847,7 @@
     "level": 8,
     "type": "write",
     "title": "See you then",
-    "description": "The function is written for you. Ask for a name and a day, then call greet() with them, for example:\nHi Ava - see you on Monday",
+    "description": "Greet someone with a function.\n1. The function `greet()` is written for you.\n2. Ask for a name, then a day.\n3. Call `greet()` with them.\nExample: you type `Ava` then `Monday`. It calls `greet('Ava', 'Monday')`. It prints `Hi Ava - see you on Monday`.",
     "starter": "def greet(name, day):\n    print(\"Hi\", name, \"- see you on\", day)\n\n# Ask for a name and a day, then call greet() with them",
     "solution": "def greet(name, day):\n    print(\"Hi\", name, \"- see you on\", day)\n\nwho = input(\"Name: \")\nwhen = input(\"Day: \")\ngreet(who, when)",
     "tests": [
@@ -30924,7 +30924,7 @@
     "level": 8,
     "type": "write",
     "title": "Report line",
-    "description": "The calls are written for you. Define report(name, mark) so the program prints, for example:\nAva got 7 out of 10\nBen got 9 out of 10",
+    "description": "Report two marks with a function.\n1. The calls are written for you.\n2. Define `report(name, mark)` so that it prints the name, `got`, the mark, then `out of 10`.\n3. The Expected output box shows what the program prints.",
     "starter": "# Define report(name, mark) here\n\nreport(\"Ava\", 7)\nreport(\"Ben\", 9)",
     "solution": "def report(name, mark):\n    print(name, \"got\", mark, \"out of 10\")\n\nreport(\"Ava\", 7)\nreport(\"Ben\", 9)",
     "tests": [
@@ -30959,7 +30959,7 @@
     "level": 9,
     "type": "write",
     "title": "Banner",
-    "description": "Define banner(text): it prints a line of = as long as the text, the text, then the line again. Ask for a title and call banner() with it, for example:\n====\nQuiz\n====",
+    "description": "Print a banner with a function.\n1. Define `banner(text)`. It prints a line of `=` as long as the text, then the text, then the line again.\n2. Ask for a title, and call `banner()` with it.\nExample: you type `Quiz`. It calls `banner('Quiz')`. It prints `====` then `Quiz` then `====`.",
     "starter": "# Write your program here",
     "solution": "def banner(text):\n    print(\"=\" * len(text))\n    print(text)\n    print(\"=\" * len(text))\n\nbanner(input(\"Title: \"))",
     "tests": [
@@ -31021,7 +31021,7 @@
     "level": 9,
     "type": "write",
     "title": "Shop till",
-    "description": "Define sale(item, price, qty) that prints the item, the quantity and the total, for example:\npencil x 3 = 6\nAsk for the item, the price in whole pounds and the quantity (cast both numbers to integers), then call sale().",
+    "description": "Print a sale with a function.\n1. Define `sale(item, price, qty)`. It prints the item, `x`, the quantity, `=`, then the total.\n2. Ask for the item, then the price in whole pounds, then the quantity. Cast both numbers to integers.\n3. Call `sale()` with them.\nExample: you type `pencil` then `2` then `3`. It calls `sale('pencil', 2, 3)`. It prints `pencil x 3 = 6`.",
     "starter": "# Write your program here",
     "solution": "def sale(item, price, qty):\n    print(item, \"x\", qty, \"=\", price * qty)\n\nitem = input(\"Item: \")\nprice = int(input(\"Price (£): \"))\nqty = int(input(\"Quantity: \"))\nsale(item, price, qty)",
     "tests": [
@@ -31097,7 +31097,7 @@
     "level": 9,
     "type": "write",
     "title": "Triangle",
-    "description": "Define row(n) that prints n # on one line. Ask how many rows (cast it to an integer), then use a loop to call row(1), row(2), … up to that number, for example:\n#\n##\n###",
+    "description": "Draw a triangle with a function.\n1. Define `row(n)`. It prints n `#` on one line.\n2. Ask how many rows. Cast the input to an integer.\n3. Use a loop to call `row(1)`, `row(2)` and so on, up to that number.\nExample: you type `3`. It calls `row(1)`, then `row(2)`, and so on. It prints `#` then `##` then `###`.",
     "starter": "# Write your program here",
     "solution": "def row(n):\n    print(\"#\" * n)\n\nrows = int(input(\"Rows: \"))\nfor i in range(1, rows + 1):\n    row(i)",
     "tests": [
@@ -31142,7 +31142,7 @@
     "level": 10,
     "type": "write",
     "title": "Results table",
-    "description": "Define header() that prints === Results ===, and line(name, score) that prints, for example, Ava: 12. Ask how many pupils there are (cast it to an integer). Call header() once, then for each pupil ask for a name and a score and call line().",
+    "description": "Print a results table with functions.\n1. Define `header()`. It prints `=== Results ===`.\n2. Define `line(name, score)`. It prints the name with a colon, then the score.\n3. Ask how many pupils there are. Cast it to an integer.\n4. Call `header()` once. Then, for each pupil, ask for a name and a score, and call `line()`.\nExample: you type `2` then `Ava` then `12` then `Ben` then `9`. It calls `header()`, then `line('Ava', '12')`, and so on. It prints `=== Results ===` then `Ava: 12` then `Ben: 9`.",
     "starter": "# Write your program here",
     "solution": "def header():\n    print(\"=== Results ===\")\n\ndef line(name, score):\n    print(name + \":\", score)\n\npupils = int(input(\"Pupils: \"))\nheader()\nfor i in range(pupils):\n    name = input(\"Name: \")\n    score = input(\"Score: \")\n    line(name, score)",
     "tests": [
@@ -31226,7 +31226,7 @@
     "level": 10,
     "type": "write",
     "title": "Draw a box",
-    "description": "Define draw_box(width, height) that prints height rows, each with width # on it, using a loop. Ask for the width and the height (cast both to integers) and call draw_box(), for example for 4 and 2:\n####\n####",
+    "description": "Draw a box with a function.\n1. Define `draw_box(width, height)`. It uses a loop to print height rows, each with width `#`.\n2. Ask for the width, then the height. Cast both to integers.\n3. Call `draw_box()` with them.\nExample: you type `4` then `2`. It calls `draw_box(4, 2)`. It prints `####` then `####`.",
     "starter": "# Write your program here",
     "solution": "def draw_box(width, height):\n    for i in range(height):\n        print(\"#\" * width)\n\nw = int(input(\"Width: \"))\nh = int(input(\"Height: \"))\ndraw_box(w, h)",
     "tests": [
@@ -31300,7 +31300,7 @@
     "level": 10,
     "type": "write",
     "title": "Lunch menu",
-    "description": "Define menu() that prints:\n1 Pizza\n2 Pasta\n3 Salad\nand say(option) that prints, for example, You chose 2: Pasta, or Not on the menu for any other number. Ask for an option (cast it to an integer), then call menu() and say().",
+    "description": "Show a menu with functions.\n1. Define `menu()`. It prints `1 Pizza`, `2 Pasta` and `3 Salad` on three lines.\n2. Define `say(option)`. For options 1 to 3, it prints `You chose`, the option and a colon, then the dish.\n3. For any other number, `say()` prints `Not on the menu`.\n4. Ask for an option and cast it to an integer. Call `menu()`, then `say()`.\nExample: you type `1`. It calls `menu()`, then `say(1)`. It prints `1 Pizza` then `2 Pasta` then `3 Salad` then `You chose 1: Pizza`.\nExample: you type `2`. It calls `menu()`, then `say(2)`. It prints `1 Pizza` then `2 Pasta` then `3 Salad` then `You chose 2: Pasta`.\nExample: you type `6`. It calls `menu()`, then `say(6)`. It prints `1 Pizza` then `2 Pasta` then `3 Salad` then `Not on the menu`.",
     "starter": "# Write your program here",
     "solution": "def menu():\n    print(\"1 Pizza\")\n    print(\"2 Pasta\")\n    print(\"3 Salad\")\n\ndef say(option):\n    if option == 1:\n        print(\"You chose 1: Pizza\")\n    elif option == 2:\n        print(\"You chose 2: Pasta\")\n    elif option == 3:\n        print(\"You chose 3: Salad\")\n    else:\n        print(\"Not on the menu\")\n\nchoice = int(input(\"Option: \"))\nmenu()\nsay(choice)",
     "tests": [
@@ -31571,7 +31571,7 @@
     "level": 9,
     "type": "write",
     "title": "Welcome",
-    "description": "Define welcome(name) that prints, for example, Welcome, Ava! Ask for a name and call welcome() with it.",
+    "description": "Welcome someone with a function.\n1. Define `welcome(name)`. It prints `Welcome,` then the name with `!` after it.\n2. Ask for a name, and call `welcome()` with it.\nExample: you type `Ava`. It calls `welcome('Ava')`. It prints `Welcome, Ava!`.",
     "starter": "# Write the whole program here",
     "solution": "def welcome(name):\n    print(\"Welcome,\", name + \"!\")\n\nwelcome(input(\"Name: \"))",
     "tests": [
@@ -31607,7 +31607,7 @@
     "level": 9,
     "type": "write",
     "title": "Square",
-    "description": "Define square(n) that prints n * n. Ask for a number, cast it to an integer, and call square() with it, for example:\n49",
+    "description": "Square a number with a function.\n1. Define `square(n)`. It prints n * n.\n2. Ask for a number. Cast it to an integer.\n3. Call `square()` with it.\nExample: you type `7`. It calls `square(7)`. It prints `49`.",
     "starter": "# Write the whole program here",
     "solution": "def square(n):\n    print(n * n)\n\nsquare(int(input(\"Number: \")))",
     "tests": [
@@ -32462,7 +32462,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Room area",
-    "description": "Arrange the lines so the program reads a length and a width (cast to integers), stores the area that area() returns, and prints it.\nTwo lines are not needed.",
+    "description": "Arrange the lines to read two sides of a rectangle, cast to integers. Store the area that area() returns, then print it.\nTwo lines are not needed.",
     "starter": "",
     "solution": "def area(length, width):\n    return length * width\nl = int(input(\"Length: \"))\nw = int(input(\"Width: \"))\na = area(l, w)\nprint(\"Area:\", a)",
     "distractors": [
@@ -32512,7 +32512,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Shout it",
-    "description": "Arrange the lines so shout() returns the text in capitals with ! on the end, and the program prints the stored result and its length.\nTwo lines are not needed.",
+    "description": "Arrange the lines so shout() returns the text in capitals with ! on the end. The program prints the stored result and its length.\nTwo lines are not needed.",
     "starter": "",
     "solution": "def shout(text):\n    return text.upper() + \"!\"\nmessage = shout(input(\"Message: \"))\nprint(message)\nprint(\"Length:\", len(message))",
     "distractors": [
@@ -32690,7 +32690,7 @@
     "level": 7,
     "type": "fill",
     "title": "Hours to minutes",
-    "description": "Write the missing line that calls minutes() with the hours typed in (cast to an integer) and stores the result in m.",
+    "description": "Write the missing line. It calls minutes() with the hours typed in, cast to an integer, and stores the result in `m`.",
     "starter": "def minutes(hours):\n    return hours * 60\n\n____\nprint(\"Minutes:\", m)",
     "solution": "def minutes(hours):\n    return hours * 60\n\nm = minutes(int(input(\"Hours: \")))\nprint(\"Minutes:\", m)",
     "answers": [
@@ -32784,7 +32784,7 @@
     "level": 8,
     "type": "write",
     "title": "Sale price",
-    "description": "Write the body of discount(price): it returns the price with 10 taken off. The price is read and cast for you, for example:\nSale price: 15",
+    "description": "Take money off a price with a function.\n1. Write the body of `discount(price)`. It returns the price with 10 taken off.\n2. The program reads the price, casts it and prints the result for you.\nExample: you type `25`. It calls `discount(25)`, which returns `15`. It prints `Sale price: 15`.",
     "starter": "def discount(price):\n    # Return the price with 10 taken off\n\nprint(\"Sale price:\", discount(int(input(\"Price: \"))))",
     "solution": "def discount(price):\n    return price - 10\n\nprint(\"Sale price:\", discount(int(input(\"Price: \"))))",
     "tests": [
@@ -32872,7 +32872,7 @@
     "level": 8,
     "type": "write",
     "title": "Initials",
-    "description": "initials() is written for you. Ask for a first and a last name, store the result of initials() in a variable, then print it in capital letters, for example:\nInitials: AK",
+    "description": "Make initials with a function.\n1. The function `initials()` is written for you.\n2. Ask for a first name, then a last name.\n3. Store the result of `initials()` in a variable.\n4. Print `Initials:` and then the result in capital letters.\nExample: you type `ava` then `khan`. It calls `initials('ava', 'khan')`, which returns `'ak'`. It prints `Initials: AK`.",
     "starter": "def initials(first, last):\n    return first[0] + last[0]\n\n# Ask for the two names, store the result of initials(), then print it in capitals",
     "solution": "def initials(first, last):\n    return first[0] + last[0]\n\na = input(\"First name: \")\nb = input(\"Last name: \")\nresult = initials(a, b)\nprint(\"Initials:\", result.upper())",
     "tests": [
@@ -32917,7 +32917,7 @@
     "level": 8,
     "type": "write",
     "title": "Teenager?",
-    "description": "The rest is written for you. Define is_teen(age): it returns True if age is from 13 to 19, and False otherwise, for example:\nTeen: True",
+    "description": "Check whether someone is a teenager.\n1. The program reads the age, casts it and prints the result for you.\n2. Define `is_teen(age)`. It returns True if age is from 13 to 19, and False otherwise.\nExample: you type `12`. It calls `is_teen(12)`, which returns `False`. It prints `Teen: False`.",
     "starter": "# Define is_teen(age) here\n\nage = int(input(\"Age: \"))\nprint(\"Teen:\", is_teen(age))",
     "solution": "def is_teen(age):\n    return age >= 13 and age <= 19\n\nage = int(input(\"Age: \"))\nprint(\"Teen:\", is_teen(age))",
     "tests": [
@@ -32973,7 +32973,7 @@
     "level": 9,
     "type": "write",
     "title": "Race time",
-    "description": "Define seconds(mins, secs) that returns the whole time in seconds. Ask for the minutes and the seconds (cast both to integers), store the result and print it, for example:\nTotal seconds: 135",
+    "description": "Turn minutes and seconds into seconds.\n1. Define `seconds(mins, secs)`. It returns the whole time in seconds.\n2. Ask for the minutes, then the seconds. Cast both to integers.\n3. Store the result of `seconds()`.\n4. Print `Total seconds:` and then the result.\nExample: you type `2` then `15`. It calls `seconds(2, 15)`, which returns `135`. It prints `Total seconds: 135`.",
     "starter": "# Write your program here",
     "solution": "def seconds(mins, secs):\n    return mins * 60 + secs\n\nm = int(input(\"Minutes: \"))\ns = int(input(\"Seconds: \"))\ntotal = seconds(m, s)\nprint(\"Total seconds:\", total)",
     "tests": [
@@ -33047,7 +33047,7 @@
     "level": 9,
     "type": "write",
     "title": "Biggest of three",
-    "description": "Define biggest(a, b, c) that returns the biggest of the three numbers, using if and elif. Ask for three numbers (cast each to an integer) and print the result, for example:\nBiggest: 9",
+    "description": "Find the biggest of three numbers with a function.\n1. Define `biggest(a, b, c)`. It returns the biggest of the three numbers, using if and elif.\n2. Ask for three numbers. Cast each one to an integer.\n3. Print `Biggest:` and then the result.\nExample: you type `9` then `4` then `2`. It calls `biggest(9, 4, 2)`, which returns `9`. It prints `Biggest: 9`.\nExample: you type `3` then `10` then `5`. It calls `biggest(3, 10, 5)`, which returns `10`. It prints `Biggest: 10`.\nExample: you type `1` then `2` then `5`. It calls `biggest(1, 2, 5)`, which returns `5`. It prints `Biggest: 5`.\nExample: you type `5` then `5` then `5`. It calls `biggest(5, 5, 5)`, which returns `5`. It prints `Biggest: 5`.",
     "starter": "# Write your program here",
     "solution": "def biggest(a, b, c):\n    if a >= b and a >= c:\n        return a\n    elif b >= c:\n        return b\n    else:\n        return c\n\nx = int(input(\"First: \"))\ny = int(input(\"Second: \"))\nz = int(input(\"Third: \"))\nprint(\"Biggest:\", biggest(x, y, z))",
     "tests": [
@@ -33135,7 +33135,7 @@
     "level": 9,
     "type": "write",
     "title": "Make a code",
-    "description": "Define make_code(name, year) that returns the first 3 letters of the name in capitals, followed by the year, for example AVA2024. Ask for a name and a year, store the result, then print it and its length, for example:\nCode: AVA2024\nLength: 7",
+    "description": "Make a code with a function.\n1. Define `make_code(name, year)`. It returns the first 3 letters of the name in capitals, then the year.\n2. Ask for a name, then a year. Store the result of `make_code()`.\n3. Print `Code:` and then the code.\n4. Print `Length:` and then its length.\nExample: you type `Ava` then `2024`. It calls `make_code('Ava', '2024')`, which returns `'AVA2024'`. It prints `Code: AVA2024` then `Length: 7`.",
     "starter": "# Write your program here",
     "solution": "def make_code(name, year):\n    return name[0:3].upper() + year\n\nname = input(\"Name: \")\nyear = input(\"Year: \")\ncode = make_code(name, year)\nprint(\"Code:\", code)\nprint(\"Length:\", len(code))",
     "tests": [
@@ -33208,7 +33208,7 @@
     "level": 10,
     "type": "write",
     "title": "Total and mean",
-    "description": "Define total(numbers) that adds up a list with a loop and returns the sum. Ask how many numbers (cast it), read each one (cast it) into a list, then print the total and the mean, using the returned total, for example:\nTotal: 12\nMean: 4.0",
+    "description": "Add up a list with a function.\n1. Define `total(numbers)`. It adds up a list with a loop and returns the sum.\n2. Ask how many numbers there are, then read each one into a list. Cast every input to an integer.\n3. Print `Total:` and then the total that `total()` returns.\n4. Print `Mean:` and then the mean, using that total.\nExample: you type `3` then `2` then `4` then `6`. It calls `total([2, 4, 6])`, which returns `12`. It prints `Total: 12` then `Mean: 4.0`.",
     "starter": "# Write your program here",
     "solution": "def total(numbers):\n    t = 0\n    for n in numbers:\n        t = t + n\n    return t\n\nhow_many = int(input(\"How many? \"))\nnums = []\nfor i in range(how_many):\n    nums.append(int(input(\"Number: \")))\nsum_of = total(nums)\nprint(\"Total:\", sum_of)\nprint(\"Mean:\", sum_of / len(nums))",
     "tests": [
@@ -33289,7 +33289,7 @@
     "level": 10,
     "type": "write",
     "title": "Grades",
-    "description": "Define grade(mark) that returns A for 70 or more, B for 50 or more, and C otherwise. Then define describe(name, mark) that prints the name and the grade, by calling grade(). Ask for 3 names and marks (cast each mark) and call describe() for each, for example:\nAva A",
+    "description": "Grade some marks with two functions.\n1. Define `grade(mark)`. It returns `A` for 70 or more, `B` for 50 or more, and `C` otherwise.\n2. Define `describe(name, mark)`. It prints the name and the grade, by calling `grade()`.\n3. Ask for 3 names and marks, one at a time. Cast each mark to an integer.\n4. Call `describe()` for each pupil.\nExample: you type `Ava` then `75` then `Ben` then `50` then `Cal` then `20`. It calls `describe('Ava', 75)`, then `describe('Ben', 50)`, and so on. It prints `Ava A` then `Ben B` then `Cal C`.",
     "starter": "# Write your program here",
     "solution": "def grade(mark):\n    if mark >= 70:\n        return \"A\"\n    elif mark >= 50:\n        return \"B\"\n    return \"C\"\n\ndef describe(name, mark):\n    print(name, grade(mark))\n\nfor i in range(3):\n    name = input(\"Name: \")\n    mark = int(input(\"Mark: \"))\n    describe(name, mark)",
     "tests": [
@@ -33360,7 +33360,7 @@
     "level": 10,
     "type": "write",
     "title": "Member price",
-    "description": "Define apply_discount(price, member) that returns price - 5 if member is True, and price otherwise. Ask for a price in whole pounds (cast it) and whether they are a member (True only for yes). Store the result back in price, then print it, for example:\nYou pay (£): 15",
+    "description": "Apply a member discount with a function.\n1. Define `apply_discount(price, member)`. It returns the price minus 5 if member is True, and the price otherwise.\n2. Ask for a price in whole pounds. Cast it to an integer.\n3. Ask whether they are a member: `yes` or `no`. Store a Boolean that is True only for `yes`.\n4. Store the result back in `price`. Print `You pay (£):` and then the price.\nExample: you type `20` then `yes`. It calls `apply_discount(20, True)`, which returns `15`. It prints `You pay (£): 15`.\nExample: you type `21` then `no`. It calls `apply_discount(21, False)`, which returns `21`. It prints `You pay (£): 21`.",
     "starter": "# Write your program here",
     "solution": "def apply_discount(price, member):\n    if member:\n        return price - 5\n    return price\n\nprice = int(input(\"Price (£): \"))\nmember = input(\"Member? (yes/no): \") == \"yes\"\nprice = apply_discount(price, member)\nprint(\"You pay (£):\", price)",
     "tests": [
@@ -33650,7 +33650,7 @@
     "level": 9,
     "type": "write",
     "title": "Add two numbers",
-    "description": "Define add(a, b) that returns a + b. Ask for two numbers (cast each to an integer), store the result and print it, for example:\nSum: 12",
+    "description": "Add two numbers with a function.\n1. Define `add(a, b)`. It returns a + b.\n2. Ask for two numbers. Cast each one to an integer.\n3. Store the result, then print `Sum:` and the result.\nExample: you type `5` then `7`. It calls `add(5, 7)`, which returns `12`. It prints `Sum: 12`.",
     "starter": "# Write the whole program here",
     "solution": "def add(a, b):\n    return a + b\n\nx = int(input(\"First: \"))\ny = int(input(\"Second: \"))\nresult = add(x, y)\nprint(\"Sum:\", result)",
     "tests": [
@@ -33688,7 +33688,7 @@
     "level": 9,
     "type": "write",
     "title": "Shout",
-    "description": "Define shout(word) that returns the word in capitals with ! after it. Ask for a word and print the result, for example:\nHELLO!",
+    "description": "Shout a word with a function.\n1. Define `shout(word)`. It returns the word in capitals with `!` after it.\n2. Ask for a word, and print the result.\nExample: you type `hello`. It calls `shout('hello')`, which returns `'HELLO!'`. It prints `HELLO!`.",
     "starter": "# Write the whole program here",
     "solution": "def shout(word):\n    return word.upper() + \"!\"\n\nprint(shout(input(\"Word: \")))",
     "tests": [
@@ -34428,7 +34428,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Add to the log",
-    "description": "Arrange the lines so the program starts a log, adds an event to the end of it, then prints the whole log.\nOne line is not needed.",
+    "description": "Arrange the lines to start a log, add an event to the end of it, then print the whole log.\nOne line is not needed.",
     "starter": "",
     "solution": "with open(\"log.txt\", \"w\") as file:\n    file.write(\"Start\\n\")\nwith open(\"log.txt\", \"a\") as file:\n    file.write(input(\"Event: \") + \"\\n\")\nwith open(\"log.txt\", \"r\") as file:\n    print(file.read())",
     "distractors": [
@@ -34541,7 +34541,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Score total",
-    "description": "Arrange the lines so the program saves 3 scores, one per line, then reads them back, casts each line to an integer and adds them up.\nTwo lines are not needed.",
+    "description": "Arrange the lines to save 3 scores, one per line, then read them back. Each line is cast to an integer and added up.\nTwo lines are not needed.",
     "starter": "",
     "solution": "with open(\"scores.txt\", \"w\") as file:\n    for i in range(3):\n        file.write(input(\"Score: \") + \"\\n\")\ntotal = 0\nwith open(\"scores.txt\", \"r\") as file:\n    for line in file:\n        total = total + int(line)\nprint(\"Total:\", total)",
     "distractors": [
@@ -34610,7 +34610,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Swap them",
-    "description": "Arrange the lines so the program saves two words, reads them back one line at a time, and prints them the other way round.\nTwo lines are not needed.",
+    "description": "Arrange the lines to save two words, then read them back one line at a time. The program prints them the other way round.\nTwo lines are not needed.",
     "starter": "",
     "solution": "with open(\"pair.txt\", \"w\") as file:\n    file.write(input(\"First: \") + \"\\n\")\n    file.write(input(\"Second: \") + \"\\n\")\nwith open(\"pair.txt\", \"r\") as file:\n    a = file.readline().strip()\n    b = file.readline().strip()\nprint(b, \"then\", a)",
     "distractors": [
@@ -34859,7 +34859,7 @@
     "level": 8,
     "type": "fill",
     "title": "Two names",
-    "description": "Write the two missing lines: open names.txt to write, then open it again to read, both with with open(...) as file:",
+    "description": "Write the two missing lines. Open names.txt to write, then open it again to read, both with `with open(...) as file:`.",
     "starter": "____\n    file.write(input(\"Name: \") + \"\\n\")\n    file.write(input(\"Name: \") + \"\\n\")\n____\n    names = file.read()\nprint(names)",
     "solution": "with open(\"names.txt\", \"w\") as file:\n    file.write(input(\"Name: \") + \"\\n\")\n    file.write(input(\"Name: \") + \"\\n\")\nwith open(\"names.txt\", \"r\") as file:\n    names = file.read()\nprint(names)",
     "answers": [
@@ -34909,7 +34909,7 @@
     "level": 8,
     "type": "fill",
     "title": "Shopping list",
-    "description": "Write the two missing lines: write the item typed in, on its own line, then print each line of the file with a dash before it, for example:\n- milk\n- pens",
+    "description": "Write the two missing lines. Save the item typed in on its own line, then print each line of the file after a dash.\nExample: you type `milk`. It prints `- milk` then `- pens`.",
     "starter": "with open(\"shop.txt\", \"w\") as file:\n    ____\n    file.write(\"pens\\n\")\nwith open(\"shop.txt\", \"r\") as file:\n    for line in file:\n        ____",
     "solution": "with open(\"shop.txt\", \"w\") as file:\n    file.write(input(\"Item: \") + \"\\n\")\n    file.write(\"pens\\n\")\nwith open(\"shop.txt\", \"r\") as file:\n    for line in file:\n        print(\"-\", line.strip())",
     "answers": [
@@ -34974,7 +34974,7 @@
     "level": 8,
     "type": "fill",
     "title": "Save a total",
-    "description": "This program uses open() and close(). Write the two missing lines: write a + b to the file (cast it to text with str()), then read the file back into total. The inputs are cast to integers.",
+    "description": "This program uses open() and close(), and the inputs are cast to integers. Write the two missing lines: save a + b as text with str(), then read it back into `total`.",
     "starter": "a = int(input(\"A: \"))\nb = int(input(\"B: \"))\nfile = open(\"total.txt\", \"w\")\n____\nfile.close()\nfile = open(\"total.txt\", \"r\")\n____\nfile.close()\nprint(\"Saved total:\", total)",
     "solution": "a = int(input(\"A: \"))\nb = int(input(\"B: \"))\nfile = open(\"total.txt\", \"w\")\nfile.write(str(a + b))\nfile.close()\nfile = open(\"total.txt\", \"r\")\ntotal = file.read()\nfile.close()\nprint(\"Saved total:\", total)",
     "answers": [
@@ -35025,7 +35025,7 @@
     "level": 9,
     "type": "parsons",
     "title": "Class list",
-    "description": "Arrange the lines so the program adds a new pupil to the list, writes every name to the file on its own line, then says hello to each one.\nTwo lines are not needed.",
+    "description": "Arrange the lines to add a pupil to the list, then save each name on its own line. Then the program says hello to each one.\nTwo lines are not needed.",
     "starter": "",
     "solution": "names = [\"Ava\", \"Ben\", \"Cal\"]\nnames.append(input(\"New pupil: \"))\nwith open(\"class.txt\", \"w\") as file:\n    for name in names:\n        file.write(name + \"\\n\")\nwith open(\"class.txt\", \"r\") as file:\n    for line in file:\n        print(\"Hello\", line.strip())",
     "distractors": [
@@ -35089,7 +35089,7 @@
     "level": 9,
     "type": "parsons",
     "title": "High score",
-    "description": "Arrange the lines so the program saves a high score of 50, reads it back as a number, and keeps the player's score if it is higher. The inputs are cast to integers.\nTwo lines are not needed.",
+    "description": "Arrange the lines to save a high score of 50, then read it back as a number. Keep the player's score if it is higher; the inputs are cast to integers.\nTwo lines are not needed.",
     "starter": "",
     "solution": "score = int(input(\"Your score: \"))\nwith open(\"high.txt\", \"w\") as file:\n    file.write(\"50\")\nwith open(\"high.txt\", \"r\") as file:\n    high = int(file.read())\nif score > high:\n    high = score\nprint(\"High score:\", high)",
     "distractors": [
@@ -35207,7 +35207,7 @@
     "level": 10,
     "type": "parsons",
     "title": "Shopping app",
-    "description": "Arrange the lines so the program saves items until the user types done, then reads the file back, numbering each item, and prints how many there are.\nTwo lines are not needed.",
+    "description": "Arrange the lines to save items until the user types `done`. Then read the file back, numbering each item, and print how many there are.\nTwo lines are not needed.",
     "starter": "",
     "solution": "with open(\"shopping.txt\", \"w\") as file:\n    item = input(\"Item (or done): \")\n    while item != \"done\":\n        file.write(item + \"\\n\")\n        item = input(\"Item (or done): \")\ncount = 0\nwith open(\"shopping.txt\", \"r\") as file:\n    for line in file:\n        count = count + 1\n        print(count, line.strip())\nprint(\"Items:\", count)",
     "distractors": [
@@ -35288,7 +35288,7 @@
     "level": 10,
     "type": "parsons",
     "title": "Save a player",
-    "description": "Arrange the lines so the program saves a player's name and level on two lines, reads them back one line at a time (casting the level to an integer), and prints the next level.\nTwo lines are not needed.",
+    "description": "Arrange the lines to save a player's name and level on two lines. Then read them back one line at a time, cast the level to an integer and print the next level.\nTwo lines are not needed.",
     "starter": "",
     "solution": "with open(\"player.txt\", \"w\") as file:\n    file.write(input(\"Name: \") + \"\\n\")\n    file.write(input(\"Level: \") + \"\\n\")\nwith open(\"player.txt\", \"r\") as file:\n    name = file.readline().strip()\n    level = int(file.readline())\nprint(name, \"is on level\", level)\nprint(\"Next level:\", level + 1)",
     "distractors": [
@@ -35355,7 +35355,7 @@
     "level": 10,
     "type": "parsons",
     "title": "Two sessions",
-    "description": "Arrange the lines so the program writes Session 1, adds a note for session 2 to the end, then prints every line and how many lines there are.\nTwo lines are not needed.",
+    "description": "Arrange the lines to write `Session 1`, then add a note for session 2 to the end. Then print every line and how many lines there are.\nTwo lines are not needed.",
     "starter": "",
     "solution": "with open(\"log.txt\", \"w\") as file:\n    file.write(\"Session 1\\n\")\nwith open(\"log.txt\", \"a\") as file:\n    file.write(input(\"Session 2 note: \") + \"\\n\")\nlines = 0\nwith open(\"log.txt\", \"r\") as file:\n    for line in file:\n        lines = lines + 1\n        print(line.strip())\nprint(\"Lines:\", lines)",
     "distractors": [
@@ -35595,7 +35595,7 @@
     "level": 7,
     "type": "fill",
     "title": "Write a line",
-    "description": "Write the missing line that writes the pet typed in for input(\"Pet: \") to the file, followed by a new line.",
+    "description": "Write the missing line. It writes the pet typed in for input(\"Pet: \") to the file, followed by a new line.",
     "starter": "with open(\"pet.txt\", \"w\") as file:\n    ____\nwith open(\"pet.txt\", \"r\") as file:\n    print(file.read())",
     "solution": "with open(\"pet.txt\", \"w\") as file:\n    file.write(input(\"Pet: \") + \"\\n\")\nwith open(\"pet.txt\", \"r\") as file:\n    print(file.read())",
     "answers": [
@@ -35634,7 +35634,7 @@
     "level": 9,
     "type": "parsons",
     "title": "Two lines back",
-    "description": "Arrange the lines so the program saves a first and a last name on two lines, then reads them back one line at a time and prints them together.\nTwo lines are not needed.",
+    "description": "Arrange the lines to save a first and a last name on two lines. Then read them back one line at a time and print them together.\nTwo lines are not needed.",
     "starter": "",
     "solution": "with open(\"name.txt\", \"w\") as file:\n    file.write(input(\"First: \") + \"\\n\")\n    file.write(input(\"Last: \") + \"\\n\")\nwith open(\"name.txt\", \"r\") as file:\n    first = file.readline().strip()\n    last = file.readline().strip()\nprint(first, last)",
     "distractors": [
@@ -36586,7 +36586,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Every position",
-    "description": "Arrange the lines so the program prints the row, the column and the item for every position, using len() for the number of rows and columns.\nTwo lines are not needed.",
+    "description": "Arrange the lines to print the row, the column and the item for every position. Use len() for the number of rows and columns.\nTwo lines are not needed.",
     "starter": "",
     "solution": "grid = [[\"a\", \"b\", \"c\"], [\"d\", \"e\", \"f\"]]\nfor r in range(len(grid)):\n    for c in range(len(grid[0])):\n        print(r, c, grid[r][c])",
     "distractors": [
@@ -36825,7 +36825,7 @@
     "level": 8,
     "type": "write",
     "title": "Biggest number",
-    "description": "The grid is made for you, and its middle value is read and cast to an integer. Use a nested loop to find the biggest number, then print it, for example:\nBiggest: 20",
+    "description": "Find the biggest number in a grid.\n1. The grid is made for you. Its middle value is read and cast to an integer for you.\n2. Use a nested loop to find the biggest number.\n3. Print `Biggest:` and then the biggest number.\nExample: you type `20`. It prints `Biggest: 20`.",
     "starter": "grid = [[3, 8, 1], [9, 4, 7]]\ngrid[1][1] = int(input(\"New middle value: \"))\n# Use a nested loop to find the biggest number, then print it",
     "solution": "grid = [[3, 8, 1], [9, 4, 7]]\ngrid[1][1] = int(input(\"New middle value: \"))\nbiggest = grid[0][0]\nfor row in grid:\n    for n in row:\n        if n > biggest:\n            biggest = n\nprint(\"Biggest:\", biggest)",
     "tests": [
@@ -36872,7 +36872,7 @@
     "level": 8,
     "type": "write",
     "title": "Find a seat",
-    "description": "The seating plan and the name are made for you. Use a nested loop with range(len(...)) to find the name, then print its row and column, or Not found, for example:\nRow 1 Column 2",
+    "description": "Find a name in a seating plan.\n1. The seating plan and the name are made for you.\n2. Use a nested loop with range(len(...)) to find the name.\n3. Print `Row`, its row, `Column`, then its column. If the name isn't there, print `Not found`.\nExample: you type `Fin`. It prints `Row 1 Column 2`.\nExample: you type `fin`. It prints `Not found`.",
     "starter": "seats = [[\"Ava\", \"Ben\", \"Cal\"], [\"Dev\", \"Eve\", \"Fin\"]]\nname = input(\"Name: \")\n# Find the name: print its row and column, or Not found",
     "solution": "seats = [[\"Ava\", \"Ben\", \"Cal\"], [\"Dev\", \"Eve\", \"Fin\"]]\nname = input(\"Name: \")\nfound = False\nfor r in range(len(seats)):\n    for c in range(len(seats[r])):\n        if seats[r][c] == name:\n            print(\"Row\", r, \"Column\", c)\n            found = True\nif not found:\n    print(\"Not found\")",
     "tests": [
@@ -36942,7 +36942,7 @@
     "level": 8,
     "type": "write",
     "title": "Print the grid",
-    "description": "The grid is made for you, and its first number is read and cast for you. Print each row on its own line, with the numbers separated by spaces, using a nested loop, for example:\n7 2 3\n4 5 6",
+    "description": "Print a grid one row per line.\n1. The grid is made for you. Its first number is read and cast for you.\n2. Use a nested loop to print each row on its own line.\n3. Separate the numbers with spaces.\nExample: you type `7`. It prints `7 2 3` then `4 5 6`.",
     "starter": "grid = [[1, 2, 3], [4, 5, 6]]\ngrid[0][0] = int(input(\"First number: \"))\n# Print each row on one line, with spaces between the numbers",
     "solution": "grid = [[1, 2, 3], [4, 5, 6]]\ngrid[0][0] = int(input(\"First number: \"))\nfor row in grid:\n    for n in row:\n        print(n, end=\" \")\n    print()",
     "tests": [
@@ -36984,7 +36984,7 @@
     "level": 9,
     "type": "write",
     "title": "Place an X",
-    "description": "Make a 3 by 3 grid of \".\" as a list of lists. Ask for a row and a column (cast both to integers), put \"X\" there, then print each row with its three cells separated by spaces, for example:\n. . .\n. . X\n. . .",
+    "description": "Put an X on a grid.\n1. Make a 3 by 3 grid of `.` as a list of lists.\n2. Ask for a row, then a column. Cast both to integers.\n3. Put `X` there.\n4. Print each row with its three cells separated by spaces.\nExample: you type `1` then `2`. It prints `. . .` then `. . X` then `. . .`.",
     "starter": "# Write your program here",
     "solution": "grid = [[\".\", \".\", \".\"], [\".\", \".\", \".\"], [\".\", \".\", \".\"]]\nr = int(input(\"Row: \"))\nc = int(input(\"Column: \"))\ngrid[r][c] = \"X\"\nfor row in grid:\n    print(row[0], row[1], row[2])",
     "tests": [
@@ -37057,7 +37057,7 @@
     "level": 9,
     "type": "write",
     "title": "Marks table",
-    "description": "Read the marks for 2 pupils, 3 tests each (cast each one), building a list of lists with a nested loop: append each mark to a row, then each row to marks. Then print each pupil's total, for example:\nTotal: 21\nTotal: 14",
+    "description": "Total the marks for two pupils.\n1. Read the marks for 2 pupils, 3 tests each. Cast each mark to an integer.\n2. Build a list of lists with a nested loop: append each mark to a row, then each row to `marks`.\n3. Print `Total:` and then each pupil's total, one per line.\nExample: you type `7` then `8` then `6` then `5` then `4` then `5`. It prints `Total: 21` then `Total: 14`.",
     "starter": "# Write your program here",
     "solution": "marks = []\nfor p in range(2):\n    row = []\n    for t in range(3):\n        row.append(int(input(\"Mark: \")))\n    marks.append(row)\nfor row in marks:\n    total = 0\n    for m in row:\n        total = total + m\n    print(\"Total:\", total)",
     "tests": [
@@ -37111,7 +37111,7 @@
     "level": 9,
     "type": "write",
     "title": "Column total",
-    "description": "Use the grid [[2, 5, 1], [4, 3, 6], [7, 8, 9]]. Ask for a column number (cast it to an integer). Add up that column with a loop over the rows, then print the total and the number of rows, for example:\nColumn total: 16\nRows: 3",
+    "description": "Use the grid `[[2, 5, 1], [4, 3, 6], [7, 8, 9]]`.\n1. Ask for a column number. Cast it to an integer.\n2. Add up that column with a loop over the rows.\n3. Print `Column total:` and then the total.\n4. Print `Rows:` and then the number of rows.\nExample: you type `1`. It prints `Column total: 16` then `Rows: 3`.",
     "starter": "# Write your program here",
     "solution": "grid = [[2, 5, 1], [4, 3, 6], [7, 8, 9]]\nc = int(input(\"Column: \"))\ntotal = 0\nfor row in grid:\n    total = total + row[c]\nprint(\"Column total:\", total)\nprint(\"Rows:\", len(grid))",
     "tests": [
@@ -37181,7 +37181,7 @@
     "level": 10,
     "type": "write",
     "title": "Check a row",
-    "description": "Use the board [[\"X\", \"O\", \"X\"], [\"O\", \"X\", \"O\"], [\"X\", \"X\", \"X\"]]. Print it, one row per line with spaces between. Then ask for a row (cast it) and print whether all three cells in that row are the same, for example:\nRow 2 is all X\nor\nRow 0 is mixed",
+    "description": "Use the board `[[\"X\", \"O\", \"X\"], [\"O\", \"X\", \"O\"], [\"X\", \"X\", \"X\"]]`.\n1. Print the board, one row per line, with spaces between the cells.\n2. Ask for a row. Cast it to an integer.\n3. If all three cells in that row are the same, print `Row`, the row, `is all`, then the letter.\n4. Otherwise, print `Row`, the row, then `is mixed`.\nExample: you type `2`. It prints `X O X` then `O X O` then `X X X` then `Row 2 is all X`.",
     "starter": "# Write your program here",
     "solution": "board = [[\"X\", \"O\", \"X\"], [\"O\", \"X\", \"O\"], [\"X\", \"X\", \"X\"]]\nfor row in board:\n    print(row[0], row[1], row[2])\nr = int(input(\"Row to check: \"))\nif board[r][0] == board[r][1] and board[r][1] == board[r][2]:\n    print(\"Row\", r, \"is all\", board[r][0])\nelse:\n    print(\"Row\", r, \"is mixed\")",
     "tests": [
@@ -37251,7 +37251,7 @@
     "level": 10,
     "type": "write",
     "title": "Seating plan",
-    "description": "Ask for the number of rows and seats per row (cast both). Build a list of lists of \"-\" with a nested loop and append(). Ask for a row and seat (cast both) and put \"A\" there. Then print each row as one line, built from its cells, for example:\n---\n-A-",
+    "description": "Book a seat on a plan.\n1. Ask for the number of rows, then the seats per row. Cast both to integers.\n2. Build a list of lists of `-` with a nested loop and append().\n3. Ask for a row, then a seat. Cast both, and put `A` there.\n4. Print each row as one line, built from its cells.\nExample: you type `2` then `3` then `1` then `1`. It prints `---` then `-A-`.",
     "starter": "# Write your program here",
     "solution": "rows = int(input(\"Rows: \"))\ncols = int(input(\"Seats per row: \"))\nplan = []\nfor r in range(rows):\n    row = []\n    for c in range(cols):\n        row.append(\"-\")\n    plan.append(row)\nr = int(input(\"Row: \"))\nc = int(input(\"Seat: \"))\nplan[r][c] = \"A\"\nfor row in plan:\n    line = \"\"\n    for cell in row:\n        line = line + cell\n    print(line)",
     "tests": [
@@ -37311,7 +37311,7 @@
     "level": 10,
     "type": "write",
     "title": "Hottest reading",
-    "description": "Use temps = [[12, 15, 11], [14, 16, 19]]: each row is a day, each column a time. Ask for a new first reading (cast it) and put it in temps[0][0]. Use a nested loop with range(len(...)) to find the highest reading and its position, then print, for example:\nHighest: 19 at row 1 column 2",
+    "description": "Find the highest temperature.\n1. Use `temps = [[12, 15, 11], [14, 16, 19]]`. Each row is a day, and each column is a time.\n2. Ask for a new first reading. Cast it to an integer and put it in `temps[0][0]`.\n3. Use a nested loop with range(len(...)) to find the highest reading and its position. If two are equal, keep the first one.\n4. Print `Highest:`, the reading, `at row`, the row, `column`, then the column.\nExample: you type `10`. It prints `Highest: 19 at row 1 column 2`.\nExample: you type `26`. It prints `Highest: 26 at row 0 column 0`.",
     "starter": "# Write your program here",
     "solution": "temps = [[12, 15, 11], [14, 16, 19]]\ntemps[0][0] = int(input(\"First reading: \"))\nbest_r = 0\nbest_c = 0\nfor r in range(len(temps)):\n    for c in range(len(temps[r])):\n        if temps[r][c] > temps[best_r][best_c]:\n            best_r = r\n            best_c = c\nprint(\"Highest:\", temps[best_r][best_c], \"at row\", best_r, \"column\", best_c)",
     "tests": [
@@ -37581,7 +37581,7 @@
     "level": 9,
     "type": "write",
     "title": "Grid total",
-    "description": "Use grid = [[4, 2], [5, 1]], with its first number replaced by one typed in (cast it to an integer). Add up every number with a nested loop and print the total, for example:\nTotal: 18",
+    "description": "Add up a grid.\n1. Use `grid = [[4, 2], [5, 1]]`.\n2. Replace its first number with one typed in. Cast it to an integer.\n3. Add up every number with a nested loop.\n4. Print `Total:` and then the total.\nExample: you type `10`. It prints `Total: 18`.",
     "starter": "# Write the whole program here",
     "solution": "grid = [[4, 2], [5, 1]]\ngrid[0][0] = int(input(\"First number: \"))\ntotal = 0\nfor row in grid:\n    for n in row:\n        total = total + n\nprint(\"Total:\", total)",
     "tests": [
@@ -37616,7 +37616,7 @@
     "level": 9,
     "type": "write",
     "title": "Show a cell",
-    "description": "Use grid = [[\"a\", \"b\", \"c\"], [\"d\", \"e\", \"f\"]]. Ask for a row and a column (cast both) and print the item there, for example:\nItem: f",
+    "description": "Look up an item in a grid.\n1. Use `grid = [[\"a\", \"b\", \"c\"], [\"d\", \"e\", \"f\"]]`.\n2. Ask for a row, then a column. Cast both to integers.\n3. Print `Item:` and then the item there.\nExample: you type `1` then `2`. It prints `Item: f`.",
     "starter": "# Write the whole program here",
     "solution": "grid = [[\"a\", \"b\", \"c\"], [\"d\", \"e\", \"f\"]]\nr = int(input(\"Row: \"))\nc = int(input(\"Column: \"))\nprint(\"Item:\", grid[r][c])",
     "tests": [
