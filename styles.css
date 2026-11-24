@@ -268,6 +268,10 @@ button.danger { background: var(--fail); border-color: var(--fail); color: var(-
 .task-card h2 { margin: 0 0 .25rem; font-size: 1.5rem; }
 .meta { color: var(--muted); margin: 0 0 .75rem; font-size: .9rem; }
 .description { font-size: 1.05rem; white-space: pre-line; }
+/* A `code span` in a task description (prompt 31): text the program prints or the user types. Every space is kept
+   exactly (pre-wrap, so a long one still wraps on a phone instead of scrolling sideways). */
+.description code { font-family: Consolas, "Cascadia Mono", "Courier New", monospace; font-size: .95em; white-space: pre-wrap; overflow-wrap: anywhere;
+  background: var(--code-bg); border: 1px solid var(--border); border-radius: 4px; padding: 0 .3em; }
 .small { font-size: .9rem; color: var(--muted); }
 
 /* ---------- Code ---------- */

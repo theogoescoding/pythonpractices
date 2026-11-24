@@ -233,6 +233,7 @@
       // Values drawn for the tests (testParams) are parameters too.
       if (tpl.test) task.fingerprint += "|" + JSON.stringify(task.tests.map((t) => t.inputs));
     }
+    fillExampleMarkers(task); // [[out:…]] and [[in:…]] from this variant's own tests (prompt 31)
     return task;
   }
 
@@ -483,11 +484,30 @@
     return { task, jobs, parts };
   }
 
+  // Example markers in a text field, filled from the variant's own tests (tests are counted from 0, so test 0 is the
+  // visible example test, "test 1" to a student):
+  //   [[out:k]] test k's expected output, [[out:k:j]] its line j
+  //   [[in:k:j]] test k's input j, as typed
+  //   [[in:k]] all of test k's inputs, for an example line written `[[in:k]]`: each input ends up in its own code span,
+  //   joined by "then" (`4` then `yes` then `no`), however many inputs the variant has
+  //   [[outs:k]] the same for test k's printed lines, written `[[outs:k]]` (a variant's example test can take a
+  //   different branch, so its number of printed lines can change)
+  // Derived templates (completeDerived) and, since prompt 31, hand-made templates (build) both fill them.
   function fillOutputs(text, tests) {
-    return String(text).replace(/\[\[out:(\d+)(?::(\d+))?\]\]/g, (m, k, j) => {
+    return String(text).replace(/\[\[outs:(\d+)\]\]/g, (m, k) => (tests[+k] ? Checker.normalise(tests[+k].expected).split("\n").join("` then `") : ""))
+      .replace(/\[\[out:(\d+)(?::(\d+))?\]\]/g, (m, k, j) => {
       const out = tests[+k] ? tests[+k].expected : "";
       return j == null ? out : (out.split("\n")[+j] || "");
+    }).replace(/\[\[in:(\d+)(?::(\d+))?\]\]/g, (m, k, j) => {
+      const inputs = tests[+k] ? tests[+k].inputs : [];
+      return j == null ? inputs.join("` then `") : (inputs[+j] == null ? "" : inputs[+j]);
     });
+  }
+  // A hand-made variant's text fields once its tests are made (the same fields completeDerived fills).
+  function fillExampleMarkers(task) {
+    task.description = fillOutputs(task.description, task.tests);
+    task.hints = task.hints.map((h) => fillOutputs(h, task.tests));
+    if (task.explainer) task.explainer = fillOutputs(task.explainer, task.tests);
   }
 
   // Fills in the results; returns the finished task, or null if this draw isn't a valid variant.
@@ -559,9 +579,7 @@
         if (!task.buggy_variants.length) delete task.buggy_variants;
       }
     }
-    task.description = fillOutputs(task.description, task.tests);
-    task.hints = task.hints.map((h) => fillOutputs(h, task.tests));
-    if (task.explainer) task.explainer = fillOutputs(task.explainer, task.tests);
+    fillExampleMarkers(task);
     return task;
   }
 
@@ -629,5 +647,5 @@
 
   const randomSeed = (rand) => Math.floor((rand || Math.random)() * 2147483647) + 1;
 
-  return { expand, realise, realiseSync, realiseMany, fingerprint, fingerprintOf, mutate, signature, randomSeed, fillText, HELPERS, mulberry32, MAX_LINES };
+  return { expand, realise, realiseSync, realiseMany, fingerprint, fingerprintOf, mutate, signature, randomSeed, fillText, fillOutputs, HELPERS, mulberry32, MAX_LINES };
 });

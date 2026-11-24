@@ -7425,7 +7425,7 @@
         ]
       }
     },
-    "description": "Make a card for the {{club}}. Ask for a pupil's name, their age (a whole number) and their height in metres (a real number). Cast each number to the right type. Print, for example:\nName: Ava\nAge next year: 13\nHeight (cm): 152",
+    "description": "Make a card for the {{club}}.\n1. Ask for a pupil's name. It stays as text.\n2. Ask for their age, as a whole number. Cast it to the right type.\n3. Ask for their height in metres, as a real number. Cast it to the right type.\n4. Print `Name:` and then the name.\n5. Print `Age next year:` and then the age plus 1.\n6. Print `Height (cm):` and then the height in centimetres, rounded to a whole number.\nExample: you type `[[in:0:0]]` then `[[in:0:1]]` then `[[in:0:2]]`. It prints `[[out:0:0]]` then `[[out:0:1]]` then `[[out:0:2]]`.",
     "starter": "# Write your program here",
     "solution": "name = input(\"Name: \")\nage = int(input(\"Age: \"))\nheight = float(input(\"Height (m): \"))\nprint(\"Name:\", name)\nprint(\"Age next year:\", age + 1)\nprint(\"Height (cm):\", round(height * 100))",
     "testParams": {
@@ -7506,7 +7506,7 @@
         ]
       }
     },
-    "description": "The {{thing}} costs an amount in pounds (it can have pence), shared between some pupils. Read the cost and the number of pupils, casting each to a suitable type. Print what each pupil pays, rounded to 2 places, for example:\nEach pays (£): 4.17",
+    "description": "The {{thing}} costs an amount in pounds, shared equally between some pupils.\n1. Read the cost. It can have pence, so cast it to a suitable type.\n2. Read the number of pupils. Cast it to a suitable type.\n3. Work out what each pupil pays, rounded to 2 places.\n4. Print `Each pays (£):` and then that amount.\nExample: you type `[[in:0:0]]` then `[[in:0:1]]`. It prints `[[out:0:0]]`.",
     "starter": "# Write your program here",
     "solution": "cost = float(input(\"Cost (£): \"))\npupils = int(input(\"Pupils: \"))\nprint(\"Each pays (£):\", round(cost / pupils, 2))",
     "testParams": {
@@ -7576,7 +7576,7 @@
         ]
       }
     },
-    "description": "At the {{shop}}, ask how many items there are, then read each price in pounds (prices can have pence). Cast each value to a suitable type. Print the total rounded to 2 places, for example:\nTotal (£): 4.75",
+    "description": "At the {{shop}}, a pupil buys some items.\n1. Ask how many items there are. Cast it to a suitable type.\n2. Read the price of each item in pounds, one at a time. Prices can have pence, so cast each to a suitable type.\n3. Add up the prices.\n4. Print `Total (£):` and then the total, rounded to 2 places.\nExample: you type `[[in:0]]`. It prints `[[out:0:0]]`.",
     "starter": "# Write your program here",
     "solution": "items = int(input(\"Items: \"))\ntotal = 0\nfor i in range(items):\n    price = float(input(\"Price (£): \"))\n    total = total + price\nprint(\"Total (£):\", round(total, 2))",
     "testParams": {
@@ -7657,7 +7657,7 @@
         ]
       }
     },
-    "description": "Take the register for a {{group}}. Ask how many pupils are on the list, then ask \"Present? (yes/no)\" once for each. Each answer counts as present only if it is yes (store it as a Boolean, not with bool() casting). Print, for example:\nPresent: 3\nAbsent: 1",
+    "description": "Take the register for a {{group}}.\n1. Ask how many pupils there are. Cast it to a suitable type.\n2. For each pupil, ask `Present? (yes/no)`. Store each answer as a Boolean, True only for `yes`, without bool() casting.\n3. Count the pupils who are present.\n4. Print `Present:` and then the number present.\n5. Print `Absent:` and then the number absent.\nExample: you type `[[in:0]]`. It prints `[[out:0:0]]` then `[[out:0:1]]`.",
     "starter": "# Write your program here",
     "solution": "pupils = int(input(\"Pupils: \"))\npresent = 0\nfor p in range(pupils):\n    here = input(\"Present? (yes/no): \") == \"yes\"\n    if here:\n        present = present + 1\nprint(\"Present:\", present)\nprint(\"Absent:\", pupils - present)",
     "testParams": {
@@ -7736,7 +7736,7 @@
         ]
       }
     },
-    "description": "The {{ride}} on the trip needs pupils to be at least {{limit}} m tall. Ask how many pupils there are, then read each height in metres. Cast each value to a suitable type. Print how many are tall enough, for example:\nTall enough: 3",
+    "description": "The {{ride}} on the trip needs pupils to be at least {{limit}} m tall.\n1. Ask how many pupils there are. Cast it to a suitable type.\n2. Read each pupil's height in metres, one at a time. Cast each to a suitable type.\n3. Count the pupils who are {{limit}} m tall or taller.\n4. Print `Tall enough:` and then that count.\nExample: you type `[[in:0]]`. It prints `[[out:0:0]]`.",
     "starter": "# Write your program here",
     "solution": "pupils = int(input(\"Pupils: \"))\ntall = 0\nfor p in range(pupils):\n    height = float(input(\"Height (m): \"))\n    if height >= {{limit}}:\n        tall = tall + 1\nprint(\"Tall enough:\", tall)",
     "testParams": {
@@ -7819,7 +7819,7 @@
         ]
       }
     },
-    "description": "Ask for the name of a pet {{pet}} and its age in whole years. Cast the age to an integer. Print the name, then the age in months, for example:\nName: Biscuit\nAge in months: 36",
+    "description": "A vet keeps each pet's age in months.\n1. Ask for the name of a pet {{pet}}. It stays as text.\n2. Ask for its age in whole years. Cast it to an integer.\n3. Print `Name:` and then the name.\n4. Print `Age in months:` and then the age in months.\nExample: you type `[[in:0:0]]` then `[[in:0:1]]`. It prints `[[out:0:0]]` then `[[out:0:1]]`.",
     "starter": "# Write your program here",
     "solution": "name = input(\"Name: \")\nyears = int(input(\"Age in years: \"))\nprint(\"Name:\", name)\nprint(\"Age in months:\", years * 12)",
     "testParams": {
@@ -7893,7 +7893,7 @@
         ]
       }
     },
-    "description": "At the {{shop}}, ask for an item and its price in pounds (it can have pence). Cast the price to a real number. Build a label from the item, a space, £ and the price, store it in label, and print it. Then print what two cost, rounded to 2 places, for example:\nLabel: pencil £0.45\nTwo cost (£): 0.9",
+    "description": "The {{shop}} needs a shelf label.\n1. Ask for an item. It stays as text.\n2. Ask for its price in pounds. It can have pence, so cast it to a real number.\n3. Build a label from the item, a space, £ and the price. Store it in label.\n4. Print `Label:` and then the label.\n5. Print `Two cost (£):` and then what two cost, rounded to 2 places.\nExample: you type `[[in:0:0]]` then `[[in:0:1]]`. It prints `[[out:0:0]]` then `[[out:0:1]]`.",
     "starter": "# Write your program here",
     "solution": "item = input(\"Item: \")\nprice = float(input(\"Price (£): \"))\nlabel = item + \" £\" + str(price)\nprint(\"Label:\", label)\nprint(\"Two cost (£):\", round(price * 2, 2))",
     "testParams": {
@@ -7967,7 +7967,7 @@
         ]
       }
     },
-    "description": "Some {{things}} are shared out equally. Ask how many {{things}} there are and how many people share them, and cast each to an integer. Print how many each person gets, how many are left over, and the exact share as a real number rounded to 2 places, for example:\nEach gets: 4\nLeft over: 2\nExact share: 4.67",
+    "description": "Some {{things}} are shared out equally.\n1. Ask how many {{things}} there are. Cast it to an integer.\n2. Ask how many people share them. Cast it to an integer.\n3. Print `Each gets:` and then how many each person gets.\n4. Print `Left over:` and then how many are left over.\n5. Print `Exact share:` and then the exact share as a real number, rounded to 2 places.\nExample: you type `[[in:0:0]]` then `[[in:0:1]]`. It prints `[[out:0:0]]` then `[[out:0:1]]` then `[[out:0:2]]`.",
     "starter": "# Write your program here",
     "solution": "total = int(input(\"How many? \"))\npeople = int(input(\"People: \"))\nprint(\"Each gets:\", total // people)\nprint(\"Left over:\", total % people)\nprint(\"Exact share:\", round(total / people, 2))",
     "testParams": {
@@ -8039,7 +8039,7 @@
         ]
       }
     },
-    "description": "Ask for the length and width of a {{room}} in metres (they can have decimals). Cast each to a real number. Work out the area rounded to 2 places, then print it and its type, for example:\nArea (m²): 12.6\nType: <class 'float'>",
+    "description": "You are measuring the floor of a {{room}}.\n1. Ask for the length, then the width, in metres. Each can have decimals, so cast each to a real number.\n2. Work out the area, rounded to 2 places.\n3. Print `Area (m²):` and then the area.\n4. Print `Type:` and then the type of the area.\nExample: you type `[[in:0:0]]` then `[[in:0:1]]`. It prints `[[out:0:0]]` then `[[out:0:1]]`.",
     "starter": "# Write your program here",
     "solution": "length = float(input(\"Length (m): \"))\nwidth = float(input(\"Width (m): \"))\narea = round(length * width, 2)\nprint(\"Area (m²):\", area)\nprint(\"Type:\", type(area))",
     "testParams": {
@@ -8106,7 +8106,7 @@
         ]
       }
     },
-    "description": "The {{club}} gives each member a code: the first 3 letters of their surname in capital letters, then their year group plus 1 (next year's group). Ask for the surname and the year group, and cast the year group to an integer. Build the code with + and str() casting, store it, and print it, for example:\nCode: KHA8",
+    "description": "The {{club}} gives each member a code.\n1. Ask for the member's surname. Then ask for their year group, and cast it to an integer.\n2. Build the code: the first 3 letters of the surname in capital letters, then the year group plus 1.\n3. Use + and str() casting to build it, and store the code.\n4. Print `Code:` and then the code.\nExample: you type `[[in:0:0]]` then `[[in:0:1]]`. It prints `[[out:0:0]]`.",
     "starter": "# Write your program here",
     "solution": "surname = input(\"Surname: \")\nyear = int(input(\"Year group: \"))\ncode = surname[0:3].upper() + str(year + 1)\nprint(\"Code:\", code)",
     "testParams": {
@@ -8182,7 +8182,7 @@
         ]
       }
     },
-    "description": "A {{event}} ticket code is 2 letters then 4 digits, for example AB1234. Ask for a code. Slice out the 4 digits, cast them to an integer, and print the next ticket number, for example:\nNext ticket: 1235",
+    "description": "A {{event}} ticket code is 2 letters then 4 digits.\n1. Ask for a ticket code.\n2. Slice out the 4 digits and cast them to an integer.\n3. Print `Next ticket:` and then that number plus 1.\nExample: you type `[[in:0:0]]`. It prints `[[out:0:0]]`.",
     "starter": "# Write your program here",
     "solution": "code = input(\"Ticket code: \")\nnumber = int(code[2:6])\nprint(\"Next ticket:\", number + 1)",
     "testParams": {
@@ -8255,7 +8255,7 @@
         ]
       }
     },
-    "description": "A {{game}} needs words of an exact length. Ask for a word and the length needed, and cast the length to an integer. Print the word's length, whether it is exactly right (a Boolean), and the word in capital letters, for example:\nLength: 5\nExactly right: True\nWord: APPLE",
+    "description": "A {{game}} needs words of an exact length.\n1. Ask for a word. Then ask for the length needed, and cast it to an integer.\n2. Print `Length:` and then the length of the word.\n3. Print `Exactly right:` and then whether the length of the word equals the length needed.\n4. Print `Word:` and then the word in capital letters.\nExample: you type `[[in:0:0]]` then `[[in:0:1]]`. It prints `[[out:0:0]]` then `[[out:0:1]]` then `[[out:0:2]]`.",
     "starter": "# Write your program here",
     "solution": "word = input(\"Word: \")\nneeded = int(input(\"Length needed: \"))\nprint(\"Length:\", len(word))\nprint(\"Exactly right:\", len(word) == needed)\nprint(\"Word:\", word.upper())",
     "testParams": {
@@ -9628,7 +9628,7 @@
         ]
       }
     },
-    "description": "Write a program from scratch for a trip to the {{place}}. Ask for the number of pupils, the cost per pupil in pounds, and whether the coach is booked (yes or no). Cast each value to a suitable type. Print the total cost (pupils times the cost) and whether the coach is booked, for example:\nTotal (£): 255.0\nCoach booked: True\nCoach booked is True only for yes.",
+    "description": "Write a program from scratch for a trip to the {{place}}.\n1. Ask for the number of pupils. Cast it to a suitable type.\n2. Ask for the cost per pupil in pounds. Cast it to a suitable type.\n3. Ask whether the coach is booked: `yes` or `no`. Store it as a Boolean that is True only for `yes`.\n4. Print `Total (£):` and then the total cost: the number of pupils times the cost.\n5. Print `Coach booked:` and then the Boolean.\nExample: you type `[[in:0:0]]` then `[[in:0:1]]` then `[[in:0:2]]`. It prints `[[out:0:0]]` then `[[out:0:1]]`.",
     "solution": "pupils = int(input(\"Pupils: \"))\ncost = float(input(\"Cost per pupil (£): \"))\nbooked = input(\"Coach booked? (yes/no): \") == \"yes\"\nprint(\"Total (£):\", pupils * cost)\nprint(\"Coach booked:\", booked)",
     "testParams": {
       "n": {
@@ -9700,7 +9700,7 @@
         ]
       }
     },
-    "description": "Write a program from scratch that asks for a height in metres and casts it to a suitable type. Print the height, its type, and whether it is at least {{limit}} m, for example:\nHeight (m): 1.52\nType: <class 'float'>\nAt least {{limit}} m: True",
+    "description": "Write a program from scratch to check a height.\n1. Ask for a height in metres. Cast it to a suitable type.\n2. Print `Height (m):` and then the height.\n3. Print `Type:` and then its type.\n4. Print `At least {{limit}} m:` and then whether the height is {{limit}} m or more.\nExample: you type `[[in:0:0]]`. It prints `[[out:0:0]]` then `[[out:0:1]]` then `[[out:0:2]]`.",
     "solution": "height = float(input(\"Height (m): \"))\nprint(\"Height (m):\", height)\nprint(\"Type:\", type(height))\nprint(\"At least {{limit}} m:\", height >= {{limit}})",
     "testParams": {
       "c": {
@@ -9763,7 +9763,7 @@
         ]
       }
     },
-    "description": "Write a program from scratch that asks how many of an item are bought and the price of one in pounds. Cast each value to a suitable type. Print one line with commas showing the total, then the type of the total, for example:\n3 x {{item}} = 2.25\nType: <class 'float'>",
+    "description": "Write a program from scratch for a one-line receipt.\n1. Ask how many are bought. Cast it to a suitable type.\n2. Ask for the price of one in pounds. Cast it to a suitable type.\n3. Work out the total cost.\n4. On one line, print the number bought, then `x {{item}} =`, then the total. Use commas in print().\n5. Print `Type:` and then the type of the total.\nExample: you type `[[in:0:0]]` then `[[in:0:1]]`. It prints `[[out:0:0]]` then `[[out:0:1]]`.",
     "solution": "qty = int(input(\"How many? \"))\nprice = float(input(\"Price (£): \"))\ntotal = qty * price\nprint(qty, \"x {{item}} =\", total)\nprint(\"Type:\", type(total))",
     "testParams": {
       "q": {
@@ -26432,7 +26432,7 @@
     "level": 10,
     "type": "write",
     "title": "Theatre tickets",
-    "description": "Tickets cost £{{a1}} each. Cast each input to a whole number with int() (this is called casting). Read the number of tickets, then the money you have (whole pounds). If you can afford them print e.g. \"[[out:0:0]]\" then \"Enjoy the show\". If not, print how much you are short by, e.g. \"[[out:2:0]]\".",
+    "description": "Tickets cost £{{a1}} each.\n1. Read the number of tickets. Then read how much money you have, in whole pounds. Use int() on each input. This is called casting.\n2. Work out the total cost of the tickets.\n3. If your money is the same as the total or more, print `Total:` and then the total. Then print `Enjoy the show`.\n4. Otherwise, print `Short by` and then how much more money you need.\nExample: you type `[[in:0:0]]` then `[[in:0:1]]`. It prints `[[outs:0]]`.",
     "starter": "# Write the whole program here\n",
     "solution": "tickets = int(input(\"Tickets: \"))\nmoney = int(input(\"Money (£): \"))\ntotal = tickets * {{a1}}\nif money >= total:\n    print(\"Total:\", total)\n    print(\"Enjoy the show\")\nelse:\n    print(\"Short by\", total - money)",
     "tests": [
@@ -38948,7 +38948,7 @@
     "level": 2,
     "type": "predict",
     "title": "Joined or added?",
-    "description": "The user types {{a1}}, then {{a0}}. What will this program print?\nUsing int() on the input is called casting.",
+    "description": "The user types `{{a1}}`, then `{{a0}}`. What will this program print?",
     "starter": "",
     "solution": "monday = input(\"Books on {{w0}}: \")\ntuesday = input(\"Books on {{w1}}: \")\nprint(\"Total:\", monday + tuesday)\nprint(\"Total:\", int(monday) + int(tuesday))",
     "optionCount": 4,
@@ -39048,7 +39048,7 @@
     "level": 2,
     "type": "predict",
     "title": "Is the {{w0}} open?",
-    "description": "This program casts the input with bool(). The user types False. What will it print?",
+    "description": "The user types `False`, and the program casts it with bool(). What will it print?",
     "starter": "",
     "solution": "open_now = bool(input(\"Is the {{w0}} open? (True/False): \"))\nprint(\"Open:\", open_now)",
     "optionCount": 3,
@@ -39193,7 +39193,7 @@
     "level": 3,
     "type": "fill",
     "title": "Return bus fare",
-    "description": "Fill in the blank so the program casts the fare to a real number (a float), then prints the return fare.",
+    "description": "Fill in the blank so the program casts the fare to a real number. Then it prints the return fare.",
     "starter": "fare = ____(input(\"Fare (£): \"))\nprint(\"Return fare (£):\", fare * 2)",
     "answers": [
       "float"
@@ -39330,7 +39330,7 @@
     "level": 4,
     "type": "fill",
     "title": "Price tag",
-    "description": "Fill in both blanks: cast the price to a real number, then cast it back to a string to build the price tag.",
+    "description": "Fill in both blanks. Cast the price to a real number, then cast it back to a string for the price tag.",
     "starter": "price = ____(input(\"Price (£): \"))\nlabel = \"£\" + ____(price)\nprint(\"Price tag:\", label)",
     "answers": [
       "float",
@@ -39494,7 +39494,7 @@
     "level": 4,
     "type": "fill",
     "title": "{{cap(w1)}} code",
-    "description": "Fill in both blanks: cast the number of books to an integer, then cast it to a string to build the code.",
+    "description": "Fill in both blanks. Cast the number of books to an integer, then cast it to a string for the code.",
     "starter": "books = ____(input(\"Books borrowed: \"))\ncode = \"B\" + ____(books)\nprint(\"Code:\", code)\nprint(\"Books next week:\", books + 1)",
     "answers": [
       "int",
@@ -39772,7 +39772,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Long jump",
-    "description": "Arrange the lines so the program reads two long jumps in metres, casts them to real numbers, and prints whether the second jump is longer.\nOne line is not needed.",
+    "description": "Arrange the lines so the program reads two long jumps in metres and casts them to real numbers. Then it prints whether the second jump is longer.\nOne line is not needed.",
     "starter": "",
     "solution": "jump1 = float(input(\"First jump (m): \"))\njump2 = float(input(\"Second jump (m): \"))\nprint(\"Second is longer:\", jump2 > jump1)",
     "distractors": [
@@ -39850,7 +39850,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Bus journeys",
-    "description": "Arrange the lines so the program reads the number of journeys (a whole number) and the fare (a real number), casting each to the right type, then prints the cost.\nTwo lines are not needed.",
+    "description": "Arrange the lines to read the number of journeys and the fare, and print the cost. Use casting: journeys are an integer, the fare a real number.\nTwo lines are not needed.",
     "starter": "",
     "solution": "journeys = int(input(\"Journeys: \"))\nfare = float(input(\"Fare (£): \"))\nprint(\"Cost (£):\", journeys * fare)",
     "distractors": [
@@ -39929,7 +39929,7 @@
     "level": 6,
     "type": "parsons",
     "title": "{{cap(w0)}} flag",
-    "description": "Arrange the lines so the program stores whether the {{w0}} is open as a Boolean (True only for yes), then prints it and its type.\nTwo lines are not needed.",
+    "description": "Arrange the lines so the program stores whether the {{w0}} is open as a Boolean, True only for `yes`. Then it prints it and its type.\nTwo lines are not needed.",
     "starter": "",
     "solution": "answer = input(\"Is the {{w0}} open? (yes/no): \")\nis_open = answer == \"yes\"\nprint(\"{{cap(w0)}} open:\", is_open)\nprint(\"Type:\", type(is_open))",
     "distractors": [
@@ -39993,7 +39993,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Shoes and heights",
-    "description": "Arrange the lines so the program reads a shoe size (a whole number) and a height in metres (a real number), casting each to the right type, then prints both.\nTwo lines are not needed.",
+    "description": "Arrange the lines to read a shoe size and a height in metres, and print both. Use casting: the size is an integer, the height a real number.\nTwo lines are not needed.",
     "starter": "",
     "solution": "size = int(input(\"Shoe size: \"))\nheight = float(input(\"Height (m): \"))\nprint(\"Size\", size, \"and height\", height, \"m\")",
     "distractors": [
@@ -40365,7 +40365,7 @@
     "level": 8,
     "type": "write",
     "title": "Paint pot",
-    "description": "The amount of paint in a pot is read for you as text. Cast it to a real number, then print it and whether it is more than half a litre (0.5), for example:\n[[out:0]]",
+    "description": "A pot holds some paint, measured in litres.\n1. The program reads the amount of paint for you, as text.\n2. Cast it to a real number.\n3. Print `Litres:` and then the amount.\n4. Print `More than half a litre:` and then whether the amount is more than 0.5.\nExample: you type `[[in:0:0]]`. It prints `[[outs:0]]`.",
     "starter": "paint = input(\"Paint in the pot (litres): \")\n# Cast paint to a real number, then print the two lines",
     "solution": "paint = input(\"Paint in the pot (litres): \")\nlitres = float(paint)\nprint(\"Litres:\", litres)\nprint(\"More than half a litre:\", litres > 0.5)",
     "tests": [
@@ -40440,7 +40440,7 @@
     "level": 8,
     "type": "write",
     "title": "Cinema snacks",
-    "description": "The number of tickets and the price of a drink are read for you as text. Cast each to the right type (tickets are counted; a price has pence), then print each value and its type, for example:\n[[out:0]]",
+    "description": "A cinema sells tickets and drinks.\n1. The program reads the number of tickets and the price of a drink for you, as text.\n2. Cast each to the right type: tickets are counted, and a price has pence.\n3. Print `Tickets:`, then the number of tickets, then its type.\n4. Print `Drink (£):`, then the price, then its type.\nExample: you type `[[in:0:0]]` then `[[in:0:1]]`. It prints `[[outs:0]]`.",
     "starter": "tickets_text = input(\"Tickets: \")\nprice_text = input(\"Drink price (£): \")\n# Cast each one to the right type, then print each value and its type",
     "solution": "tickets_text = input(\"Tickets: \")\nprice_text = input(\"Drink price (£): \")\ntickets = int(tickets_text)\nprice = float(price_text)\nprint(\"Tickets:\", tickets, type(tickets))\nprint(\"Drink (£):\", price, type(price))",
     "tests": [
@@ -40541,7 +40541,7 @@
     "level": 8,
     "type": "write",
     "title": "Shoe size label",
-    "description": "The shoe size is read for you as text. Cast it to an integer, then print it and the next size up, for example:\n[[out:0]]",
+    "description": "A shoe shop prints size labels.\n1. The program reads the shoe size for you, as text.\n2. Cast it to an integer.\n3. Print `Size:` and then the size.\n4. Print `Next size up:` and then the size plus 1.\nExample: you type `[[in:0:0]]`. It prints `[[outs:0]]`.",
     "starter": "size_text = input(\"Shoe size: \")\n# Cast size_text to an integer, then print the two lines",
     "solution": "size_text = input(\"Shoe size: \")\nsize = int(size_text)\nprint(\"Size:\", size)\nprint(\"Next size up:\", size + 1)",
     "tests": [
@@ -40622,7 +40622,7 @@
     "level": 9,
     "type": "write",
     "title": "Seats left",
-    "description": "A coach has 52 seats. Ask how many pupils are going, cast the input to the right type, and print how many seats are left, for example:\n[[out:0:0]]\nAdd a comment saying why you chose that type.",
+    "description": "A coach has 52 seats.\n1. Ask how many pupils are going. Cast the input to the right type.\n2. Add a comment saying why you chose that type.\n3. Work out how many seats are left.\n4. Print `Seats left:` and then that number.\nExample: you type `[[in:0:0]]`. It prints `[[outs:0]]`.",
     "starter": "# Write your program here",
     "solution": "pupils = int(input(\"Pupils: \"))  # pupils are counted in whole numbers, so int\nprint(\"Seats left:\", 52 - pupils)",
     "tests": [
@@ -40709,7 +40709,7 @@
     "level": 9,
     "type": "write",
     "title": "Below freezing",
-    "description": "Ask for today's temperature in °C (it can have decimals), cast the input to the right type, and print it and whether it is below freezing (below 0), for example:\n[[out:0]]\nAdd a comment saying why you chose that type.",
+    "description": "You are checking today's weather.\n1. Ask for today's temperature in °C. It can have decimals, so cast it to the right type.\n2. Add a comment saying why you chose that type.\n3. Print `Temperature (°C):` and then the temperature.\n4. Print `Below freezing:` and then whether the temperature is below 0.\nExample: you type `[[in:0:0]]`. It prints `[[outs:0]]`.",
     "starter": "# Write your program here",
     "solution": "temp = float(input(\"Temperature (°C): \"))  # a temperature can have a decimal part, so float\nprint(\"Temperature (°C):\", temp)\nprint(\"Below freezing:\", temp < 0)",
     "tests": [
@@ -40791,7 +40791,7 @@
     "level": 9,
     "type": "write",
     "title": "Trip slip",
-    "description": "Ask whether the {{[\"trip slip\",\"consent form\",\"museum letter\",\"swimming slip\",\"theatre form\",\"camp letter\"][p0]}} has been signed (yes or no). Store the answer as a Boolean that is True only for yes, then print it and its type, for example:\n[[out:0]]\nAdd a comment saying why you chose that type.",
+    "description": "Pupils hand in a signed {{[\"trip slip\",\"consent form\",\"museum letter\",\"swimming slip\",\"theatre form\",\"camp letter\"][p0]}}.\n1. Ask whether the {{[\"trip slip\",\"consent form\",\"museum letter\",\"swimming slip\",\"theatre form\",\"camp letter\"][p0]}} has been signed: `yes` or `no`.\n2. Store the answer as a Boolean that is True only for `yes`.\n3. Add a comment saying why you chose that type.\n4. Print `Signed:` and then the Boolean.\n5. Print `Type:` and then its type.\nExample: you type `[[in:0:0]]`. It prints `[[outs:0]]`.",
     "starter": "# Write your program here",
     "solution": "answer = input(\"{{[\"Slip signed?\",\"Form signed?\",\"Letter signed?\",\"Swim slip signed?\",\"Theatre form signed?\",\"Camp letter signed?\"][p0]}} (yes/no): \")\nsigned = answer == \"yes\"  # it can only be yes or no, so a Boolean\nprint(\"Signed:\", signed)\nprint(\"Type:\", type(signed))",
     "tests": [
@@ -40848,7 +40848,7 @@
     "level": 10,
     "type": "write",
     "title": "Trip summary",
-    "description": "Ask for the name of a school trip, the number of pupils going, the cost per pupil in pounds, and whether the deposit has been paid (yes or no). Cast each value to a suitable type. Print each value, with its type after the number and the Boolean, for example:\n[[out:0]]\nDeposit paid is True only for yes.",
+    "description": "You are planning a school trip.\n1. Ask for the name of the trip. It stays as text.\n2. Ask for the number of pupils going. Cast it to a suitable type.\n3. Ask for the cost per pupil in pounds. Cast it to a suitable type.\n4. Ask whether the deposit has been paid: `yes` or `no`. Store it as a Boolean that is True only for `yes`.\n5. Print `Trip:` and then the name.\n6. Print `Pupils:`, then the number of pupils, then its type.\n7. Print `Cost per pupil (£):`, then the cost, then its type.\n8. Print `Deposit paid:`, then the Boolean, then its type.\nExample: you type `[[in:0:0]]` then `[[in:0:1]]` then `[[in:0:2]]` then `[[in:0:3]]`. It prints `[[outs:0]]`.",
     "starter": "# Write your program here",
     "solution": "trip = input(\"Trip: \")\npupils = int(input(\"Pupils: \"))\ncost = float(input(\"Cost per pupil (£): \"))\npaid = input(\"Deposit paid? (yes/no): \") == \"yes\"\nprint(\"Trip:\", trip)\nprint(\"Pupils:\", pupils, type(pupils))\nprint(\"Cost per pupil (£):\", cost, type(cost))\nprint(\"Deposit paid:\", paid, type(paid))",
     "tests": [
@@ -40963,7 +40963,7 @@
     "level": 10,
     "type": "write",
     "title": "Relay times",
-    "description": "Ask for the three leg times of a relay race in seconds (they can have decimals), and cast each one. Add them up, then print the total, its type, and whether the team was under 40 seconds, for example:\n[[out:0]]",
+    "description": "A relay team runs three legs.\n1. Ask for the time of each leg in seconds, one at a time. Each can have decimals, so cast each one.\n2. Add the three times to get the total.\n3. Print `Total (s):` and then the total.\n4. Print `Type:` and then the type of the total.\n5. Print `Under 40 seconds:` and then whether the total is under 40.\nExample: you type `[[in:0:0]]` then `[[in:0:1]]` then `[[in:0:2]]`. It prints `[[outs:0]]`.",
     "starter": "# Write your program here",
     "solution": "a = float(input(\"Leg 1 (s): \"))\nb = float(input(\"Leg 2 (s): \"))\nc = float(input(\"Leg 3 (s): \"))\ntotal = a + b + c\nprint(\"Total (s):\", total)\nprint(\"Type:\", type(total))\nprint(\"Under 40 seconds:\", total < 40)",
     "tests": [
@@ -41035,7 +41035,7 @@
     "level": 10,
     "type": "write",
     "title": "Book fair order",
-    "description": "Ask how many books are wanted, the price of one book in pounds, and whether the buyer is a club member (yes or no). Cast each value to a suitable type. Print the total cost (the number of books times the price) and whether they are a member, for example:\n[[out:0]]",
+    "description": "A book shop is taking an order.\n1. Ask how many books are wanted. Cast it to a suitable type.\n2. Ask for the price of one book in pounds. Cast it to a suitable type.\n3. Ask whether the buyer is a club member: `yes` or `no`. Store it as a Boolean that is True only for `yes`.\n4. Work out the total cost: the number of books times the price.\n5. Print `Total (£):` and then the total cost.\n6. Print `Member:` and then the Boolean.\nExample: you type `[[in:0:0]]` then `[[in:0:1]]` then `[[in:0:2]]`. It prints `[[outs:0]]`.",
     "starter": "# Write your program here",
     "solution": "books = int(input(\"Books: \"))\nprice = float(input(\"Price (£): \"))\nmember = input(\"Member? (yes/no): \") == \"yes\"\nprint(\"Total (£):\", books * price)\nprint(\"Member:\", member)",
     "tests": [

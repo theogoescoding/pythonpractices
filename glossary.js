@@ -90,15 +90,26 @@
     return out + esc(s.slice(last));
   }
   // A task's description and hints as HTML, each term linked at its first mention on the task (the description first,
-  // then the hints in order). Only the description's first line is linked: the lines after it are usually what the
-  // program should print. -> { description, hints: [] }
+  // then the hints in order). In the description only the first line and the numbered step lines ("2. Work out the
+  // total.") are linked (prompt 31). Example lines and other lines are usually what the program prints, so they never
+  // are; nor is text in a `code span`, which shows as code (codeHtml). A numbered line that is a line of the task's
+  // own output ("1. Open the file" printed by the program) is output, not a step. -> { description, hints: [] }
+  const STEP = /^\s*\d+\.\s/;
   function linkTask(task, compiled) {
     const used = new Set();
-    const d = String(task.description || "");
-    const cut = d.indexOf("\n");
     const units = task.units && task.units.length ? task.units : task.unit ? [task.unit] : null;
-    const description = cut < 0 ? linkText(d, compiled, used, units) : linkText(d.slice(0, cut), compiled, used, units) + esc(d.slice(cut));
+    const outputLines = new Set((task.tests || []).flatMap((t) => String(t.expected || "").split("\n").map((l) => l.trim())));
+    const lines = String(task.description || "").split("\n");
+    const description = lines.map((line, i) => {
+      const linkable = i === 0 || (STEP.test(line) && !outputLines.has(line.trim()));
+      return codeHtml(line, linkable ? (s) => linkText(s, compiled, used, units) : esc);
+    }).join("\n");
     return { description, hints: (task.hints || []).map((h) => linkText(h, compiled, used, units)) };
+  }
+  // A line of description text as HTML: each `code span` as <code> (its text escaped, every space kept), the rest
+  // through plain(s) (escaped, and maybe linked). A lone ` with no partner stays as it is.
+  function codeHtml(text, plain) {
+    return String(text).split(/(`[^`\n]*`)/).map((part, i) => (i % 2 ? "<code>" + esc(part.slice(1, -1)) + "</code>" : (plain || esc)(part))).join("");
   }
 
   // ---------- The page (glossary.html) ----------
@@ -148,5 +159,5 @@
       .catch(() => { document.getElementById("gloss-status").textContent = "Couldn't load the glossary. Open this site through a web server (see README.md)."; });
   }
 
-  return { PAGE, NO_MATCH, href, letterOf, sorted, byLetter, search, compile, inUnits, linkText, linkTask, listHtml, entryHtml };
+  return { PAGE, NO_MATCH, href, letterOf, sorted, byLetter, search, compile, inUnits, linkText, linkTask, codeHtml, listHtml, entryHtml };
 });

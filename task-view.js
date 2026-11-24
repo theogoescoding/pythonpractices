@@ -22,6 +22,11 @@
   const showsExpectedOutput = (t) => t.type !== "predict" && t.type !== "trace";
   const inputsText = (inputs) => inputs.map((v) => (v === "" ? "(nothing – just Enter)" : v)).join(", then ");
 
+  // A task description as HTML with no glossary links (the teacher's task browser, and the practice page until
+  // glossary.json has loaded): escaped, each `code span` as <code> with its spaces kept. glossary.js linkTask does the
+  // same, with links.
+  const descriptionHtml = (text) => String(text == null ? "" : text).split(/(`[^`\n]*`)/).map((part, i) => (i % 2 ? "<code>" + esc(part.slice(1, -1)) + "</code>" : esc(part))).join("");
+
   // The "Expected output" box: the example test's input and the exact output, and how many tests are hidden.
   function expectedBoxHtml(t) {
     const test = exampleTest(t);
@@ -120,5 +125,5 @@
   }
 
   return { NO_OUTPUT, EXAMPLE_TESTS, exampleTest, expectedOutput, hiddenTestCount, isHidden, showsExpectedOutput, inputsText,
-    expectedBoxHtml, searchTasks, esc, showOutput, errorBoxHtml, errorText, testResultsHtml };
+    expectedBoxHtml, descriptionHtml, searchTasks, esc, showOutput, errorBoxHtml, errorText, testResultsHtml };
 });

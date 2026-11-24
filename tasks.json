@@ -8129,7 +8129,7 @@
     "level": 10,
     "type": "write",
     "title": "Theatre tickets",
-    "description": "Tickets cost £6 each. Cast each input to a whole number with int() (this is called casting). Read the number of tickets, then the money you have (whole pounds). If you can afford them print e.g. \"Total: 18\" then \"Enjoy the show\". If not, print how much you are short by, e.g. \"Short by 4\".",
+    "description": "Tickets cost £6 each.\n1. Read the number of tickets. Then read how much money you have, in whole pounds. Use int() on each input. This is called casting.\n2. Work out the total cost of the tickets.\n3. If your money is the same as the total or more, print `Total:` and then the total. Then print `Enjoy the show`.\n4. Otherwise, print `Short by` and then how much more money you need.\nExample: you type `3` then `20`. It prints `Total: 18` then `Enjoy the show`.\nExample: you type `4` then `24`. It prints `Total: 24` then `Enjoy the show`.\nExample: you type `5` then `23`. It prints `Short by 7`.",
     "starter": "# Write the whole program here\n",
     "solution": "tickets = int(input(\"Tickets: \"))\nmoney = int(input(\"Money (£): \"))\ntotal = tickets * 6\nif money >= total:\n    print(\"Total:\", total)\n    print(\"Enjoy the show\")\nelse:\n    print(\"Short by\", total - money)",
     "tests": [
@@ -20917,7 +20917,7 @@
     "level": 2,
     "type": "predict",
     "title": "Joined or added?",
-    "description": "The user types 12, then 3. What will this program print?\nUsing int() on the input is called casting.",
+    "description": "The user types `12`, then `3`. What will this program print?",
     "starter": "",
     "solution": "monday = input(\"Books on Monday: \")\ntuesday = input(\"Books on Tuesday: \")\nprint(\"Total:\", monday + tuesday)\nprint(\"Total:\", int(monday) + int(tuesday))",
     "options": [
@@ -20980,7 +20980,7 @@
     "level": 2,
     "type": "predict",
     "title": "Is the library open?",
-    "description": "This program casts the input with bool(). The user types False. What will it print?",
+    "description": "The user types `False`, and the program casts it with bool(). What will it print?",
     "starter": "",
     "solution": "open_now = bool(input(\"Is the library open? (True/False): \"))\nprint(\"Open:\", open_now)",
     "options": [
@@ -21108,7 +21108,7 @@
     "level": 3,
     "type": "fill",
     "title": "Return bus fare",
-    "description": "Fill in the blank so the program casts the fare to a real number (a float), then prints the return fare.",
+    "description": "Fill in the blank so the program casts the fare to a real number. Then it prints the return fare.",
     "starter": "fare = ____(input(\"Fare (£): \"))\nprint(\"Return fare (£):\", fare * 2)",
     "solution": "fare = float(input(\"Fare (£): \"))\nprint(\"Return fare (£):\", fare * 2)",
     "answers": [
@@ -21241,7 +21241,7 @@
     "level": 4,
     "type": "fill",
     "title": "Price tag",
-    "description": "Fill in both blanks: cast the price to a real number, then cast it back to a string to build the price tag.",
+    "description": "Fill in both blanks. Cast the price to a real number, then cast it back to a string for the price tag.",
     "starter": "price = ____(input(\"Price (£): \"))\nlabel = \"£\" + ____(price)\nprint(\"Price tag:\", label)",
     "solution": "price = float(input(\"Price (£): \"))\nlabel = \"£\" + str(price)\nprint(\"Price tag:\", label)",
     "answers": [
@@ -21378,7 +21378,7 @@
     "level": 4,
     "type": "fill",
     "title": "Library code",
-    "description": "Fill in both blanks: cast the number of books to an integer, then cast it to a string to build the code.",
+    "description": "Fill in both blanks. Cast the number of books to an integer, then cast it to a string for the code.",
     "starter": "books = ____(input(\"Books borrowed: \"))\ncode = \"B\" + ____(books)\nprint(\"Code:\", code)\nprint(\"Books next week:\", books + 1)",
     "solution": "books = int(input(\"Books borrowed: \"))\ncode = \"B\" + str(books)\nprint(\"Code:\", code)\nprint(\"Books next week:\", books + 1)",
     "answers": [
@@ -21570,7 +21570,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Long jump",
-    "description": "Arrange the lines so the program reads two long jumps in metres, casts them to real numbers, and prints whether the second jump is longer.\nOne line is not needed.",
+    "description": "Arrange the lines so the program reads two long jumps in metres and casts them to real numbers. Then it prints whether the second jump is longer.\nOne line is not needed.",
     "starter": "",
     "solution": "jump1 = float(input(\"First jump (m): \"))\njump2 = float(input(\"Second jump (m): \"))\nprint(\"Second is longer:\", jump2 > jump1)",
     "distractors": [
@@ -21638,7 +21638,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Bus journeys",
-    "description": "Arrange the lines so the program reads the number of journeys (a whole number) and the fare (a real number), casting each to the right type, then prints the cost.\nTwo lines are not needed.",
+    "description": "Arrange the lines to read the number of journeys and the fare, and print the cost. Use casting: journeys are an integer, the fare a real number.\nTwo lines are not needed.",
     "starter": "",
     "solution": "journeys = int(input(\"Journeys: \"))\nfare = float(input(\"Fare (£): \"))\nprint(\"Cost (£):\", journeys * fare)",
     "distractors": [
@@ -21733,7 +21733,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Library flag",
-    "description": "Arrange the lines so the program stores whether the library is open as a Boolean (True only for yes), then prints it and its type.\nTwo lines are not needed.",
+    "description": "Arrange the lines so the program stores whether the library is open as a Boolean, True only for `yes`. Then it prints it and its type.\nTwo lines are not needed.",
     "starter": "",
     "solution": "answer = input(\"Is the library open? (yes/no): \")\nis_open = answer == \"yes\"\nprint(\"Library open:\", is_open)\nprint(\"Type:\", type(is_open))",
     "distractors": [
@@ -21796,7 +21796,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Shoes and heights",
-    "description": "Arrange the lines so the program reads a shoe size (a whole number) and a height in metres (a real number), casting each to the right type, then prints both.\nTwo lines are not needed.",
+    "description": "Arrange the lines to read a shoe size and a height in metres, and print both. Use casting: the size is an integer, the height a real number.\nTwo lines are not needed.",
     "starter": "",
     "solution": "size = int(input(\"Shoe size: \"))\nheight = float(input(\"Height (m): \"))\nprint(\"Size\", size, \"and height\", height, \"m\")",
     "distractors": [
@@ -22072,7 +22072,7 @@
     "level": 8,
     "type": "write",
     "title": "Paint pot",
-    "description": "The amount of paint in a pot is read for you as text. Cast it to a real number, then print it and whether it is more than half a litre (0.5), for example:\nLitres: 2.5\nMore than half a litre: True",
+    "description": "A pot holds some paint, measured in litres.\n1. The program reads the amount of paint for you, as text.\n2. Cast it to a real number.\n3. Print `Litres:` and then the amount.\n4. Print `More than half a litre:` and then whether the amount is more than 0.5.\nExample: you type `2.5`. It prints `Litres: 2.5` then `More than half a litre: True`.",
     "starter": "paint = input(\"Paint in the pot (litres): \")\n# Cast paint to a real number, then print the two lines",
     "solution": "paint = input(\"Paint in the pot (litres): \")\nlitres = float(paint)\nprint(\"Litres:\", litres)\nprint(\"More than half a litre:\", litres > 0.5)",
     "tests": [
@@ -22146,7 +22146,7 @@
     "level": 8,
     "type": "write",
     "title": "Cinema snacks",
-    "description": "The number of tickets and the price of a drink are read for you as text. Cast each to the right type (tickets are counted; a price has pence), then print each value and its type, for example:\nTickets: 3 <class 'int'>\nDrink (£): 1.5 <class 'float'>",
+    "description": "A cinema sells tickets and drinks.\n1. The program reads the number of tickets and the price of a drink for you, as text.\n2. Cast each to the right type: tickets are counted, and a price has pence.\n3. Print `Tickets:`, then the number of tickets, then its type.\n4. Print `Drink (£):`, then the price, then its type.\nExample: you type `3` then `1.5`. It prints `Tickets: 3 <class 'int'>` then `Drink (£): 1.5 <class 'float'>`.",
     "starter": "tickets_text = input(\"Tickets: \")\nprice_text = input(\"Drink price (£): \")\n# Cast each one to the right type, then print each value and its type",
     "solution": "tickets_text = input(\"Tickets: \")\nprice_text = input(\"Drink price (£): \")\ntickets = int(tickets_text)\nprice = float(price_text)\nprint(\"Tickets:\", tickets, type(tickets))\nprint(\"Drink (£):\", price, type(price))",
     "tests": [
@@ -22222,7 +22222,7 @@
     "level": 8,
     "type": "write",
     "title": "Shoe size label",
-    "description": "The shoe size is read for you as text. Cast it to an integer, then print it and the next size up, for example:\nSize: 5\nNext size up: 6",
+    "description": "A shoe shop prints size labels.\n1. The program reads the shoe size for you, as text.\n2. Cast it to an integer.\n3. Print `Size:` and then the size.\n4. Print `Next size up:` and then the size plus 1.\nExample: you type `5`. It prints `Size: 5` then `Next size up: 6`.",
     "starter": "size_text = input(\"Shoe size: \")\n# Cast size_text to an integer, then print the two lines",
     "solution": "size_text = input(\"Shoe size: \")\nsize = int(size_text)\nprint(\"Size:\", size)\nprint(\"Next size up:\", size + 1)",
     "tests": [
@@ -22281,7 +22281,7 @@
     "level": 9,
     "type": "write",
     "title": "Seats left",
-    "description": "A coach has 52 seats. Ask how many pupils are going, cast the input to the right type, and print how many seats are left, for example:\nSeats left: 22\nAdd a comment saying why you chose that type.",
+    "description": "A coach has 52 seats.\n1. Ask how many pupils are going. Cast the input to the right type.\n2. Add a comment saying why you chose that type.\n3. Work out how many seats are left.\n4. Print `Seats left:` and then that number.\nExample: you type `30`. It prints `Seats left: 22`.",
     "starter": "# Write your program here",
     "solution": "pupils = int(input(\"Pupils: \"))  # pupils are counted in whole numbers, so int\nprint(\"Seats left:\", 52 - pupils)",
     "tests": [
@@ -22355,7 +22355,7 @@
     "level": 9,
     "type": "write",
     "title": "Below freezing",
-    "description": "Ask for today's temperature in °C (it can have decimals), cast the input to the right type, and print it and whether it is below freezing (below 0), for example:\nTemperature (°C): -2.5\nBelow freezing: True\nAdd a comment saying why you chose that type.",
+    "description": "You are checking today's weather.\n1. Ask for today's temperature in °C. It can have decimals, so cast it to the right type.\n2. Add a comment saying why you chose that type.\n3. Print `Temperature (°C):` and then the temperature.\n4. Print `Below freezing:` and then whether the temperature is below 0.\nExample: you type `-2.5`. It prints `Temperature (°C): -2.5` then `Below freezing: True`.",
     "starter": "# Write your program here",
     "solution": "temp = float(input(\"Temperature (°C): \"))  # a temperature can have a decimal part, so float\nprint(\"Temperature (°C):\", temp)\nprint(\"Below freezing:\", temp < 0)",
     "tests": [
@@ -22430,7 +22430,7 @@
     "level": 9,
     "type": "write",
     "title": "Trip slip",
-    "description": "Ask whether the trip slip has been signed (yes or no). Store the answer as a Boolean that is True only for yes, then print it and its type, for example:\nSigned: True\nType: <class 'bool'>\nAdd a comment saying why you chose that type.",
+    "description": "Pupils hand in a signed trip slip.\n1. Ask whether the trip slip has been signed: `yes` or `no`.\n2. Store the answer as a Boolean that is True only for `yes`.\n3. Add a comment saying why you chose that type.\n4. Print `Signed:` and then the Boolean.\n5. Print `Type:` and then its type.\nExample: you type `yes`. It prints `Signed: True` then `Type: <class 'bool'>`.",
     "starter": "# Write your program here",
     "solution": "answer = input(\"Slip signed? (yes/no): \")\nsigned = answer == \"yes\"  # it can only be yes or no, so a Boolean\nprint(\"Signed:\", signed)\nprint(\"Type:\", type(signed))",
     "tests": [
@@ -22494,7 +22494,7 @@
     "level": 10,
     "type": "write",
     "title": "Trip summary",
-    "description": "Ask for the name of a school trip, the number of pupils going, the cost per pupil in pounds, and whether the deposit has been paid (yes or no). Cast each value to a suitable type. Print each value, with its type after the number and the Boolean, for example:\nTrip: Museum\nPupils: 30 <class 'int'>\nCost per pupil (£): 8.5 <class 'float'>\nDeposit paid: True <class 'bool'>\nDeposit paid is True only for yes.",
+    "description": "You are planning a school trip.\n1. Ask for the name of the trip. It stays as text.\n2. Ask for the number of pupils going. Cast it to a suitable type.\n3. Ask for the cost per pupil in pounds. Cast it to a suitable type.\n4. Ask whether the deposit has been paid: `yes` or `no`. Store it as a Boolean that is True only for `yes`.\n5. Print `Trip:` and then the name.\n6. Print `Pupils:`, then the number of pupils, then its type.\n7. Print `Cost per pupil (£):`, then the cost, then its type.\n8. Print `Deposit paid:`, then the Boolean, then its type.\nExample: you type `Museum` then `30` then `8.5` then `yes`. It prints `Trip: Museum` then `Pupils: 30 <class 'int'>` then `Cost per pupil (£): 8.5 <class 'float'>` then `Deposit paid: True <class 'bool'>`.",
     "starter": "# Write your program here",
     "solution": "trip = input(\"Trip: \")\npupils = int(input(\"Pupils: \"))\ncost = float(input(\"Cost per pupil (£): \"))\npaid = input(\"Deposit paid? (yes/no): \") == \"yes\"\nprint(\"Trip:\", trip)\nprint(\"Pupils:\", pupils, type(pupils))\nprint(\"Cost per pupil (£):\", cost, type(cost))\nprint(\"Deposit paid:\", paid, type(paid))",
     "tests": [
@@ -22598,7 +22598,7 @@
     "level": 10,
     "type": "write",
     "title": "Relay times",
-    "description": "Ask for the three leg times of a relay race in seconds (they can have decimals), and cast each one. Add them up, then print the total, its type, and whether the team was under 40 seconds, for example:\nTotal (s): 38.5\nType: <class 'float'>\nUnder 40 seconds: True",
+    "description": "A relay team runs three legs.\n1. Ask for the time of each leg in seconds, one at a time. Each can have decimals, so cast each one.\n2. Add the three times to get the total.\n3. Print `Total (s):` and then the total.\n4. Print `Type:` and then the type of the total.\n5. Print `Under 40 seconds:` and then whether the total is under 40.\nExample: you type `12.5` then `13.25` then `12.75`. It prints `Total (s): 38.5` then `Type: <class 'float'>` then `Under 40 seconds: True`.",
     "starter": "# Write your program here",
     "solution": "a = float(input(\"Leg 1 (s): \"))\nb = float(input(\"Leg 2 (s): \"))\nc = float(input(\"Leg 3 (s): \"))\ntotal = a + b + c\nprint(\"Total (s):\", total)\nprint(\"Type:\", type(total))\nprint(\"Under 40 seconds:\", total < 40)",
     "tests": [
@@ -22679,7 +22679,7 @@
     "level": 10,
     "type": "write",
     "title": "Book fair order",
-    "description": "Ask how many books are wanted, the price of one book in pounds, and whether the buyer is a club member (yes or no). Cast each value to a suitable type. Print the total cost (the number of books times the price) and whether they are a member, for example:\nTotal (£): 15.0\nMember: True",
+    "description": "A book shop is taking an order.\n1. Ask how many books are wanted. Cast it to a suitable type.\n2. Ask for the price of one book in pounds. Cast it to a suitable type.\n3. Ask whether the buyer is a club member: `yes` or `no`. Store it as a Boolean that is True only for `yes`.\n4. Work out the total cost: the number of books times the price.\n5. Print `Total (£):` and then the total cost.\n6. Print `Member:` and then the Boolean.\nExample: you type `3` then `5` then `yes`. It prints `Total (£): 15.0` then `Member: True`.",
     "starter": "# Write your program here",
     "solution": "books = int(input(\"Books: \"))\nprice = float(input(\"Price (£): \"))\nmember = input(\"Member? (yes/no): \") == \"yes\"\nprint(\"Total (£):\", books * price)\nprint(\"Member:\", member)",
     "tests": [
@@ -22846,7 +22846,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Pages read",
-    "description": "Arrange the lines so the program reads the pages read on two days, casts them to integers and prints the total.\nOne line is not needed.",
+    "description": "Arrange the lines so the program reads the pages read on two days. It casts them to integers and prints the total.\nOne line is not needed.",
     "starter": "",
     "solution": "day1 = int(input(\"Pages on day 1: \"))\nday2 = int(input(\"Pages on day 2: \"))\nprint(\"Pages:\", day1 + day2)",
     "distractors": [
@@ -23046,7 +23046,7 @@
     "level": 9,
     "type": "write",
     "title": "Next two sizes",
-    "description": "Ask for a shoe size (a whole number), cast it, and print the next two sizes up, for example:\nNext sizes: 6 7",
+    "description": "Shoes come in whole sizes.\n1. Ask for a shoe size. Cast it to an integer.\n2. Print `Next sizes:` and then the next two sizes up, on one line.\nExample: you type `5`. It prints `Next sizes: 6 7`.",
     "starter": "# Write the whole program here",
     "solution": "size = int(input(\"Shoe size: \"))\nprint(\"Next sizes:\", size + 1, size + 2)",
     "tests": [
@@ -23099,7 +23099,7 @@
     "level": 9,
     "type": "write",
     "title": "Heavy bag",
-    "description": "Ask for a bag's weight in kilograms (it can have a decimal part), cast it, then print it and whether it is more than 2 kg, for example:\nWeight (kg): 2.5\nMore than 2 kg: True",
+    "description": "You are weighing bags.\n1. Ask for a bag's weight in kilograms. It can have a decimal part, so cast it to the right type.\n2. Print `Weight (kg):` and then the weight.\n3. Print `More than 2 kg:` and then whether the weight is more than 2.\nExample: you type `2.5`. It prints `Weight (kg): 2.5` then `More than 2 kg: True`.",
     "starter": "# Write the whole program here",
     "solution": "kg = float(input(\"Weight (kg): \"))\nprint(\"Weight (kg):\", kg)\nprint(\"More than 2 kg:\", kg > 2)",
     "tests": [

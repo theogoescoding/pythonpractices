@@ -4748,6 +4748,68 @@ function runFeatureTests({ tasks, misconceptions, runPython }) {
       "Specification codes: no export header or column changes (the Class scores header is as before), and no student page or script loads or shows the codes");
   }
 
+  // ===================== Prompt 29 (2026-11): homework counting, every task type, level and phase =====================
+  // Theo reported counts that stopped at 1, and placement, non-level-10 and Parsons passes not counting. The rule
+  // (homework.js progress) was checked and has no filter on task type, level or phase; these checks keep it that way.
+  // Each pass is made with the app's own attemptRecord, as the practice page saves it.
+  {
+    const read = (f) => fs.readFileSync(path.join(ROOT, f), "utf8");
+    const templates = JSON.parse(read("templates.json"));
+    const HW29 = require(path.join(ROOT, "homework.js"));
+    const App29 = require(path.join(ROOT, "app.js"));
+    const S29 = require(path.join(ROOT, "secured.js"));
+    const NOW = Date.parse("2026-11-23T12:00:00Z");
+    const set = "2026-11-23T09:00:00Z";
+    const hwFor = (units, count, extra) => Object.assign({ created_at: set, due_on: "2026-11-27", units, task_count: count || 10 }, extra);
+    let n = 0;
+    const passOf = (task, opts) => Object.assign({ id: "p" + (++n), studentId: "s1", at: new Date(NOW - 60 * 60000 + n * 1000).toISOString() },
+      App29.attemptRecord(Object.assign({ task, unit: task.unit, phase: "practice", kind: "attempt", attemptNumber: 1, hints: 0, result: "pass", levelBefore: task.level, levelAfter: task.level }, opts)));
+    const isPl = (t) => (t.tags || []).includes("placement");
+    const find = (f) => tasks.find((t) => !isPl(t) && f(t));
+    const count = (hw, recs, flags) => HW29.progress(hw, recs, flags || []).done;
+    const one = (task, opts) => count(hwFor([task.unit]), [passOf(task, opts)]);
+    const byType = {
+      predict: find((t) => t.type === "predict" && !t.error_kind), write: find((t) => t.type === "write"), trace: find((t) => t.type === "trace"),
+      Parsons: find((t) => t.type === "parsons"), "fill in the blanks": find((t) => t.type === "fill"), "error-kind": find((t) => !!t.error_kind),
+      "partial Parsons": find((t) => t.type === "partial-parsons"),
+    };
+    for (const [label, task] of Object.entries(byType)) {
+      check(task && one(task) === 1, "Homework counting: a " + label + " pass counts (" + (task && task.id) + ", " + (task && task.type) + ", level " + (task && task.level) + ")");
+    }
+    const tpl29 = (Array.isArray(templates) ? templates : []).find((t) => t.type === "scratch");
+    // A template variant carries its template's units (templates.js), so its unit is the first of them.
+    check(!tpl29 || one(Object.assign({}, tpl29, { id: tpl29.id + "#7", templateId: tpl29.id, generated: true, fingerprint: "fp7", unit: tpl29.unit || tpl29.units[0], units: tpl29.units }), { phase: "endless" }) === 1,
+      "Homework counting: a write-from-scratch variant passed in endless mode counts (a type and phase the rule doesn't list)");
+    const lv = (l) => find((t) => t.unit === "recursion" && t.level === l);
+    check(one(lv(1)) === 1 && one(lv(5)) === 1 && one(lv(10)) === 1 && one(tasks.find((t) => isPl(t) && t.unit === "recursion"), { phase: "placement" }) === 1 &&
+      one(lv(3), { phase: "assignment", assignmentId: "a1" }) === 1 && one(lv(10), { phase: "endless" }) === 1,
+      "Homework counting: level 1, 5 and 10 passes count, and so do placement, assignment and endless passes");
+    const t1 = lv(1), t5 = lv(5), t10 = lv(10);
+    const first = passOf(t1), again = passOf(t1);
+    const before = Object.assign(passOf(t5), { at: "2026-11-23T08:00:00Z" });
+    const late = Object.assign(passOf(t10), { at: "2026-11-28T09:00:00Z" });
+    const flagged = passOf(lv(7));
+    const flag = { at: new Date(Date.parse(flagged.at) - 1).toISOString(), unit: "recursion", units: ["recursion"], taskId: flagged.taskId };
+    check(count(hwFor(["recursion"]), [first, again]) === 1 && count(hwFor(["recursion"]), [before]) === 0 && count(hwFor(["recursion"]), [late]) === 0 &&
+      count(hwFor(["recursion"]), [flagged], [flag]) === 0 && count(hwFor(["recursion"]), [first, flagged], [flag]) === 1,
+      "Homework counting: a repeat pass doesn't count again; nor does a task passed before the homework was set, a pass after the due date, or a flagged paste");
+    const many = tasks.filter((t) => t.unit === "recursion" && !isPl(t)).slice(0, 6).map((t) => passOf(t));
+    const other = passOf(find((t) => t.unit === "selection"));
+    const combined = passOf(Object.assign({}, lv(10), { id: "combo#1", units: ["recursion", "scope-parameters"], generated: true, fingerprint: "combo1" }), { phase: "endless" });
+    check(count(hwFor(["recursion"], 4), many) === 4 && HW29.progress(hwFor(["recursion"], 4), many, []).complete && count(hwFor(["recursion"]), [other]) === 0 &&
+      count(hwFor([]), [other]) === 1 && count(hwFor(["scope-parameters"]), [combined]) === 1 && count(hwFor(["recursion"]), [combined]) === 1 && count(hwFor(["lists"]), [combined]) === 0,
+      "Homework counting: the count stops at the number set; a unit the homework doesn't cover doesn't count (no units covers every unit); a combined endless task counts if either of its units is covered");
+    const progSrc = read("homework.js").slice(read("homework.js").indexOf("function firstPasses"), read("homework.js").indexOf("// The homework sets a task in these units counts for right now"));
+    check(!/taskType|taskLevel|\.phase|\.level\b|"write"|"parsons"|"placement"|isPlacement/.test(progSrc),
+      "Homework counting: the rule (homework.js firstPasses and progress) never looks at a task's type, level or phase: only its first pass, the date, its units and any paste flag");
+    // The programme points (prompt 23) still count only level 10 write programmes passed in endless mode.
+    const progs = S29.programmes([passOf(lv(10), { phase: "endless" }), passOf(lv(10), { phase: "practice" }), passOf(byType.Parsons, { phase: "endless" }),
+      passOf(lv(5), { phase: "endless" })], NOW);
+    check(progs.count === (lv(10).type === "write" || lv(10).type === "scratch" ? 1 : 0) && progs.list.every((p) => p.points <= 50) &&
+      S29.PROGRAMME_TYPES.join() === "write,scratch",
+      "Homework counting changes nothing else: programme points and the programme count still count only level 10 write programmes in endless mode");
+  }
+
   // ===================== Selection, trimmed =====================
   // 74 practice tasks (7 or 8 a level, none with a function) and 8 placement tasks; every removed id is in one kept
   // task's former_ids, marked as a replacement (a different task, so a student's progress isn't moved onto it).

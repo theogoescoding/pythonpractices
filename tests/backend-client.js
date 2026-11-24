@@ -559,6 +559,55 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
     check((await HS.progressSummary(sb, deps, O, ADA, NOW)).average_homework_completion === null, "Progress summary: with no homework set for the class, the homework figure is null");
   }
 
+  // ---------- Homework counting on the server matches the browser (prompt 29) ----------
+  // The same passes, every task type, level and phase, made with the app's own attemptRecord: the browser's count
+  // (homework.js progress) and the server's (homework-server.js forStudent, on the rows backend.js sends) must agree.
+  {
+    const HS = require(path.join(ROOT, "supabase", "functions", "_shared", "homework-server.js"));
+    const Sharing = require(path.join(ROOT, "supabase", "functions", "_shared", "class-sharing.js"));
+    const Homework = require(path.join(ROOT, "homework.js"));
+    const App = require(path.join(ROOT, "app.js"));
+    const Rows = require(path.join(ROOT, "backend-rows.js"));
+    const Curriculum = require(path.join(ROOT, "curriculum.js"));
+    const deps = { Sharing, Homework, unitIds: Curriculum.UNITS.map((u) => u.id) };
+    const all = require(path.join(ROOT, "tasks.json"));
+    const isPl = (t) => (t.tags || []).includes("placement");
+    const sb = fakeDb();
+    const T = sb.t;
+    const SID = "0000000a-0000-0000-0000-0000000057d9", CLS = "0000000a-0000-0000-0000-00000000c1a9";
+    T.students.push({ id: SID, class_id: CLS, nickname: "Kit" });
+    const NOW = Date.now();
+    const hw = (id, units, count, extra) => Object.assign({ id, class_id: CLS, created_by: "t", task_count: count, due_on: Homework.ukDate(NOW + 3 * 86400000), units, created_at: new Date(NOW - 3600000).toISOString() }, extra);
+    T.homework.push(hw("11111111-1111-1111-1111-1111111111a1", ["recursion"], 10), hw("11111111-1111-1111-1111-1111111111a2", [], 20),
+      hw("11111111-1111-1111-1111-1111111111a3", ["recursion"], 3), hw("11111111-1111-1111-1111-1111111111a4", ["lists"], 10));
+    let n = 0;
+    const records = [];
+    const pass = (task, phase, extra) => {
+      const rec = Object.assign({ id: "r" + (++n), at: new Date(NOW - 3000000 + n * 60000).toISOString(), studentId: SID },
+        App.attemptRecord({ task, unit: task.unit, phase, kind: "attempt", attemptNumber: 1, hints: 0, result: "pass", levelBefore: task.level, levelAfter: task.level }), extra);
+      records.push(rec);
+      T.attempts.push(Object.assign({ id: n, student_id: SID }, Rows.attemptToRow(rec)));
+    };
+    const pick = (f) => all.find((t) => f(t));
+    // Recursion: placement, levels 1 to 10, every type it has; plus a repeat, an earlier pass and other units.
+    pass(pick((t) => t.unit === "recursion" && isPl(t)), "placement");
+    for (const type of ["predict", "fill", "parsons", "partial-parsons", "trace", "write"]) { const t = pick((x) => x.unit === "recursion" && !isPl(x) && x.type === type); if (t) pass(t, "practice"); }
+    pass(pick((t) => t.unit === "recursion" && t.level === 10 && !isPl(t)), "endless");
+    pass(pick((t) => t.unit === "recursion" && t.level === 1 && !isPl(t)), "practice");                                       // a repeat
+    pass(pick((t) => t.unit === "recursion" && t.level === 9 && !isPl(t)), "practice", { at: new Date(NOW - 7200000).toISOString() }); // before it was set
+    pass(pick((t) => !!t.error_kind && !isPl(t)), "practice");                                                                  // error-kind, another unit
+    pass(pick((t) => t.unit === "selection" && t.type === "parsons" && !isPl(t)), "assignment", { assignmentId: "0000000a-0000-0000-0000-0000000000a5" });
+    const browser = T.homework.map((h) => Homework.progress(Object.assign({}, h, { created_at: h.created_at }), records, []).done);
+    const server = await HS.forStudent(sb, deps, SID);
+    const browserById = Object.fromEntries(T.homework.map((h, i) => [h.id, browser[i]]));
+    const serverById = Object.fromEntries(server.map((h) => [h.id, h.done]));
+    check(Object.keys(browserById).every((id) => browserById[id] === serverById[id]) && server.length === 4 &&
+      browserById["11111111-1111-1111-1111-1111111111a1"] >= 7 && browserById["11111111-1111-1111-1111-1111111111a3"] === 3 && browserById["11111111-1111-1111-1111-1111111111a4"] === 0 &&
+      browserById["11111111-1111-1111-1111-1111111111a2"] === browserById["11111111-1111-1111-1111-1111111111a1"] + 2,
+      "Homework counting (prompt 29): the server's count (homework-server.js on the rows backend.js sends) matches the browser's (homework.js) for the same passes: placement, every task type, levels 1 to 10, endless and assignment passes count; a repeat and an earlier pass don't; the cap and the units apply (" +
+        JSON.stringify(browserById).replace(/1111111111a/g, "") + ")");
+  }
+
   // ---------- Several classes at once (class-create.js, prompt 26) ----------
   // The real module the Classes page uses, against a stand-in for Supabase that does what the database does: the
   // teacher's own row-level security (migration 0002: a class's teacher_id must be the signed-in teacher, and it

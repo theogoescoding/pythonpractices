@@ -1519,10 +1519,11 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
   }
 
   // Glossary links (glossary.js, prompt 27): the first mention of each glossary term in the task's description (its first
-  // line) and hints opens its entry in a new tab. Code, the editor and the test results are never linked. Until
-  // glossary.json has loaded (or if it can't be), the text shows as before, unlinked.
+  // line and numbered step lines, prompt 31) and hints opens its entry in a new tab. Code, `code spans`, example lines,
+  // the editor and the test results are never linked. Until glossary.json has loaded (or if it can't be), the text
+  // shows unlinked, with its code spans (TaskView.descriptionHtml).
   let glossary = null;
-  const linked = (t) => (glossary && self.Glossary ? self.Glossary.linkTask(t, glossary) : { description: esc(t.description), hints: (t.hints || []).map(esc) });
+  const linked = (t) => (glossary && self.Glossary ? self.Glossary.linkTask(t, glossary) : { description: TaskView.descriptionHtml(t.description), hints: (t.hints || []).map(esc) });
 
   function header(t) {
     return '<h2 id="task-title">' + esc(t.title) + "</h2>" +
