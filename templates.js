@@ -493,8 +493,13 @@
   //   [[outs:k]] the same for test k's printed lines, written `[[outs:k]]` (a variant's example test can take a
   //   different branch, so its number of printed lines can change)
   // Derived templates (completeDerived) and, since prompt 31, hand-made templates (build) both fill them.
+  //   [[typed:k]] test k's inputs as an example line types them, written without backticks around it: each in a code
+  //   span, but "nothing (just Enter)" for an empty one and "a space" / "2 spaces" for one that is only spaces
+  //   (prompt 35, the Validation units)
+  const typedWord = (v) => (v === "" ? "nothing (just Enter)" : /^ +$/.test(v) ? (v.length === 1 ? "a space" : v.length + " spaces") : "`" + v + "`");
   function fillOutputs(text, tests) {
-    return String(text).replace(/\[\[outs:(\d+)\]\]/g, (m, k) => (tests[+k] ? Checker.normalise(tests[+k].expected).split("\n").join("` then `") : ""))
+    return String(text).replace(/\[\[typed:(\d+)\]\]/g, (m, k) => (tests[+k] ? tests[+k].inputs.map(typedWord).join(" then ") : ""))
+      .replace(/\[\[outs:(\d+)\]\]/g, (m, k) => (tests[+k] ? Checker.normalise(tests[+k].expected).split("\n").join("` then `") : ""))
       .replace(/\[\[out:(\d+)(?::(\d+))?\]\]/g, (m, k, j) => {
       const out = tests[+k] ? tests[+k].expected : "";
       return j == null ? out : (out.split("\n")[+j] || "");

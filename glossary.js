@@ -78,7 +78,9 @@
     while ((m = re.exec(s))) {
       const start = m.index, end = start + m[0].length;
       const before = s.charAt(start - 1), after = s.charAt(end);
-      const codeLike = before === "." || after === "(" || after === "=" || (after === "." && wordChar(s.charAt(end + 1)));
+      // (Also not "output" in "Expected output", the name of the box below the task: prompt 35.)
+      const pageName = /^output$/i.test(m[0]) && /\bExpected\s$/i.test(s.slice(Math.max(0, start - 9), start));
+      const codeLike = before === "." || after === "(" || after === "=" || (after === "." && wordChar(s.charAt(end + 1))) || pageName;
       const f = (compiled.byLower.get(m[0].toLowerCase()) || []).find((x) => (!x.exact || x.form === m[0]) && (!units || inUnits(x, units)));
       if (wordChar(before) || wordChar(after) || codeLike || inQuotes(start) || !f) { re.lastIndex = start + 1; continue; }
       if (used.has(f.id)) continue;
