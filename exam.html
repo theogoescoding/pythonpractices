@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Exam Mode – Pythons and Ladders</title>
+  <link rel="icon" type="image/png" href="assets/logo/icon-light.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <!-- Local mode only in EM1: backend.js isn't loaded, so Exam Mode work stays in this browser (EM2 adds the server). -->
+  <script src="store.js"></script>
+</head>
+<body class="exam-mode">
+  <a class="skip-link" href="#exam-main">Skip to content</a>
+
+  <!-- Exam Mode's own look (decision 16): its own header and accent colour (styles.css --exam tokens). -->
+  <header class="site-header exam-header">
+    <div class="wrap header-inner">
+      <h1><span class="exam-title">Exam Mode</span> <a href="app.html" class="home-link exam-home">Pythons and Ladders</a></h1>
+      <div class="header-tools" role="group" aria-label="Student and display settings">
+        <span class="student-chip">Hi, <strong id="student-name"></strong></span>
+        <a href="app.html">← All units</a>
+        <span id="display-tools"></span>
+      </div>
+    </div>
+    <nav class="wrap exam-nav" aria-label="Exam Mode">
+      <a href="#blocks" data-section="blocks">Blocks</a>
+      <a href="#pack/C1" data-section="pack">Pack C1</a>
+      <a href="#scores" data-section="scores">My exam scores</a>
+    </nav>
+  </header>
+
+  <main id="exam-main" class="wrap exam-main" tabindex="-1">
+    <section id="exam-app" class="task-card exam-card" aria-live="off">
+      <p class="loading">Loading Exam Mode…</p>
+    </section>
+    <p class="py-status small">Python: <span id="py-status">loading…</span></p>
+    <p class="privacy">Your Exam Mode work is saved in this browser only. Nothing is sent anywhere.</p>
+  </main>
+
+  <!-- Code editor (the same as the practice page). If the CDN can't be reached, a plain text box is used instead. -->
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/mode/python/python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/addon/edit/matchbrackets.min.js"></script>
+  <script src="checker.js"></script>
+  <script src="curriculum.js"></script>
+  <script src="task-view.js"></script>
+  <script src="paste-flag.js"></script>
+  <!-- app.js for the editor's own keys (editorEnter, editorTab). Its practice page only starts on practice.html. -->
+  <script src="app.js"></script>
+  <script src="exam.js"></script>
+</body>
+</html>

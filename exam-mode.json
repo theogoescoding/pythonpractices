@@ -1,0 +1,1579 @@
+{
+ "version": 1,
+ "note": "Exam Mode data (prompt EM1). Blocks are the backbone (decisions 18-19). Packs hold questions; C1 is the core combination (input + loop + selection + update + output). Approved by Theo 24-25 Nov 2026. testAnswers are the marker's gate: it must agree on at least 95% of mark points per question, and every total must match.",
+ "spec": {
+  "code": "J277",
+  "version": "2.4"
+ },
+ "teachingOrder": [
+  "B1",
+  "B2",
+  "B4",
+  "B8",
+  "B6",
+  "B5",
+  "B3",
+  "B11",
+  "B10",
+  "B12",
+  "B7",
+  "B9",
+  "B13",
+  "B14",
+  "B15",
+  "B16",
+  "B17"
+ ],
+ "blocks": [
+  {
+   "id": "B1",
+   "name": "Input and store a value",
+   "cue": "take … as input",
+   "tier": 1,
+   "papers": [
+    2022,
+    2023,
+    2024,
+    2025
+   ],
+   "pnl": [
+    {
+     "unit": "variables",
+     "levels": [
+      1,
+      2,
+      3
+     ]
+    }
+   ],
+   "cuePhrases": [
+    "take … as input",
+    "prompt the user to enter",
+    "ask the user to input",
+    "store … in the variable X"
+   ],
+   "mistakes": [
+    "assignment the wrong way round: input(\"…\") = passA (2025 6(a)(i))",
+    "printing when asked to store (ER 2024)",
+    "changing a given identifier, e.g. word 1 for word1 (ER 2024)",
+    "input used as a variable name"
+   ]
+  },
+  {
+   "id": "B2",
+   "name": "Selection with one condition",
+   "cue": "outputs … if …",
+   "tier": 1,
+   "papers": [
+    2022,
+    2023,
+    2024,
+    2025
+   ],
+   "pnl": [
+    {
+     "unit": "selection",
+     "levels": [
+      3,
+      4,
+      5,
+      6
+     ]
+    }
+   ],
+   "cuePhrases": [
+    "outputs \"A\" if … outputs \"B\" if not",
+    "checks if",
+    "depending on"
+   ],
+   "mistakes": [
+    "comparing to a word without quotes (== yes)",
+    "= instead of == (penalised once)",
+    "both outputs printed"
+   ]
+  },
+  {
+   "id": "B3",
+   "name": "Two conditions (AND/OR) and inclusive ranges",
+   "cue": "between … and … inclusive",
+   "tier": 1,
+   "papers": [
+    2022,
+    2023,
+    2024,
+    2025
+   ],
+   "weak": [
+    "ER 2024",
+    "ER 2025"
+   ],
+   "pnl": [
+    {
+     "unit": "selection",
+     "levels": [
+      9,
+      10
+     ]
+    },
+    {
+     "unit": "validation-range",
+     "levels": [
+      1,
+      2,
+      3,
+      4,
+      5
+     ]
+    }
+   ],
+   "cuePhrases": [
+    "between X and Y inclusive",
+    "either … or",
+    "one or both of",
+    "is not either … or …",
+    "only when … and …"
+   ],
+   "mistakes": [
+    "num >= 1 AND <= 100: variable not repeated (ER 2024, ER 2025)",
+    "PIN == \"1234\" OR \"4321\" (ER 2025)",
+    "num > 1 AND num < 100 shuts out the boundaries (ER 2025)",
+    "≥ or => instead of >= (ER 2024)"
+   ]
+  },
+  {
+   "id": "B4",
+   "name": "Count-controlled loop",
+   "cue": "… 10 times / how many to enter",
+   "tier": 1,
+   "papers": [
+    2022,
+    2023,
+    2024,
+    2025
+   ],
+   "pnl": [
+    {
+     "unit": "loops-count",
+     "levels": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+     ]
+    }
+   ],
+   "cuePhrases": [
+    "repeat 10 times",
+    "the player is asked 3 questions",
+    "until the quantity of numbers the user input has been entered"
+   ],
+   "mistakes": [
+    "repeating the calculation without a new input each time (2022 4(c))",
+    "a while loop whose counter never changes"
+   ]
+  },
+  {
+   "id": "B5",
+   "name": "Loop over an array, counter as index",
+   "cue": "each item in the array",
+   "tier": 1,
+   "papers": [
+    2022,
+    2023,
+    2024,
+    2025
+   ],
+   "weak": [
+    "ER 2024"
+   ],
+   "pnl": [
+    {
+     "unit": "lists",
+     "levels": [
+      4,
+      5,
+      6,
+      7,
+      8
+     ]
+    },
+    {
+     "unit": "linear-search",
+     "levels": [
+      3,
+      4,
+      5
+     ]
+    }
+   ],
+   "cuePhrases": [
+    "stored in the array X",
+    "each index represents",
+    "searches through",
+    "for every item",
+    "X.length"
+   ],
+   "mistakes": [
+    "not using the loop counter as the index (ER 2024: the hardest mark)",
+    "inventing a 2D index for a 1D array (ER 2024)",
+    "for x in list then list[x] (ER 2024)",
+    "starting at index 1 (2022 5(d), 2023 2(b))"
+   ]
+  },
+  {
+   "id": "B6",
+   "name": "Running total, count or update a variable",
+   "cue": "totals / counts / reduce",
+   "tier": 1,
+   "papers": [
+    2022,
+    2023,
+    2024,
+    2025
+   ],
+   "pnl": [
+    {
+     "unit": "loops-condition",
+     "levels": [
+      4
+     ]
+    },
+    {
+     "unit": "lists",
+     "levels": [
+      4,
+      8
+     ]
+    }
+   ],
+   "cuePhrases": [
+    "totals",
+    "counts how many",
+    "adds … to the total",
+    "reduce the value stored in",
+    "keeps track of",
+    "increment"
+   ],
+   "mistakes": [
+    "total = 0 inside the loop (2022 5(d))",
+    "print(total + x) never changes total",
+    "updating even when the booking failed (ER 2025)"
+   ]
+  },
+  {
+   "id": "B7",
+   "name": "Define a subprogram (function or procedure)",
+   "cue": "takes … as a parameter and returns …",
+   "tier": 1,
+   "papers": [
+    2022,
+    2023,
+    2024,
+    2025
+   ],
+   "weak": [
+    "ER 2024",
+    "ER 2025"
+   ],
+   "pnl": [
+    {
+     "unit": "functions-basic",
+     "levels": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+     ]
+    },
+    {
+     "unit": "functions-return",
+     "levels": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ]
+    }
+   ],
+   "cuePhrases": [
+    "Create/Write a function, X(), that takes … as a parameter",
+    "calculates and returns",
+    "Write the procedure X()"
+   ],
+   "mistakes": [
+    "no parameter, or input() overwriting it (ER 2024, ER 2025)",
+    "print instead of return (ER 2025)",
+    "code outside the function body"
+   ]
+  },
+  {
+   "id": "B8",
+   "name": "Condition-controlled loop",
+   "cue": "… until … is entered",
+   "tier": 2,
+   "papers": [
+    2022,
+    2024,
+    2025
+   ],
+   "weak": [
+    "ER 2025"
+   ],
+   "pnl": [
+    {
+     "unit": "loops-condition",
+     "levels": [
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+     ]
+    }
+   ],
+   "cuePhrases": [
+    "repeatedly take … until",
+    "repeat continually until the user enters 0",
+    "repeat the steps until there are no … left",
+    "until a valid … is input"
+   ],
+   "mistakes": [
+    "input only before the loop, so it repeats forever (2022 5(e))",
+    "resetting the variable inside the loop (2025 6(e))",
+    "\"a while loop repeats until the condition is True\" (ER 2025)",
+    "while x > 0 when the stop value is 0 (2022 5(e))"
+   ]
+  },
+  {
+   "id": "B9",
+   "name": "Call a subprogram and use its result",
+   "cue": "uses the function … to",
+   "tier": 2,
+   "papers": [
+    2022,
+    2023,
+    2025
+   ],
+   "weak": [
+    "ER 2025"
+   ],
+   "pnl": [
+    {
+     "unit": "functions-return",
+     "levels": [
+      2,
+      4
+     ]
+    }
+   ],
+   "cuePhrases": [
+    "uses the function X() to …",
+    "stores the result in the variable Y",
+    "calls the pre-written procedure"
+   ],
+   "mistakes": [
+    "redefining the function instead of calling it (ER 2025)",
+    "== for assignment",
+    "a text argument without quotes"
+   ]
+  },
+  {
+   "id": "B10",
+   "name": "String handling",
+   "cue": "the first … letters / … characters in length",
+   "tier": 2,
+   "papers": [
+    2022,
+    2024,
+    2025
+   ],
+   "pnl": [
+    {
+     "unit": "strings",
+     "levels": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+     ]
+    }
+   ],
+   "cuePhrases": [
+    "is 4 characters in length",
+    "the first 3 letters",
+    "in upper case",
+    "concatenate",
+    "is not empty"
+   ],
+   "mistakes": [
+    "comma instead of + to join (ER 2024)",
+    "printing instead of storing (ER 2024)",
+    "string methods combined with casting (ER 2024)"
+   ]
+  },
+  {
+   "id": "B11",
+   "name": "Output a message with a variable",
+   "cue": "in an appropriate message",
+   "tier": 2,
+   "papers": [
+    2023,
+    2024,
+    2025
+   ],
+   "weak": [
+    "ER 2024",
+    "ER 2025"
+   ],
+   "pnl": [
+    {
+     "unit": "variables",
+     "levels": [
+      9
+     ]
+    },
+    {
+     "unit": "strings",
+     "levels": [
+      6
+     ]
+    }
+   ],
+   "cuePhrases": [
+    "in an appropriate message",
+    "outputs \"…\" and then the content of the variable"
+   ],
+   "mistakes": [
+    "the variable inside the quotes (ER 2025)"
+   ]
+  },
+  {
+   "id": "B12",
+   "name": "Arithmetic: MOD, DIV, ^, average",
+   "cue": "remainder / average / to the power of",
+   "tier": 2,
+   "papers": [
+    2022,
+    2023,
+    2024
+   ],
+   "pnl": [
+    {
+     "unit": "maths",
+     "levels": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ]
+    }
+   ],
+   "cuePhrases": [
+    "to the power of",
+    "remainder",
+    "odd or even",
+    "whole number division",
+    "the average",
+    "halved"
+   ],
+   "mistakes": [
+    "average worked out inside the loop",
+    "MOD and DIV swapped",
+    "x for multiply (not accepted in Section B)"
+   ]
+  },
+  {
+   "id": "B13",
+   "name": "2D arrays",
+   "cue": "two-dimensional (2D) array",
+   "tier": 3,
+   "papers": [
+    2023
+   ],
+   "pnl": [
+    {
+     "unit": "arrays-2d",
+     "levels": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+     ]
+    }
+   ],
+   "cuePhrases": [
+    "two-dimensional (2D) array with the identifier",
+    "the value of events[1, 1] contains",
+    "row index / column index"
+   ],
+   "mistakes": [
+    "row and column swapped",
+    "adding text without casting",
+    "a single index on a 2D array"
+   ]
+  },
+  {
+   "id": "B14",
+   "name": "Casting",
+   "cue": "converted to … / as a string",
+   "tier": 3,
+   "papers": [
+    2023,
+    2025
+   ],
+   "pnl": [
+    {
+     "unit": "data-types",
+     "levels": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+     ]
+    }
+   ],
+   "cuePhrases": [
+    "uses casting where needed",
+    "must be converted to a string",
+    "takes the PIN as input as a string"
+   ],
+   "mistakes": [
+    "generic definition where context is asked for (2025 4(b))",
+    "int() on text with a decimal point"
+   ]
+  },
+  {
+   "id": "B15",
+   "name": "Reading and writing files",
+   "cue": "… the text file …",
+   "tier": 3,
+   "papers": [
+    2023,
+    2025
+   ],
+   "pnl": [
+    {
+     "unit": "file-handling",
+     "levels": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+     ]
+    }
+   ],
+   "cuePhrases": [
+    "read … from the external text file",
+    "write these inputs to the … text file",
+    "stores the string of data to the text file"
+   ],
+   "mistakes": [
+    "overwriting the procedure's parameters with input()",
+    "typing the file name instead of using the parameter (2023 6(e))",
+    "not knowing the ERL file statements"
+   ]
+  },
+  {
+   "id": "B16",
+   "name": "Highest or lowest",
+   "cue": "which … has the highest",
+   "tier": 3,
+   "papers": [
+    2024
+   ],
+   "pnl": [
+    {
+     "unit": "lists",
+     "levels": [
+      9
+     ]
+    },
+    {
+     "unit": "arrays-2d",
+     "levels": [
+      8
+     ]
+    }
+   ],
+   "cuePhrases": [
+    "calculate which … has the highest",
+    "the winning team",
+    "the fastest / lowest"
+   ],
+   "mistakes": [
+    "over-complicated array solutions instead of a running highest (ER 2024)"
+   ]
+  },
+  {
+   "id": "B17",
+   "name": "Random numbers",
+   "cue": "random number between …",
+   "tier": 3,
+   "papers": [
+    2023
+   ],
+   "pnl": [
+    {
+     "unit": "random",
+     "levels": [
+      1,
+      2,
+      3,
+      4,
+      5
+     ]
+    }
+   ],
+   "cuePhrases": [
+    "random whole numbers between 1 and 10 inclusive",
+    "generates one random number between"
+   ],
+   "mistakes": [
+    "generating once before the loop, so every question is the same (2023 5(c))"
+   ]
+  }
+ ],
+ "packs": [
+  {
+   "id": "C1",
+   "kind": "combination",
+   "title": "Core combination: …until 0 / stop is entered",
+   "blocks": [
+    "B1",
+    "B8",
+    "B2",
+    "B6",
+    "B11"
+   ],
+   "pnl": [
+    {
+     "unit": "loops-condition",
+     "levels": [
+      4,
+      6,
+      9
+     ]
+    },
+    {
+     "unit": "selection",
+     "levels": [
+      5,
+      6
+     ]
+    },
+    {
+     "unit": "maths",
+     "levels": [
+      4
+     ]
+    }
+   ],
+   "rungQuestion": "C1-Q0",
+   "rungs": {
+    "decode": {
+     "blocksQuestion": {
+      "prompt": "Which blocks does this question need? (tick all)",
+      "correct": [
+       "B1",
+       "B8",
+       "B6",
+       "B11"
+      ],
+      "distractors": [
+       "B4",
+       "B3",
+       "B7"
+      ]
+     },
+     "bulletTags": [
+      {
+       "bullet": "asks the user to enter the number of minutes a gamer played",
+       "correct": "Input, inside the loop",
+       "wrong": [
+        "Input, before the loop only"
+       ]
+      },
+      {
+       "bullet": "adds the minutes to a running total",
+       "correct": "Calculation: total = total + minutes",
+       "wrong": [
+        "Output"
+       ]
+      },
+      {
+       "bullet": "repeats until 0 is entered",
+       "correct": "Condition-controlled loop (while)",
+       "wrong": [
+        "Count-controlled loop (for)",
+        "Selection (if)"
+       ]
+      },
+      {
+       "bullet": "outputs the total number of minutes.",
+       "correct": "Output, after the loop",
+       "wrong": [
+        "Output, inside the loop"
+       ]
+      }
+     ],
+     "formatQuestion": {
+      "prompt": "\"Write an algorithm\": what can you answer in?",
+      "correct": "Code, pseudocode or a flowchart",
+      "wrong": [
+       "Code only",
+       "Flowchart only"
+      ]
+     }
+    },
+    "skeleton": {
+     "type": "parsons",
+     "lines": [
+      "total = 0",
+      "minutes = int(input(\"Enter minutes: \"))",
+      "while minutes != 0:",
+      "    total = total + minutes",
+      "    minutes = int(input(\"Enter minutes: \"))",
+      "print(total)"
+     ],
+     "distractors": [
+      {
+       "line": "while minutes > 0:",
+       "why": "stops on negatives too; the question says until 0"
+      },
+      {
+       "line": "print(total + minutes)",
+       "why": "shows a sum but never changes total"
+      }
+     ]
+    },
+    "fill": {
+     "type": "fill",
+     "code": "total = 0\nminutes = int(input(\"Enter minutes (0 to stop): \"))\nwhile minutes ____ 0:\n    total = ____\n    minutes = ____\nprint(____)",
+     "gaps": [
+      {
+       "accept": [
+        "!="
+       ]
+      },
+      {
+       "accept": [
+        "total + minutes",
+        "minutes + total"
+       ]
+      },
+      {
+       "acceptPattern": "^(int\\()?input\\(.*\\)\\)?$"
+      },
+      {
+       "accept": [
+        "total"
+       ],
+       "note": "or total inside a message"
+      }
+     ],
+     "tests": [
+      "t1",
+      "t2"
+     ]
+    },
+    "steps": {
+     "runAllowed": true,
+     "steps": [
+      {
+       "n": 1,
+       "task": "Ask for the minutes and store them",
+       "check": {
+        "kind": "code",
+        "rule": "input_stored",
+        "min": 1
+       }
+      },
+      {
+       "n": 2,
+       "task": "Add the minutes to total",
+       "check": {
+        "kind": "code",
+        "rule": "accumulates"
+       }
+      },
+      {
+       "n": 3,
+       "task": "Make steps 1–2 repeat until 0 is entered",
+       "check": {
+        "kind": "test",
+        "tests": [
+         "t1"
+        ],
+        "rule": "finishes_on_stop"
+       }
+      },
+      {
+       "n": 4,
+       "task": "Show the total after the loop",
+       "check": {
+        "kind": "test",
+        "tests": [
+         "t1"
+        ],
+        "rule": "prints_expected_once_after_loop"
+       }
+      }
+     ]
+    }
+   },
+   "questions": [
+    {
+     "id": "C1-Q0",
+     "title": "Gaming café",
+     "marks": 4,
+     "context": "familiar",
+     "rider": null,
+     "opening": "Write an algorithm that:",
+     "stem": "A gaming café records how long each gamer plays.",
+     "bullets": [
+      "asks the user to enter the number of minutes a gamer played",
+      "adds the minutes to a running total",
+      "repeats until 0 is entered",
+      "outputs the total number of minutes."
+     ],
+     "sayItSimply": "Ask how many minutes someone played. Add it to a total. Keep asking until they type 0. Then show the total.",
+     "answerFormat": "Write an algorithm: code, pseudocode or a flowchart all get marks on paper. In Exam Mode you answer in Python.",
+     "blocks": [
+      "B1",
+      "B8",
+      "B6",
+      "B11"
+     ],
+     "modelPython": "total = 0\nminutes = int(input(\"Enter minutes played (0 to stop): \"))\nwhile minutes != 0:\n    total = total + minutes\n    minutes = int(input(\"Enter minutes played (0 to stop): \"))\nprint(\"Total minutes played:\", total)\n",
+     "modelERL": "total = 0\nminutes = input(\"Enter minutes played (0 to stop)\")\nwhile minutes != 0\n    total = total + minutes\n    minutes = input(\"Enter minutes played (0 to stop)\")\nendwhile\nprint(\"Total minutes played: \" + str(total))",
+     "tests": [
+      {
+       "id": "t1",
+       "inputs": [
+        "30",
+        "45",
+        "20",
+        "0"
+       ],
+       "spare": [
+        "7"
+       ],
+       "expectNumbers": [
+        95
+       ]
+      },
+      {
+       "id": "t2",
+       "inputs": [
+        "0"
+       ],
+       "spare": [
+        "7"
+       ],
+       "expectNumbers": [
+        0
+       ]
+      },
+      {
+       "id": "t3",
+       "inputs": [
+        "-5",
+        "10",
+        "0"
+       ],
+       "spare": [
+        "7"
+       ],
+       "expectNumbers": [
+        5
+       ],
+       "note": "-5 must not stop the loop"
+      }
+     ],
+     "markPoints": [
+      {
+       "id": "BP1",
+       "block": "B1",
+       "text": "Inputs the minutes and stores them",
+       "feedback": "You did not ask for the minutes. Write minutes = int(input(\"Enter minutes: \")).",
+       "check": {
+        "kind": "code",
+        "rule": "input_stored",
+        "min": 1
+       }
+      },
+      {
+       "id": "BP2",
+       "block": "B6",
+       "text": "Adds the minutes to the total (total = total + minutes)",
+       "feedback": "Your total never changes. Inside the loop, write total = total + minutes.",
+       "check": {
+        "kind": "code",
+        "rule": "accumulates_in_loop",
+        "noResetInLoop": true
+       }
+      },
+      {
+       "id": "BP3",
+       "block": "B8",
+       "text": "Repeats the input and the adding until 0 is entered",
+       "feedback": "Your program does not keep asking until 0. Put the input and the adding inside while minutes != 0:, and ask for the minutes again at the end of the loop.",
+       "check": {
+        "kind": "test",
+        "tests": [
+         "t1",
+         "t3"
+        ],
+        "rule": "finishes_on_stop",
+        "spareUnused": true
+       }
+      },
+      {
+       "id": "BP4",
+       "block": "B11",
+       "text": "Outputs the total once, after the loop",
+       "feedback": "Show the total once, after the loop. Write print(total) with no indent, below the loop.",
+       "check": {
+        "kind": "test+code",
+        "tests": [
+         "t1"
+        ],
+        "rule": "prints_expected_once_after_loop"
+       },
+       "followThroughOn": [
+        "BP2"
+       ]
+      }
+     ],
+     "penaliseOnceOn": "BP2",
+     "guidance": [
+      "Don't penalise a missing total = 0 at the start; total = 0 inside the loop loses BP2.",
+      "Ignore a missing int()."
+     ],
+     "testAnswers": [
+      {
+       "id": "C1",
+       "code": "total = 0\nminutes = int(input(\"Enter minutes played (0 to stop): \"))\nwhile minutes != 0:\n    total = total + minutes\n    minutes = int(input(\"Enter minutes played (0 to stop): \"))\nprint(\"Total minutes played:\", total)\n",
+       "expected": {
+        "BP1": 1,
+        "BP2": 1,
+        "BP3": 1,
+        "BP4": 1
+       },
+       "total": 4,
+       "what": "Model answer"
+      },
+      {
+       "id": "C2",
+       "code": "total = 0\nminutes = int(input(\"Enter minutes (0 to stop): \"))\nwhile minutes != 0:\n    print(total + minutes)\n    minutes = int(input(\"Enter minutes (0 to stop): \"))\nprint(total)\n",
+       "expected": {
+        "BP1": 1,
+        "BP2": 0,
+        "BP3": 1,
+        "BP4": 1
+       },
+       "total": 3,
+       "what": "print(total + minutes) instead of total = total + minutes"
+      },
+      {
+       "id": "C3",
+       "code": "minutes = int(input(\"Enter minutes (0 to stop): \"))\nwhile minutes != 0:\n    total = 0\n    total = total + minutes\n    minutes = int(input(\"Enter minutes (0 to stop): \"))\nprint(total)\n",
+       "expected": {
+        "BP1": 1,
+        "BP2": 0,
+        "BP3": 1,
+        "BP4": 1
+       },
+       "total": 3,
+       "what": "total = 0 inside the loop"
+      },
+      {
+       "id": "C4",
+       "code": "total = 0\nminutes = int(input(\"Enter minutes (0 to stop): \"))\nwhile minutes != 0:\n    total = total + minutes\n    print(total)\n    minutes = int(input(\"Enter minutes (0 to stop): \"))\n",
+       "expected": {
+        "BP1": 1,
+        "BP2": 1,
+        "BP3": 1,
+        "BP4": 0
+       },
+       "total": 3,
+       "what": "print(total) inside the loop (judgement call, approved)"
+      }
+     ],
+     "extraChecks": [
+      {
+       "what": "cafe +=",
+       "code": "total = 0\nm = int(input())\nwhile m != 0:\n    total += m\n    m = int(input())\nprint(\"Total\", total)\n",
+       "total": 4,
+       "note": "Claude's sanity check (not one of Theo's approved test answers): a different valid style or a small slip."
+      }
+     ]
+    },
+    {
+     "id": "C1-Q1",
+     "title": "Strike Zone bowling",
+     "marks": 6,
+     "context": "exam",
+     "rider": "You must use either: OCR Exam Reference Language, or a high-level programming language that you have studied.",
+     "opening": "Write an algorithm to:",
+     "stem": "Strike Zone is a bowling alley. A game costs £5.00. Members pay £3.50 per game.",
+     "bullets": [
+      "take as input the number of games a customer wants to play and whether they are a member",
+      "calculate and output the price for that customer",
+      "repeat until the user enters 0 games."
+     ],
+     "sayItSimply": "Ask how many games, and whether they're a member. Members pay £3.50 a game. Everyone else pays £5. Show the price. Keep doing this until someone types 0 games.",
+     "answerFormat": "Code only: pseudocode in English or a flowchart gets no marks here.",
+     "blocks": [
+      "B1",
+      "B8",
+      "B2",
+      "B12"
+     ],
+     "modelPython": "games = int(input(\"Enter number of games (0 to stop): \"))\nwhile games != 0:\n    member = input(\"Are you a member? (yes/no): \")\n    if member == \"yes\":\n        price = games * 3.50\n    else:\n        price = games * 5\n    print(\"Price: £\", price)\n    games = int(input(\"Enter number of games (0 to stop): \"))\n",
+     "modelERL": "games = input(\"Enter number of games (0 to stop)\")\nwhile games != 0\n    member = input(\"Are you a member? (yes/no)\")\n    if member == \"yes\" then\n        price = games * 3.50\n    else\n        price = games * 5\n    endif\n    print(\"Price: £\" + str(price))\n    games = input(\"Enter number of games (0 to stop)\")\nendwhile",
+     "expectedWords": [
+      "yes",
+      "no"
+     ],
+     "tests": [
+      {
+       "id": "t1",
+       "inputs": [
+        "2",
+        "yes",
+        "3",
+        "no",
+        "0"
+       ],
+       "spare": [
+        "4",
+        "yes"
+       ],
+       "expectNumbers": [
+        7,
+        15
+       ]
+      },
+      {
+       "id": "t2",
+       "inputs": [
+        "0"
+       ],
+       "spare": [
+        "4",
+        "yes"
+       ],
+       "expectNumbers": []
+      },
+      {
+       "id": "t3",
+       "inputs": [
+        "-1",
+        "no",
+        "0"
+       ],
+       "spare": [
+        "4",
+        "yes"
+       ],
+       "note": "-1 must not stop the loop (it is not 0)"
+      },
+      {
+       "id": "t4",
+       "inputs": [
+        "2",
+        "yes",
+        "0"
+       ],
+       "spare": [
+        "4",
+        "yes"
+       ],
+       "expectNumbers": [
+        7
+       ],
+       "note": "one member; used for BP3 even if the loop is wrong"
+      },
+      {
+       "id": "t5",
+       "inputs": [
+        "3",
+        "no",
+        "0"
+       ],
+       "spare": [
+        "4",
+        "no"
+       ],
+       "expectNumbers": [
+        15
+       ],
+       "note": "one non-member; used for BP4 even if the loop is wrong"
+      }
+     ],
+     "markPoints": [
+      {
+       "id": "BP1",
+       "block": "B1",
+       "text": "Inputs the number of games and whether they're a member (two separate inputs), and stores them",
+       "feedback": "You need two inputs. Write games = int(input(\"How many games? \")) and member = input(\"Member? yes/no: \").",
+       "check": {
+        "kind": "code",
+        "rule": "input_stored",
+        "min": 2,
+        "distinctVars": true
+       }
+      },
+      {
+       "id": "BP2",
+       "block": "B2",
+       "text": "Checks whether they're a member (if)…",
+       "feedback": "You did not check if they are a member. Write if member == \"yes\":.",
+       "check": {
+        "kind": "code",
+        "rule": "if_tests_input_var"
+       }
+      },
+      {
+       "id": "BP3",
+       "block": "B2",
+       "text": "…correctly calculates and outputs the price for a member (games * 3.50)",
+       "feedback": "Members pay £3.50 a game. Under the if, write price = games * 3.50 and print(price).",
+       "check": {
+        "kind": "test",
+        "tests": [
+         "t4"
+        ],
+        "rule": "prints_number",
+        "value": 7
+       },
+       "dependsOn": "BP2"
+      },
+      {
+       "id": "BP4",
+       "block": "B2",
+       "text": "…correctly calculates and outputs the price for a non-member (games * 5)",
+       "feedback": "Non-members pay £5 a game. Under else:, write price = games * 5 and print(price).",
+       "check": {
+        "kind": "test",
+        "tests": [
+         "t5"
+        ],
+        "rule": "prints_number",
+        "value": 15
+       },
+       "dependsOn": "BP2"
+      },
+      {
+       "id": "BP5",
+       "block": "B8",
+       "text": "Attempt at repeating BP1–BP4…",
+       "feedback": "Your program only does one customer. Put the inputs, the if and the print inside a loop.",
+       "check": {
+        "kind": "code",
+        "rule": "loop_contains_input_and_work"
+       }
+      },
+      {
+       "id": "BP6",
+       "block": "B8",
+       "text": "…until 0 games is entered, asking for new inputs each time",
+       "feedback": "Your loop must stop only when 0 is typed, and ask again each time. Write while games != 0: and ask for games again at the end of the loop.",
+       "check": {
+        "kind": "test",
+        "tests": [
+         "t1",
+         "t3"
+        ],
+        "rule": "finishes_on_stop",
+        "spareUnused": true
+       },
+       "dependsOn": "BP5"
+      }
+     ],
+     "penaliseOnceOn": "BP3",
+     "guidance": [
+      "Inputs before the loop and again at its end is fine.",
+      "Do not accept while games > 0 for BP6.",
+      "Repeating the calculation without new inputs gets no BP5 or BP6.",
+      "Don't penalise a 0 or blank output when the loop ends.",
+      "Missing quotes round \"yes\": penalise once, then follow through.",
+      "Missing int(): no marks lost; add the note."
+     ],
+     "testAnswers": [
+      {
+       "id": "A1",
+       "code": "games = int(input(\"Enter number of games (0 to stop): \"))\nwhile games != 0:\n    member = input(\"Are you a member? (yes/no): \")\n    if member == \"yes\":\n        price = games * 3.50\n    else:\n        price = games * 5\n    print(\"Price: £\", price)\n    games = int(input(\"Enter number of games (0 to stop): \"))\n",
+       "expected": {
+        "BP1": 1,
+        "BP2": 1,
+        "BP3": 1,
+        "BP4": 1,
+        "BP5": 1,
+        "BP6": 1
+       },
+       "total": 6,
+       "what": "Model answer"
+      },
+      {
+       "id": "A2",
+       "code": "games = int(input(\"Enter number of games: \"))\nmember = input(\"Member? (yes/no): \")\nif member == \"yes\":\n    price = games * 3.50\nelse:\n    price = games * 5\nprint(price)\n",
+       "expected": {
+        "BP1": 1,
+        "BP2": 1,
+        "BP3": 1,
+        "BP4": 1,
+        "BP5": 0,
+        "BP6": 0
+       },
+       "total": 4,
+       "what": "No loop: one customer only"
+      },
+      {
+       "id": "A3",
+       "code": "games = int(input(\"Enter number of games: \"))\nmember = input(\"Member? (yes/no): \")\nwhile games != 0:\n    if member == \"yes\":\n        price = games * 3.50\n    else:\n        price = games * 5\n    print(price)\n",
+       "expected": {
+        "BP1": 1,
+        "BP2": 1,
+        "BP3": 1,
+        "BP4": 1,
+        "BP5": 0,
+        "BP6": 0
+       },
+       "total": 4,
+       "what": "Inputs only before the loop; repeats forever"
+      },
+      {
+       "id": "A4",
+       "code": "games = int(input(\"Enter number of games (0 to stop): \"))\nwhile games > 0:\n    member = input(\"Member? (yes/no): \")\n    if member == \"yes\":\n        price = games * 3.50\n    else:\n        price = games * 5\n    print(price)\n    games = int(input(\"Enter number of games (0 to stop): \"))\n",
+       "expected": {
+        "BP1": 1,
+        "BP2": 1,
+        "BP3": 1,
+        "BP4": 1,
+        "BP5": 1,
+        "BP6": 0
+       },
+       "total": 5,
+       "what": "while games > 0"
+      },
+      {
+       "id": "A5",
+       "code": "games = int(input(\"Enter number of games (0 to stop): \"))\nwhile games != 0:\n    member = input(\"Member? (yes/no): \")\n    if member == yes:\n        price = games * 3.50\n    else:\n        price = games * 5\n    print(price)\n    games = int(input(\"Enter number of games (0 to stop): \"))\n",
+       "expected": {
+        "BP1": 1,
+        "BP2": 1,
+        "BP3": 0,
+        "BP4": 1,
+        "BP5": 1,
+        "BP6": 1
+       },
+       "total": 5,
+       "what": "member == yes without quotes: penalise once on BP3 (judgement call, approved)"
+      },
+      {
+       "id": "A6",
+       "code": "games = input(\"Enter number of games (0 to stop): \")\nwhile games != 0:\n    member = input(\"Member? (yes/no): \")\n    if member == \"yes\":\n        price = games * 3.50\n    else:\n        price = games * 5\n    print(price)\n    games = input(\"Enter number of games (0 to stop): \")\n",
+       "expected": {
+        "BP1": 1,
+        "BP2": 1,
+        "BP3": 1,
+        "BP4": 1,
+        "BP5": 1,
+        "BP6": 1
+       },
+       "total": 6,
+       "note": "int",
+       "what": "No int(): full marks plus the int() note"
+      },
+      {
+       "id": "A7",
+       "code": "for i in range(10):\n    games = int(input(\"Enter number of games: \"))\n    member = input(\"Member? (yes/no): \")\n    if member == \"yes\":\n        price = games * 3.50\n    else:\n        price = games * 5\n    print(price)\n",
+       "expected": {
+        "BP1": 1,
+        "BP2": 1,
+        "BP3": 1,
+        "BP4": 1,
+        "BP5": 1,
+        "BP6": 0
+       },
+       "total": 5,
+       "what": "for i in range(10): BP5 yes, BP6 no (judgement call, approved)"
+      }
+     ],
+     "extraChecks": [
+      {
+       "what": "bowl break style",
+       "code": "while True:\n    games = int(input(\"games\"))\n    if games == 0:\n        break\n    member = input(\"member\")\n    if member.lower() == \"yes\":\n        price = games * 3.5\n    else:\n        price = games * 5\n    print(f\"Price: £{price:.2f}\")\n",
+       "total": 6,
+       "note": "Claude's sanity check (not one of Theo's approved test answers): a different valid style or a small slip."
+      },
+      {
+       "what": "bowl missing colon",
+       "code": "games = int(input(\"games\"))\nwhile games != 0\n    member = input(\"member\")\n    if member == \"yes\":\n        print(games * 3.5)\n    else:\n        print(games * 5)\n    games = int(input(\"games\"))\n",
+       "total": 5,
+       "note": "Claude's sanity check (not one of Theo's approved test answers): a different valid style or a small slip."
+      }
+     ]
+    },
+    {
+     "id": "C1-Q2",
+     "title": "Riverside quiz league",
+     "marks": 6,
+     "context": "exam",
+     "rider": "You must use either: OCR Exam Reference Language, or a high-level programming language that you have studied.",
+     "opening": "Write a program that:",
+     "stem": "The Riverside quiz league records the score of each team in a round.",
+     "bullets": [
+      "asks the user to enter a team name, or \"stop\" to finish",
+      "if a team name is entered, asks for that team's score",
+      "repeats until \"stop\" is entered",
+      "counts how many teams were entered and totals their scores",
+      "outputs the number of teams and the average score."
+     ],
+     "sayItSimply": "Ask for a team name. If it isn't \"stop\", ask for their score. Keep going until someone types stop. Count the teams and add up the scores. At the end, show how many teams there were and their average score.",
+     "answerFormat": "Code only: pseudocode in English or a flowchart gets no marks here.",
+     "blocks": [
+      "B1",
+      "B8",
+      "B6",
+      "B12",
+      "B11"
+     ],
+     "modelPython": "count = 0\ntotal = 0\nteam = input(\"Enter a team name, or stop to finish: \")\nwhile team != \"stop\":\n    score = int(input(\"Enter the team's score: \"))\n    count = count + 1\n    total = total + score\n    team = input(\"Enter a team name, or stop to finish: \")\nprint(\"Teams entered:\", count)\nprint(\"Average score:\", total / count)\n",
+     "modelERL": "count = 0\ntotal = 0\nteam = input(\"Enter a team name, or stop to finish\")\nwhile team != \"stop\"\n    score = input(\"Enter the team's score\")\n    count = count + 1\n    total = total + score\n    team = input(\"Enter a team name, or stop to finish\")\nendwhile\nprint(\"Teams entered: \" + str(count))\nprint(\"Average score: \" + str(total / count))",
+     "expectedWords": [
+      "stop"
+     ],
+     "tests": [
+      {
+       "id": "t1",
+       "inputs": [
+        "Owls",
+        "12",
+        "Foxes",
+        "15",
+        "stop"
+       ],
+       "spare": [
+        "0",
+        "Bats"
+       ],
+       "expectNumbers": [
+        2,
+        13.5
+       ]
+      }
+     ],
+     "markPoints": [
+      {
+       "id": "BP1",
+       "block": "B1",
+       "text": "Inputs a team name and stores it",
+       "feedback": "You did not ask for a team name. Write team = input(\"Team name, or stop: \").",
+       "check": {
+        "kind": "code",
+        "rule": "input_stored",
+        "min": 1
+       }
+      },
+      {
+       "id": "BP2",
+       "block": "B8",
+       "text": "Attempt at repetition…",
+       "feedback": "Your program only takes one team. Put the score input and the adding inside a while loop.",
+       "check": {
+        "kind": "code",
+        "rule": "loop_contains_input_and_work"
+       }
+      },
+      {
+       "id": "BP3",
+       "block": "B8",
+       "text": "…until \"stop\" is entered, asking for a new team name each time",
+       "feedback": "Your loop must stop when \"stop\" is typed. Write while team != \"stop\":, and ask for the next team at the end of the loop.",
+       "check": {
+        "kind": "test",
+        "tests": [
+         "t1"
+        ],
+        "rule": "finishes_on_stop"
+       },
+       "dependsOn": "BP2"
+      },
+      {
+       "id": "BP4",
+       "block": "B8",
+       "text": "Asks for the score only when the name is not \"stop\"",
+       "feedback": "You asked for a score after \"stop\" was typed. Check the name first. Ask for the score inside the loop, before asking for the next name.",
+       "check": {
+        "kind": "test",
+        "tests": [
+         "t1"
+        ],
+        "rule": "spare_unused"
+       },
+       "dependsOn": "BP2"
+      },
+      {
+       "id": "BP5",
+       "block": "B6",
+       "text": "Counts the teams and totals the scores inside the loop",
+       "feedback": "Count and total inside the loop. Write count = count + 1 and total = total + score. Set both to 0 before the loop.",
+       "check": {
+        "kind": "code",
+        "rule": "accumulates_in_loop",
+        "atLeast": 2,
+        "noResetInLoop": true
+       }
+      },
+      {
+       "id": "BP6",
+       "block": "B11",
+       "text": "Outputs the count and the average (total / count) after the loop",
+       "feedback": "Show the results once, after the loop. Write print(count) and print(total / count) with no indent.",
+       "check": {
+        "kind": "test+code",
+        "tests": [
+         "t1"
+        ],
+        "rule": "prints_expected_once_after_loop"
+       },
+       "followThroughOn": [
+        "BP4",
+        "BP5"
+       ]
+      }
+     ],
+     "penaliseOnceOn": "BP3",
+     "guidance": [
+      "\"stop\" must be compared as text in quotes; team != stop is penalised once, then follow through.",
+      "Don't penalise a missing count = 0 or total = 0 before the loop; setting either inside the loop loses BP5.",
+      "Ignore division by zero if \"stop\" is typed first."
+     ],
+     "testAnswers": [
+      {
+       "id": "B1",
+       "code": "count = 0\ntotal = 0\nteam = input(\"Enter a team name, or stop to finish: \")\nwhile team != \"stop\":\n    score = int(input(\"Enter the team's score: \"))\n    count = count + 1\n    total = total + score\n    team = input(\"Enter a team name, or stop to finish: \")\nprint(\"Teams entered:\", count)\nprint(\"Average score:\", total / count)\n",
+       "expected": {
+        "BP1": 1,
+        "BP2": 1,
+        "BP3": 1,
+        "BP4": 1,
+        "BP5": 1,
+        "BP6": 1
+       },
+       "total": 6,
+       "what": "Model answer"
+      },
+      {
+       "id": "B2",
+       "code": "count = 0\ntotal = 0\nteam = \"\"\nwhile team != \"stop\":\n    team = input(\"Enter a team name, or stop to finish: \")\n    score = int(input(\"Enter the team's score: \"))\n    count = count + 1\n    total = total + score\nprint(count)\nprint(total / count)\n",
+       "expected": {
+        "BP1": 1,
+        "BP2": 1,
+        "BP3": 1,
+        "BP4": 0,
+        "BP5": 1,
+        "BP6": 1
+       },
+       "total": 5,
+       "what": "Asks name and score together, so a score after stop (judgement call, approved)"
+      },
+      {
+       "id": "B3",
+       "code": "count = 0\ntotal = 0\nteam = input(\"Enter a team name, or stop to finish: \")\nwhile team != \"stop\":\n    score = int(input(\"Enter the team's score: \"))\n    count = count + 1\n    total = total + score\n    print(count, total / count)\n    team = input(\"Enter a team name, or stop to finish: \")\n",
+       "expected": {
+        "BP1": 1,
+        "BP2": 1,
+        "BP3": 1,
+        "BP4": 1,
+        "BP5": 1,
+        "BP6": 0
+       },
+       "total": 5,
+       "what": "Prints count and average inside the loop (judgement call, approved)"
+      },
+      {
+       "id": "B4",
+       "code": "count = 0\ntotal = 0\nteam = input(\"Enter a team name, or stop to finish: \")\nwhile team != stop:\n    score = int(input(\"Enter the team's score: \"))\n    count = count + 1\n    total = total + score\n    team = input(\"Enter a team name, or stop to finish: \")\nprint(count)\nprint(total / count)\n",
+       "expected": {
+        "BP1": 1,
+        "BP2": 1,
+        "BP3": 0,
+        "BP4": 1,
+        "BP5": 1,
+        "BP6": 1
+       },
+       "total": 5,
+       "what": "team != stop without quotes: penalise once on BP3"
+      },
+      {
+       "id": "B5",
+       "code": "team = input(\"Enter a team name: \")\nscore = int(input(\"Enter the score: \"))\nprint(team, score)\n",
+       "expected": {
+        "BP1": 1,
+        "BP2": 0,
+        "BP3": 0,
+        "BP4": 0,
+        "BP5": 0,
+        "BP6": 0
+       },
+       "total": 1,
+       "what": "No loop, no counting"
+      },
+      {
+       "id": "B6",
+       "code": "total = 0\nteam = input(\"Enter a team name, or stop to finish: \")\nwhile team != \"stop\":\n    count = 0\n    score = int(input(\"Enter the team's score: \"))\n    count = count + 1\n    total = total + score\n    team = input(\"Enter a team name, or stop to finish: \")\nprint(count)\nprint(total / count)\n",
+       "expected": {
+        "BP1": 1,
+        "BP2": 1,
+        "BP3": 1,
+        "BP4": 1,
+        "BP5": 0,
+        "BP6": 1
+       },
+       "total": 5,
+       "what": "count = 0 inside the loop"
+      }
+     ],
+     "extraChecks": [
+      {
+       "what": "quiz f-string",
+       "code": "count = total = 0\nteam = input(\"team\")\nwhile team != \"stop\":\n    total += int(input(\"score\"))\n    count += 1\n    team = input(\"team\")\nprint(f\"{count} teams, average {total/count}\")\n",
+       "total": 6,
+       "note": "Claude's sanity check (not one of Theo's approved test answers): a different valid style or a small slip."
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

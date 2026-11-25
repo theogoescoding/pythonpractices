@@ -66,6 +66,7 @@ python -m http.server 8000
 
 Then open:
 
+
 - Student app: http://localhost:8000/
 - Teacher view: http://localhost:8000/teacher.html (pages: `#classes`, `#students`, `#assignments`, `#reports`, `#tasks`, `#settings`)
 - A student's progress summary: http://localhost:8000/progress.html
@@ -1173,7 +1174,10 @@ No `localStorage` key was renamed and no stored record changed shape. When a stu
 
 ```
 node tests/validate.js
+node tests/exam-mode.js
 ```
+
+`node tests/exam-mode.js` is Exam Mode's gate (a few seconds; see [Exam Mode](#exam-mode)).
 
 This needs Node 18+ and Python 3 on the PATH (set `PYTHON=...` to use a different interpreter). It makes about 7,100 template variants and runs about 41,000 Python programs, which takes 10 to 15 minutes. `node tests/validate.js --full` tries more seeds per template and runs the repeat rule for longer. As in the app, each program is stopped after 5 seconds (`tools/run-python.js`), so a buggy variant that loops forever without printing anything can't hang the tests. It checks:
 
@@ -1251,6 +1255,46 @@ This needs Node 18+ and Python 3 on the PATH (set `PYTHON=...` to use a differen
 
 **In-browser check (optional):** serve the folder and open `http://localhost:8000/tests/browser-check.html`. It runs every bank solution, and one variant of every template (derived ones made in Pyodide, as the app makes them), through the real Pyodide worker. It also checks that an infinite loop is stopped by the timeout and by the line limit. Making the variants takes a few minutes.
 
+## Exam Mode
+
+Exam Mode (`exam.html`) bridges the practice units and OCR J277 Paper 2 programming questions. Exam questions are written in OCR Exam Reference Language (ERL) and split into bullet points; each bullet earns about one mark point, and marks are given for parts of an answer, not just a working program. Students answer in **Python**, and everything is marked **in the browser** (no AI marking). The decisions behind it are in `docs/exammode/exam-mode-decisions.md`.
+
+**Where the data lives: `exam-mode.json`** (next to `tasks.json`).
+- `blocks`: the 17 building blocks (input and store, selection, two conditions, loops, running totals, functions, …), each with its cue phrases, known mistakes and the Pythons and Ladders units and levels it builds on (`pnl`); `teachingOrder` is the order students see them in.
+- `packs`: one pack so far, `C1`, the core combination (input + loop + selection + update + output). Its rung question `C1-Q0` (gaming café) is used for rungs 1–4; `C1-Q1` (bowling) and `C1-Q2` (quiz league) are the full questions for rung 5. Each question has its stem, bullets, "say it simply" text, model answers (Python and ERL), tests (each with spare inputs after the stop value), mark points with one feedback line each, and **test answers with the examiner's mark for each mark point** (approved by Theo).
+
+**The five rungs.** 1 Decode (tick the blocks, tag each bullet, choose the answer format), 2 Skeleton (Parsons, checked as on the practice page), 3 Fill the gaps (each gap checked against `accept` / `acceptPattern`, then the program runs on `t1` and `t2`), 4 One bullet at a time (one editor, Run allowed, each step checked by its rule straight away), 5 Full questions (shown as an exam paper sets them, editor only, no Run; on Submit, the total, every mark point with ✓, ✗ or "check yourself", the feedback line when missed, and any notes; then Retry, See the model answer and mark scheme, or Move on). Rungs 1–3 have "Say it simply" (each use recorded) and show code in ERL, with "Show in Python" to switch.
+
+**How the marker works: `exam_marker.py`** (next to `harness.py`; `worker.js` loads it after `harness.py`). `mark_answer_json(code, question_json)` returns every mark point as awarded (1 or 0, `status: "auto"`) or `unsure` (`awarded: null`: the page then shows the model answer and asks "Does your answer do this?", and records the student's answer as self-marked, separately). Each test runs through `harness.run_code_limited` (2000 lines) with its inputs followed by its spare inputs. Mark points use reusable rules, not per-question code:
+
+| Rule | Passes when |
+|---|---|
+| `input_stored` | at least `min` `input()` calls are assigned to variables (`distinctVars`: different variables) |
+| `accumulates` | some variable is updated from itself (`x = x + …`, `x += …`) |
+| `accumulates_in_loop` | as above, inside a loop (`atLeast` such variables); with `noResetInLoop`, not if it is also set to a constant in that loop |
+| `if_tests_input_var` | an `if`/`elif` condition compares a variable that was assigned from `input()` |
+| `loop_contains_input_and_work` | a loop body contains an `input()` call and at least one other statement |
+| `finishes_on_stop` | each named test ends with no error, having used all its inputs (with `spareUnused`, none of its spare inputs) |
+| `spare_unused` | the named test used none of its spare inputs |
+| `prints_number` | the output contains `value` as a number (7, 7.0, 7.00 and £7 all match) |
+| `prints_expected_once_after_loop` | a top-level `print` of a variable comes after the last loop, and each expected number appears exactly once (only the structure, under follow-through) |
+
+`dependsOn` withholds a point whose earlier point wasn't awarded; `followThroughOn` judges a point by code structure only when an earlier point was lost; `penaliseOnceOn` is the point that loses one mark when a slip was repaired. The six requirements found by running the approved test answers:
+1. **Missing `int()`:** a TypeError or timeout is rerun with `input()` returning numbers; if that fixes it, the marks stand, with the note "Your answer would get the marks in the exam. In real Python, add int() around input()." (A6: 6/6.)
+2. **Missing quotes:** a bare name that is one of the question's `expectedWords` (`yes`, `stop`) and never assigned is treated as that text, penalised once (A5, B4: 5/6).
+3. **Infinite loops:** a timeout means the loop doesn't stop; it fails the stop rules, but the other points are still marked.
+4. **NoMoreInput** before the stop value: the loop doesn't stop on the stop value.
+5. **Numbers, not wording:** output is matched as numbers, not exact text.
+6. **Spare inputs:** using one is the evidence that a program asked for more after the stop value.
+
+**Syntax repairs.** If the code doesn't parse, the marker adds a missing `:` and turns `=` into `==` in `if`/`elif`/`while` conditions, marks the repaired code and penalises once (note `syntax-fixed`). If it still won't parse, every point is "check yourself". Rung 4 uses the same rules through `check_step` (no penalties: it is practice with Run allowed).
+
+**The gate: `node tests/exam-mode.js`** (local Python, like `tests/validate.js`). It checks the data (rules exist, every test answer's marks match its question's mark points and add up, block ids exist), that every model answer scores full marks and passes every test, and that the marker agrees with the examiner on **at least 95% of mark points per question** (decision 5), printing every disagreement and the agreement per question. Today it is 94 of 94 (100%), and the four extra sanity checks (break-style bowling 6/6, missing colon 5/6, `+=` café 4/4, f-string quiz 6/6) pass. It also tests the page's own logic in `exam.js` (Decode marking, gaps, the ERL view, the scores). Run it after any change to `exam-mode.json` or `exam_marker.py`.
+
+**Records (this browser only).** Each attempt is kept under `pyPractice.exam.v1.<student id>`: question, rung, attempt number, `first`, each mark point's result and whether it was auto- or self-marked, "say it simply" use, notes, the paste flag and the time. **My exam scores** shows each question's first-attempt and best score. After the model answer is opened, further tries at that question are practice only and aren't recorded. Paste flags use `paste-flag.js` as elsewhere but are kept with the Exam Mode records (the main site's paste log isn't changed).
+
+**What EM1 doesn't do yet.** It is local mode only: `exam.html` doesn't load `backend.js`, so nothing is sent to the server, and the tile and menu item always show (EM2 adds server recording, the per-class switch and the teacher page). No homework, assignments, reports or Exam Mode leaderboard (EM3), no rung progression, nudges, "you haven't done Level X yet" warnings, mixed sets or templates (EM4), and only pack C1 (block packs come in EM5).
+
 ## Files
 
 The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, not a way to rebuild: each one refuses to add a unit that is already in `tasks.json`, and later changes (such as the archived rewrites in `tools/archive/`) were made to `tasks.json` after the older ones ran.
@@ -1258,7 +1302,7 @@ The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, n
 | File | Purpose |
 |---|---|
 | `index.html` | Home page: logo, tagline, and the student and teacher buttons (opens in the Dark theme) |
-| `app.html`, `home.js` | Student view: joining or signing in (or the name screen), the grouped unit menu, links to My progress and Endless mode |
+| `app.html`, `home.js` | Student view: joining or signing in (or the name screen), the grouped unit menu, links to My progress, Endless mode and Exam Mode (and the Exam Mode tile) |
 | `assets/logo/` | The logos (main, wordmark and icon, each in a light and a dark version) |
 | `practice.html`, `app.js` | Practice session for one unit, or Endless mode: task types, hints, the editor, the adaptive rules and their constants |
 | `progress.html`, `progress.js` | Progress summary and skill drill-down |
@@ -1312,9 +1356,14 @@ The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, n
 | `styles.css` | Shared styles and the three themes' colour tokens |
 | `tasks.json` | The task bank |
 | `templates.json`, `templates.js` | Task templates, and the code that turns a template into a task |
-| `worker.js` | Web Worker that loads Pyodide and runs code |
+| `worker.js` | Web Worker that loads Pyodide and runs code, and (Exam Mode) loads `exam_marker.py` and answers `mark` messages |
 | `harness.py` | Runs a program with test inputs and captures stdout (shared by the worker and the test script), in its own empty folder, with random numbers seeded from the first input; traces a program for trace tables (with a column for each attribute of the program's objects) |
 | `checker.js` | Output comparison, plain-English error explanations, failure classification and misconception matching |
+| `exam.html`, `exam.js` | Exam Mode (see [Exam Mode](#exam-mode)): its own header and navigation (Blocks, Pack C1, My exam scores), the five rungs, and the records kept in this browser |
+| `exam-mode.json` | Exam Mode's data: the 17 blocks, the teaching order and pack C1 (questions, mark points, tests and the approved test answers) |
+| `exam_marker.py` | Exam Mode's marker: marks a Python answer one mark point at a time with reusable rules (loaded by `worker.js` after `harness.py`, and by the gate) |
+| `tests/exam-mode.js` | Exam Mode's gate: the data, the model answers, agreement with the examiner's marks (at least 95% per question) and the page's own logic |
+| `docs/exammode/` | Exam Mode's decisions log and the planning copies of the prompt, the data and the reference marker (the live files are the ones at the top level) |
 | `tests/validate.js` | Node test script (runs everything) |
 | `tests/features.js` | Tests for placement, buttons, the classifier, matching, the export and `recheck.py` |
 | `tests/simulate.js` | Simulation of the adaptive rules with made-up students |
@@ -1384,4 +1433,3 @@ The `tools/add-<unit>-unit.js` scripts are records of how each unit was built, n
 - **Combined tasks move two levels.** A combined task's result counts in each unit it uses, so one fail in Endless mode can count towards a move down in two units.
 - **Python versions differ slightly.** The test script uses your local Python, while the browser uses Pyodide 0.26.4 (Python 3.12).
 - **Accessibility testing has limits.** Keyboard use has been tested automatically, but the app hasn't been tried with a real screen reader.
-

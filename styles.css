@@ -30,6 +30,10 @@
   --write: #13723a;
   --trace: #0f6b75;
   --on-type: #ffffff;
+  /* Exam Mode's own accent (exam.html, decision 16): a background behind --on-exam text, and --exam-ink as text */
+  --exam: #8a1538;
+  --on-exam: #ffffff;
+  --exam-ink: #8a1538;
 
   --tok-k: #8a1fb0;
   --tok-s: #0b6b2f;
@@ -85,6 +89,9 @@
   --write: #7ee2a0;
   --trace: #7fd8e0;
   --on-type: #0b1220;
+  --exam: #ff9ab4;
+  --on-exam: #0b1220;
+  --exam-ink: #ff9ab4;
   --tok-k: #d6a8ff;
   --tok-s: #8fe0a3;
   --tok-n: #ffb27a;
@@ -121,6 +128,9 @@
   --write: #7dff9c;
   --trace: #80f0ff;
   --on-type: #000000;
+  --exam: #ffa3c0;
+  --on-exam: #000000;
+  --exam-ink: #ffa3c0;
   --tok-k: #ffb3ff;
   --tok-s: #9dffb0;
   --tok-n: #ffd27a;
@@ -1094,3 +1104,56 @@ td pre { white-space: pre-wrap; margin: .25rem 0; font-size: .85rem; }
 .teacher-section { margin-top: 1.25rem; }
 .teacher-section > .group-heading { font-size: 1.17rem; }
 .teacher-section > .group-heading .group-toggle { padding: .4rem 0; }
+
+/* ---------- Exam Mode (exam.html, prompt EM1) ----------
+   Its own look (decision 16): the --exam accent in the header, the tile on the main page and the question paper.
+   Every colour is a theme token (contrast checked in tests/validate.js). */
+.exam-header { border-bottom: 4px solid var(--exam); }
+.exam-title { display: inline-block; background: var(--exam); color: var(--on-exam); padding: .15rem .6rem; border-radius: 6px; margin-right: .4rem; }
+.exam-home { font-size: 1rem; font-weight: 600; }
+.exam-nav { display: flex; flex-wrap: wrap; gap: .5rem; padding-bottom: .6rem; }
+.exam-nav a { padding: .3rem .7rem; border: 2px solid var(--exam-ink); border-radius: 999px; color: var(--exam-ink); text-decoration: none; font-weight: 600; }
+.exam-nav a[aria-current="page"] { background: var(--exam); border-color: var(--exam); color: var(--on-exam); }
+.exam-main { padding-block: 1.25rem; }
+.exam-card { border-top: 8px solid var(--exam); }
+.exam-paper { border: 2px solid var(--border); border-left: 6px solid var(--exam); border-radius: 8px; padding: .75rem 1rem; margin: .75rem 0; background: var(--card); }
+.exam-paper p { margin: .35rem 0; }
+.exam-stem { font-weight: 600; }
+.exam-bullets { margin: .35rem 0; }
+.exam-rider { font-style: italic; }
+.exam-marks { text-align: right; font-weight: 700; }
+.exam-format { margin-top: 0; }
+.say-simply { margin: .5rem 0; }
+.say-text { border-left: 4px solid var(--exam-ink); padding: .4rem .75rem; background: var(--code-bg); border-radius: 0 6px 6px 0; }
+.lang-toggle { margin: .5rem 0; }
+.em-q { border: 2px solid var(--border); border-radius: 8px; margin: 1rem 0; padding: .5rem 1rem .75rem; }
+.em-q legend { font-weight: 700; padding: 0 .3rem; }
+.em-check { display: block; padding: .3rem 0; }
+.em-tag { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem 1rem; align-items: center; padding: .35rem 0; border-bottom: 1px solid var(--border); }
+.em-tag select { max-width: 100%; }
+@media (max-width: 600px) { .em-tag { grid-template-columns: minmax(0, 1fr); } }
+.em-points { list-style: none; padding: 0; }
+.em-points > li { padding: .4rem 0; border-bottom: 1px solid var(--border); }
+.em-mark { display: inline-block; width: 1.5em; font-weight: 700; }
+.em-yes { color: var(--pass); }
+.em-no { color: var(--fail); }
+.em-unsure { color: var(--exam-ink); }
+.em-right { font-weight: 700; color: var(--pass); }
+.em-feedback { margin: .3rem 0 0 1.5em; }
+.em-note { border: 2px solid var(--exam-ink); border-radius: 8px; padding: .5rem .75rem; }
+.em-self { margin: .4rem 0 0 1.5em; border-left: 4px solid var(--exam-ink); padding-left: .75rem; }
+.em-after { margin-top: 1rem; }
+.em-blocks { padding-left: 0; list-style: none; }
+.em-block { display: grid; grid-template-columns: 3rem minmax(0, 1fr); gap: .1rem .5rem; padding: .5rem 0; border-bottom: 1px solid var(--border); }
+.em-block-id { grid-row: span 3; font-weight: 700; color: var(--exam-ink); }
+.em-block-name, .em-block-status { grid-column: 2; }
+.em-rungs > li { margin: .6rem 0; }
+.em-steps { padding-left: 1.4rem; }
+.em-step { padding: .2rem .4rem; border-radius: 6px; }
+.em-step-now { border: 2px solid var(--exam-ink); font-weight: 600; }
+.em-scores { border-collapse: collapse; width: 100%; }
+.em-scores th, .em-scores td { border: 1px solid var(--border); padding: .35rem .6rem; text-align: left; }
+/* The tile on the student's main page (app.html) */
+.exam-tile { border: 2px solid var(--exam-ink); border-left: 8px solid var(--exam); border-radius: 12px; padding: .75rem 1rem; margin: 0 0 1.25rem; background: var(--card); }
+.exam-tile h2 { margin: 0 0 .25rem; font-size: 1.2rem; }
+.exam-tile a { font-weight: 700; color: var(--exam-ink); }
