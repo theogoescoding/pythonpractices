@@ -61,6 +61,13 @@
     const n = Checker.normalise(text);
     return n === "" ? '<span class="nothing">(no output)</span>' : esc(n);
   }
+  // A predict answer (prompt 37): each printed line is its own block, so a line too long for a phone wraps with a hanging
+  // indent (styles.css .out-line) and can't be mistaken for a second printed line. Every space is kept.
+  function optionOutputHtml(text) {
+    const n = Checker.normalise(text);
+    if (n === "") return '<span class="nothing">(no output)</span>';
+    return n.split("\n").map((l) => '<span class="out-line">' + esc(l) + "</span>").join("");
+  }
   const errorBoxHtml = (err) => (err ? '<div class="error-box"><strong>' + esc(err.title) + "</strong><p>" + esc(err.detail) + "</p></div>" : "");
   // The error as the last line of the output: Python's own error line, or what stopped the program.
   const STOPPED = {
@@ -133,5 +140,5 @@
   }
 
   return { NO_OUTPUT, EXAMPLE_TESTS, exampleTest, expectedOutput, hiddenTestCount, isHidden, showsExpectedOutput, inputsText,
-    expectedBoxHtml, descriptionHtml, searchTasks, esc, showOutput, errorBoxHtml, errorText, testResultsHtml };
+    expectedBoxHtml, descriptionHtml, searchTasks, esc, showOutput, optionOutputHtml, errorBoxHtml, errorText, testResultsHtml };
 });

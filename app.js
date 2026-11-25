@@ -2428,7 +2428,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       if (c.finished && i === t.answer) cls += " correct";
       else if (c.finished && i === c.draft.choice) cls += " wrong";
       html += '<label class="' + cls + '"><input type="radio" name="predict" value="' + i + '"' + checked + disabled + ">" +
-        '<pre>' + showOutput(opt) + "</pre></label>";
+        '<pre>' + TaskView.optionOutputHtml(opt) + "</pre></label>";
     });
     return html + "</fieldset>";
   }

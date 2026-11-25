@@ -360,6 +360,10 @@ pre.code, pre.output, .compare pre, .io-lines pre, .option pre, .worked pre {
 }
 .option input { width: 1.25rem; height: 1.25rem; margin-top: 1rem; flex: none; }
 .option pre { flex: 1; margin: .4rem 0; min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* Each printed line of an answer is a block with a hanging indent (prompt 37): a line too long for the box wraps with its
+   continuation indented, so it can't be taken for a second printed line. An empty printed line keeps its height. */
+.option pre .out-line { display: block; padding-left: 2ch; text-indent: -2ch; }
+.option pre .out-line:empty::before { content: "\200b"; }
 /* A code box that scrolls sideways is reachable with Tab (app.js markScrollers): show where the focus is. */
 pre[tabindex="0"]:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
 .option:has(input:checked) { border-color: var(--predict); border-width: 3px; }
@@ -382,7 +386,7 @@ pre.code.numbered .ln { color: var(--muted); margin-right: 1rem; user-select: no
 /* ---------- Pick the missing line ---------- */
 .partial-code .gap { display: inline-block; min-width: 18ch; border: 2px dashed var(--parsons); border-radius: 4px; padding: 0 .3rem; }
 .partial-code .gap.empty { color: var(--muted); font-style: italic; }
-.pp-options .option code { flex: 1; margin: .5rem 0; white-space: pre-wrap; min-width: 0; overflow-wrap: anywhere; } /* prompt 36: as .option pre */
+.pp-options .option code { flex: 1; margin: .5rem 0; white-space: pre-wrap; min-width: 0; overflow-wrap: anywhere; padding-left: 2ch; text-indent: -2ch; } /* prompt 36: as .option pre; prompt 37: hanging indent */
 .pp-options .option input { margin-top: .55rem; }
 .pp-options .option:has(input:checked) { border-color: var(--parsons); }
 .unit-note { margin-top: .25rem; }

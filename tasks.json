@@ -90630,7 +90630,7 @@
     "level": 4,
     "type": "fill",
     "title": "Loop or recursion",
-    "description": "int() turns the text typed into a whole number: this is called casting. sum_loop adds up 1 to n with a loop. Fill in both blanks so sum_rec gives the same answer using recursion.",
+    "description": "sum_loop adds up 1 to n with a loop, and n is cast with int(). Fill in both blanks so sum_rec gives the same answer using recursion.",
     "starter": "def sum_loop(n):\n    total = 0\n    for i in range(1, n + 1):\n        total = total + i\n    return total\n\ndef sum_rec(n):\n    if n == ____:\n        return 0\n    return n + sum_rec(____)\n\nn = int(input(\"n: \"))\nprint(sum_loop(n), sum_rec(n))",
     "solution": "def sum_loop(n):\n    total = 0\n    for i in range(1, n + 1):\n        total = total + i\n    return total\n\ndef sum_rec(n):\n    if n == 0:\n        return 0\n    return n + sum_rec(n - 1)\n\nn = int(input(\"n: \"))\nprint(sum_loop(n), sum_rec(n))",
     "answers": [
@@ -90739,7 +90739,7 @@
     "level": 5,
     "type": "partial-parsons",
     "title": "The base case",
-    "description": "length counts the letters in a word by calling itself on a shorter word. Pick the line that makes the base case.",
+    "description": "`length` counts the letters in a word by calling itself on a shorter word. Pick the line that makes the base case.",
     "starter": "def length(word):\n    ____\n        return 0\n    return 1 + length(word[1:])\n\nprint(length(input(\"Word: \")))",
     "solution": "def length(word):\n    if word == \"\":\n        return 0\n    return 1 + length(word[1:])\n\nprint(length(input(\"Word: \")))",
     "options": [
@@ -90888,7 +90888,7 @@
     "level": 6,
     "type": "partial-parsons",
     "title": "From a loop to recursion",
-    "description": "int() turns the text typed into a whole number: this is called casting. count_loop counts down with a loop. count_rec should do the same job with recursion. Pick its missing line.",
+    "description": "count_loop counts down with a loop, from the number typed and cast with int(). Pick the missing line so count_rec does the same job with recursion.",
     "starter": "def count_loop(n):\n    while n > 0:\n        print(n)\n        n = n - 1\n\ndef count_rec(n):\n    if n > 0:\n        print(n)\n        ____\n\ncount_loop(int(input(\"Start: \")))\ncount_rec(int(input(\"Start again: \")))",
     "solution": "def count_loop(n):\n    while n > 0:\n        print(n)\n        n = n - 1\n\ndef count_rec(n):\n    if n > 0:\n        print(n)\n        count_rec(n - 1)\n\ncount_loop(int(input(\"Start: \")))\ncount_rec(int(input(\"Start again: \")))",
     "options": [
@@ -91004,7 +91004,7 @@
     "level": 7,
     "type": "trace",
     "title": "Trace the calls",
-    "description": "fact prints call and return as it goes. Trace the program: each line of the main program gets a row, and the Output column shows everything the calls print.",
+    "description": "fact prints call and return as it goes. Trace the program, giving each line of the main program a row and everything printed in the Output column.",
     "starter": "",
     "solution": "def fact(n):\n    print(\"call\", n)\n    if n == 1:\n        result = 1\n    else:\n        result = n * fact(n - 1)\n    print(\"return\", result)\n    return result\n\na = fact(2)\nb = fact(3)\nprint(a + b)",
     "tests": [
@@ -91146,7 +91146,7 @@
     "level": 7,
     "type": "write",
     "title": "Write the base case",
-    "description": "int() turns the text typed into a whole number: this is called casting. add_up(n) should add up the numbers from 1 to n, but it never stops. Add the base case: when n is 0, return 0. The program should print, for example: 10, when 4 is typed.",
+    "description": "Stop a recursive function.\n1. add_up(n) should add up the numbers from 1 to n, but it never stops.\n2. Add the base case: when n is 0, return 0.\n3. The program casts the number typed with int() and prints what add_up returns.\nExample: you type `4`. It calls `add_up(4)`, which returns `10`. It prints `10`.",
     "starter": "def add_up(n):\n    # Write the base case here: when n is 0, return 0\n    return n + add_up(n - 1)\n\nprint(add_up(int(input(\"n: \"))))",
     "solution": "def add_up(n):\n    if n == 0:\n        return 0\n    return n + add_up(n - 1)\n\nprint(add_up(int(input(\"n: \"))))",
     "tests": [
@@ -91474,7 +91474,7 @@
     "level": 8,
     "type": "write",
     "title": "Recursion instead of a loop",
-    "description": "int() turns the text typed into a whole number: this is called casting. power_loop works out base to the power exp with a loop. Write power_rec(base, exp), which gives the same answer using recursion instead (the base case is exp == 0). The program prints both answers, for example:\n81 81",
+    "description": "Compare a loop and recursion.\n1. power_loop(base, exp) is made for you. It works out base to the power exp with a loop.\n2. Write a recursive function `power_rec(base, exp)` that gives the same answer.\n3. Its base case: when exp is 0, it returns 1.\n4. The program reads the base, then the power, casting each with int(). It prints both answers.\nExample: you type `3` then `4`. It calls `power_loop(3, 4)`, which returns `81`, then `power_rec(3, 4)`, which returns `81`. It prints `81 81`.",
     "starter": "def power_loop(base, exp):\n    answer = 1\n    for i in range(exp):\n        answer = answer * base\n    return answer\n\n# Write power_rec(base, exp) here\n\nb = int(input(\"Base: \"))\ne = int(input(\"Power: \"))\nprint(power_loop(b, e), power_rec(b, e))",
     "solution": "def power_loop(base, exp):\n    answer = 1\n    for i in range(exp):\n        answer = answer * base\n    return answer\n\ndef power_rec(base, exp):\n    if exp == 0:\n        return 1\n    return base * power_rec(base, exp - 1)\n\nb = int(input(\"Base: \"))\ne = int(input(\"Power: \"))\nprint(power_loop(b, e), power_rec(b, e))",
     "tests": [
@@ -91730,7 +91730,7 @@
     "level": 9,
     "type": "write",
     "title": "Digit sum",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a recursive function digit_sum(n) that returns the sum of the digits of n: n % 10 is the last digit and n // 10 is the rest. A number less than 10 is the base case. Ask for a number and print its digit sum, for example 14 for 4721.",
+    "description": "Add up the digits of a number.\n1. Write a recursive function `digit_sum(n)`. It returns the sum of the digits of n.\n2. `n % 10` is the last digit and `n // 10` is the rest.\n3. Its base case: when n is less than 10, it returns n.\n4. Ask for a number and cast it with int(). Print its digit sum.\nExample: you type `4721`. It calls `digit_sum(4721)`, which returns `14`. It prints `14`.",
     "starter": "# Write digit_sum(n) here, then use it",
     "solution": "def digit_sum(n):\n    if n < 10:\n        return n\n    return n % 10 + digit_sum(n // 10)\n\nn = int(input(\"Number: \"))\nprint(digit_sum(n))",
     "tests": [
@@ -92178,7 +92178,7 @@
     "level": 10,
     "type": "write",
     "title": "Biggest, two ways",
-    "description": "int() turns the text typed into a whole number: this is called casting. scores is made for you. Write a recursive function biggest(items) that returns the largest item (a list of one item is the base case), and a loop version biggest_loop(items). Ask for a new score, add it to scores, then print both answers, for example:\n17 17",
+    "description": "Find the biggest score two ways.\n1. The list `scores` is made for you.\n2. Write a recursive function `biggest(items)` that returns the largest item.\n3. Its base case: when the list has one item, it returns that item.\n4. Write a loop version, `biggest_loop(items)`.\n5. Ask for a new score, cast it with int(), and append it to scores. Print both answers.\nExample: you type `5`. It calls `biggest([12, 17, 9, 15, 5])`, which returns `17`, then `biggest_loop([12, 17, 9, 15, 5])`, which returns `17`. It prints `17 17`.\nExample: you type `41`. It calls `biggest([12, 17, 9, 15, 41])`, which returns `41`, then `biggest_loop([12, 17, 9, 15, 41])`, which returns `41`. It prints `41 41`.",
     "starter": "scores = [12, 17, 9, 15]\n# Write biggest(items) and biggest_loop(items), then use them",
     "solution": "scores = [12, 17, 9, 15]\n\ndef biggest(items):\n    if len(items) == 1:\n        return items[0]\n    rest = biggest(items[1:])\n    if items[0] > rest:\n        return items[0]\n    return rest\n\ndef biggest_loop(items):\n    best = items[0]\n    for x in items:\n        if x > best:\n            best = x\n    return best\n\nscores.append(int(input(\"New score: \")))\nprint(biggest(scores), biggest_loop(scores))",
     "tests": [
@@ -92762,7 +92762,7 @@
     "level": 5,
     "type": "partial-parsons",
     "title": "Keep counting down",
-    "description": "int() turns the text typed into a whole number: this is called casting. count_down prints the numbers from the one typed down to 0. Pick the missing line.",
+    "description": "count_down prints the numbers from the one typed down to 0, after casting it with int(). Pick the missing line.",
     "starter": "def count_down(n):\n    if n < 0:\n        return\n    print(n)\n    ____\n\ncount_down(int(input(\"Start: \")))",
     "solution": "def count_down(n):\n    if n < 0:\n        return\n    print(n)\n    count_down(n - 1)\n\ncount_down(int(input(\"Start: \")))",
     "options": [
@@ -92909,7 +92909,7 @@
     "level": 7,
     "type": "write",
     "title": "Write the call",
-    "description": "int() turns the text typed into a whole number: this is called casting. show_steps should print the number typed, then every second number below it, then Done. Add the recursive call, so n goes down by 2 each time.",
+    "description": "Count down in twos.\n1. show_steps(n) should print n, then every second number below it, then `Done`.\n2. Its base case is made for you: when n is 0 or less, it prints `Done`.\n3. Add the recursive call, so n goes down by 2 each time.\n4. The program casts the number typed with int() and passes it to show_steps.\nExample: you type `6`. It calls `show_steps(6)`. It prints `6` then `4` then `2` then `Done`.\nExample: you type `5`. It calls `show_steps(5)`. It prints `5` then `3` then `1` then `Done`.",
     "starter": "def show_steps(n):\n    if n <= 0:\n        print(\"Done\")\n    else:\n        print(n)\n        # Write the recursive call here: n goes down by 2 each time\n\nshow_steps(int(input(\"Start: \")))",
     "solution": "def show_steps(n):\n    if n <= 0:\n        print(\"Done\")\n    else:\n        print(n)\n        show_steps(n - 2)\n\nshow_steps(int(input(\"Start: \")))",
     "tests": [
@@ -92946,7 +92946,7 @@
     "level": 9,
     "type": "write",
     "title": "Build a list",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a recursive function build(n) that returns the list [n, n - 1, ..., 1] (build(0) returns an empty list). Ask for a number and print the list, for example:\n[4, 3, 2, 1]",
+    "description": "Build a list with recursion.\n1. Write a recursive function `build(n)`. It returns the list `[n, n - 1, ..., 1]`.\n2. Its base case: when n is 0, it returns an empty list.\n3. Ask for a number and cast it with int(). Print the list that build returns.\nExample: you type `4`. It calls `build(4)`, which returns `[4, 3, 2, 1]`. It prints `[4, 3, 2, 1]`.",
     "starter": "# Write your program here",
     "solution": "def build(n):\n    if n == 0:\n        return []\n    return [n] + build(n - 1)\n\nprint(build(int(input(\"n: \"))))",
     "tests": [
@@ -93819,7 +93819,7 @@
     "level": 3,
     "type": "fill",
     "title": "Return a new value",
-    "description": "int() turns the text typed into a whole number: this is called casting. Fill in the blank so add_fee gives back the price with a booking fee of 3 added. The program prints the price and the total.",
+    "description": "Fill in the blank so add_fee returns the price plus a booking fee of 3. The program casts the price typed with int(), then prints the price and the total.",
     "starter": "def add_fee(price):\n    return ____\n\ncost = int(input(\"Price: \"))\ntotal = add_fee(cost)\nprint(cost, total)",
     "solution": "def add_fee(price):\n    return price + 3\n\ncost = int(input(\"Price: \"))\ntotal = add_fee(cost)\nprint(cost, total)",
     "answers": [
@@ -94016,7 +94016,7 @@
     "level": 4,
     "type": "fill",
     "title": "A new list",
-    "description": "Fill in both blanks: remove_negatives returns a new list without the negative numbers, and the list passed in stays as it was.",
+    "description": "Fill in both blanks so remove_negatives returns a new list without the negative numbers. The list passed in stays as it was.",
     "starter": "def remove_negatives(nums):\n    clean = []\n    for n in nums:\n        if n >= 0:\n            clean.____(n)\n    return ____\n\ndata = [4, -2, 7, -5, 3]\nresult = remove_negatives(data)\nprint(data)\nprint(result)",
     "solution": "def remove_negatives(nums):\n    clean = []\n    for n in nums:\n        if n >= 0:\n            clean.append(n)\n    return clean\n\ndata = [4, -2, 7, -5, 3]\nresult = remove_negatives(data)\nprint(data)\nprint(result)",
     "answers": [
@@ -94067,7 +94067,7 @@
     "level": 5,
     "type": "parsons",
     "title": "The best score",
-    "description": "int() turns the text typed into a whole number: this is called casting. Arrange the lines: check keeps the global best up to date. The program prints the best of the two scores typed.\nOne line is not needed.",
+    "description": "Arrange the lines so check keeps the global best up to date. The program casts two scores with int() and prints the best.\nOne line is not needed.",
     "starter": "",
     "solution": "best = 0\ndef check(score):\n    global best\n    if score > best:\n        best = score\ncheck(int(input(\"Score: \")))\ncheck(int(input(\"Score: \")))\nprint(\"Best:\", best)",
     "distractors": [
@@ -94247,7 +94247,7 @@
     "level": 6,
     "type": "parsons",
     "title": "A discount function",
-    "description": "int() turns the text typed into a whole number: this is called casting. Arrange the lines: discount takes a price and a percentage as parameters and returns the new price. The program prints two discounts on the price typed.\nTwo lines are not needed.",
+    "description": "Arrange the lines so discount takes a price and a percentage as parameters and returns the new price. The program casts the price typed with int() and prints two discounts.\nTwo lines are not needed.",
     "starter": "",
     "solution": "def discount(price, percent):\n    cut = price * percent // 100\n    return price - cut\nshoes = int(input(\"Shoe price: \"))\nprint(discount(shoes, 10))\nprint(discount(shoes, 25))",
     "distractors": [
@@ -94623,7 +94623,7 @@
     "level": 7,
     "type": "write",
     "title": "Count the visits",
-    "description": "int() turns the text typed into a whole number: this is called casting. visit should add 1 to visits each time it is called, but the program stops with an error. Add the one line that makes it work, for example:\nVisits: 3",
+    "description": "Fix a global counter.\n1. visit should add 1 to `visits` each time it is called, but the program stops with an error.\n2. Add the one line that makes it work.\n3. The program casts the number of visitors with int() and calls visit once for each.\n4. Then it prints `Visits:` and the count.\nExample: you type `3`. It prints `Visits: 3`.",
     "starter": "visits = 0\n\ndef visit():\n    visits = visits + 1\n\nfor k in range(int(input(\"Visitors: \"))):\n    visit()\nprint(\"Visits:\", visits)",
     "solution": "visits = 0\n\ndef visit():\n    global visits\n    visits = visits + 1\n\nfor k in range(int(input(\"Visitors: \"))):\n    visit()\nprint(\"Visits:\", visits)",
     "tests": [
@@ -94928,7 +94928,7 @@
     "level": 8,
     "type": "write",
     "title": "Use parameters",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a function order_total(price, qty) that returns price times qty, using its parameters (not global variables). Ask for a price and a quantity, print the total, then print the total for the same price with one more item, for example:\n12\n16",
+    "description": "Work out an order total.\n1. Write a function `order_total(price, qty)` that returns price times qty. Use its parameters, not global variables.\n2. Ask for a price, then a quantity. Cast each with int().\n3. Print the total.\n4. Then print the total for the same price with one more item.\nExample: you type `4` then `3`. It calls `order_total(4, 3)`, which returns `12`, then `order_total(4, 4)`, which returns `16`. It prints `12` then `16`.",
     "starter": "# Write order_total(price, qty), then use it twice",
     "solution": "def order_total(price, qty):\n    return price * qty\n\np = int(input(\"Price: \"))\nq = int(input(\"Quantity: \"))\nprint(order_total(p, q))\nprint(order_total(p, q + 1))",
     "tests": [
@@ -95217,7 +95217,7 @@
     "level": 9,
     "type": "write",
     "title": "Interest each year",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a function add_interest(balance, rate) that returns the new balance: balance + balance * rate // 100. Ask for a balance and a rate, then for 3 years call the function, store the new balance each time, and print it, for example:\nYear 1 balance: 105\nYear 2 balance: 110\nYear 3 balance: 115",
+    "description": "Add interest for three years.\n1. Write a function `add_interest(balance, rate)`. It returns `balance + balance * rate // 100`.\n2. Ask for a balance, then a rate. Cast each with int().\n3. For each of 3 years, call the function and store the new balance.\n4. Each year, print `Year`, the year, `balance:`, then the balance.\nExample: you type `100` then `5`. It calls `add_interest(100, 5)`, which returns `105`, then `add_interest(105, 5)`, which returns `110`, and so on. It prints `Year 1 balance: 105` then `Year 2 balance: 110` then `Year 3 balance: 115`.",
     "starter": "# Write add_interest(balance, rate), then use it for 3 years",
     "solution": "def add_interest(balance, rate):\n    return balance + balance * rate // 100\n\nmoney = int(input(\"Balance: \"))\nrate = int(input(\"Rate: \"))\nfor year in range(1, 4):\n    money = add_interest(money, rate)\n    print(\"Year\", year, \"balance:\", money)",
     "tests": [
@@ -95458,7 +95458,7 @@
     "level": 10,
     "type": "write",
     "title": "Basket functions",
-    "description": "basket is made for you. Write add_item(items, name), which appends name to the list it is given, and count_item(items, name), which returns how many times name is in it. Ask for 3 item names and add each to basket, then ask for a name to count and print it with its count, for example:\napple 2",
+    "description": "Count items in a basket.\n1. The list `basket` is made for you.\n2. Write `add_item(items, name)`, which appends name to the list it is given.\n3. Write `count_item(items, name)`, which returns how many times name is in it.\n4. Ask for 3 item names and add each to basket.\n5. Ask for a name to count. Print the name, then its count.\nExample: you type `apple` then `pear` then `apple` then `apple`. It calls `add_item(['bread'], 'apple')`, then `add_item(['bread', 'apple'], 'pear')`, and so on. It prints `apple 2`.",
     "starter": "basket = [\"bread\"]\n# Write add_item(items, name) and count_item(items, name), then use them",
     "solution": "basket = [\"bread\"]\n\ndef add_item(items, name):\n    items.append(name)\n\ndef count_item(items, name):\n    count = 0\n    for item in items:\n        if item == name:\n            count = count + 1\n    return count\n\nfor k in range(3):\n    add_item(basket, input(\"Item: \"))\nlook = input(\"Count: \")\nprint(look, count_item(basket, look))",
     "tests": [
@@ -95907,7 +95907,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Triple it",
-    "description": "int() turns the text typed into a whole number: this is called casting. Arrange the lines: triple returns three times the number it is given, and the program prints the number typed and its triple.\nOne line is not needed.",
+    "description": "Arrange the lines so triple returns three times the number it is given. The program casts the number typed with int(), then prints it and its triple.\nOne line is not needed.",
     "starter": "",
     "solution": "def triple(n):\n    return n * 3\na = int(input(\"Number: \"))\nb = triple(a)\nprint(a, b)",
     "distractors": [
@@ -96147,7 +96147,7 @@
     "level": 7,
     "type": "write",
     "title": "Add a name",
-    "description": "Replace pass with one line that adds new to the list names. The program prints the list, for example:\n['Ava', 'Ben']",
+    "description": "Add a name to a list.\n1. Replace `pass` in add_name with one line that adds new to the list names.\n2. The program then prints the list.\nExample: you type `Ben`. It calls `add_name(['Ava'], 'Ben')`. It prints `['Ava', 'Ben']`.",
     "starter": "def add_name(names, new):\n    pass\n\npeople = [\"Ava\"]\nadd_name(people, input(\"Name: \"))\nprint(people)",
     "solution": "def add_name(names, new):\n    names.append(new)\n\npeople = [\"Ava\"]\nadd_name(people, input(\"Name: \"))\nprint(people)",
     "tests": [
@@ -96183,7 +96183,7 @@
     "level": 9,
     "type": "write",
     "title": "Make labels",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a function make_label(name, age) that returns a label such as Mia (12). Ask for two names and ages (a name, then an age, for each) and print each one's label, for example:\nMia (12)\nRavi (14)",
+    "description": "Make name labels.\n1. Write a function `make_label(name, age)`. It returns the name, a space, then the age in brackets.\n2. Ask for two people: a name, then an age, for each. Cast each age with int().\n3. Print each person's label.\nExample: you type `Mia` then `12` then `Ravi` then `14`. It calls `make_label('Mia', 12)`, which returns `'Mia (12)'`, then `make_label('Ravi', 14)`, which returns `'Ravi (14)'`. It prints `Mia (12)` then `Ravi (14)`.",
     "starter": "# Write your program here",
     "solution": "def make_label(name, age):\n    return name + \" (\" + str(age) + \")\"\n\nfor k in range(2):\n    name = input(\"Name: \")\n    age = int(input(\"Age: \"))\n    print(make_label(name, age))",
     "tests": [
@@ -96968,7 +96968,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Build a Song class",
-    "description": "int() turns the text typed into a whole number: this is called casting. Arrange the lines: the Song class stores a title and a length, and the program makes one song from what is typed.\nOne line is not needed.",
+    "description": "Arrange the lines so the Song class stores a title and a length. The program casts the length typed with int() and makes one song.\nOne line is not needed.",
     "starter": "",
     "solution": "class Song:\n    def __init__(self, title, length):\n        self.title = title\n        self.length = length\ns = Song(input(\"Title: \"), int(input(\"Seconds: \")))\nprint(s.title, \"lasts\", s.length, \"seconds\")",
     "distractors": [
@@ -97534,7 +97534,7 @@
     "level": 7,
     "type": "write",
     "title": "Write the attributes",
-    "description": "int() turns the text typed into a whole number: this is called casting. Finish __init__ so it stores name and height on the object. The program should print, for example:\nFern is 30 cm tall",
+    "description": "Store a plant's details.\n1. Finish `__init__` so it stores name and height on the object.\n2. The program reads a name, then a height, casting the height with int().\n3. It prints the name, `is`, the height, then `cm tall`.\nExample: you type `Fern` then `30`. It prints `Fern is 30 cm tall`.",
     "starter": "class Plant:\n    def __init__(self, name, height):\n        # Store name and height on the object\n\np = Plant(input(\"Plant: \"), int(input(\"Height: \")))\nprint(p.name, \"is\", p.height, \"cm tall\")",
     "solution": "class Plant:\n    def __init__(self, name, height):\n        self.name = name\n        self.height = height\n\np = Plant(input(\"Plant: \"), int(input(\"Height: \")))\nprint(p.name, \"is\", p.height, \"cm tall\")",
     "tests": [
@@ -97847,7 +97847,7 @@
     "level": 8,
     "type": "write",
     "title": "A shelf of books",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a class Book whose __init__ stores a title and a number of pages. Make a list of three books: Holes with 240 pages, Wonder with 310 and Coraline with 160. Ask for a number of pages, print the title of every book with more pages than that, then how many there were, for example:\nHoles\nWonder\nBooks: 2",
+    "description": "Find long books.\n1. Write a class `Book`. Its `__init__(self, title, pages)` stores title and pages.\n2. Make a list of three books: Holes with 240 pages, Wonder with 310 and Coraline with 160.\n3. Ask for a number of pages and cast it with int().\n4. Print the title of every book that has more than that many pages.\n5. Then print `Books:` and how many there were.\nExample: you type `200`. It prints `Holes` then `Wonder` then `Books: 2`.",
     "starter": "# Write the Book class, then make the list and search it",
     "solution": "class Book:\n    def __init__(self, title, pages):\n        self.title = title\n        self.pages = pages\n\nbooks = [Book(\"Holes\", 240), Book(\"Wonder\", 310), Book(\"Coraline\", 160)]\nlimit = int(input(\"Pages: \"))\ncount = 0\nfor b in books:\n    if b.pages > limit:\n        print(b.title)\n        count = count + 1\nprint(\"Books:\", count)",
     "tests": [
@@ -98170,7 +98170,7 @@
     "level": 9,
     "type": "write",
     "title": "Top of the class",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a class Pupil with name and mark attributes. Ask how many pupils there are, then ask for each one's name and mark, making a Pupil object for each and adding it to a list. Then print the name of the pupil with the highest mark, and the average mark using //, for example:\nTop: Mia\nAverage: 63",
+    "description": "Find the top pupil.\n1. Write a class `Pupil`. Its `__init__(self, name, mark)` stores name and mark.\n2. Ask how many pupils there are. Then ask for each one's name, then mark, casting the numbers with int().\n3. Make a Pupil object for each and add it to a list.\n4. Print `Top:` and the name of the pupil with the highest mark. If a mark is the same as the top mark so far, the top pupil stays.\n5. Then print `Average:` and the average mark, using `//`.\nExample: you type `3` then `Mia` then `70` then `Leo` then `55` then `Ava` then `64`. It prints `Top: Mia` then `Average: 63`.\nExample: you type `2` then `Ivy` then `50` then `Max` then `70`. It prints `Top: Max` then `Average: 60`.",
     "starter": "# Write the Pupil class, then read the pupils into a list",
     "solution": "class Pupil:\n    def __init__(self, name, mark):\n        self.name = name\n        self.mark = mark\n\npupils = []\nn = int(input(\"How many? \"))\nfor k in range(n):\n    name = input(\"Name: \")\n    mark = int(input(\"Mark: \"))\n    pupils.append(Pupil(name, mark))\ntop = pupils[0]\ntotal = 0\nfor p in pupils:\n    total = total + p.mark\n    if p.mark > top.mark:\n        top = p\nprint(\"Top:\", top.name)\nprint(\"Average:\", total // n)",
     "tests": [
@@ -98613,7 +98613,7 @@
     "level": 10,
     "type": "write",
     "title": "Car records",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a class Car with make, year and miles attributes; miles starts at 0 for every car. Read three cars (a make, then a year, for each) into a list. Then ask for each car's miles and store it. Print each car's make, year and miles, then the make of the newest car, for example:\nFord 2019 1200\nKia 2021 800\nAudi 2017 3000\nNewest: Kia",
+    "description": "Keep track of some cars.\n1. Write a class `Car`. Its `__init__(self, make, year)` stores make and year, and sets miles to 0.\n2. Read three cars into a list: a make, then a year, for each. Cast the year with int().\n3. Then ask for each car's miles, cast it with int(), and store it.\n4. Print each car's make, year and miles.\n5. Then print `Newest:` and the make of the newest car. If a year is the same as the newest so far, the first car stays.\nExample: you type `Ford` then `2019` then `Kia` then `2021` then `Audi` then `2017` then `1200` then `800` then `3000`. It prints `Ford 2019 1200` then `Kia 2021 800` then `Audi 2017 3000` then `Newest: Kia`.",
     "starter": "# Write the Car class, then read the cars into a list",
     "solution": "class Car:\n    def __init__(self, make, year):\n        self.make = make\n        self.year = year\n        self.miles = 0\n\ncars = []\nfor k in range(3):\n    make = input(\"Make: \")\n    year = int(input(\"Year: \"))\n    cars.append(Car(make, year))\nfor car in cars:\n    car.miles = int(input(\"Miles for \" + car.make + \": \"))\nnewest = cars[0]\nfor car in cars:\n    print(car.make, car.year, car.miles)\n    if car.year > newest.year:\n        newest = car\nprint(\"Newest:\", newest.make)",
     "tests": [
@@ -99301,7 +99301,7 @@
     "level": 7,
     "type": "write",
     "title": "Make a phone",
-    "description": "int() turns the text typed into a whole number: this is called casting. Add one line that makes a Phone object called p from the model and the battery level typed. The program then prints them, for example:\nX1 80",
+    "description": "Make a phone object.\n1. Add one line that makes a Phone object called p.\n2. Use the model typed and the battery level typed, cast with int().\n3. The program then prints them.\nExample: you type `X1` then `80`. It prints `X1 80`.",
     "starter": "class Phone:\n    def __init__(self, model, battery):\n        self.model = model\n        self.battery = battery\n\n# Make a Phone object called p from the model and battery typed in\n\nprint(p.model, p.battery)",
     "solution": "class Phone:\n    def __init__(self, model, battery):\n        self.model = model\n        self.battery = battery\n\np = Phone(input(\"Model: \"), int(input(\"Battery: \")))\n\nprint(p.model, p.battery)",
     "tests": [
@@ -99340,7 +99340,7 @@
     "level": 9,
     "type": "write",
     "title": "Count the legs",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a class Animal with name and legs attributes. Ask for two animals (a name, then a number of legs, for each), make an object for each, then print the total number of legs, for example:\nLegs: 10",
+    "description": "Count animal legs.\n1. Write a class `Animal`. Its `__init__(self, name, legs)` stores name and legs.\n2. Ask for two animals: a name, then a number of legs, for each. Cast the legs with int().\n3. Make an object for each.\n4. Print `Legs:` and the total number of legs.\nExample: you type `spider` then `8` then `bird` then `2`. It prints `Legs: 10`.",
     "starter": "# Write your program here",
     "solution": "class Animal:\n    def __init__(self, name, legs):\n        self.name = name\n        self.legs = legs\n\na1 = Animal(input(\"Name: \"), int(input(\"Legs: \")))\na2 = Animal(input(\"Name: \"), int(input(\"Legs: \")))\nprint(\"Legs:\", a1.legs + a2.legs)",
     "tests": [
@@ -100220,7 +100220,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Warmer",
-    "description": "int() turns the text typed into a whole number: this is called casting. Arrange the lines: warmer raises the thermostat's temperature by the step it is given. The program warms it twice and prints the temperature.\nOne line is not needed.",
+    "description": "Arrange the lines so warmer raises the thermostat's temperature by the step it is given. The program casts the step typed with int(), warms it twice and prints the temperature.\nOne line is not needed.",
     "starter": "",
     "solution": "class Thermostat:\n    def __init__(self, temp):\n        self.temp = temp\n    def warmer(self, step):\n        self.temp = self.temp + step\nt = Thermostat(int(input(\"Start: \")))\nt.warmer(2)\nt.warmer(3)\nprint(t.temp)",
     "distractors": [
@@ -100722,7 +100722,7 @@
     "level": 7,
     "type": "write",
     "title": "Write feed",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a method feed(self, food) in the Pet class that takes food away from the pet's hunger. The program should print, for example:\nRex 3",
+    "description": "Feed a pet.\n1. Add a method `feed(self, food)` to the Pet class. It takes food away from the pet's hunger.\n2. The program reads a name, then an amount of food, casting it with int().\n3. It feeds the pet, then prints its name and hunger.\nExample: you type `Rex` then `2`. It prints `Rex 3`.",
     "starter": "class Pet:\n    def __init__(self, name):\n        self.name = name\n        self.hunger = 5\n\n    # Write a method feed(self, food) that takes food away from hunger\n\np = Pet(input(\"Name: \"))\np.feed(int(input(\"Food: \")))\nprint(p.name, p.hunger)",
     "solution": "class Pet:\n    def __init__(self, name):\n        self.name = name\n        self.hunger = 5\n\n    def feed(self, food):\n        self.hunger = self.hunger - food\n\np = Pet(input(\"Name: \"))\np.feed(int(input(\"Food: \")))\nprint(p.name, p.hunger)",
     "tests": [
@@ -101042,7 +101042,7 @@
     "level": 8,
     "type": "write",
     "title": "Odds and evens",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a class Counter with a count that starts at 0, a method add(self, n) that adds n to count, and a method get(self) that returns count. Make two counters, read 4 numbers, add the even ones to the first counter and the odd ones to the second, then print both totals, for example:\nEven: 16\nOdd: 5",
+    "description": "Add up even and odd numbers.\n1. Write a class `Counter`. Its count starts at 0.\n2. Add a method `add(self, n)` that adds n to count, and a method `get(self)` that returns count.\n3. Make two counters. Read 4 numbers and cast each with int().\n4. Add the even ones to the first counter and the odd ones to the second.\n5. Print `Even:` and the first total, then `Odd:` and the second.\nExample: you type `4` then `5` then `8` then `4`. It prints `Even: 16` then `Odd: 5`.",
     "starter": "# Write the Counter class, then use two counters",
     "solution": "class Counter:\n    def __init__(self):\n        self.count = 0\n\n    def add(self, n):\n        self.count = self.count + n\n\n    def get(self):\n        return self.count\n\nevens = Counter()\nodds = Counter()\nfor k in range(4):\n    n = int(input(\"Number: \"))\n    if n % 2 == 0:\n        evens.add(n)\n    else:\n        odds.add(n)\nprint(\"Even:\", evens.get())\nprint(\"Odd:\", odds.get())",
     "tests": [
@@ -101363,7 +101363,7 @@
     "level": 9,
     "type": "write",
     "title": "Stock control",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a class Stock with name and qty attributes, and two methods: sell(self, n) takes n off qty only if there are enough, and returns True if it did or False if not; restock(self, n) adds n to qty. Make a Stock called Pens with 10. Read 3 orders and print Sold or Not enough for each. Then restock with 20 and print the stock, for example:\nPens: 20",
+    "description": "Sell from stock.\n1. Write a class `Stock`. Its `__init__(self, name, qty)` stores name and qty.\n2. Add `sell(self, n)`. If n is no more than qty, it takes n off qty and returns True. Otherwise it returns False.\n3. Add `restock(self, n)`, which adds n to qty.\n4. Make a Stock called Pens with 10. Read 3 orders, casting each with int().\n5. For each order, print `Sold` or `Not enough`.\n6. Then restock with 20, and print `Pens:` and the stock.\nExample: you type `4` then `8` then `6`. It prints `Sold` then `Not enough` then `Sold` then `Pens: 20`.",
     "starter": "# Write the Stock class, then process the orders",
     "solution": "class Stock:\n    def __init__(self, name, qty):\n        self.name = name\n        self.qty = qty\n\n    def sell(self, n):\n        if n <= self.qty:\n            self.qty = self.qty - n\n            return True\n        return False\n\n    def restock(self, n):\n        self.qty = self.qty + n\n\npens = Stock(\"Pens\", 10)\nfor k in range(3):\n    order = int(input(\"Order: \"))\n    if pens.sell(order):\n        print(\"Sold\")\n    else:\n        print(\"Not enough\")\npens.restock(20)\nprint(pens.name + \":\", pens.qty)",
     "tests": [
@@ -101650,7 +101650,7 @@
     "level": 10,
     "type": "write",
     "title": "League table",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a class Team with a name, and played and points attributes that start at 0. Add a method result(self, scored, conceded) that adds 1 to played, and 3 points for a win or 1 for a draw, and a method average(self) that returns points // played. Make a team from a name typed in, read 3 results (goals scored, then conceded, for each), then print, for example:\nRovers: 4 points from 3 games\nAverage: 1",
+    "description": "Track a team's results.\n1. Write a class `Team`. Its `__init__(self, name)` stores name, and sets played and points to 0.\n2. Add `result(self, scored, conceded)`. It adds 1 to played, then 3 points for a win or 1 for a draw.\n3. A win is scoring more than you concede, and a draw is scoring the same as you concede.\n4. Add `average(self)`, which returns `points // played`.\n5. Make a team from a name typed in. Read 3 results: goals scored, then conceded, for each. Cast them with int().\n6. Print the name with a colon, the points, `points from`, the games played, then `games`. Then print `Average:` and the average.\nExample: you type `Rovers` then `2` then `1` then `0` then `0` then `1` then `3`. It prints `Rovers: 4 points from 3 games` then `Average: 1`.",
     "starter": "# Write the Team class, then read the results",
     "solution": "class Team:\n    def __init__(self, name):\n        self.name = name\n        self.played = 0\n        self.points = 0\n\n    def result(self, scored, conceded):\n        self.played = self.played + 1\n        if scored > conceded:\n            self.points = self.points + 3\n        elif scored == conceded:\n            self.points = self.points + 1\n\n    def average(self):\n        return self.points // self.played\n\nteam = Team(input(\"Team: \"))\nfor k in range(3):\n    scored = int(input(\"Scored: \"))\n    conceded = int(input(\"Conceded: \"))\n    team.result(scored, conceded)\nprint(team.name + \":\", team.points, \"points from\", team.played, \"games\")\nprint(\"Average:\", team.average())",
     "tests": [
@@ -102359,7 +102359,7 @@
     "level": 7,
     "type": "write",
     "title": "Write area",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a method area(self) in the Box class that returns width times depth. The program then prints the area.",
+    "description": "Work out a box's area.\n1. Add a method `area(self)` to the Box class. It returns width times depth.\n2. The program casts the width and depth typed with int(), then prints the area.\nExample: you type `4` then `5`. It prints `20`.",
     "starter": "class Box:\n    def __init__(self, width, depth):\n        self.width = width\n        self.depth = depth\n\n    # Write a method area(self) that returns width times depth\n\nb = Box(int(input(\"Width: \")), int(input(\"Depth: \")))\nprint(b.area())",
     "solution": "class Box:\n    def __init__(self, width, depth):\n        self.width = width\n        self.depth = depth\n\n    def area(self):\n        return self.width * self.depth\n\nb = Box(int(input(\"Width: \")), int(input(\"Depth: \")))\nprint(b.area())",
     "tests": [
@@ -102398,7 +102398,7 @@
     "level": 9,
     "type": "write",
     "title": "Heat the kettle",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a class Kettle with a temp attribute that starts at 20, and a method heat(self, degrees) that adds degrees but never lets temp go above 100. Read 3 amounts to heat by, and print the temperature after each.",
+    "description": "Heat a kettle.\n1. Write a class `Kettle`. Its temp starts at 20.\n2. Add a method `heat(self, degrees)`. It adds degrees to temp, but temp never goes above 100.\n3. Read 3 amounts to heat by, casting each with int().\n4. After each one, print the temperature.\nExample: you type `30` then `40` then `50`. It prints `50` then `90` then `100`.",
     "starter": "# Write your program here",
     "solution": "class Kettle:\n    def __init__(self):\n        self.temp = 20\n\n    def heat(self, degrees):\n        self.temp = self.temp + degrees\n        if self.temp > 100:\n            self.temp = 100\n\nk = Kettle()\nfor i in range(3):\n    k.heat(int(input(\"Heat by: \")))\n    print(k.temp)",
     "tests": [
@@ -102948,7 +102948,7 @@
     "level": 3,
     "type": "fill",
     "title": "Check the lives",
-    "description": "int() turns the text typed into a whole number: this is called casting. Fill in the blank so set_lives stores any number of lives that is 0 or more, and refuses a negative number.",
+    "description": "Fill in the blank so set_lives stores 0 or more lives and refuses a negative number. The number is cast with int().",
     "starter": "class Lives:\n    def __init__(self):\n        self._lives = 3\n\n    def set_lives(self, n):\n        if n ____ 0:\n            self._lives = n\n\n    def get_lives(self):\n        return self._lives\n\ng = Lives()\ng.set_lives(int(input(\"Lives: \")))\nprint(g.get_lives())",
     "solution": "class Lives:\n    def __init__(self):\n        self._lives = 3\n\n    def set_lives(self, n):\n        if n >= 0:\n            self._lives = n\n\n    def get_lives(self):\n        return self._lives\n\ng = Lives()\ng.set_lives(int(input(\"Lives: \")))\nprint(g.get_lives())",
     "answers": [
@@ -103340,7 +103340,7 @@
     "level": 5,
     "type": "partial-parsons",
     "title": "Marks out of 50",
-    "description": "int() turns the text typed into a whole number: this is called casting. set_mark should store any mark from 0 to 50, including 0 and 50, and refuse anything else. Pick the missing line.",
+    "description": "set_mark should store a mark from 0 to 50, including 0 and 50, and refuse anything else. Pick the missing line; the mark is cast with int().",
     "starter": "class Mark:\n    def __init__(self):\n        self._mark = 0\n\n    def set_mark(self, m):\n        ____\n            self._mark = m\n\n    def get_mark(self):\n        return self._mark\n\nx = Mark()\nx.set_mark(20)\nx.set_mark(int(input(\"Mark: \")))\nprint(x.get_mark())",
     "solution": "class Mark:\n    def __init__(self):\n        self._mark = 0\n\n    def set_mark(self, m):\n        if 0 <= m <= 50:\n            self._mark = m\n\n    def get_mark(self):\n        return self._mark\n\nx = Mark()\nx.set_mark(20)\nx.set_mark(int(input(\"Mark: \")))\nprint(x.get_mark())",
     "options": [
@@ -103817,7 +103817,7 @@
     "level": 7,
     "type": "write",
     "title": "Write a setter",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write the setter set_age(self, age): it stores age in _age only if it is from 0 to 120. The program then prints the stored age.",
+    "description": "Write a setter.\n1. Add the setter `set_age(self, age)`. It stores age in `_age` only if it is from 0 to 120, including 0 and 120.\n2. The program casts the age typed with int(), sets it, then prints the stored age.\nExample: you type `15`. It prints `15`.",
     "starter": "class Age:\n    def __init__(self):\n        self._age = 0\n\n    # Write set_age(self, age): store age only if it is from 0 to 120\n\n    def get_age(self):\n        return self._age\n\na = Age()\na.set_age(int(input(\"Age: \")))\nprint(a.get_age())",
     "solution": "class Age:\n    def __init__(self):\n        self._age = 0\n\n    def set_age(self, age):\n        if 0 <= age <= 120:\n            self._age = age\n\n    def get_age(self):\n        return self._age\n\na = Age()\na.set_age(int(input(\"Age: \")))\nprint(a.get_age())",
     "tests": [
@@ -104096,7 +104096,7 @@
     "level": 8,
     "type": "write",
     "title": "A password setter",
-    "description": "Write a class Password with a private _password that starts as \"changeme\", a getter get_password(self), and a setter set_password(self, new) that stores new only if it is at least 8 characters long and is not all letters (new.isalpha() is False). Ask for two new passwords in turn, try to set each, and print the stored password after each try.",
+    "description": "Change a password safely.\n1. Write a class `Password`. Its private `_password` starts as `changeme`.\n2. Add a getter `get_password(self)`.\n3. Add a setter `set_password(self, new)`. It stores new only if it has at least 8 characters and isn't all letters.\n4. Use `new.isalpha()` to check for all letters.\n5. Ask for two new passwords in turn. Try to set each, then print the stored password.\nExample: you type `sunshine` then `abcdef12`. It prints `changeme` then `abcdef12`.",
     "starter": "# Write the Password class, then try two new passwords",
     "solution": "class Password:\n    def __init__(self):\n        self._password = \"changeme\"\n\n    def set_password(self, new):\n        if len(new) >= 8 and not new.isalpha():\n            self._password = new\n\n    def get_password(self):\n        return self._password\n\np = Password()\nfor k in range(2):\n    p.set_password(input(\"New password: \"))\n    print(p.get_password())",
     "tests": [
@@ -104419,7 +104419,7 @@
     "level": 9,
     "type": "write",
     "title": "Allowed grades",
-    "description": "Write a class Student with private _name and _grade attributes; _grade starts as \"U\". Add get_name(self), get_grade(self), and set_grade(self, g), which stores g only if it is one of \"A\", \"B\", \"C\", \"D\", \"E\" or \"U\" (use in). Read a name, then 3 grades in turn: set each, then print the name and the stored grade, for example:\nMia B",
+    "description": "Store a grade.\n1. Write a class `Student` with private `_name` and `_grade` attributes. `_grade` starts as `U`.\n2. Add `get_name(self)` and `get_grade(self)`.\n3. Add `set_grade(self, g)`. It stores g only if it is one of `A`, `B`, `C`, `D`, `E` or `U`, using `in`. Only capital letters count.\n4. Read a name, then 3 grades in turn.\n5. Set each grade, then print the name and the stored grade.\nExample: you type `Mia` then `B` then `Z` then `A`. It prints `Mia B` then `Mia B` then `Mia A`.",
     "starter": "# Write the Student class, then try three grades",
     "solution": "class Student:\n    def __init__(self, name):\n        self._name = name\n        self._grade = \"U\"\n\n    def set_grade(self, g):\n        if g in [\"A\", \"B\", \"C\", \"D\", \"E\", \"U\"]:\n            self._grade = g\n\n    def get_grade(self):\n        return self._grade\n\n    def get_name(self):\n        return self._name\n\ns = Student(input(\"Name: \"))\nfor k in range(3):\n    s.set_grade(input(\"Grade: \"))\n    print(s.get_name(), s.get_grade())",
     "tests": [
@@ -104691,7 +104691,7 @@
     "level": 10,
     "type": "write",
     "title": "A safe bank account",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a class BankAccount with a private _balance that starts at 0, and methods deposit(self, amount) (only amounts above 0), withdraw(self, amount) (only if amount is above 0 and no more than the balance; return True if it worked and False if not) and get_balance(self). Read 4 transactions, each a letter (D to deposit, W to withdraw) then an amount. Print Refused when a withdrawal doesn't work, and the balance at the end, for example:\nRefused\nBalance: 30",
+    "description": "Run a bank account.\n1. Write a class `BankAccount`. Its private `_balance` starts at 0.\n2. Add `deposit(self, amount)`. It only adds amounts above 0.\n3. Add `withdraw(self, amount)`. If amount is above 0 and no more than the balance, it takes it off and returns True. Otherwise it returns False.\n4. Add `get_balance(self)`.\n5. Read 4 transactions: a letter, `D` to deposit or `W` to withdraw, then an amount cast with int().\n6. Print `Refused` when a withdrawal doesn't work, then `Balance:` and the balance at the end.\nExample: you type `D` then `50` then `W` then `20` then `W` then `40` then `D` then `-5`. It prints `Refused` then `Balance: 30`.",
     "starter": "# Write the BankAccount class, then read the transactions",
     "solution": "class BankAccount:\n    def __init__(self):\n        self._balance = 0\n\n    def deposit(self, amount):\n        if amount > 0:\n            self._balance = self._balance + amount\n\n    def withdraw(self, amount):\n        if 0 < amount <= self._balance:\n            self._balance = self._balance - amount\n            return True\n        return False\n\n    def get_balance(self):\n        return self._balance\n\nacc = BankAccount()\nfor k in range(4):\n    kind = input(\"D or W: \")\n    amount = int(input(\"Amount: \"))\n    if kind == \"D\":\n        acc.deposit(amount)\n    elif not acc.withdraw(amount):\n        print(\"Refused\")\nprint(\"Balance:\", acc.get_balance())",
     "tests": [
@@ -105324,7 +105324,7 @@
     "level": 7,
     "type": "write",
     "title": "Write a getter",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write get_price(self), which returns the private _price. The program then prints the price, for example:\nPrice: 12",
+    "description": "Write a getter.\n1. Add `get_price(self)`, which returns the private `_price`.\n2. The program casts the price typed with int(), then prints `Price:` and the price.\nExample: you type `12`. It prints `Price: 12`.",
     "starter": "class Ticket:\n    def __init__(self, price):\n        self._price = price\n\n    # Write get_price(self), which returns the private _price\n\nt = Ticket(int(input(\"Price: \")))\nprint(\"Price:\", t.get_price())",
     "solution": "class Ticket:\n    def __init__(self, price):\n        self._price = price\n\n    def get_price(self):\n        return self._price\n\nt = Ticket(int(input(\"Price: \")))\nprint(\"Price:\", t.get_price())",
     "tests": [
@@ -105361,7 +105361,7 @@
     "level": 9,
     "type": "write",
     "title": "Scores from 0 to 10",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a class Score with a private _score that starts at 0, a setter set_score(self, s) that only stores s if it is from 0 to 10, and a getter get_score(self). Ask for three scores; set each, then print the stored score.",
+    "description": "Keep a score in range.\n1. Write a class `Score`. Its private `_score` starts at 0.\n2. Add a setter `set_score(self, s)` that stores s only if it is from 0 to 10, including 0 and 10.\n3. Add a getter `get_score(self)`.\n4. Ask for three scores, casting each with int(). Set each one, then print the stored score.\nExample: you type `7` then `11` then `3`. It prints `7` then `7` then `3`.",
     "starter": "# Write your program here",
     "solution": "class Score:\n    def __init__(self):\n        self._score = 0\n\n    def set_score(self, s):\n        if 0 <= s <= 10:\n            self._score = s\n\n    def get_score(self):\n        return self._score\n\nsc = Score()\nfor k in range(3):\n    sc.set_score(int(input(\"Score: \")))\n    print(sc.get_score())",
     "tests": [
@@ -106867,7 +106867,7 @@
     "level": 7,
     "type": "write",
     "title": "Call super",
-    "description": "Hamster's __init__ should also store the name. Add the line that calls the parent's __init__. The program should print, for example:\nNibbles has a red wheel",
+    "description": "Call the parent's __init__.\n1. Hamster's `__init__` should also store the name.\n2. Add the line that calls the parent's `__init__`.\n3. The program reads a name, then a wheel colour. It prints the name, `has a`, the colour, then `wheel`.\nExample: you type `Nibbles` then `red`. It prints `Nibbles has a red wheel`.",
     "starter": "class Pet:\n    def __init__(self, name):\n        self.name = name\n\nclass Hamster(Pet):\n    def __init__(self, name, wheel):\n        # Call the parent's __init__ here, so the name is stored\n        self.wheel = wheel\n\nh = Hamster(input(\"Name: \"), input(\"Wheel colour: \"))\nprint(h.name, \"has a\", h.wheel, \"wheel\")",
     "solution": "class Pet:\n    def __init__(self, name):\n        self.name = name\n\nclass Hamster(Pet):\n    def __init__(self, name, wheel):\n        super().__init__(name)\n        self.wheel = wheel\n\nh = Hamster(input(\"Name: \"), input(\"Wheel colour: \"))\nprint(h.name, \"has a\", h.wheel, \"wheel\")",
     "tests": [
@@ -107168,7 +107168,7 @@
     "level": 8,
     "type": "write",
     "title": "A manager's pay",
-    "description": "int() turns the text typed into a whole number: this is called casting. Employee is made for you. Write a subclass Manager whose __init__ takes name, salary and bonus, calls super().__init__(name, salary) and stores bonus. Override yearly(self) to return the salary plus the bonus. Ask for a name, a salary and a bonus, make a Manager, and print, for example:\nSam earns 42000",
+    "description": "Give a manager a bonus.\n1. The class `Employee` is made for you.\n2. Write a subclass `Manager`. Its `__init__(self, name, salary, bonus)` calls `super().__init__(name, salary)` and stores bonus.\n3. Override `yearly(self)` so it returns the salary plus the bonus.\n4. Ask for a name, a salary, then a bonus. Cast the numbers with int().\n5. Make a Manager. Print the name, `earns`, then its yearly pay.\nExample: you type `Sam` then `40000` then `2000`. It prints `Sam earns 42000`.",
     "starter": "class Employee:\n    def __init__(self, name, salary):\n        self.name = name\n        self.salary = salary\n\n    def yearly(self):\n        return self.salary\n\n# Write the Manager class here, then use it",
     "solution": "class Employee:\n    def __init__(self, name, salary):\n        self.name = name\n        self.salary = salary\n\n    def yearly(self):\n        return self.salary\n\nclass Manager(Employee):\n    def __init__(self, name, salary, bonus):\n        super().__init__(name, salary)\n        self.bonus = bonus\n\n    def yearly(self):\n        return self.salary + self.bonus\n\nm = Manager(input(\"Name: \"), int(input(\"Salary: \")), int(input(\"Bonus: \")))\nprint(m.name, \"earns\", m.yearly())",
     "tests": [
@@ -107485,7 +107485,7 @@
     "level": 9,
     "type": "write",
     "title": "Total area",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a class Shape whose area(self) returns 0, and two subclasses that override area: Rectangle(width, height) and Triangle(base, height), using base * height // 2. Read 3 shapes: a letter (R or T), then two numbers, for each. Make the right object for each and put them in a list, then print the total area, for example:\nTotal area: 37",
+    "description": "Add up the area of shapes.\n1. Write a class `Shape` whose `area(self)` returns 0.\n2. Write two subclasses that override area: `Rectangle(width, height)`, and `Triangle(base, height)` using `base * height // 2`.\n3. Read 3 shapes: a letter, `R` or `T`, then two numbers, for each. Cast the numbers with int().\n4. Make the right object for each and put them in a list. Any letter other than `R` makes a triangle.\n5. Print `Total area:` and the total area.\nExample: you type `R` then `3` then `4` then `T` then `6` then `5` then `R` then `2` then `5`. It prints `Total area: 37`.",
     "starter": "# Write Shape, Rectangle and Triangle, then read the shapes",
     "solution": "class Shape:\n    def area(self):\n        return 0\n\nclass Rectangle(Shape):\n    def __init__(self, width, height):\n        self.width = width\n        self.height = height\n\n    def area(self):\n        return self.width * self.height\n\nclass Triangle(Shape):\n    def __init__(self, base, height):\n        self.base = base\n        self.height = height\n\n    def area(self):\n        return self.base * self.height // 2\n\nshapes = []\nfor k in range(3):\n    kind = input(\"R or T: \")\n    a = int(input(\"First number: \"))\n    b = int(input(\"Second number: \"))\n    if kind == \"R\":\n        shapes.append(Rectangle(a, b))\n    else:\n        shapes.append(Triangle(a, b))\ntotal = 0\nfor s in shapes:\n    total = total + s.area()\nprint(\"Total area:\", total)",
     "tests": [
@@ -107855,7 +107855,7 @@
     "level": 10,
     "type": "write",
     "title": "Savings interest",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a class Account with an owner, a balance that starts at 0, deposit(self, amount), and monthly(self), which does nothing (use pass). Write a subclass Savings that also stores a rate (calling super().__init__) and overrides monthly to add balance * rate // 100 to the balance. Make an Account and a Savings from the names typed (and a rate for the savings), pay an amount typed into each, then run monthly() on both for 2 months and print each owner and balance, for example:\nAva 500\nBen 520",
+    "description": "Compare an account and a savings account.\n1. Write a class `Account`. Its `__init__(self, owner)` stores owner and sets balance to 0.\n2. Add `deposit(self, amount)`, and `monthly(self)`, which does nothing: use `pass`.\n3. Write a subclass `Savings`. Its `__init__(self, owner, rate)` calls `super().__init__` and stores rate.\n4. Savings overrides monthly to add `balance * rate // 100` to the balance.\n5. Ask for an account owner, a savings owner and a rate. Then ask for an amount to pay into each. Cast the numbers with int().\n6. Run monthly() on both for 2 months. Then print each owner and balance.\nExample: you type `Ava` then `Ben` then `2` then `500` then `500`. It prints `Ava 500` then `Ben 520`.",
     "starter": "# Write Account and Savings, then use them",
     "solution": "class Account:\n    def __init__(self, owner):\n        self.owner = owner\n        self.balance = 0\n\n    def deposit(self, amount):\n        self.balance = self.balance + amount\n\n    def monthly(self):\n        pass\n\nclass Savings(Account):\n    def __init__(self, owner, rate):\n        super().__init__(owner)\n        self.rate = rate\n\n    def monthly(self):\n        self.balance = self.balance + self.balance * self.rate // 100\n\nplain = Account(input(\"Account owner: \"))\nsaver = Savings(input(\"Savings owner: \"), int(input(\"Rate: \")))\nplain.deposit(int(input(\"Pay into the account: \")))\nsaver.deposit(int(input(\"Pay into the savings: \")))\nfor month in range(2):\n    for acc in [plain, saver]:\n        acc.monthly()\nprint(plain.owner, plain.balance)\nprint(saver.owner, saver.balance)",
     "tests": [
@@ -108615,7 +108615,7 @@
     "level": 7,
     "type": "write",
     "title": "Override sides",
-    "description": "Replace pass with a sides method in Triangle that overrides Shape's and returns 3. The program prints a triangle's sides, then a plain shape's.",
+    "description": "Override a method.\n1. Replace `pass` in Triangle with a `sides` method that overrides Shape's and returns 3.\n2. The program prints a triangle's sides, then a plain shape's.",
     "starter": "class Shape:\n    def sides(self):\n        return 0\n\nclass Triangle(Shape):\n    pass\n\nt = Triangle()\ns = Shape()\nprint(t.sides(), s.sides())",
     "solution": "class Shape:\n    def sides(self):\n        return 0\n\nclass Triangle(Shape):\n    def sides(self):\n        return 3\n\nt = Triangle()\ns = Shape()\nprint(t.sides(), s.sides())",
     "tests": [
@@ -108643,7 +108643,7 @@
     "level": 9,
     "type": "write",
     "title": "Talking animals",
-    "description": "Write a class Animal with __init__(self, name) and speak(self), which returns the name followed by \" makes a sound\". Write subclasses Dog and Cow that override speak to return the name followed by \" says Woof\" or \" says Moo\". Read 3 animals: a letter (D, C or A), then a name, for each. Make the right object and print what it says, for example:\nRex says Woof",
+    "description": "Make animals speak.\n1. Write a class `Animal`. Its `__init__(self, name)` stores name.\n2. Its `speak(self)` returns the name, a space, then `makes a sound`.\n3. Write subclasses `Dog` and `Cow` that override speak. They return the name, a space, then `says Woof` or `says Moo`.\n4. Read 3 animals: a letter, `D`, `C` or `A`, then a name, for each.\n5. Make the right object and print what it says. Any other letter makes a plain Animal.\nExample: you type `D` then `Rex` then `C` then `Daisy` then `A` then `Sid`. It prints `Rex says Woof` then `Daisy says Moo` then `Sid makes a sound`.",
     "starter": "# Write your program here",
     "solution": "class Animal:\n    def __init__(self, name):\n        self.name = name\n\n    def speak(self):\n        return self.name + \" makes a sound\"\n\nclass Dog(Animal):\n    def speak(self):\n        return self.name + \" says Woof\"\n\nclass Cow(Animal):\n    def speak(self):\n        return self.name + \" says Moo\"\n\nfor k in range(3):\n    kind = input(\"D, C or A: \")\n    name = input(\"Name: \")\n    if kind == \"D\":\n        a = Dog(name)\n    elif kind == \"C\":\n        a = Cow(name)\n    else:\n        a = Animal(name)\n    print(a.speak())",
     "tests": [
@@ -109095,7 +109095,7 @@
     "level": 2,
     "type": "predict",
     "title": "A fix in the wrong place",
-    "description": "The program should print the total of the three prices, but printed only the last price. Someone changed the last line to print total * 3 to fix it. What does it print now?",
+    "description": "The program should print the total of three prices, but printed only the last one. Someone changed the last line to print total * 3: what does it print now?",
     "starter": "",
     "solution": "prices = [3, 4, 5]\ntotal = 0\nfor p in prices:\n    total = p\nprint(\"Total:\", total * 3)",
     "options": [
@@ -109224,7 +109224,7 @@
     "level": 3,
     "type": "fill",
     "title": "Where will it stop?",
-    "description": "Read the program in the comments. It will stop with an error. Fill in the line it will stop on.",
+    "description": "Read the program in the comments: it will stop with an error. Fill in the line it will stop on.",
     "starter": "# Read this program. It will stop with an error.\n#\n#   1  total = 0\n#   2  for day in [\"Monday\", \"Tuesday\"]:\n#   3      total = total + 1\n#   4  print(\"Days:\", total)\n#   5  print(\"Average:\", total / count)\n#\nline = \"____\"\nprint(\"It will stop on line\", line)",
     "solution": "# Read this program. It will stop with an error.\n#\n#   1  total = 0\n#   2  for day in [\"Monday\", \"Tuesday\"]:\n#   3      total = total + 1\n#   4  print(\"Days:\", total)\n#   5  print(\"Average:\", total / count)\n#\nline = \"5\"\nprint(\"It will stop on line\", line)",
     "answers": [
@@ -109402,7 +109402,7 @@
     "level": 5,
     "type": "partial-parsons",
     "title": "The starting value",
-    "description": "int() turns the text typed into a whole number: this is called casting. The program should print the bigger of two numbers, but it printed 0 when both numbers were negative. Pick the line that fixes it.",
+    "description": "The program casts two numbers with int() and should print the bigger, but it printed 0 when both were negative. Pick the line that fixes it.",
     "starter": "first = int(input(\"Number: \"))\nsecond = int(input(\"Number: \"))\n____\nif second > biggest:\n    biggest = second\nprint(\"Biggest:\", biggest)",
     "solution": "first = int(input(\"Number: \"))\nsecond = int(input(\"Number: \"))\nbiggest = first\nif second > biggest:\n    biggest = second\nprint(\"Biggest:\", biggest)",
     "options": [
@@ -109455,7 +109455,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Fix the range",
-    "description": "int() turns the text typed into a whole number: this is called casting. The original program printed the total of 1 up to one less than the number typed. Arrange the fixed program, which includes the number itself.\nOne line (from the original) is not needed.",
+    "description": "The original program cast the number typed and added 1 up to one less than it. Arrange the fixed program, which includes the number itself, leaving out the original's wrong line.\nOne line is not needed.",
     "starter": "",
     "solution": "n = int(input(\"Up to: \"))\ntotal = 0\nfor i in range(1, n + 1):\n    total = total + i\nprint(\"Total:\", total)",
     "distractors": [
@@ -109562,7 +109562,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Two bugs",
-    "description": "The original program had two bugs: its count started at the wrong number, and its last line stopped with a TypeError. Arrange the fixed program.\nTwo lines (the buggy ones) are not needed.",
+    "description": "The original program's count started at the wrong number, and its last line stopped with a TypeError. Arrange the fixed program, leaving out the two buggy lines.\nTwo lines are not needed.",
     "starter": "",
     "solution": "words = [\"sun\", \"moon\", \"star\", \"sky\"]\ncount = 0\nfor w in words:\n    if len(w) > 3:\n        count = count + 1\nprint(\"Long words:\", count)",
     "distractors": [
@@ -109671,7 +109671,7 @@
     "level": 7,
     "type": "trace",
     "title": "Trace to find the bug",
-    "description": "The program should print the price of two items at 20 each, with 5 off each one. It prints something else. Trace it to find the first line that gives a wrong value: the Line column is yours to fill in too.",
+    "description": "The program should print the price of two items at 20 each, with 5 off each one, but it doesn't. Trace it to find the first line that gives a wrong value, filling in the Line column too.",
     "starter": "",
     "solution": "price = 20\ndiscount = 5\nsale = price - discount\nsale = sale * 2\ntotal = sale + discount\nprint(total)",
     "tests": [
@@ -109967,7 +109967,7 @@
     "level": 7,
     "type": "write",
     "title": "Fix the average",
-    "description": "int() turns the text typed into a whole number: this is called casting. This program should print the average of the four temperatures typed, for example Average: 12.5, but it prints 1 less than that. Fix the one line that is wrong, without changing anything else.",
+    "description": "Fix an average.\n1. The program reads four temperatures, casting each with int().\n2. It should print `Average:` and their average, but it prints 1 less than that.\n3. Fix the one line that is wrong, without changing anything else.\nExample: you type `12` then `15` then `9` then `14`. It prints `Average: 12.5`.",
     "starter": "temps = []\nfor k in range(4):\n    temps.append(int(input(\"Temperature: \")))\ntotal = 0\nfor t in temps:\n    total = total + t\naverage = total / len(temps) - 1\nprint(\"Average:\", average)",
     "solution": "temps = []\nfor k in range(4):\n    temps.append(int(input(\"Temperature: \")))\ntotal = 0\nfor t in temps:\n    total = total + t\naverage = total / len(temps)\nprint(\"Average:\", average)",
     "tests": [
@@ -110371,7 +110371,7 @@
     "level": 8,
     "type": "write",
     "title": "Two bugs to fix",
-    "description": "This program should print, for example: banana has 3 vowels. It has two bugs. Fix both, without changing anything else.",
+    "description": "Fix two bugs.\n1. The program reads a word and should print the word, `has`, its number of vowels, then `vowels`.\n2. It has two bugs. Fix both, without changing anything else.\nExample: you type `banana`. It prints `banana has 3 vowels`.",
     "starter": "def count_vowels(word):\n    count = 1\n    for ch in word:\n        if ch in \"aeiou\":\n            count = count + 1\n    return count\n\nw = input(\"Word: \")\nprint(w, \"has\", count_vowels(word), \"vowels\")",
     "solution": "def count_vowels(word):\n    count = 0\n    for ch in word:\n        if ch in \"aeiou\":\n            count = count + 1\n    return count\n\nw = input(\"Word: \")\nprint(w, \"has\", count_vowels(w), \"vowels\")",
     "tests": [
@@ -110628,7 +110628,7 @@
     "level": 9,
     "type": "write",
     "title": "Three bugs",
-    "description": "int() turns the text typed into a whole number: this is called casting. This program should read four scores and print their total, the highest score and the average (using //), for example:\nTotal: 24\nHighest: 9\nAverage: 6\nIt has three bugs, and it must also work when every score is negative. Fix them, without changing what it prints.",
+    "description": "Fix three bugs.\n1. The program reads four scores, casting each with int().\n2. It should print `Total:` and their total, then `Highest:` and the highest score.\n3. Then it prints `Average:` and the average, using `//`.\n4. It must also work when every score is below 0.\n5. It has three bugs. Fix them, without changing what it prints.\nExample: you type `5` then `9` then `2` then `8`. It prints `Total: 24` then `Highest: 9` then `Average: 6`.",
     "starter": "scores = []\nfor k in range(4):\n    scores.append(input(\"Score: \"))\ntotal = 0\nfor s in scores:\n    total = total + s\nhighest = 0\nfor s in scores:\n    if s > highest:\n        highest = s\nprint(\"Total:\", total)\nprint(\"Highest:\", highest)\nprint(\"Average:\", total // len(score))",
     "solution": "scores = []\nfor k in range(4):\n    scores.append(int(input(\"Score: \")))\ntotal = 0\nfor s in scores:\n    total = total + s\nhighest = scores[0]\nfor s in scores:\n    if s > highest:\n        highest = s\nprint(\"Total:\", total)\nprint(\"Highest:\", highest)\nprint(\"Average:\", total // len(scores))",
     "tests": [
@@ -110975,7 +110975,7 @@
     "level": 10,
     "type": "write",
     "title": "Fix the grade report",
-    "description": "int() turns the text typed into a whole number: this is called casting. This program should print each pupil's name and grade (A for 70 or more, B for 50 or more, C for 30 or more, otherwise U), then the top pupil's name, for example:\nAva A\nBen C\nCal B\nTop: Ava\nIt has three bugs. Fix them, without changing what it prints.",
+    "description": "Fix a grading program.\n1. It reads three pupils: a name, then a mark, for each. Each mark is cast with int().\n2. 70 or more is an A, 50 or more a B, 30 or more a C, and anything else U.\n3. It should print each pupil's name and grade, then `Top:` and the top pupil's name.\n4. It has three bugs. Fix them, without changing what it prints.\nExample: you type `Ava` then `72` then `Ben` then `30` then `Cal` then `55`. It prints `Ava A` then `Ben C` then `Cal B` then `Top: Ava`.\nExample: you type `Ivy` then `20` then `Max` then `95` then `Rosa` then `60`. It prints `Ivy U` then `Max A` then `Rosa B` then `Top: Max`.",
     "starter": "def grade(mark):\n    if mark >= 70:\n        return \"A\"\n    elif mark >= 50:\n        return \"B\"\n    elif mark > 30:\n        return \"C\"\n    else:\n        return \"U\"\n\nnames = []\nmarks = []\nfor k in range(3):\n    names.append(input(\"Name: \"))\n    marks.append(int(input(\"Mark: \")))\nbest = 0\nfor i in range(len(names)):\n    print(names[i], grade(marks))\n    if marks[i] > marks[best]:\n        best = i\nprint(\"Top:\", names[best + 1])",
     "solution": "def grade(mark):\n    if mark >= 70:\n        return \"A\"\n    elif mark >= 50:\n        return \"B\"\n    elif mark >= 30:\n        return \"C\"\n    else:\n        return \"U\"\n\nnames = []\nmarks = []\nfor k in range(3):\n    names.append(input(\"Name: \"))\n    marks.append(int(input(\"Mark: \")))\nbest = 0\nfor i in range(len(names)):\n    print(names[i], grade(marks[i]))\n    if marks[i] > marks[best]:\n        best = i\nprint(\"Top:\", names[best])",
     "tests": [
@@ -111410,7 +111410,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Adult or child",
-    "description": "int() turns the text typed into a whole number: this is called casting. The original program said Child for an age of exactly 18. Arrange the fixed program.\nOne line (from the original) is not needed.",
+    "description": "The original program said Child for an age of exactly 18, after casting the age with int(). Arrange the fixed program, leaving out the original's wrong line.\nOne line is not needed.",
     "starter": "",
     "solution": "age = int(input(\"Age: \"))\nif age >= 18:\n    print(\"Adult\")\nelse:\n    print(\"Child\")",
     "distractors": [
@@ -111677,7 +111677,7 @@
     "level": 7,
     "type": "write",
     "title": "Fix the message",
-    "description": "int() turns the text typed into a whole number: this is called casting. The program should print, for example: Mia will be 13 next year. It stops with a TypeError. Fix the bug.",
+    "description": "Fix a TypeError.\n1. The program reads a name, then an age cast with int().\n2. It should print the name, `will be`, the age plus 1, then `next year`.\n3. It stops with a TypeError. Fix the bug.\nExample: you type `Mia` then `12`. It prints `Mia will be 13 next year`.",
     "starter": "name = input(\"Name: \")\nage = int(input(\"Age: \"))\nprint(name + \" will be \" + age + 1 + \" next year\")",
     "solution": "name = input(\"Name: \")\nage = int(input(\"Age: \"))\nprint(name, \"will be\", age + 1, \"next year\")",
     "tests": [
@@ -111716,7 +111716,7 @@
     "level": 9,
     "type": "write",
     "title": "Fix the average mark",
-    "description": "int() turns the text typed into a whole number: this is called casting. This program should read marks until -1 is typed, then print their average using //, for example Average: 15. It stops with an error. Fix it.",
+    "description": "Fix an average.\n1. The program reads marks, casting each with int(), until -1 is typed.\n2. It should print `Average:` and their average, using `//`.\n3. It stops with an error. Fix it.\nExample: you type `10` then `20` then `-1`. It prints `Average: 15`.",
     "starter": "total = 0\ncount = 0\nmark = int(input(\"Mark (-1 to stop): \"))\nwhile mark != -1:\n    total = total + mark\n    mark = int(input(\"Mark (-1 to stop): \"))\nprint(\"Average:\", total // count)",
     "solution": "total = 0\ncount = 0\nmark = int(input(\"Mark (-1 to stop): \"))\nwhile mark != -1:\n    total = total + mark\n    count = count + 1\n    mark = int(input(\"Mark (-1 to stop): \"))\nprint(\"Average:\", total // count)",
     "tests": [
@@ -112302,7 +112302,7 @@
     "level": 3,
     "type": "fill",
     "title": "Move head",
-    "description": "int() turns the text typed into a whole number: this is called casting. A new node is added at the front. Fill in the blank so the list starts at the new node.",
+    "description": "A new node, holding the number typed and cast with int(), is added at the front. Fill in the blank so the list starts at the new node.",
     "starter": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nhead = Node(int(input(\"First: \")))\nnew = Node(int(input(\"Add at front: \")))\nnew.next = head\n____ = new\nprint(head.data, head.next.data)",
     "solution": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nhead = Node(int(input(\"First: \")))\nnew = Node(int(input(\"Add at front: \")))\nnew.next = head\nhead = new\nprint(head.data, head.next.data)",
     "answers": [
@@ -112430,7 +112430,7 @@
     "level": 4,
     "type": "fill",
     "title": "Put a node in the middle",
-    "description": "int() turns the text typed into a whole number: this is called casting. Fill in both blanks so the new node goes between the first and the last node, without losing the last one.",
+    "description": "The numbers typed are cast with int(). Fill in both blanks so the new node goes between the first and last nodes, keeping the last one.",
     "starter": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nhead = Node(int(input(\"First: \")))\nhead.next = Node(int(input(\"Last: \")))\nnew = Node(int(input(\"Middle: \")))\nnew.next = ____\nhead.next = ____\nprint(head.data, head.next.data, head.next.next.data)",
     "solution": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nhead = Node(int(input(\"First: \")))\nhead.next = Node(int(input(\"Last: \")))\nnew = Node(int(input(\"Middle: \")))\nnew.next = head.next\nhead.next = new\nprint(head.data, head.next.data, head.next.next.data)",
     "answers": [
@@ -112625,7 +112625,7 @@
     "level": 5,
     "type": "parsons",
     "title": "Build from the front",
-    "description": "int() turns the text typed into a whole number: this is called casting. Arrange the lines: each number typed is added at the front of the list, then the list is printed from head.\nOne line is not needed.",
+    "description": "Arrange the lines so each number typed is cast with int() and added at the front of the list. Then the list is printed from head.\nOne line is not needed.",
     "starter": "",
     "solution": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\nhead = None\nfor k in range(3):\n    node = Node(int(input(\"Add: \")))\n    node.next = head\n    head = node\ncur = head\nwhile cur != None:\n    print(cur.data)\n    cur = cur.next",
     "distractors": [
@@ -113249,7 +113249,7 @@
     "level": 7,
     "type": "write",
     "title": "Print the list",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write the loop that prints every node's data, from head to the end of the list, for example:\n4\n9",
+    "description": "Print a linked list.\n1. The program builds a list of two nodes from the numbers typed, cast with int().\n2. Write the loop that prints every node's data, from head to the end of the list.\n3. Move `cur` on each time, until it is None.\nExample: you type `4` then `9`. It prints `4` then `9`.",
     "starter": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nhead = Node(int(input(\"Data: \")))\nhead.next = Node(int(input(\"Data: \")))\ncur = head\n# Print each node's data and move cur on, until cur is None",
     "solution": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nhead = Node(int(input(\"Data: \")))\nhead.next = Node(int(input(\"Data: \")))\ncur = head\nwhile cur != None:\n    print(cur.data)\n    cur = cur.next",
     "tests": [
@@ -113830,7 +113830,7 @@
     "level": 8,
     "type": "write",
     "title": "Newest first",
-    "description": "int() turns the text typed into a whole number: this is called casting. Use the Node class. Ask for 4 numbers and add each one at the front of a linked list that starts at head (head starts as None). Then go along the list from head, printing each node's data, then the total, for example:\n8\n1\n6\n3\nTotal: 18",
+    "description": "Build a linked list at the front.\n1. Use the Node class. `head` starts as None.\n2. Ask for 4 numbers, casting each with int(). Add each one at the front of the list.\n3. Then go along the list from head, printing each node's data.\n4. Then print `Total:` and the total.\nExample: you type `3` then `6` then `1` then `8`. It prints `8` then `1` then `6` then `3` then `Total: 18`.",
     "starter": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\n# Add each number at the front, then print the list and the total",
     "solution": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nhead = None\nfor k in range(4):\n    node = Node(int(input(\"Number: \")))\n    node.next = head\n    head = node\ntotal = 0\ncur = head\nwhile cur != None:\n    print(cur.data)\n    total = total + cur.data\n    cur = cur.next\nprint(\"Total:\", total)",
     "tests": [
@@ -114285,7 +114285,7 @@
     "level": 9,
     "type": "write",
     "title": "Where is it?",
-    "description": "int() turns the text typed into a whole number: this is called casting. Use the Node class. Build a linked list holding 12, then 5, then 30, then 8, in that order, from head. Ask for a number and print its position in the list (the first node is position 1), or Not found, for example:\nPosition: 3",
+    "description": "Search a linked list.\n1. Use the Node class. Build a list holding 12, then 5, then 30, then 8, in that order, from head.\n2. Ask for a number and cast it with int().\n3. If it is in the list, print `Position:` and its position. The first node is position 1.\n4. Otherwise, print `Not found`.\nExample: you type `30`. It prints `Position: 3`.\nExample: you type `3`. It prints `Not found`.",
     "starter": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\n# Build the list, then search it",
     "solution": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nhead = Node(12)\nhead.next = Node(5)\nhead.next.next = Node(30)\nhead.next.next.next = Node(8)\nlook = int(input(\"Find: \"))\ncur = head\npos = 1\nfound = False\nwhile cur != None and not found:\n    if cur.data == look:\n        found = True\n    else:\n        pos = pos + 1\n        cur = cur.next\nif found:\n    print(\"Position:\", pos)\nelse:\n    print(\"Not found\")",
     "tests": [
@@ -114643,7 +114643,7 @@
     "level": 10,
     "type": "write",
     "title": "A LinkedList class",
-    "description": "int() turns the text typed into a whole number: this is called casting. Use the Node class. Write a class LinkedList whose __init__ sets head to None, with these methods: add(self, data) adds a node at the end; remove_first(self) removes the first node; show(self) prints a list of the data in every node, in order. Ask for 4 numbers and add each one. Then remove the first node and show the list, for example:\n[7, 2, 9]",
+    "description": "Write a linked list class.\n1. Use the Node class. Write a class `LinkedList` whose `__init__` sets head to None.\n2. `add(self, data)` adds a node at the end.\n3. `remove_first(self)` removes the first node, and does nothing if the list is empty.\n4. `show(self)` prints a list of the data in every node, in order.\n5. Ask for 4 numbers, casting each with int(), and add each one.\n6. Then remove the first node and show the list.\nExample: you type `4` then `7` then `2` then `9`. It prints `[7, 2, 9]`.",
     "starter": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\n# Write the LinkedList class, then use it",
     "solution": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nclass LinkedList:\n    def __init__(self):\n        self.head = None\n\n    def add(self, data):\n        node = Node(data)\n        if self.head == None:\n            self.head = node\n        else:\n            cur = self.head\n            while cur.next != None:\n                cur = cur.next\n            cur.next = node\n\n    def remove_first(self):\n        if self.head != None:\n            self.head = self.head.next\n\n    def show(self):\n        out = []\n        cur = self.head\n        while cur != None:\n            out.append(cur.data)\n            cur = cur.next\n        print(out)\n\nnums = LinkedList()\nfor k in range(4):\n    nums.add(int(input(\"Number: \")))\nnums.remove_first()\nnums.show()",
     "tests": [
@@ -115535,7 +115535,7 @@
     "level": 7,
     "type": "write",
     "title": "Put it at the front",
-    "description": "int() turns the text typed into a whole number: this is called casting. Add the two lines that put node at the front of the list. The program then prints the first two numbers, for example:\n9 4",
+    "description": "Add a node at the front.\n1. The program makes head and a new node from the numbers typed, cast with int().\n2. Add the two lines that put node at the front of the list.\n3. The program then prints the first two numbers.\nExample: you type `4` then `9`. It prints `9 4`.",
     "starter": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nhead = Node(int(input(\"First: \")))\nnode = Node(int(input(\"New first: \")))\n# Put node at the front of the list: two lines\n\nprint(head.data, head.next.data)",
     "solution": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nhead = Node(int(input(\"First: \")))\nnode = Node(int(input(\"New first: \")))\nnode.next = head\nhead = node\n\nprint(head.data, head.next.data)",
     "tests": [
@@ -115573,7 +115573,7 @@
     "level": 9,
     "type": "write",
     "title": "Count the evens",
-    "description": "int() turns the text typed into a whole number: this is called casting. Use the Node class. Build a linked list of three nodes holding the numbers typed, in the order typed, from head. Then go along the list and print how many of them are even, for example:\nEven: 2",
+    "description": "Count even numbers in a linked list.\n1. Use the Node class. Build a list of three nodes holding the numbers typed, in the order typed, from head. Cast each with int().\n2. Then go along the list and print `Even:` and how many are even.\nExample: you type `4` then `7` then `2`. It prints `Even: 2`.",
     "starter": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\n# Build the list, then count the even numbers",
     "solution": "class Node:\n    def __init__(self, data):\n        self.data = data\n        self.next = None\n\nhead = Node(int(input(\"Number: \")))\nhead.next = Node(int(input(\"Number: \")))\nhead.next.next = Node(int(input(\"Number: \")))\neven = 0\ncur = head\nwhile cur != None:\n    if cur.data % 2 == 0:\n        even = even + 1\n    cur = cur.next\nprint(\"Even:\", even)",
     "tests": [
@@ -116145,7 +116145,7 @@
     "level": 3,
     "type": "fill",
     "title": "Serve the next ticket",
-    "description": "int() turns the text typed into a whole number: this is called casting. queue holds ticket numbers in the order they joined. Fill in the blank so the ticket at the front is served.",
+    "description": "queue holds ticket numbers, cast with int(), in the order they joined. Fill in the blank so the ticket at the front is served.",
     "starter": "queue = [12, 15, 9]\nqueue.append(int(input(\"Ticket: \")))\nserved = queue.____\nprint(\"Serving ticket\", served)\nprint(\"Waiting:\", len(queue))",
     "solution": "queue = [12, 15, 9]\nqueue.append(int(input(\"Ticket: \")))\nserved = queue.pop(0)\nprint(\"Serving ticket\", served)\nprint(\"Waiting:\", len(queue))",
     "answers": [
@@ -116332,7 +116332,7 @@
     "level": 4,
     "type": "fill",
     "title": "Serve everyone",
-    "description": "int() turns the text typed into a whole number: this is called casting. Fill in both blanks so the loop serves every ticket, from the front of the queue, until the queue is empty.",
+    "description": "The tickets are cast with int() and join the back of the queue. Fill in both blanks so the loop serves every ticket from the front until the queue is empty.",
     "starter": "queue = []\nfor k in range(3):\n    queue.append(int(input(\"Ticket: \")))\nwhile ____:\n    print(\"Next:\", queue.____)",
     "solution": "queue = []\nfor k in range(3):\n    queue.append(int(input(\"Ticket: \")))\nwhile len(queue) > 0:\n    print(\"Next:\", queue.pop(0))",
     "answers": [
@@ -116414,7 +116414,7 @@
     "level": 4,
     "type": "fill",
     "title": "Peek safely",
-    "description": "int() turns the text typed into a whole number: this is called casting. Fill in both blanks so peek looks at the top item, and it is only used when the stack isn't empty.",
+    "description": "The program casts what is typed with int(). Fill in both blanks so peek looks at the top item, and is only used when the stack isn't empty.",
     "starter": "class Stack:\n    def __init__(self):\n        self.items = []\n\n    def is_empty(self):\n        return len(self.items) == 0\n\n    def peek(self):\n        return self.items[____]\n\ns = Stack()\ns.items.append(int(input(\"Push: \")))\ns.items.append(int(input(\"Push: \")))\nif not s.____():\n    print(\"Top:\", s.peek())",
     "solution": "class Stack:\n    def __init__(self):\n        self.items = []\n\n    def is_empty(self):\n        return len(self.items) == 0\n\n    def peek(self):\n        return self.items[-1]\n\ns = Stack()\ns.items.append(int(input(\"Push: \")))\ns.items.append(int(input(\"Push: \")))\nif not s.is_empty():\n    print(\"Top:\", s.peek())",
     "answers": [
@@ -116713,7 +116713,7 @@
     "level": 6,
     "type": "partial-parsons",
     "title": "An array queue",
-    "description": "int() turns the text typed into a whole number: this is called casting. The queue is a list of 5 slots, with front and rear pointers. Pick the missing line, so the ticket at the front is served.",
+    "description": "The queue is a list of 5 slots with front and rear pointers, and tickets are cast with int(). Pick the missing line, so the ticket at the front is served.",
     "starter": "queue = [0, 0, 0, 0, 0]\nfront = 0\nrear = 0\nfor k in range(3):\n    queue[rear] = int(input(\"Join: \"))\n    rear = rear + 1\n____\nfront = front + 1\nprint(\"Served\", served, \"and\", rear - front, \"still waiting\")",
     "solution": "queue = [0, 0, 0, 0, 0]\nfront = 0\nrear = 0\nfor k in range(3):\n    queue[rear] = int(input(\"Join: \"))\n    rear = rear + 1\nserved = queue[front]\nfront = front + 1\nprint(\"Served\", served, \"and\", rear - front, \"still waiting\")",
     "options": [
@@ -117172,7 +117172,7 @@
     "level": 7,
     "type": "write",
     "title": "Write push",
-    "description": "int() turns the text typed into a whole number: this is called casting. Finish the method push so it adds item to the top of the stack. The program should print, for example:\n[4, 9]",
+    "description": "Push onto a stack.\n1. Finish the method `push` so it adds item to the top of the stack. The top is the end of the list.\n2. The program casts two numbers with int(), pushes both, then prints the stack's list.\nExample: you type `4` then `9`. It prints `[4, 9]`.",
     "starter": "class Stack:\n    def __init__(self):\n        self.items = []\n\n    def push(self, item):\n        # Add item to the top of the stack\n\ns = Stack()\ns.push(int(input(\"Push: \")))\ns.push(int(input(\"Push: \")))\nprint(s.items)",
     "solution": "class Stack:\n    def __init__(self):\n        self.items = []\n\n    def push(self, item):\n        self.items.append(item)\n\ns = Stack()\ns.push(int(input(\"Push: \")))\ns.push(int(input(\"Push: \")))\nprint(s.items)",
     "tests": [
@@ -117554,7 +117554,7 @@
     "level": 8,
     "type": "write",
     "title": "A Stack class",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a class Stack with a list items, and the methods push(self, item), pop(self) and is_empty(self). Ask for 4 numbers and push each one. Then pop and print them until the stack is empty, for example:\n8\n1\n6\n3",
+    "description": "Reverse numbers with a stack.\n1. Write a class `Stack` with a list `items`. The top is the end of the list.\n2. Add `push(self, item)`, which adds item to the top, and `pop(self)`, which removes and returns the top item.\n3. Add `is_empty(self)`, which returns True when there are no items.\n4. Ask for 4 numbers, cast each with int(), and push each one.\n5. Then pop and print them until the stack is empty.\nExample: you type `3` then `6` then `1` then `8`. It prints `8` then `1` then `6` then `3`.",
     "starter": "# Write the Stack class, then push and pop the numbers",
     "solution": "class Stack:\n    def __init__(self):\n        self.items = []\n\n    def push(self, item):\n        self.items.append(item)\n\n    def pop(self):\n        return self.items.pop()\n\n    def is_empty(self):\n        return len(self.items) == 0\n\ns = Stack()\nfor k in range(4):\n    s.push(int(input(\"Number: \")))\nwhile not s.is_empty():\n    print(s.pop())",
     "tests": [
@@ -117635,7 +117635,7 @@
     "level": 8,
     "type": "trace",
     "title": "Trace an array stack",
-    "description": "Trace the program. The stack is a list of 4 slots, and top holds the index of the top item (-1 when it is empty).",
+    "description": "Trace the program, where the stack is a list of 4 slots. `top` holds the index of the top item, or -1 when it is empty.",
     "starter": "",
     "solution": "stack = [0, 0, 0, 0]\ntop = -1\nfor n in [6, 3, 9]:\n    top = top + 1\n    stack[top] = n\nitem = stack[top]\ntop = top - 1\nprint(item, top)",
     "tests": [
@@ -118372,7 +118372,7 @@
     "level": 9,
     "type": "write",
     "title": "The shop queue",
-    "description": "int() turns the text typed into a whole number: this is called casting. Ask how many customers join the queue, then ask for each one's name and add them to the back of the queue (a list). Then serve two customers from the front, printing each name, and print how many are still waiting, for example:\nServed Ava\nServed Ben\nWaiting: 1",
+    "description": "Serve a queue.\n1. Ask how many customers join the queue, and cast it with int().\n2. Ask for each customer's name and add them to the back of the queue, a list.\n3. Serve two customers from the front. For each, print `Served` and the name.\n4. Then print `Waiting:` and how many are still waiting.\nExample: you type `3` then `Ava` then `Ben` then `Cal`. It prints `Served Ava` then `Served Ben` then `Waiting: 1`.",
     "starter": "# Make the queue, then serve two customers",
     "solution": "queue = []\nn = int(input(\"How many? \"))\nfor k in range(n):\n    queue.append(input(\"Name: \"))\nfor k in range(2):\n    print(\"Served\", queue.pop(0))\nprint(\"Waiting:\", len(queue))",
     "tests": [
@@ -118989,7 +118989,7 @@
     "level": 10,
     "type": "write",
     "title": "A Queue class",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a class Queue with a list items and the methods enqueue(self, item), dequeue(self) and is_empty(self); dequeue returns None if the queue is empty. Ask for 5 numbers. A number that isn't 0 joins the queue. 0 means serve: print Served and the front number, or Empty if nobody is waiting. At the end print what is left, for example:\nServed 4\nEmpty\nLeft: [7, 9]",
+    "description": "Run a queue.\n1. Write a class `Queue` with a list `items`. The front is the start of the list.\n2. Add `enqueue(self, item)`, which adds item at the back, and `is_empty(self)`.\n3. Add `dequeue(self)`. It removes and returns the front item, or returns None if the queue is empty.\n4. Ask for 5 numbers, casting each with int(). A number that isn't 0 joins the queue.\n5. A 0 means serve: print `Served` and the front number, or `Empty` if nobody is waiting.\n6. At the end, print `Left:` and the list that is left.\nExample: you type `4` then `0` then `0` then `7` then `9`. It prints `Served 4` then `Empty` then `Left: [7, 9]`.",
     "starter": "# Write the Queue class, then read the 5 numbers",
     "solution": "class Queue:\n    def __init__(self):\n        self.items = []\n\n    def enqueue(self, item):\n        self.items.append(item)\n\n    def dequeue(self):\n        if self.is_empty():\n            return None\n        return self.items.pop(0)\n\n    def is_empty(self):\n        return len(self.items) == 0\n\nq = Queue()\nfor k in range(5):\n    n = int(input(\"Number: \"))\n    if n == 0:\n        served = q.dequeue()\n        if served == None:\n            print(\"Empty\")\n        else:\n            print(\"Served\", served)\n    else:\n        q.enqueue(n)\nprint(\"Left:\", q.items)",
     "tests": [
@@ -120516,7 +120516,7 @@
     "level": 7,
     "type": "write",
     "title": "Who's next?",
-    "description": "int() turns the text typed into a whole number: this is called casting. Add one line that takes the front ticket off the queue and stores it in next_up. The program then prints it, for example:\nNext: 14\nWaiting: [3, 9]",
+    "description": "Serve the front ticket.\n1. The queue holds three tickets, cast with int().\n2. Add one line that takes the front ticket off the queue and stores it in `next_up`.\n3. The program then prints `Next:` and next_up, then `Waiting:` and the queue.\nExample: you type `14` then `3` then `9`. It prints `Next: 14` then `Waiting: [3, 9]`.",
     "starter": "queue = [int(input(\"Ticket: \")), int(input(\"Ticket: \")), int(input(\"Ticket: \"))]\n# Take the front ticket off the queue and store it in next_up\n\nprint(\"Next:\", next_up)\nprint(\"Waiting:\", queue)",
     "solution": "queue = [int(input(\"Ticket: \")), int(input(\"Ticket: \")), int(input(\"Ticket: \"))]\nnext_up = queue.pop(0)\n\nprint(\"Next:\", next_up)\nprint(\"Waiting:\", queue)",
     "tests": [
@@ -120556,7 +120556,7 @@
     "level": 9,
     "type": "write",
     "title": "Words backwards",
-    "description": "Ask for 3 words and push each one onto a stack. Then pop and print them all, so they come out in the opposite order, for example:\nthree\ntwo\none",
+    "description": "Reverse words with a stack.\n1. Ask for 3 words and push each one onto a stack.\n2. Then pop and print them all until the stack is empty, so they come out in the opposite order.\nExample: you type `one` then `two` then `three`. It prints `three` then `two` then `one`.",
     "starter": "# Write your program here",
     "solution": "stack = []\nfor k in range(3):\n    stack.append(input(\"Word: \"))\nwhile len(stack) > 0:\n    print(stack.pop())",
     "tests": [
@@ -121338,7 +121338,7 @@
     "level": 3,
     "type": "fill",
     "title": "Wrap round",
-    "description": "int() turns the text typed into a whole number: this is called casting. Fill in the blank so the probe moves on to the next slot, going back to slot 0 after the last slot.",
+    "description": "The keys are cast with int(). Fill in the blank so the probe moves to the next slot, going back to slot 0 after the last.",
     "starter": "table = [None] * 5\ntable[4] = 19\nkey = int(input(\"Key: \"))\nindex = key % 5\nwhile table[index] != None:\n    index = ____\ntable[index] = key\nprint(table)",
     "solution": "table = [None] * 5\ntable[4] = 19\nkey = int(input(\"Key: \"))\nindex = key % 5\nwhile table[index] != None:\n    index = (index + 1) % 5\ntable[index] = key\nprint(table)",
     "answers": [
@@ -121543,7 +121543,7 @@
     "level": 4,
     "type": "fill",
     "title": "Find a key",
-    "description": "int() turns the text typed into a whole number: this is called casting. The table was filled with linear probing. Fill in both blanks so the search finds a key even if it was moved along.",
+    "description": "The table was filled with linear probing, and the key typed is cast with int(). Fill in both blanks so the search finds a key even if it was moved along.",
     "starter": "table = [15, None, 7, 22, 12]\nkey = int(input(\"Find: \"))\nindex = key % 5\nfound = False\nwhile table[index] != None and not found:\n    if table[index] == ____:\n        found = True\n    else:\n        index = ____\nprint(\"Found:\", found)",
     "solution": "table = [15, None, 7, 22, 12]\nkey = int(input(\"Find: \"))\nindex = key % 5\nfound = False\nwhile table[index] != None and not found:\n    if table[index] == key:\n        found = True\n    else:\n        index = (index + 1) % 5\nprint(\"Found:\", found)",
     "answers": [
@@ -121616,7 +121616,7 @@
     "level": 4,
     "type": "fill",
     "title": "A word's slot",
-    "description": "Fill in both blanks so the function adds up the character codes of the word's letters, then turns the total into an index.",
+    "description": "Fill in both blanks so the function adds up the character codes of the word's letters. Then it turns the total into an index.",
     "starter": "def hash_word(word, size):\n    total = 0\n    for ch in word:\n        total = total + ____\n    return total ____ size\n\nprint(hash_word(input(\"Word: \"), 10))",
     "solution": "def hash_word(word, size):\n    total = 0\n    for ch in word:\n        total = total + ord(ch)\n    return total % size\n\nprint(hash_word(input(\"Word: \"), 10))",
     "answers": [
@@ -121729,7 +121729,7 @@
     "level": 5,
     "type": "partial-parsons",
     "title": "Keep looking",
-    "description": "int() turns the text typed into a whole number: this is called casting. The table was filled with linear probing. Pick the missing line, so a key is found even if it was moved along.",
+    "description": "The table was filled with linear probing, and the key typed is cast with int(). Pick the missing line, so a key is found even if it was moved along.",
     "starter": "table = [None, 8, 15, 22, None, None, 6]\nkey = int(input(\"Find: \"))\nindex = key % 7\n____\n    if table[index] == key:\n        print(\"Found at\", index)\n    index = (index + 1) % 7",
     "solution": "table = [None, 8, 15, 22, None, None, 6]\nkey = int(input(\"Find: \"))\nindex = key % 7\nwhile table[index] != None:\n    if table[index] == key:\n        print(\"Found at\", index)\n    index = (index + 1) % 7",
     "options": [
@@ -122585,7 +122585,7 @@
     "level": 7,
     "type": "write",
     "title": "Write the hash",
-    "description": "int() turns the text typed into a whole number: this is called casting. Finish the function hash_key so it returns the index for key in a table of the given size, using the remainder. The program then prints that index.",
+    "description": "Hash a key.\n1. Finish the function `hash_key(key, size)` so it returns the index for key in a table of that size.\n2. Use the remainder: `key % size`.\n3. The program casts the key and the size typed with int(), then prints the index.\nExample: you type `37` then `11`. It calls `hash_key(37, 11)`, which returns `4`. It prints `4`.",
     "starter": "def hash_key(key, size):\n    # Return the index for key in a table of this size\n\nprint(hash_key(int(input(\"Key: \")), int(input(\"Size: \"))))",
     "solution": "def hash_key(key, size):\n    return key % size\n\nprint(hash_key(int(input(\"Key: \")), int(input(\"Size: \"))))",
     "tests": [
@@ -122940,7 +122940,7 @@
     "level": 8,
     "type": "write",
     "title": "Fill a table",
-    "description": "int() turns the text typed into a whole number: this is called casting. A hash table of 7 slots stores whole numbers using key % 7, with linear probing (move on one slot, wrapping round, until an empty slot is found). Make the table as a list of 7 None values. Ask for 4 keys and store each one, then print the table, for example:\n[14, None, 9, 16, None, None, 20]",
+    "description": "Store keys with linear probing.\n1. Make a hash table of 7 slots, as a list of 7 None values.\n2. A key's slot is `key % 7`. If that slot is taken, move on one slot, wrapping round to slot 0, until an empty one is found.\n3. Ask for 4 keys, casting each with int(), and store each one.\n4. Then print the table.\nExample: you type `14` then `9` then `16` then `20`. It prints `[14, None, 9, 16, None, None, 20]`.",
     "starter": "# Make the table, then store the 4 keys",
     "solution": "table = [None] * 7\nfor k in range(4):\n    key = int(input(\"Key: \"))\n    index = key % 7\n    while table[index] != None:\n        index = (index + 1) % 7\n    table[index] = key\nprint(table)",
     "tests": [
@@ -123365,7 +123365,7 @@
     "level": 9,
     "type": "write",
     "title": "A table of names",
-    "description": "A hash table of 5 slots holds names. A name's hash is the total of its letters' character codes (use ord), % 5, and collisions use linear probing. Store the names Ava, Ben and Cal, in that order. Then ask for a name and print the index it is stored at, or Not found, for example:\nIndex: 3",
+    "description": "Find a name in a hash table.\n1. The table has 5 slots. A name's hash is the total of its letters' character codes, using `ord`, then `% 5`.\n2. Collisions use linear probing: move on one slot, wrapping round, until a free slot.\n3. Store the names Ava, Ben and Cal, in that order.\n4. Ask for a name. If it is in the table, print `Index:` and its index.\n5. Otherwise, print `Not found`.\nExample: you type `Cal`. It prints `Index: 3`.\nExample: you type `Ivy`. It prints `Not found`.",
     "starter": "# Write the hash function, store the names, then search",
     "solution": "def hash_name(name, size):\n    total = 0\n    for ch in name:\n        total = total + ord(ch)\n    return total % size\n\ntable = [None] * 5\nfor name in [\"Ava\", \"Ben\", \"Cal\"]:\n    index = hash_name(name, 5)\n    while table[index] != None:\n        index = (index + 1) % 5\n    table[index] = name\nlook = input(\"Name: \")\nindex = hash_name(look, 5)\nwhile table[index] != None and table[index] != look:\n    index = (index + 1) % 5\nif table[index] == look:\n    print(\"Index:\", index)\nelse:\n    print(\"Not found\")",
     "tests": [
@@ -123454,7 +123454,7 @@
     "level": 9,
     "type": "trace",
     "title": "Trace the wrap-round",
-    "description": "Trace the program. Here 0 marks an empty slot. Every key hashes to the last slot.",
+    "description": "Trace the program, where 0 marks an empty slot. Every key hashes to the last slot.",
     "starter": "",
     "solution": "table = [0, 0, 0, 0, 0, 0]\nfor key in [11, 17, 5, 23]:\n    index = key % 6\n    probes = 0\n    while table[index] != 0:\n        index = (index + 1) % 6\n        probes = probes + 1\n    table[index] = key\nprint(table, probes)",
     "tests": [
@@ -125083,7 +125083,7 @@
     "level": 10,
     "type": "write",
     "title": "A HashTable class",
-    "description": "int() turns the text typed into a whole number: this is called casting. Write a class HashTable whose __init__ stores size and makes a list slots of size None values (size is passed in). Give it insert(self, key), which stores key using key % size and linear probing, and find(self, key), which returns the index of key, or -1 if it isn't there. Make a table of size 7, ask for 3 keys and insert them. Then ask for a key to find and print what find returns: its index, or -1.",
+    "description": "Write a hash table class.\n1. Write a class `HashTable`. Its `__init__(self, size)` stores size and makes a list `slots` of size None values.\n2. `insert(self, key)` stores key at `key % size`, moving on one slot, wrapping round, while the slot is taken.\n3. `find(self, key)` returns the index of key. It returns -1 if key isn't there, including when the table is empty.\n4. Make a table of size 7. Ask for 3 keys, casting each with int(), and insert them.\n5. Then ask for a key to find, cast it with int(), and print what find returns.\nExample: you type `10` then `17` then `24` then `24`. It prints `5`.",
     "starter": "# Write the HashTable class, then use it",
     "solution": "class HashTable:\n    def __init__(self, size):\n        self.size = size\n        self.slots = [None] * size\n\n    def insert(self, key):\n        index = key % self.size\n        while self.slots[index] != None:\n            index = (index + 1) % self.size\n        self.slots[index] = key\n\n    def find(self, key):\n        index = key % self.size\n        while self.slots[index] != None:\n            if self.slots[index] == key:\n                return index\n            index = (index + 1) % self.size\n        return -1\n\nh = HashTable(7)\nfor k in range(3):\n    h.insert(int(input(\"Key: \")))\nprint(h.find(int(input(\"Find: \"))))",
     "tests": [
@@ -126122,7 +126122,7 @@
     "level": 7,
     "type": "write",
     "title": "Work out the index",
-    "description": "int() turns the text typed into a whole number: this is called casting. Add one line that sets index to the slot for key in a table of 9 slots, using the hash key % 9. The program then prints it, for example:\nIndex: 4",
+    "description": "Work out a slot.\n1. The program reads a key and casts it with int().\n2. Add one line that sets `index` to the key's slot in a table of 9 slots, using `key % 9`.\n3. The program then prints `Index:` and the index.\nExample: you type `40`. It prints `Index: 4`.",
     "starter": "key = int(input(\"Key: \"))\n# Work out index from key, for a table of 9 slots\n\nprint(\"Index:\", index)",
     "solution": "key = int(input(\"Key: \"))\nindex = key % 9\n\nprint(\"Index:\", index)",
     "tests": [
@@ -126158,7 +126158,7 @@
     "level": 9,
     "type": "write",
     "title": "Three keys",
-    "description": "int() turns the text typed into a whole number: this is called casting. Make a hash table of 6 slots as a list of 6 None values. Ask for 3 keys and store each at key % 6, using linear probing if the slot is taken. Then print the table, for example:\n[None, 7, 13, 3, None, None]",
+    "description": "Store keys with linear probing.\n1. Make a hash table of 6 slots, as a list of 6 None values.\n2. Ask for 3 keys, casting each with int().\n3. Store each at `key % 6`. If that slot is taken, move on one slot, wrapping round, until an empty one is found.\n4. Then print the table.\nExample: you type `7` then `13` then `3`. It prints `[None, 7, 13, 3, None, None]`.",
     "starter": "# Write your program here",
     "solution": "table = [None] * 6\nfor k in range(3):\n    key = int(input(\"Key: \"))\n    index = key % 6\n    while table[index] != None:\n        index = (index + 1) % 6\n    table[index] = key\nprint(table)",
     "tests": [
@@ -126807,7 +126807,7 @@
     "level": 3,
     "type": "fill",
     "title": "Sell some pens",
-    "description": "int() turns the text typed into a whole number: this is called casting. stock is a record of an item and how many are left. A tuple can't be changed, so the program makes a new one. Fill in the blank so the new record holds the number left after the sale.",
+    "description": "stock is a record of an item and how many are left, and a tuple can't be changed. Fill in the blank so a new record holds the number left after the sale typed, cast with int().",
     "starter": "stock = (\"pens\", 40)\nsold = int(input(\"Sold: \"))\nstock = (stock[0], ____)\nprint(stock)",
     "solution": "stock = (\"pens\", 40)\nsold = int(input(\"Sold: \"))\nstock = (stock[0], stock[1] - sold)\nprint(stock)",
     "answers": [
@@ -126920,7 +126920,7 @@
     "level": 4,
     "type": "fill",
     "title": "Who passed?",
-    "description": "int() turns the text typed into a whole number: this is called casting. Fill in both blanks so the loop unpacks each record into two variables and prints the name of everyone who reached the pass mark.",
+    "description": "The loop prints everyone who reached the pass mark typed, which is cast with int(). Fill in both blanks so it unpacks each record into two variables.",
     "starter": "marks = [(\"Mia\", 70), (\"Leo\", 55), (\"Zoe\", 81)]\npass_mark = int(input(\"Pass mark: \"))\nfor ____ in marks:\n    if mark >= pass_mark:\n        print(____)",
     "solution": "marks = [(\"Mia\", 70), (\"Leo\", 55), (\"Zoe\", 81)]\npass_mark = int(input(\"Pass mark: \"))\nfor name, mark in marks:\n    if mark >= pass_mark:\n        print(name)",
     "answers": [
@@ -126983,7 +126983,7 @@
     "level": 4,
     "type": "fill",
     "title": "A year older",
-    "description": "int() turns the text typed into a whole number: this is called casting. pets is a list of records, each a name and an age. Fill in both blanks so the first pet's record is replaced by a new one with the age increased.",
+    "description": "pets is a list of records, each a name and an age, and the number typed is cast with int(). Fill in both blanks so the first pet's record is replaced by one with the age increased.",
     "starter": "pets = [(\"Rex\", 3), (\"Bo\", 5)]\nolder = int(input(\"Years older: \"))\nold = pets[0]\npets[0] = (____, old[1] + ____)\nprint(pets)",
     "solution": "pets = [(\"Rex\", 3), (\"Bo\", 5)]\nolder = int(input(\"Years older: \"))\nold = pets[0]\npets[0] = (old[0], old[1] + older)\nprint(pets)",
     "answers": [
@@ -127092,7 +127092,7 @@
     "level": 5,
     "type": "partial-parsons",
     "title": "Seats left",
-    "description": "int() turns the text typed into a whole number: this is called casting. flight is a record of a flight number, a city and a number of seats. Pick the missing line, so the program prints how many seats are left.",
+    "description": "flight is a record of a flight number, a city and the seats, and the booking is cast with int(). Pick the missing line, so the program prints how many seats are left.",
     "starter": "flight = (\"BA117\", \"London\", 145)\nbooked = int(input(\"Booked: \"))\n____\nprint(\"Seats left:\", seats - booked)",
     "solution": "flight = (\"BA117\", \"London\", 145)\nbooked = int(input(\"Booked: \"))\nseats = flight[2]\nprint(\"Seats left:\", seats - booked)",
     "options": [
@@ -127157,7 +127157,7 @@
     "level": 5,
     "type": "partial-parsons",
     "title": "Bonus points",
-    "description": "int() turns the text typed into a whole number: this is called casting. score is a record of a name and a number of points. Pick the missing line, so the bonus typed is added to the points.",
+    "description": "score is a record of a name and some points, and the bonus typed is cast with int(). Pick the missing line, so the bonus is added to the points.",
     "starter": "score = (\"Kai\", 20)\nbonus = int(input(\"Bonus: \"))\n____\nprint(score[0], score[1])",
     "solution": "score = (\"Kai\", 20)\nbonus = int(input(\"Bonus: \"))\nscore = (score[0], score[1] + bonus)\nprint(score[0], score[1])",
     "options": [
@@ -127261,7 +127261,7 @@
     "level": 6,
     "type": "partial-parsons",
     "title": "Lowest and highest",
-    "description": "int() turns the text typed into a whole number: this is called casting. min_max returns a tuple of the smallest and the largest number. Pick the missing line, so the program prints the range (the largest take away the smallest).",
+    "description": "min_max returns a tuple of the smallest and the largest number typed, each cast with int(). Pick the missing line, so the program prints the largest take away the smallest.",
     "starter": "def min_max(a, b, c):\n    return (min(a, b, c), max(a, b, c))\n\na = int(input(\"A: \"))\nb = int(input(\"B: \"))\nc = int(input(\"C: \"))\n____\nprint(\"Range:\", high - low)",
     "solution": "def min_max(a, b, c):\n    return (min(a, b, c), max(a, b, c))\n\na = int(input(\"A: \"))\nb = int(input(\"B: \"))\nc = int(input(\"C: \"))\nlow, high = min_max(a, b, c)\nprint(\"Range:\", high - low)",
     "options": [
@@ -127587,7 +127587,7 @@
     "level": 7,
     "type": "write",
     "title": "Make a film record",
-    "description": "int() turns the text typed into a whole number: this is called casting. Add one line that makes a record (a tuple) called film from the title and the year typed, in that order. The program then prints it, for example:\nUp 2009",
+    "description": "Make a record of a film.\n1. Add one line that makes a tuple called `film` from the title and the year typed, in that order.\n2. The program casts the year with int(), then prints the film's title and year.\nExample: you type `Up` then `2009`. It prints `Up 2009`.",
     "starter": "title = input(\"Title: \")\nyear = int(input(\"Year: \"))\n# Make a tuple called film holding the title, then the year\n\nprint(film[0], film[1])",
     "solution": "title = input(\"Title: \")\nyear = int(input(\"Year: \"))\nfilm = (title, year)\n\nprint(film[0], film[1])",
     "tests": [
@@ -127922,7 +127922,7 @@
     "level": 8,
     "type": "write",
     "title": "High scores",
-    "description": "int() turns the text typed into a whole number: this is called casting. Store a list of three records (tuples), each a name and a score: (\"Ava\", 72), (\"Ben\", 58) and (\"Cal\", 91). Ask for a score, then print the name of every pupil whose score is at least that, then how many there were, for example:\nAva\nCal\nPupils: 2",
+    "description": "Find the pupils who reached a score.\n1. Store a list of three records, each a name and a score: `(\"Ava\", 72)`, `(\"Ben\", 58)` and `(\"Cal\", 91)`.\n2. Ask for a score and cast it with int().\n3. Print the name of every pupil whose score is at least that.\n4. Then print `Pupils:` and how many there were.\nExample: you type `70`. It prints `Ava` then `Cal` then `Pupils: 2`.",
     "starter": "# Store the list of records, then search it",
     "solution": "results = [(\"Ava\", 72), (\"Ben\", 58), (\"Cal\", 91)]\ntarget = int(input(\"Score: \"))\ncount = 0\nfor name, score in results:\n    if score >= target:\n        print(name)\n        count = count + 1\nprint(\"Pupils:\", count)",
     "tests": [
@@ -128198,7 +128198,7 @@
     "level": 9,
     "type": "write",
     "title": "The dearest item",
-    "description": "int() turns the text typed into a whole number: this is called casting. Ask how many items there are. For each one, ask for its name and its price in pence, and store it in a list as a tuple. Then print the name of the dearest item, and the total price, for example:\nDearest: cake\nTotal: 470",
+    "description": "Find the dearest item.\n1. Ask how many items there are, and cast it with int().\n2. For each one, ask for its name, then its price in pence. Cast the price with int().\n3. Store each item in a list as a tuple.\n4. Print `Dearest:` and the name of the dearest item. If two prices are the same as each other, the first one stays.\n5. Then print `Total:` and the total price.\nExample: you type `3` then `tea` then `120` then `cake` then `250` then `bun` then `100`. It prints `Dearest: cake` then `Total: 470`.",
     "starter": "# Read the items into a list of tuples",
     "solution": "items = []\nn = int(input(\"How many? \"))\nfor k in range(n):\n    name = input(\"Name: \")\n    price = int(input(\"Price: \"))\n    items.append((name, price))\ndearest = items[0]\ntotal = 0\nfor item in items:\n    total = total + item[1]\n    if item[1] > dearest[1]:\n        dearest = item\nprint(\"Dearest:\", dearest[0])\nprint(\"Total:\", total)",
     "tests": [
@@ -128763,7 +128763,7 @@
     "level": 10,
     "type": "write",
     "title": "A price rise",
-    "description": "int() turns the text typed into a whole number: this is called casting. Store a list of three records (tuples) of a product and its price: (\"pen\", 120), (\"pad\", 250) and (\"ink\", 80). Ask for a percentage rise. Tuples can't be changed, so make a new list holding a new tuple for each product with its new price (price + price * rise // 100). Print each new record's product and price, then the total of the new prices, for example:\npen 132\npad 275\nink 88\nTotal: 495",
+    "description": "Raise some prices.\n1. Store a list of three records, each a product and its price: `(\"pen\", 120)`, `(\"pad\", 250)` and `(\"ink\", 80)`.\n2. Ask for a percentage rise and cast it with int().\n3. Tuples can't be changed, so make a new list. It holds a new tuple for each product, with its new price.\n4. The new price is `price + price * rise // 100`.\n5. Print each new record's product and price, then `Total:` and the total of the new prices.\nExample: you type `10`. It prints `pen 132` then `pad 275` then `ink 88` then `Total: 495`.",
     "starter": "# Store the records, then make a new list of new records",
     "solution": "prices = [(\"pen\", 120), (\"pad\", 250), (\"ink\", 80)]\nrise = int(input(\"Rise %: \"))\nnew_prices = []\nfor product, price in prices:\n    new_prices.append((product, price + price * rise // 100))\ntotal = 0\nfor product, price in new_prices:\n    print(product, price)\n    total = total + price\nprint(\"Total:\", total)",
     "tests": [
@@ -129535,7 +129535,7 @@
     "level": 7,
     "type": "write",
     "title": "Unpack a person",
-    "description": "int() turns the text typed into a whole number: this is called casting. Add one line that unpacks the record person into the variables name, age and town, in that order. The program then prints them, for example:\nAva lives in Leeds and is 15",
+    "description": "Unpack a record.\n1. Add one line that unpacks the record `person` into the variables name, age and town, in that order.\n2. The program casts the age with int(). It then prints the name, `lives in`, the town, `and is`, then the age.\nExample: you type `Ava` then `15` then `Leeds`. It prints `Ava lives in Leeds and is 15`.",
     "starter": "person = (input(\"Name: \"), int(input(\"Age: \")), input(\"Town: \"))\n# Unpack person into name, age and town\n\nprint(name, \"lives in\", town, \"and is\", age)",
     "solution": "person = (input(\"Name: \"), int(input(\"Age: \")), input(\"Town: \"))\nname, age, town = person\n\nprint(name, \"lives in\", town, \"and is\", age)",
     "tests": [
@@ -129575,7 +129575,7 @@
     "level": 9,
     "type": "write",
     "title": "Warm cities",
-    "description": "int() turns the text typed into a whole number: this is called casting. Store a list of three records (tuples) of a city and its temperature: (\"Leeds\", 12), (\"Rome\", 24) and (\"Oslo\", 4). Ask for a temperature, then print every city warmer than that, for example:\nRome",
+    "description": "Find the warm cities.\n1. Store a list of three records, each a city and its temperature: `(\"Leeds\", 12)`, `(\"Rome\", 24)` and `(\"Oslo\", 4)`.\n2. Ask for a temperature and cast it with int().\n3. Print every city whose temperature is more than that.\nExample: you type `10`. It prints `Leeds` then `Rome`.",
     "starter": "# Write your program here",
     "solution": "temps = [(\"Leeds\", 12), (\"Rome\", 24), (\"Oslo\", 4)]\nlimit = int(input(\"Temperature: \"))\nfor city, temp in temps:\n    if temp > limit:\n        print(city)",
     "tests": [
@@ -130600,7 +130600,7 @@
     "level": 5,
     "type": "partial-parsons",
     "title": "Items in a bin",
-    "description": "int() turns the text typed into a whole number: this is called casting. stock[warehouse][shelf][bin] is how many items are in each bin. Pick the missing line, so the program prints the number in the bin typed.",
+    "description": "stock[warehouse][shelf][bin] is how many items are in each bin, and the numbers typed are cast with int(). Pick the missing line, so it prints the number in that bin.",
     "starter": "stock = [[[5, 2], [0, 7]], [[3, 3], [8, 1]]]\nw = int(input(\"Warehouse: \"))\ns = int(input(\"Shelf: \"))\nb = int(input(\"Bin: \"))\n____\nprint(\"Items:\", items)",
     "solution": "stock = [[[5, 2], [0, 7]], [[3, 3], [8, 1]]]\nw = int(input(\"Warehouse: \"))\ns = int(input(\"Shelf: \"))\nb = int(input(\"Bin: \"))\nitems = stock[w][s][b]\nprint(\"Items:\", items)",
     "options": [
@@ -130722,7 +130722,7 @@
     "level": 6,
     "type": "parsons",
     "title": "Build a cube",
-    "description": "Arrange the lines: the program builds a cube of 2 layers, 3 rows and 4 columns of zeros, with every row a separate list, then changes one item.\nTwo lines are not needed.",
+    "description": "Arrange the lines to build a cube of 2 layers, 3 rows and 4 columns of zeros. Every row must be a separate list, and then one item changes.\nTwo lines are not needed.",
     "starter": "",
     "solution": "cube = []\nfor i in range(2):\n    layer = []\n    for j in range(3):\n        layer.append([0] * 4)\n    cube.append(layer)\ncube[1][2][3] = 9\nprint(len(cube), len(cube[0]), len(cube[0][0]))\nprint(cube[1][2])",
     "distractors": [
@@ -130761,7 +130761,7 @@
     "level": 6,
     "type": "partial-parsons",
     "title": "Two rows per layer",
-    "description": "int() turns the text typed into a whole number: this is called casting. Each layer has two rows of n zeros. Pick the missing line, so setting one item changes only that one place.",
+    "description": "Each layer has two rows of n zeros, and n is cast with int(). Pick the missing line, so setting one item changes only that one place.",
     "starter": "n = int(input(\"Size: \"))\ncube = []\nfor i in range(n):\n    ____\ncube[0][0][0] = 7\ntotal = 0\nfor layer in cube:\n    for row in layer:\n        total = total + row[0]\nprint(total)",
     "solution": "n = int(input(\"Size: \"))\ncube = []\nfor i in range(n):\n    cube.append([[0] * n, [0] * n])\ncube[0][0][0] = 7\ntotal = 0\nfor layer in cube:\n    for row in layer:\n        total = total + row[0]\nprint(total)",
     "options": [
@@ -131541,7 +131541,7 @@
     "level": 7,
     "type": "write",
     "title": "Read a mark",
-    "description": "int() turns the text typed into a whole number: this is called casting. scores[group][pupil][test] holds test marks. Add one line that sets mark to the mark for the group, pupil and test typed. The program then prints it, for example:\nMark: 7",
+    "description": "Look up a mark.\n1. `scores[group][pupil][test]` holds test marks.\n2. The program reads a group, a pupil and a test, casting each with int().\n3. Add one line that sets `mark` to that mark.\n4. The program then prints `Mark:` and the mark.\nExample: you type `1` then `1` then `2`. It prints `Mark: 7`.",
     "starter": "scores = [[[7, 5, 9], [6, 8, 4]], [[3, 9, 8], [10, 6, 7]]]\ngroup = int(input(\"Group: \"))\npupil = int(input(\"Pupil: \"))\ntest = int(input(\"Test: \"))\n# Set mark to this pupil's mark in this test\n\nprint(\"Mark:\", mark)",
     "solution": "scores = [[[7, 5, 9], [6, 8, 4]], [[3, 9, 8], [10, 6, 7]]]\ngroup = int(input(\"Group: \"))\npupil = int(input(\"Pupil: \"))\ntest = int(input(\"Test: \"))\nmark = scores[group][pupil][test]\n\nprint(\"Mark:\", mark)",
     "tests": [
@@ -131935,7 +131935,7 @@
     "level": 8,
     "type": "write",
     "title": "Build and fill",
-    "description": "int() turns the text typed into a whole number: this is called casting. Make a 3D array called cube with 2 layers, each with 2 rows of 3 zeros, built with loops so every row is a separate list. Ask for a layer, a row, a column and a number, store the number there, then print both layers, for example:\n[[0, 0, 0], [0, 0, 0]]\n[[0, 0, 0], [0, 9, 0]]",
+    "description": "Build a 3D array.\n1. Make a 3D array called `cube` with 2 layers, each with 2 rows of 3 zeros. Build it with loops, so every row is a separate list.\n2. Ask for a layer, a row, a column, then a number. Cast each with int().\n3. Store the number in that place.\n4. Then print each layer on its own line.\nExample: you type `1` then `1` then `1` then `9`. It prints `[[0, 0, 0], [0, 0, 0]]` then `[[0, 0, 0], [0, 9, 0]]`.",
     "starter": "# Build the cube with loops, then store the number",
     "solution": "cube = []\nfor i in range(2):\n    layer = []\n    for j in range(2):\n        layer.append([0] * 3)\n    cube.append(layer)\nl = int(input(\"Layer: \"))\nr = int(input(\"Row: \"))\nc = int(input(\"Column: \"))\ncube[l][r][c] = int(input(\"Number: \"))\nprint(cube[0])\nprint(cube[1])",
     "tests": [
@@ -132385,7 +132385,7 @@
     "level": 9,
     "type": "write",
     "title": "Cinema tickets",
-    "description": "int() turns the text typed into a whole number: this is called casting. tickets[screen][row][block] is how many tickets were sold in each block of seats: tickets = [[[12, 0, 7], [5, 9, 3]], [[8, 8, 2], [0, 6, 11]]]. Ask for a screen and print how many tickets were sold on that screen, then how many in the whole cinema, for example:\nSold: 36\nCinema: 71",
+    "description": "Count cinema tickets.\n1. Store `tickets = [[[12, 0, 7], [5, 9, 3]], [[8, 8, 2], [0, 6, 11]]]`. `tickets[screen][row][block]` is how many tickets were sold in each block.\n2. Ask for a screen and cast it with int().\n3. Print `Sold:` and how many tickets were sold on that screen.\n4. Then print `Cinema:` and how many were sold in the whole cinema.\nExample: you type `0`. It prints `Sold: 36` then `Cinema: 71`.",
     "starter": "# Store tickets, then add up one screen and the whole cinema",
     "solution": "tickets = [[[12, 0, 7], [5, 9, 3]], [[8, 8, 2], [0, 6, 11]]]\ns = int(input(\"Screen: \"))\nsold = 0\nfor row in tickets[s]:\n    for n in row:\n        sold = sold + n\nprint(\"Sold:\", sold)\ntotal = 0\nfor screen in tickets:\n    for row in screen:\n        for n in row:\n            total = total + n\nprint(\"Cinema:\", total)",
     "tests": [
@@ -132910,7 +132910,7 @@
     "level": 10,
     "type": "write",
     "title": "One test's marks",
-    "description": "int() turns the text typed into a whole number: this is called casting. marks[group][pupil][test] holds test marks: marks = [[[6, 8, 5], [9, 7, 4], [3, 9, 6]], [[5, 5, 9], [8, 6, 7], [7, 4, 8]]]. Ask for a test number (0, 1 or 2). Print every pupil's mark in that test, one per line as the group, the pupil and the mark, then the highest mark in that test, for example:\n0 0 8\n0 1 7\n0 2 9\n1 0 5\n1 1 6\n1 2 4\nHighest: 9",
+    "description": "Look at one test.\n1. Store `marks = [[[6, 8, 5], [9, 7, 4], [3, 9, 6]], [[5, 5, 9], [8, 6, 7], [7, 4, 8]]]`. `marks[group][pupil][test]` holds test marks.\n2. Ask for a test number, 0, 1 or 2, and cast it with int().\n3. For every pupil, print the group, the pupil and their mark in that test, on one line.\n4. Then print `Highest:` and the highest mark in that test.\nExample: you type `1`. It prints `0 0 8` then `0 1 7` then `0 2 9` then `1 0 5` then `1 1 6` then `1 2 4` then `Highest: 9`.",
     "starter": "# Store marks, then go through every group and pupil",
     "solution": "marks = [[[6, 8, 5], [9, 7, 4], [3, 9, 6]], [[5, 5, 9], [8, 6, 7], [7, 4, 8]]]\ntest = int(input(\"Test: \"))\nhighest = 0\nfor g in range(len(marks)):\n    for p in range(len(marks[g])):\n        mark = marks[g][p][test]\n        print(g, p, mark)\n        if mark > highest:\n            highest = mark\nprint(\"Highest:\", highest)",
     "tests": [
@@ -134235,7 +134235,7 @@
     "level": 7,
     "type": "write",
     "title": "Print the sizes",
-    "description": "Add one line that prints the number of layers, the number of rows in a layer and the number of items in a row, for example:\n2 3 4",
+    "description": "Find the size of a cube.\n1. `cube` is made for you.\n2. Add one line that prints three numbers: the layers, the rows in a layer, and the items in a row.",
     "starter": "cube = [[[0] * 4, [0] * 4, [0] * 4], [[0] * 4, [0] * 4, [0] * 4]]\n# Print the three lengths: layers, rows, items in a row",
     "solution": "cube = [[[0] * 4, [0] * 4, [0] * 4], [[0] * 4, [0] * 4, [0] * 4]]\nprint(len(cube), len(cube[0]), len(cube[0][0]))",
     "tests": [
@@ -134263,7 +134263,7 @@
     "level": 9,
     "type": "write",
     "title": "The warmest time",
-    "description": "int() turns the text typed into a whole number: this is called casting. temps[city][day][time] holds temperatures: temps = [[[8, 12], [9, 14]], [[15, 21], [16, 22]]]. Ask for a city, then print the highest temperature for that city, for example:\nHighest: 14",
+    "description": "Find a city's highest temperature.\n1. Store `temps = [[[8, 12], [9, 14]], [[15, 21], [16, 22]]]`. `temps[city][day][time]` holds temperatures.\n2. Ask for a city and cast it with int().\n3. Print `Highest:` and the highest temperature for that city.\nExample: you type `0`. It prints `Highest: 14`.",
     "starter": "# Write your program here",
     "solution": "temps = [[[8, 12], [9, 14]], [[15, 21], [16, 22]]]\ncity = int(input(\"City: \"))\nhighest = temps[city][0][0]\nfor day in temps[city]:\n    for t in day:\n        if t > highest:\n            highest = t\nprint(\"Highest:\", highest)",
     "tests": [
