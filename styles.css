@@ -1106,7 +1106,8 @@ td pre { white-space: pre-wrap; margin: .25rem 0; font-size: .85rem; }
 .teacher-section > .group-heading .group-toggle { padding: .4rem 0; }
 
 /* ---------- Exam Mode (exam.html, prompt EM1) ----------
-   Its own look (decision 16): the --exam accent in the header, the tile on the main page and the question paper.
+   Its own look (decision 16): the --exam accent in the header, the pack cards and the question paper. (EM1b removed
+   the tile on the student's main page: the menu item stays.)
    Every colour is a theme token (contrast checked in tests/validate.js). */
 .exam-header { border-bottom: 4px solid var(--exam); }
 .exam-title { display: inline-block; background: var(--exam); color: var(--on-exam); padding: .15rem .6rem; border-radius: 6px; margin-right: .4rem; }
@@ -1129,9 +1130,27 @@ td pre { white-space: pre-wrap; margin: .25rem 0; font-size: .85rem; }
 .em-q { border: 2px solid var(--border); border-radius: 8px; margin: 1rem 0; padding: .5rem 1rem .75rem; }
 .em-q legend { font-weight: 700; padding: 0 .3rem; }
 .em-check { display: block; padding: .3rem 0; }
-.em-tag { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .5rem 1rem; align-items: center; padding: .35rem 0; border-bottom: 1px solid var(--border); }
-.em-tag select { max-width: 100%; }
-@media (max-width: 600px) { .em-tag { grid-template-columns: minmax(0, 1fr); } }
+/* Rung 1 (EM1b): code options, and two answers side by side (one above the other on a phone) */
+.em-code-option { display: flex; gap: .5rem; align-items: baseline; }
+.em-code-option code { min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.em-answers { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .75rem; margin: .5rem 0; }
+.em-answers figure { margin: 0; min-width: 0; }
+.em-answers figcaption { font-weight: 700; }
+.em-answers pre { margin: .25rem 0 0; }
+@media (max-width: 600px) { .em-answers { grid-template-columns: minmax(0, 1fr); } }
+.em-q .em-q { margin: .5rem 0; }
+.em-why { margin: .2rem 0 0 1.5em; }
+.em-part { margin-top: 1.5rem; }
+/* The landing page's pack cards and the tutorial (EM1b) */
+.em-packs { list-style: none; padding: 0; }
+.em-pack-card { border: 2px solid var(--border); border-left: 6px solid var(--exam); border-radius: 10px; padding: .6rem 1rem; margin: .75rem 0; background: var(--card); }
+.em-pack-card h4 { margin: .2rem 0 .3rem; font-size: 1.1rem; }
+.em-pack-card p { margin: .3rem 0; }
+.em-continue { display: inline-block; background: var(--exam); color: var(--on-exam); border: 2px solid var(--exam); border-radius: 8px; padding: .35rem .9rem; font-weight: 700; text-decoration: none; margin-right: .75rem; }
+.em-continue:hover { text-decoration: underline; }
+.em-count { color: var(--muted); margin: 0; }
+.em-example { border-left: 4px solid var(--exam-ink); padding: .3rem .75rem; background: var(--code-bg); border-radius: 0 6px 6px 0; }
+.em-example p { margin: .3rem 0; }
 .em-points { list-style: none; padding: 0; }
 .em-points > li { padding: .4rem 0; border-bottom: 1px solid var(--border); }
 .em-mark { display: inline-block; width: 1.5em; font-weight: 700; }
@@ -1153,7 +1172,3 @@ td pre { white-space: pre-wrap; margin: .25rem 0; font-size: .85rem; }
 .em-step-now { border: 2px solid var(--exam-ink); font-weight: 600; }
 .em-scores { border-collapse: collapse; width: 100%; }
 .em-scores th, .em-scores td { border: 1px solid var(--border); padding: .35rem .6rem; text-align: left; }
-/* The tile on the student's main page (app.html) */
-.exam-tile { border: 2px solid var(--exam-ink); border-left: 8px solid var(--exam); border-radius: 12px; padding: .75rem 1rem; margin: 0 0 1.25rem; background: var(--card); }
-.exam-tile h2 { margin: 0 0 .25rem; font-size: 1.2rem; }
-.exam-tile a { font-weight: 700; color: var(--exam-ink); }

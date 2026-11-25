@@ -1,5 +1,7 @@
 # Exam Mode marker (reference version written while planning prompt EM1; integrated in EM1: _prepare and
 # _runs_with_int_fallback split out of mark_answer unchanged, check_step for rung 4 and run_tests for the gate added).
+# EM1b (decision 21): spare_unused can be judged on structure (follow-through when the loop's stop test is wrong), and a
+# mark point can name mistakes ("misconceptions") that get their own feedback line.
 # Marks a student's Python answer against one question from exam-mode.json, one mark point at a time.
 # Runs in local Python next to harness.py (import harness) and is meant to run in Pyodide too (worker.js loads it
 # after harness.py). It already agrees with all 17 approved test answers in exam-mode.json; prompt EM1 asks
@@ -149,6 +151,81 @@ def _print_after_loop(tree):
     return False
 
 
+def _names_in(node):
+    return {x.id for x in ast.walk(node) if isinstance(x, ast.Name)}
+
+
+def _assigns_from_input(stmt, names):
+    return isinstance(stmt, ast.Assign) and _contains_input(stmt.value) and \
+        any(isinstance(t, ast.Name) and t.id in names for t in stmt.targets)
+
+
+def _has_break(node):
+    return any(isinstance(x, ast.Break) for x in ast.walk(node))
+
+
+def _asks_only_after_check(tree):
+    """Judged on structure (added in EM1b, decision 21): when the loop's stop test is wrong, does the loop still only ask
+    its other inputs (e.g. the score) after the stop value has been checked? The value the loop stops on (e.g. the team
+    name) is read before the loop and again at the end of it, or read and then checked by an if with a break; asking for
+    it and then straight away for the score, unchecked, is the mistake (B2)."""
+    ivars = set(_input_vars(tree))
+    for loop in (n for n in ast.walk(tree) if isinstance(n, ast.While)):
+        stop = _names_in(loop.test) & ivars
+        if not stop:  # while True: the stop value is the one an if ... break tests
+            for s in loop.body:
+                if isinstance(s, ast.If) and _has_break(s):
+                    stop |= _names_in(s.test) & ivars
+        if not stop:
+            continue
+        unchecked, other_inputs, ok = False, 0, True
+        for s in loop.body:
+            if _assigns_from_input(s, stop):
+                unchecked = True
+            elif isinstance(s, ast.If) and _names_in(s.test) & stop:
+                if _has_break(s):
+                    unchecked = False
+                elif _contains_input(s):
+                    other_inputs += 1  # inside an if on the stop value: only asked when it isn't the stop value
+            elif _contains_input(s):
+                other_inputs += 1
+                if unchecked:
+                    ok = False
+        if ok and other_inputs:
+            return True
+    return False
+
+
+def _is_constant(node):
+    """A literal such as "stop", 0 or -1 (-1 is a minus sign applied to 1)."""
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.UAdd)):
+        node = node.operand
+    return isinstance(node, ast.Constant)
+
+
+def _always_true_or(tree):
+    """A loop or if test such as x != "" or x != "stop": always true, since x can't equal both (EM1b, decision 21)."""
+    for n in ast.walk(tree):
+        if not (isinstance(n, (ast.While, ast.If)) and isinstance(n.test, ast.BoolOp) and isinstance(n.test.op, ast.Or)):
+            continue
+        seen = {}
+        for v in n.test.values:
+            if isinstance(v, ast.Compare) and len(v.ops) == 1 and isinstance(v.ops[0], ast.NotEq):
+                a, b = v.left, v.comparators[0]
+                if isinstance(b, ast.Name):
+                    a, b = b, a
+                if isinstance(a, ast.Name) and _is_constant(b):
+                    seen.setdefault(a.id, set()).add(ast.dump(b))
+        if any(len(vals) >= 2 for vals in seen.values()):
+            return True
+    return False
+
+
+# Mistakes the marker can name. A mark point lists the ones it has a feedback line for, in "misconceptions"
+# ({id: feedback}); when that point is missed and the mistake is in the answer, its line replaces the point's feedback.
+_MISCONCEPTIONS = {"always-true-or": _always_true_or}
+
+
 # ---------- Rules ----------
 
 def _numbers(text):
@@ -201,6 +278,8 @@ def _rule(rule, chk, ctx):
                 return False
         return True
     if rule == "spare_unused":
+        if ctx.get("structure_only"):
+            return _asks_only_after_check(tree)
         return all(runs[t][0]["inputsLeft"] == runs[t][1] for t in tests)
     if rule == "prints_number":
         return all(float(chk["value"]) in _numbers(runs[t][0]["output"]) for t in tests)
@@ -300,6 +379,14 @@ def mark_answer(code, question):
                 p["awarded"] = 0
                 p["reason"] = "penalised-once"
                 break
+    # 5. A missed point whose mistake the marker can name gets that mistake's own feedback line (EM1b).
+    for p, m in zip(points, question["markPoints"]):
+        if p["awarded"] == 0 and p["reason"] != "penalised-once":
+            for mid, text in (m.get("misconceptions") or {}).items():
+                if mid in _MISCONCEPTIONS and _MISCONCEPTIONS[mid](tree):
+                    p["feedback"] = text
+                    p["misconception"] = mid
+                    break
     total = sum(p["awarded"] or 0 for p in points)
     return {"points": points, "total": total, "max": question["marks"], "notes": notes}
 

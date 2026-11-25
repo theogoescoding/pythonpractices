@@ -1,5 +1,7 @@
-// Exam Mode (prompt EM1): the student page exam.html. The pure parts (marking the Decode rung, checking gaps, the ERL
-// view of Python code, the scores summary) are a UMD module, ExamMode, tested by tests/exam-mode.js. The browser part
+// Exam Mode (prompts EM1, EM1b): the student page exam.html. The pure parts (marking the Decode rung, checking gaps, the
+// ERL view of Python code, the scores summary, the landing page's pack progress, the tutorial's text) are a UMD module,
+// ExamMode, tested by tests/exam-mode.js. EM1b (decision 21): a landing page with a card per pack, a tutorial on the
+// first visit, rung 1 rebuilt (bullet to code, mark it like an examiner), and each rung set in its own context. The browser part
 // below draws the page. Marking of code (rungs 4 and 5) happens in the Python worker (worker.js loads exam_marker.py
 // after harness.py), never here. Local mode only in EM1: everything is kept in this browser (localStorage), nothing is
 // sent to the server (EM2 adds that).
@@ -27,17 +29,29 @@
     return (String(text || "").match(/-?\d+(?:\.\d+)?/g) || []).map(Number);
   }
 
-  // ---------- Rung 1: Decode ----------
-  // answer = { blocks: [block id, …] (ticked), tags: [chosen tag per bullet], format: chosen format }.
-  // One point for the blocks (exactly the right set), one per bullet, one for the format. Each point keeps the right
-  // answer, shown after submitting.
-  function markDecode(decode, answer) {
+  // ---------- Rung 1: Decode (rebuilt in EM1b, decision 21) ----------
+  // Part 1, bullet to code: for each bullet, the line that earns its mark. choices[i] = the code of the option picked.
+  // One point per bullet; each keeps the right line and, for a wrong pick, why it doesn't earn the mark.
+  const sortedOptions = (item) => item.options.slice().sort((a, b) => (a.code < b.code ? -1 : a.code > b.code ? 1 : 0));
+  function markBullets(decode, choices) {
+    const points = decode.bulletToCode.map((item, i) => {
+      const given = item.options.find((o) => o.code === (choices || [])[i]) || null;
+      return { id: "bullet" + (i + 1), point: item.point, correct: !!(given && given.right), given: given ? given.code : null,
+        why: given && !given.right ? given.why : null, answer: item.options.find((o) => o.right).code };
+    });
+    return { points, total: points.filter((p) => p.correct).length, max: points.length };
+  }
+  // Part 2, mark it like an examiner: for each pair of answers, which one earns the mark point (one point) and why (one
+  // point). picks[i] = { which: "a" | "b", reason: the reason's text }.
+  const sortedReasons = (pair) => pair.reasons.slice().sort((a, b) => (a.text < b.text ? -1 : a.text > b.text ? 1 : 0));
+  function markExaminer(decode, picks) {
     const points = [];
-    const ticked = new Set(answer.blocks || []);
-    const want = decode.blocksQuestion.correct;
-    points.push({ id: "blocks", correct: want.length === ticked.size && want.every((b) => ticked.has(b)), given: [...ticked], answer: want.slice() });
-    decode.bulletTags.forEach((t, i) => points.push({ id: "tag" + (i + 1), bullet: t.bullet, correct: (answer.tags || [])[i] === t.correct, given: (answer.tags || [])[i] || null, answer: t.correct }));
-    points.push({ id: "format", correct: answer.format === decode.formatQuestion.correct, given: answer.format || null, answer: decode.formatQuestion.correct });
+    decode.examiner.forEach((pair, i) => {
+      const pick = (picks || [])[i] || {};
+      const why = pair.reasons.find((r) => r.right).text;
+      points.push({ id: "pair" + (i + 1) + "-which", point: pair.point, correct: pick.which === pair.right, given: pick.which || null, answer: pair.right });
+      points.push({ id: "pair" + (i + 1) + "-why", point: pair.point, correct: pick.reason === why, given: pick.reason || null, answer: why });
+    });
     return { points, total: points.filter((p) => p.correct).length, max: points.length };
   }
 
@@ -150,7 +164,8 @@
 
   // ---------- My exam scores ----------
   // Recorded attempts (the model answer not yet opened) → one row per question and rung: the first attempt's score and
-  // the best. Rung 4 is one record per step check; its score is the steps passed (first: on their first check).
+  // the best. Rung 4 is one record per step check; its score is the steps passed (first: on their first check). Rung 1
+  // is one record per part (step 1 bullet to code, step 2 examiner); its score adds the parts up.
   function scoreSummary(attempts) {
     const groups = new Map();
     for (const a of attempts || []) {
@@ -165,10 +180,10 @@
       if (list.some((a) => a.step != null)) {
         const steps = new Map();
         for (const a of list) {
-          if (!steps.has(a.step)) steps.set(a.step, { first: a.total, best: a.total });
+          if (!steps.has(a.step)) steps.set(a.step, { first: a.total, best: a.total, max: a.max });
           else steps.get(a.step).best = Math.max(steps.get(a.step).best, a.total);
         }
-        const max = list[0].stepsTotal || steps.size;
+        const max = list[0].stepsTotal || [...steps.values()].reduce((s, x) => s + (x.max || 1), 0);
         const sum = (k) => [...steps.values()].reduce((s, x) => s + x[k], 0);
         rows.push({ questionId, rung, attempts: list.length, first: { total: sum("first"), max }, best: { total: sum("best"), max } });
         continue;
@@ -180,10 +195,61 @@
     return rows.sort((a, b) => (a.questionId < b.questionId ? -1 : a.questionId > b.questionId ? 1 : a.rung - b.rung));
   }
 
-  const STORAGE_PREFIX = "pyPractice.exam.v1."; // + student id → { attempts, help, pasteFlags, modelSeen }
+  const STORAGE_PREFIX = "pyPractice.exam.v1."; // + student id → { attempts, help, pasteFlags, modelSeen, tutorialSeen }
   const RUNG_NAMES = { 1: "Decode", 2: "Skeleton", 3: "Fill the gaps", 4: "One bullet at a time", 5: "Full question" };
+  const RUNG_KEYS = ["decode", "skeleton", "fill", "steps"]; // rungs 1-4; each has its own question (pack.rungQuestions)
 
-  return { RULES, NOTE_TEXT, numbersIn, markDecode, gapRight, checkGaps, fillCode, runPasses, toErl, toErlLine, splitArgs, scoreSummary, STORAGE_PREFIX, RUNG_NAMES };
+  // ---------- The landing page: one card per pack (EM1b, decision 21) ----------
+  // Rung reached = the highest rung tried on the rung's own question (rung 5: any full question). First attempt and
+  // best = the full questions tried, added up. next = where Continue goes: the first rung not tried yet, then the first
+  // full question not tried yet, then the pack page.
+  const fullQuestionsOf = (pack) => { const rq = new Set(Object.values(pack.rungQuestions || {})); return pack.questions.filter((q) => !rq.has(q.id)); };
+  function packProgress(pack, attempts) {
+    const rec = (attempts || []).filter((a) => a.recorded !== false);
+    const full = fullQuestionsOf(pack);
+    const tried = (rung) => (rung === 5 ? full.some((q) => rec.some((a) => a.rung === 5 && a.questionId === q.id))
+      : rec.some((a) => a.rung === rung && a.questionId === pack.rungQuestions[RUNG_KEYS[rung - 1]]));
+    let reached = 0;
+    for (let r = 1; r <= 5; r++) if (tried(r)) reached = r;
+    const rows = scoreSummary(rec).filter((r) => r.rung === 5 && full.some((q) => q.id === r.questionId));
+    const add = (k) => rows.reduce((s, r) => ({ total: s.total + r[k].total, max: s.max + r[k].max }), { total: 0, max: 0 });
+    let next = "#pack/" + pack.id;
+    const firstRung = [1, 2, 3, 4].find((r) => !tried(r));
+    const firstQ = full.find((q) => !rec.some((a) => a.rung === 5 && a.questionId === q.id));
+    if (firstRung) next = "#pack/" + pack.id + "/" + RUNG_KEYS[firstRung - 1];
+    else if (firstQ) next = "#q/" + firstQ.id;
+    return { reached, started: rec.some((a) => pack.questions.some((q) => q.id === a.questionId)), fullTried: rows.length, fullCount: full.length,
+      first: rows.length ? add("first") : null, best: rows.length ? add("best") : null, next };
+  }
+
+  // ---------- The tutorial, shown on the first visit (EM1b, decision 21): blocks, bullets → mark points, riders ----------
+  const TUTORIAL = [
+    { id: "blocks", title: "Exam questions are built from blocks",
+      html: "<p>The programming questions in Paper 2 are built from a small set of <strong>blocks</strong>: take an input and store it, a loop, an if, a running total, an output, and a few more.</p>" +
+        "<p>Each block has <strong>cue phrases</strong>: the words in the question that tell you which block you need. For example:</p>" +
+        "<ul><li>\"repeats until 0 is entered\" means a loop that stops on 0: <code>while minutes != 0:</code></li>" +
+        "<li>\"adds the minutes to a running total\" means <code>total = total + minutes</code></li></ul>" +
+        "<p>The Blocks page, in the menu above, lists all 17 blocks with their cue phrases.</p>" },
+    { id: "marks", title: "Each bullet earns marks",
+      html: "<p>The bullets in a question become the <strong>mark points</strong> in the mark scheme. The examiner gives each mark point they can see in your answer, even if other parts of it are wrong.</p>" +
+        "<div class=\"em-example\"><p><strong>Bullet:</strong> adds the minutes to a running total</p><p><strong>Mark point:</strong> Adds the minutes to the total (<code>total = total + minutes</code>)</p></div>" +
+        "<p>So answer every bullet. A program that only does some of them still earns those marks.</p>" },
+    { id: "riders", title: "Read the lines around the bullets",
+      html: "<p>The lines before and after the bullets (the <strong>riders</strong>) tell you how you may answer.</p>" +
+        "<ul><li><strong>\"Write an algorithm\"</strong>: code, pseudocode or a flowchart all get marks.</li>" +
+        "<li><strong>\"You must use either: OCR Exam Reference Language, or a high-level programming language that you have studied.\"</strong>: code only. Pseudocode in English or a flowchart gets no marks.</li></ul>" +
+        "<p>Questions are shown in OCR Exam Reference Language (ERL), as in the exam. In Exam Mode you always answer in Python.</p>" },
+    { id: "rungs", title: "How a pack works",
+      html: "<p>Each pack practises one combination of blocks in five rungs. Each rung is set somewhere different, so you can't copy from the rung before.</p>" +
+        "<ol><li><strong>Decode</strong>: pick the line of code each bullet needs, then mark two answers like an examiner.</li>" +
+        "<li><strong>Skeleton</strong>: put the lines of an answer in order.</li><li><strong>Fill the gaps</strong>: complete a program.</li>" +
+        "<li><strong>One bullet at a time</strong>: build an answer step by step. You can run your code.</li>" +
+        "<li><strong>Full questions</strong>: exam-style, marked point by point. No Run button.</li></ol>" +
+        "<p>\"Say it simply\" (rungs 1 to 3) gives the question in plain English. Each use is recorded. After a full question you can retry, see the model answer (after that, your tries aren't recorded) or move on.</p>" },
+  ];
+
+  return { RULES, NOTE_TEXT, numbersIn, sortedOptions, markBullets, sortedReasons, markExaminer, gapRight, checkGaps, fillCode, runPasses, toErl, toErlLine, splitArgs,
+    scoreSummary, packProgress, fullQuestionsOf, TUTORIAL, STORAGE_PREFIX, RUNG_NAMES, RUNG_KEYS };
 });
 
 // ===================== Browser page (exam.html only) =====================
@@ -202,7 +268,7 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
 
   // ---------- Saved in this browser (store.js patterns: readJson/writeJson already catch storage errors) ----------
   const KEY = X.STORAGE_PREFIX + student.id;
-  const saved = Object.assign({ attempts: [], help: [], pasteFlags: [], modelSeen: {} }, Store.readJson(KEY) || {});
+  const saved = Object.assign({ attempts: [], help: [], pasteFlags: [], modelSeen: {}, tutorialSeen: false }, Store.readJson(KEY) || {});
   const persist = () => { try { Store.writeJson(KEY, saved); } catch (e) { /* storage full or blocked: carry on */ } };
   const newId = () => "x-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
   function record(entry) {
@@ -390,14 +456,16 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
   // ---------- Views ----------
   let data = null, pack = null;
   const questionById = (id) => pack.questions.find((q) => q.id === id);
-  const fullQuestions = () => pack.questions.filter((q) => q.id !== pack.rungQuestion);
+  const rungQuestion = (key) => questionById(pack.rungQuestions[key]); // each rung has its own context (decision 21)
+  const fullQuestions = () => X.fullQuestionsOf(pack);
   let viewStarted = Date.now();
 
   function setView(html, title) {
     app.innerHTML = html;
     document.title = (title ? title + " – " : "") + "Exam Mode – Pythons and Ladders";
-    // The navigation shows where the student is: Blocks, My exam scores, or the pack (its rungs and full questions).
-    const section = /^#blocks/.test(location.hash) ? "blocks" : /^#scores/.test(location.hash) ? "scores" : "pack";
+    // The navigation shows where the student is: Blocks, My exam scores, or Packs (the landing page, a pack's rungs and
+    // its full questions). The tutorial is none of them.
+    const section = /^#blocks/.test(location.hash) ? "blocks" : /^#scores/.test(location.hash) ? "scores" : /^#tutorial/.test(location.hash) ? "" : "pack";
     document.querySelectorAll(".exam-nav a").forEach((a) => {
       if (a.dataset.section === section) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
     });
@@ -409,14 +477,51 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
     helpUsed = false;
     pasteFlagged = false;
     showPython = false; // each page starts in ERL, as the exam does
-    const h = location.hash || "#pack/C1";
+    const h = location.hash || "#home";
     let m;
-    if (h === "#blocks") showBlocks();
+    if (h === "#tutorial" || (h === "#home" && !saved.tutorialSeen)) showTutorial(0); // first visit: the tutorial first
+    else if (h === "#blocks") showBlocks();
     else if (h === "#scores") showScores();
     else if ((m = /^#pack\/([\w-]+)\/(decode|skeleton|fill|steps)$/.exec(h))) ({ decode: showDecode, skeleton: showSkeleton, fill: showFill, steps: showSteps })[m[2]]();
     else if ((m = /^#q\/([\w-]+)$/.exec(h)) && questionById(m[1])) showQuestion(questionById(m[1]));
-    else showPack();
+    else if (/^#pack\//.test(h)) showPack();
+    else showHome();
     focusHeading();
+  }
+
+  // The tutorial (decision 21): four short screens. Finishing or skipping it is remembered, and the landing page has a
+  // link to see it again.
+  function showTutorial(i) {
+    const t = X.TUTORIAL[i];
+    const last = i === X.TUTORIAL.length - 1;
+    setView('<p class="small em-count">Step ' + (i + 1) + " of " + X.TUTORIAL.length + '</p><h2>' + esc(t.title) + "</h2>" + '<div class="em-tutorial">' + t.html + "</div>" +
+      '<p class="em-after"><button type="button" class="secondary" id="tut-back"' + (i === 0 ? " disabled" : "") + '>Back</button> ' +
+      '<button type="button" class="primary" id="tut-next">' + (last ? "Start Exam Mode" : "Next") + "</button> " +
+      (last ? "" : '<button type="button" class="secondary" id="tut-skip">Skip</button>') + "</p>", "How Exam Mode works");
+    const done = () => {
+      saved.tutorialSeen = true;
+      persist();
+      if (location.hash === "#home") route(); else location.hash = "#home";
+    };
+    $("tut-back").addEventListener("click", () => { showTutorial(i - 1); focusHeading(); });
+    $("tut-next").addEventListener("click", () => { if (last) done(); else { showTutorial(i + 1); focusHeading(); } });
+    if ($("tut-skip")) $("tut-skip").addEventListener("click", done);
+  }
+
+  // The landing page (decision 21, mirroring the main site): one card per pack, with the rung reached, the first-attempt
+  // and best score on its full questions, and Continue.
+  function showHome() {
+    setView('<h2>Exam Mode</h2><p>Practise OCR J277 Paper 2 programming questions, marked point by point like the real exam.</p>' +
+      '<p class="small"><a href="#tutorial">How Exam Mode works</a></p>' +
+      '<h3 id="packs-h">Packs</h3><ul class="em-packs" aria-labelledby="packs-h">' + data.packs.map((p) => {
+        const g = X.packProgress(p, saved.attempts);
+        const score = (s) => s.total + "/" + s.max;
+        return '<li class="em-pack-card"><h4>Pack ' + esc(p.id) + ": " + esc(p.title) + "</h4>" +
+          '<p class="small">Blocks: ' + p.blocks.map((b) => esc(blockById[b].name)).join(", ") + ".</p>" +
+          "<p>" + (g.reached ? "Rung reached: " + g.reached + " of 5 (" + esc(X.RUNG_NAMES[g.reached]) + ")" : "Not started yet") + "</p>" +
+          "<p>" + (g.first ? "Full questions: first attempt " + score(g.first) + ", best " + score(g.best) + " (" + g.fullTried + " of " + g.fullCount + " tried)" : "Full questions: not tried yet") + "</p>" +
+          '<p class="em-pack-actions"><a class="em-continue" href="' + esc(g.next) + '">' + (g.started ? "Continue" : "Start") + '</a> <a href="#pack/' + esc(p.id) + '">All rungs</a></p></li>';
+      }).join("") + "</ul>", "");
   }
 
   // Blocks: the 17, in teaching order, with the cue phrase and the name. Only pack C1 has content in EM1.
@@ -430,12 +535,11 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
       }).join("") + "</ol>", "Blocks");
   }
 
-  // Pack C1: the five rungs.
+  // A pack: the five rungs, each set in its own context (decision 21).
   function showPack() {
     const best = (qid, rung) => { const r = X.scoreSummary(saved.attempts).find((x) => x.questionId === qid && x.rung === rung); return r ? r.best.total + "/" + r.best.max : "not tried"; };
-    const q0 = questionById(pack.rungQuestion);
     const rungs = [
-      ["decode", 1, "Decode", "Which blocks does the question need, what does each bullet need, and how can you answer?"],
+      ["decode", 1, "Decode", "Pick the line of code each bullet needs, then mark two answers like an examiner."],
       ["skeleton", 2, "Skeleton", "Put the lines of the answer in order."],
       ["fill", 3, "Fill the gaps", "Complete the program."],
       ["steps", 4, "One bullet at a time", "Build the answer one step at a time. You can run your code."],
@@ -443,55 +547,103 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
     setView("<h2>Pack " + esc(pack.id) + ": " + esc(pack.title) + "</h2>" +
       '<p class="small">Blocks: ' + pack.blocks.map((b) => esc(blockById[b].name)).join(", ") + ".</p>" +
       '<ol class="em-rungs">' +
-      rungs.map(([k, n, name, what]) => '<li><a href="#pack/' + esc(pack.id) + "/" + k + '"><strong>Rung ' + n + ": " + name + "</strong></a> – " + esc(q0.title) + ". " + what +
-        ' <span class="small">Best: ' + best(q0.id, n) + "</span></li>").join("") +
+      rungs.map(([k, n, name, what]) => { const q = rungQuestion(k); return '<li><a href="#pack/' + esc(pack.id) + "/" + k + '"><strong>Rung ' + n + ": " + name + "</strong></a> – " + esc(q.title) + ". " + what +
+        ' <span class="small">Best: ' + best(q.id, n) + "</span></li>"; }).join("") +
       "<li><strong>Rung 5: Full questions</strong> – exam-style, marked point by point. No Run button.<ul>" +
       fullQuestions().map((q) => '<li><a href="#q/' + esc(q.id) + '">' + esc(q.title) + "</a> [" + q.marks + '] <span class="small">Best: ' + best(q.id, 5) + "</span></li>").join("") +
       "</ul></li></ol>", "Pack " + pack.id);
   }
 
-  // Rung 1: Decode.
+  // Rung 1: Decode (rebuilt in EM1b, decision 21). Part 1, bullet to code: for each bullet, pick the line that earns its
+  // mark (the wrong lines are real mistakes from the examiners' reports and mark schemes); the block is named after
+  // answering. Part 2, mark it like an examiner: two short answers side by side; pick the one that earns the mark point,
+  // and why. The answers are the rung question's own test answers, so the marker's gate checks them too. Each part is
+  // one record (step 1 and step 2), so My exam scores adds them up.
+  let decodeState = null;
   function showDecode() {
-    const q = questionById(pack.rungQuestion);
+    const q = rungQuestion("decode");
     const d = pack.rungs.decode;
-    const blocks = data.teachingOrder.filter((id) => d.blocksQuestion.correct.includes(id) || d.blocksQuestion.distractors.includes(id));
-    const opts = (t) => [t.correct, ...t.wrong].sort();
-    setView("<h2>Rung 1: Decode – " + esc(q.title) + "</h2>" + paperHtml(q, true) + sayItSimplyHtml(q) +
-      '<form id="decode-form" novalidate>' +
-      '<fieldset class="em-q"><legend>' + esc(d.blocksQuestion.prompt) + "</legend>" +
-      blocks.map((id) => '<label class="em-check"><input type="checkbox" name="block" value="' + esc(id) + '"> <strong>"' + esc(blockById[id].cue) + '"</strong> ' + esc(blockById[id].name) + "</label>").join("") + "</fieldset>" +
-      '<fieldset class="em-q"><legend>What does each bullet need?</legend>' +
-      d.bulletTags.map((t, i) => '<label class="em-tag" for="tag' + i + '"><span>' + esc(t.bullet) + '</span><select id="tag' + i + '"><option value="">Choose…</option>' +
-        opts(t).map((o) => "<option>" + esc(o) + "</option>").join("") + "</select></label>").join("") + "</fieldset>" +
-      '<fieldset class="em-q"><legend>' + esc(d.formatQuestion.prompt) + "</legend>" +
-      [d.formatQuestion.correct, ...d.formatQuestion.wrong].sort().map((o) => '<label class="em-check"><input type="radio" name="format" value="' + esc(o) + '"> ' + esc(o) + "</label>").join("") + "</fieldset>" +
-      '<p><button type="submit" class="primary">Submit</button></p></form><div id="em-result" aria-live="polite"></div>', "Decode");
-    wireSayItSimply(q, 1);
-    $("decode-form").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const answer = {
-        blocks: [...document.querySelectorAll('input[name="block"]:checked')].map((x) => x.value),
-        tags: d.bulletTags.map((_, i) => $("tag" + i).value || null),
-        format: (document.querySelector('input[name="format"]:checked') || {}).value || null,
-      };
-      const r = X.markDecode(d, answer);
-      record({ questionId: q.id, rung: 1, total: r.total, max: r.max, points: r.points.map((p) => ({ id: p.id, awarded: p.correct ? 1 : 0, how: "auto" })),
-        help: helpUsed, notes: [], pasteFlag: false, seconds: Math.round((Date.now() - viewStarted) / 1000) });
-      const name = (id) => '"' + blockById[id].cue + '" (' + blockById[id].name + ")";
-      $("em-result").innerHTML = '<h3>Your mark: ' + r.total + "/" + r.max + "</h3><ul class=\"em-points\">" + r.points.map((p) => {
-        const what = p.id === "blocks" ? "Blocks needed" : p.id === "format" ? "Answer format" : "“" + p.bullet + "”";
-        const right = p.id === "blocks" ? p.answer.map(name).join(", ") : p.answer;
-        return "<li>" + markIcon(p.correct) + '<span class="visually-hidden">' + markWord(p.correct) + ": </span><strong>" + esc(what) + "</strong>" + (p.correct ? "" : ': the answer is <span class="em-right">' + esc(right) + "</span>") + "</li>";
-      }).join("") + '</ul><p><button type="button" class="secondary" id="again">Try again</button> <a href="#pack/' + esc(pack.id) + '/skeleton">Next: Skeleton →</a></p>';
-      $("again").addEventListener("click", () => route());
-      $("em-result").querySelector("h3").focus();
-    });
+    const answerCode = (id) => q.testAnswers.find((a) => a.id === id).code.trim();
+    const pointOf = (id) => q.markPoints.find((m) => m.id === id);
+    const blockName = (pointId) => { const b = blockById[pointOf(pointId).block]; return b.name + ' ("' + b.cue + '")'; };
+    const up = (w) => String(w).toUpperCase();
+    if (!decodeState || decodeState.q !== q.id) decodeState = { q: q.id, choices: [], part1: null, part2Open: false, picks: d.examiner.map(() => ({})), part2: null };
+    const s = decodeState;
+    const seconds = () => Math.round((Date.now() - viewStarted) / 1000);
+    const codeHtml = (c) => "<code>" + highlight(viewLine(c)) + "</code>";
+
+    const part1Result = () => {
+      const r = s.part1;
+      return '<h3 tabindex="-1" id="p1-h">Part 1: ' + r.total + "/" + r.max + '</h3><ul class="em-points">' + r.points.map((p, i) => "<li>" + markIcon(p.correct) +
+        '<span class="visually-hidden">' + markWord(p.correct) + ": </span><strong>Bullet " + (i + 1) + "</strong>" + (p.correct ? ": " + codeHtml(p.answer) : "") +
+        ' <span class="small">Block: ' + esc(blockName(p.point)) + "</span>" +
+        (p.correct ? "" : '<p class="em-why">' + codeHtml(p.given) + ": " + esc(p.why) + "</p><p class=\"em-why\">The line that earns the mark: " + codeHtml(p.answer) + "</p>") + "</li>").join("") + "</ul>" +
+        '<p><button type="button" class="secondary" id="again1">Try part 1 again</button>' + (s.part2Open ? "" : ' <button type="button" class="primary" id="open2">Next: mark it like an examiner</button>') + "</p>";
+    };
+    const part2Result = () => {
+      const r = s.part2;
+      return '<h3 tabindex="-1" id="p2-h">Part 2: ' + r.total + "/" + r.max + '</h3><ul class="em-points">' + d.examiner.map((pair, i) => {
+        const w = r.points[2 * i], y = r.points[2 * i + 1];
+        return "<li><strong>" + esc(pointOf(pair.point).text) + '</strong> <span class="small">Block: ' + esc(blockName(pair.point)) + "</span>" +
+          '<p class="em-why">' + markIcon(w.correct) + '<span class="visually-hidden">' + markWord(w.correct) + ": </span>" + (w.correct ? "Answer " + up(w.answer) + " earns it." : "Answer " + up(w.answer) + " earns it, not answer " + up(w.given) + ".") + "</p>" +
+          '<p class="em-why">' + markIcon(y.correct) + '<span class="visually-hidden">' + markWord(y.correct) + ": </span>" + (y.correct ? "" : "The reason: ") + esc(y.answer) + "</p></li>";
+      }).join("") + '</ul><p><button type="button" class="secondary" id="again2">Try part 2 again</button> <a href="#pack/' + esc(pack.id) + '/skeleton">Next: Skeleton →</a></p>';
+    };
+
+    const draw = () => {
+      const part1 = '<form id="bullets-form" class="em-part" novalidate><h3>Part 1: Bullet to code</h3><p class="small">For each bullet, pick the line of code that earns its mark.</p>' +
+        d.bulletToCode.map((item, i) => '<fieldset class="em-q"><legend>Bullet ' + (i + 1) + ": " + esc(q.bullets[i]) + "</legend>" +
+          X.sortedOptions(item).map((o) => '<label class="em-check em-code-option"><input type="radio" name="b' + i + '" value="' + esc(o.code) + '"' +
+            (s.choices[i] === o.code ? " checked" : "") + (s.part1 ? " disabled" : "") + "> " + codeHtml(o.code) + "</label>").join("") + "</fieldset>").join("") +
+        (s.part1 ? "" : '<p><button type="submit" class="primary">Check part 1</button></p>') + "</form>" +
+        '<div id="part1-result" aria-live="polite">' + (s.part1 ? part1Result() : "") + "</div>";
+      const part2 = !s.part2Open ? "" : '<form id="examiner-form" class="em-part" novalidate><h3 id="p2-title" tabindex="-1">Part 2: Mark it like an examiner</h3>' +
+        '<p class="small">Two students answered the question. For each mark point, pick the answer that earns it, and why.</p>' +
+        d.examiner.map((pair, i) => '<fieldset class="em-q"><legend>Mark point: ' + esc(pointOf(pair.point).text) + "</legend>" +
+          '<div class="em-answers">' + ["a", "b"].map((w) => '<figure><figcaption>Answer ' + up(w) + '</figcaption><pre class="code">' + highlight(viewCode(answerCode(pair[w]))) + "</pre></figure>").join("") + "</div>" +
+          '<fieldset class="em-q"><legend>Which answer earns this mark?</legend>' + ["a", "b"].map((w) => '<label class="em-check"><input type="radio" name="w' + i + '" value="' + w + '"' +
+            (s.picks[i].which === w ? " checked" : "") + (s.part2 ? " disabled" : "") + "> Answer " + up(w) + "</label>").join("") + "</fieldset>" +
+          '<fieldset class="em-q"><legend>Why?</legend>' + X.sortedReasons(pair).map((r) => '<label class="em-check"><input type="radio" name="r' + i + '" value="' + esc(r.text) + '"' +
+            (s.picks[i].reason === r.text ? " checked" : "") + (s.part2 ? " disabled" : "") + "> " + esc(r.text) + "</label>").join("") + "</fieldset></fieldset>").join("") +
+        (s.part2 ? "" : '<p><button type="submit" class="primary">Check part 2</button></p>') + "</form>" +
+        '<div id="part2-result" aria-live="polite">' + (s.part2 ? part2Result() : "") + "</div>";
+      setView("<h2>Rung 1: Decode – " + esc(q.title) + "</h2>" + paperHtml(q) + sayItSimplyHtml(q) + langToggleHtml() + part1 + part2, "Decode");
+      wireSayItSimply(q, 1);
+      wireLangToggle(draw);
+      // Choices are kept as they are made, so "Show in Python" doesn't lose them.
+      app.querySelectorAll('#bullets-form input[type="radio"]').forEach((el) => el.addEventListener("change", () => { s.choices[+el.name.slice(1)] = el.value; }));
+      app.querySelectorAll('#examiner-form input[type="radio"]').forEach((el) => el.addEventListener("change", () => {
+        s.picks[+el.name.slice(1)][el.name[0] === "w" ? "which" : "reason"] = el.value;
+      }));
+      $("bullets-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (d.bulletToCode.some((_, i) => !s.choices[i])) { $("part1-result").innerHTML = '<p class="problem" role="alert">Pick a line for every bullet first.</p>'; return; }
+        s.part1 = X.markBullets(d, s.choices);
+        record({ questionId: q.id, rung: 1, step: 1, total: s.part1.total, max: s.part1.max, points: s.part1.points.map((p) => ({ id: p.id, awarded: p.correct ? 1 : 0, how: "auto" })),
+          help: helpUsed, notes: [], pasteFlag: false, seconds: seconds() });
+        draw();
+        $("p1-h").focus();
+      });
+      if ($("again1")) $("again1").addEventListener("click", () => { s.part1 = null; s.choices = []; draw(); const first = app.querySelector('#bullets-form input'); if (first) first.focus(); });
+      if ($("open2")) $("open2").addEventListener("click", () => { s.part2Open = true; draw(); $("p2-title").focus(); });
+      if ($("examiner-form")) $("examiner-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (s.picks.some((p) => !p.which || !p.reason)) { $("part2-result").innerHTML = '<p class="problem" role="alert">Pick an answer and a reason for every mark point first.</p>'; return; }
+        s.part2 = X.markExaminer(d, s.picks);
+        record({ questionId: q.id, rung: 1, step: 2, total: s.part2.total, max: s.part2.max, points: s.part2.points.map((p) => ({ id: p.id, awarded: p.correct ? 1 : 0, how: "auto" })),
+          help: helpUsed, notes: [], pasteFlag: false, seconds: seconds() });
+        draw();
+        $("p2-h").focus();
+      });
+      if ($("again2")) $("again2").addEventListener("click", () => { s.part2 = null; s.picks = d.examiner.map(() => ({})); draw(); $("p2-title").focus(); });
+    };
+    draw();
   }
 
   // Rung 2: Skeleton (Parsons, the practice page's behaviour: click or Enter moves a line, ◀ ▶ indent, ▲ ▼ move, ✕ removes).
   let parsons = null;
   function showSkeleton() {
-    const q = questionById(pack.rungQuestion);
+    const q = rungQuestion("skeleton");
     const sk = pack.rungs.skeleton;
     if (!parsons || parsons.q !== q.id) {
       const items = sk.lines.map((l, i) => ({ id: "s" + i, text: l.trim() })).concat(sk.distractors.map((d, i) => ({ id: "d" + i, text: d.line.trim() })));
@@ -598,7 +750,7 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
   // Rung 3: Fill the gaps. Each gap is checked (accept / acceptPattern), then the completed program runs on t1 and t2.
   let fillAnswers = null;
   function showFill() {
-    const q = questionById(pack.rungQuestion);
+    const q = rungQuestion("fill");
     const f = pack.rungs.fill;
     if (!fillAnswers || fillAnswers.q !== q.id) fillAnswers = { q: q.id, a: f.gaps.map(() => "") };
     const draw = () => {
@@ -645,7 +797,7 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
   let stepsCode = "";
   let stepDone = {};
   function showSteps() {
-    const q = questionById(pack.rungQuestion);
+    const q = rungQuestion("steps");
     const steps = pack.rungs.steps.steps;
     const current = () => steps.find((s) => !stepDone[s.n]) || null;
     setView("<h2>Rung 4: One bullet at a time – " + esc(q.title) + "</h2>" + paperHtml(q) +
@@ -710,7 +862,7 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
     if (r.error) { res.innerHTML = '<p class="problem" role="alert">The marker couldn\'t be loaded, so your answer can\'t be marked. Reload the page and try again.</p>'; return; }
     if (r.timeout) r = { points: q.markPoints.map((m) => ({ id: m.id, awarded: null, status: "unsure", reason: "timeout", feedback: m.feedback })), total: 0, max: q.marks, notes: ["timeout"] };
     const practice = !!saved.modelSeen[q.id];
-    const points = r.points.map((p) => ({ id: p.id, awarded: p.awarded, how: p.status === "unsure" ? "unsure" : "auto" }));
+    const points = r.points.map((p) => Object.assign({ id: p.id, awarded: p.awarded, how: p.status === "unsure" ? "unsure" : "auto" }, p.misconception ? { misconception: p.misconception } : {}));
     const rec = practice ? null : record({ questionId: q.id, rung: 5, total: r.total, autoTotal: r.total, max: r.max, points, help: false, notes: r.notes, pasteFlag: pasteFlagged,
       seconds: Math.round((Date.now() - viewStarted) / 1000) });
     showMarks(q, r, rec);
@@ -726,7 +878,8 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
           const m = byId[p.id];
           const ok = p.awarded === 1 ? true : p.awarded === 0 ? false : null;
           let html = "<li>" + markIcon(ok) + '<span class="visually-hidden">' + markWord(ok) + ": </span><strong>" + esc(m.text) + "</strong>" + (p.self ? ' <span class="small">(you checked this yourself)</span>' : "");
-          if (ok === false) html += '<p class="em-feedback">' + esc(m.feedback) + "</p>";
+          // The marker's feedback line: the mark point's own, or the one for a mistake it named (decision 21).
+          if (ok === false) html += '<p class="em-feedback">' + esc(p.feedback || m.feedback) + "</p>";
           if (ok === null) html += '<div class="em-self"><p>Check this one yourself. In the model answer:</p><pre class="code">' + highlight(q.modelPython.trim()) + "</pre>" +
             '<p><strong>Does your answer do this?</strong> ' + esc(m.text) + '</p><p><button type="button" class="secondary" data-self="1" data-id="' + esc(p.id) + '">Yes</button> ' +
             '<button type="button" class="secondary" data-self="0" data-id="' + esc(p.id) + '">No</button></p></div>';
