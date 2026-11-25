@@ -1615,6 +1615,25 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     renderShowHow();
     renderButtons();
     if (c.finished) renderFinishedMessage();
+    markScrollers(card);
+  }
+
+  // A code box whose lines are wider than it scrolls inside itself (styles.css). Make each one that does scroll
+  // reachable with Tab, so it can be scrolled with the arrow keys; a box that fits gets no extra tab stop (prompt 36).
+  function markScrollers(root) {
+    if (!root || !root.querySelectorAll) return;
+    root.querySelectorAll("pre").forEach((p) => {
+      if (p.querySelector("input, select, textarea, button")) return; // a fill-in program already has its own stops
+      if (p.scrollWidth > p.clientWidth + 1) p.setAttribute("tabindex", "0");
+      else p.removeAttribute("tabindex");
+    });
+  }
+  if (typeof window !== "undefined" && window.addEventListener) {
+    let scrollerTimer = null;
+    window.addEventListener("resize", () => {
+      clearTimeout(scrollerTimer);
+      scrollerTimer = setTimeout(() => markScrollers(document.getElementById("task")), 150);
+    });
   }
 
   function renderButtons() {

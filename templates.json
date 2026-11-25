@@ -69127,7 +69127,7 @@
     "values": {
       "shown": "pylist(lst)"
     },
-    "description": "Write a program from scratch that stores nums = {{shown}}. Ask for a number, and use a linear search to count how many times it appears. Print, for example:\nCount: 2\nor Not found if it isn't in nums.",
+    "description": "Write a program from scratch that counts a number in a list.\n1. Store `nums = {{shown}}`.\n2. Ask for a number. Cast it to an integer.\n3. Use a linear search to count how many times it appears.\n4. If it appears, print `Count:` and then the count.\n5. Otherwise, print `Not found`.\nExample: you type `[[in:0:0]]`. It prints `[[out:0:0]]`.",
     "solution": "nums = {{shown}}\ntarget = int(input(\"Number: \"))\ncount = 0\nfor n in nums:\n    if n == target:\n        count = count + 1\nif count == 0:\n    print(\"Not found\")\nelse:\n    print(\"Count:\", count)",
     "testParams": {
       "k": {
@@ -69237,7 +69237,7 @@
     "values": {
       "shown": "pylist(lst)"
     },
-    "description": "Write a program from scratch that stores codes = {{shown}}. Ask for a number, then use a while loop to search codes, stopping at the first match. Print, for example:\nIndex 1\nor Not found if it isn't there.",
+    "description": "Write a program from scratch that finds the first match in a list.\n1. Store `codes = {{shown}}`.\n2. Ask for a number. Cast it to an integer.\n3. Use a while loop to search `codes`, stopping at the first match.\n4. If it is there, print `Index` and then its index.\n5. Otherwise, print `Not found`.\nExample: you type `[[in:0:0]]`. It prints `[[out:0:0]]`.",
     "solution": "codes = {{shown}}\ntarget = int(input(\"Number: \"))\ni = 0\nfound = False\nwhile i < len(codes) and not found:\n    if codes[i] == target:\n        found = True\n    else:\n        i = i + 1\nif found:\n    print(\"Index\", i)\nelse:\n    print(\"Not found\")",
     "testParams": {
       "k": {
@@ -69337,7 +69337,7 @@
     "values": {
       "shown": "'[' + lst.map((s) => '\"' + s + '\"').join(', ') + ']'"
     },
-    "description": "Write a program from scratch that stores names = {{shown}}. Write a function find(items, target) that returns the index of target, or -1. Ask for a name and print, for example:\n{{lst[2]}} is at index 2\nor, for a name that isn't there:\nZed is not here",
+    "description": "Write a program from scratch that looks up a name.\n1. Store `names = {{shown}}`.\n2. Write a function `find(items, target)`. It returns the index of target, or -1.\n3. Ask for a name.\n4. If it is in the list, print the name, `is at index`, then its index.\n5. Otherwise, print the name, then `is not here`.\nExample: you type `[[in:0:0]]`. It prints `[[out:0:0]]`.",
     "solution": "names = {{shown}}\n\ndef find(items, target):\n    for i in range(len(items)):\n        if items[i] == target:\n            return i\n    return -1\n\nname = input(\"Name: \")\npos = find(names, name)\nif pos == -1:\n    print(name, \"is not here\")\nelse:\n    print(name, \"is at index\", pos)",
     "testParams": {
       "k": {
@@ -69453,7 +69453,7 @@
     "values": {
       "shown": "pylist(lst)"
     },
-    "description": "Write a program from scratch that stores the sorted list nums = {{shown}}. Ask for a number and use a binary search to print, for example:\nIndex 3\nor Not found if it isn't in nums.",
+    "description": "Write a program from scratch that searches a sorted list.\n1. Store `nums = {{shown}}`.\n2. Ask for a number. Cast it to an integer.\n3. Use a binary search. If the middle item is less than the number, search the half above it. If it is more, search the half below.\n4. If the number is there, print `Index` and then its index.\n5. Otherwise, print `Not found`.\nExample: you type `[[in:0:0]]`. It prints `[[out:0:0]]`.",
     "solution": "nums = {{shown}}\ntarget = int(input(\"Number: \"))\nlow = 0\nhigh = len(nums) - 1\npos = -1\nwhile low <= high and pos == -1:\n    mid = (low + high) // 2\n    if nums[mid] == target:\n        pos = mid\n    elif nums[mid] < target:\n        low = mid + 1\n    else:\n        high = mid - 1\nif pos == -1:\n    print(\"Not found\")\nelse:\n    print(\"Index\", pos)",
     "testParams": {
       "k": {
@@ -69565,7 +69565,7 @@
     "values": {
       "shown": "pylist(lst)"
     },
-    "description": "Write a program from scratch that stores the sorted list nums = {{shown}}. Ask for a number, binary search for it and count the middle items checked. Print Found or Not found, then the count, for example:\nFound\nChecks: 2",
+    "description": "Write a program from scratch that counts the checks in a binary search.\n1. Store `nums = {{shown}}`.\n2. Ask for a number. Cast it to an integer.\n3. Use a binary search. If the middle item is less than the number, search the half above it. If it is more, search the half below.\n4. Count each middle item checked.\n5. Print `Found` or `Not found`, then `Checks:` and the count.\nExample: you type `[[in:0:0]]`. It prints `[[out:0:0]]` then `[[out:0:1]]`.",
     "solution": "nums = {{shown}}\ntarget = int(input(\"Number: \"))\nlow = 0\nhigh = len(nums) - 1\nchecks = 0\nfound = False\nwhile low <= high and not found:\n    mid = (low + high) // 2\n    checks = checks + 1\n    if nums[mid] == target:\n        found = True\n    elif nums[mid] < target:\n        low = mid + 1\n    else:\n        high = mid - 1\nif found:\n    print(\"Found\")\nelse:\n    print(\"Not found\")\nprint(\"Checks:\", checks)",
     "testParams": {
       "k": {
@@ -69632,7 +69632,7 @@
         ]
       }
     },
-    "description": "Write a program from scratch where the computer guesses a secret number from 1 to {{top}} with a binary search. Ask for the secret number. Each time, guess the middle of low and high and print the guess; then move low or high. When the guess is right, print how many guesses it took, for example:\nGuesses: 3",
+    "description": "Write a program from scratch where the computer guesses a secret number from 1 to {{top}}.\n1. Ask for the secret number. Cast it to an integer.\n2. Start with low as 1 and high as {{top}}.\n3. Each time, guess the middle of low and high with `//`, and print the guess.\n4. If the guess is too low, move low to one above it. If it is too high, move high to one below it.\n5. When the guess is right, print `Guesses:` and how many guesses it took.\nExample: you type `[[in:0:0]]`. It prints `[[outs:0]]`.",
     "solution": "secret = int(input(\"Secret: \"))\nlow = 1\nhigh = {{top}}\nguesses = 0\nguess = 0\nwhile guess != secret:\n    guess = (low + high) // 2\n    print(guess)\n    guesses = guesses + 1\n    if guess < secret:\n        low = guess + 1\n    elif guess > secret:\n        high = guess - 1\nprint(\"Guesses:\", guesses)",
     "testParams": {
       "s": {
@@ -69683,7 +69683,7 @@
     "type": "scratch",
     "starter": "",
     "title": "Bubble sort from scratch",
-    "description": "Write a program from scratch that asks for 5 numbers and stores them in a list. Sort the list with a bubble sort, smallest first, then print it, for example:\n[2, 5, 8, 11, 20]",
+    "description": "Write a program from scratch that sorts five numbers.\n1. Ask for 5 numbers. Cast each to an integer and store them in a list.\n2. Sort the list with a bubble sort, smallest first. Swap a pair only if the first is bigger than the second.\n3. Then print the list.\nExample: you type `[[in:0:0]]` then `[[in:0:1]]` then `[[in:0:2]]` then `[[in:0:3]]` then `[[in:0:4]]`. It prints `[[out:0:0]]`.",
     "solution": "nums = []\nfor k in range(5):\n    nums.append(int(input(\"Number: \")))\nfor i in range(len(nums) - 1):\n    for j in range(len(nums) - 1 - i):\n        if nums[j] > nums[j + 1]:\n            nums[j], nums[j + 1] = nums[j + 1], nums[j]\nprint(nums)",
     "testParams": {
       "xs": {
@@ -69783,7 +69783,7 @@
         ]
       }
     },
-    "description": "Write a program from scratch that asks for 5 {{what}} and stores them in a list. Sort them with a bubble sort, highest first, then print the list, for example:\n[20, 11, 8, 5, 2]",
+    "description": "Write a program from scratch that sorts 5 {{what}}, highest first.\n1. Ask for 5 {{what}}. Cast each to an integer and store them in a list.\n2. Sort the list with a bubble sort. Swap a pair only if the first is smaller than the second.\n3. Then print the list.\nExample: you type `[[in:0:0]]` then `[[in:0:1]]` then `[[in:0:2]]` then `[[in:0:3]]` then `[[in:0:4]]`. It prints `[[out:0:0]]`.",
     "solution": "nums = []\nfor k in range(5):\n    nums.append(int(input(\"{{what}}: \")))\nfor i in range(len(nums) - 1):\n    for j in range(len(nums) - 1 - i):\n        if nums[j] < nums[j + 1]:\n            nums[j], nums[j + 1] = nums[j + 1], nums[j]\nprint(nums)",
     "testParams": {
       "xs": {
@@ -69872,7 +69872,7 @@
     "type": "scratch",
     "starter": "",
     "title": "Sort and count swaps",
-    "description": "Write a program from scratch that asks for 5 numbers, bubble sorts them smallest first, and counts the swaps. Print the list, then the swaps, for example:\n[1, 3, 4, 6, 9]\nSwaps: 4",
+    "description": "Write a program from scratch that counts the swaps in a bubble sort.\n1. Ask for 5 numbers. Cast each to an integer and store them in a list.\n2. Bubble sort the list, smallest first. Swap a pair only if the first is bigger than the second.\n3. Count every swap.\n4. Print the list, then `Swaps:` and the count.\nExample: you type `[[in:0:0]]` then `[[in:0:1]]` then `[[in:0:2]]` then `[[in:0:3]]` then `[[in:0:4]]`. It prints `[[out:0:0]]` then `[[out:0:1]]`.",
     "solution": "nums = []\nfor k in range(5):\n    nums.append(int(input(\"Number: \")))\nswaps = 0\nfor i in range(len(nums) - 1):\n    for j in range(len(nums) - 1 - i):\n        if nums[j] > nums[j + 1]:\n            nums[j], nums[j + 1] = nums[j + 1], nums[j]\n            swaps = swaps + 1\nprint(nums)\nprint(\"Swaps:\", swaps)",
     "testParams": {
       "xs": {
@@ -69961,7 +69961,7 @@
     "type": "scratch",
     "starter": "",
     "title": "Insertion sort from scratch",
-    "description": "Write a program from scratch that asks for 5 numbers and stores them in a list. Sort the list with an insertion sort, smallest first, then print it, for example:\n[2, 5, 8, 11, 20]",
+    "description": "Write a program from scratch that sorts five numbers.\n1. Ask for 5 numbers. Cast each to an integer and store them in a list.\n2. Sort the list with an insertion sort, smallest first. Shift an item right only if it is bigger than the key.\n3. Then print the list.\nExample: you type `[[in:0:0]]` then `[[in:0:1]]` then `[[in:0:2]]` then `[[in:0:3]]` then `[[in:0:4]]`. It prints `[[out:0:0]]`.",
     "solution": "nums = []\nfor k in range(5):\n    nums.append(int(input(\"Number: \")))\nfor i in range(1, len(nums)):\n    key = nums[i]\n    j = i - 1\n    while j >= 0 and nums[j] > key:\n        nums[j + 1] = nums[j]\n        j = j - 1\n    nums[j + 1] = key\nprint(nums)",
     "testParams": {
       "xs": {
@@ -70090,7 +70090,7 @@
     "values": {
       "shown": "pylist(lst)"
     },
-    "description": "Write a program from scratch that stores the sorted list nums = {{shown}}. Ask for a new number and append it. Then use one insertion step to move it into its place, and print the list, for example:\n{{pylist(lst.concat([lst[1] + 1]).sort((a, b) => a - b))}}",
+    "description": "Write a program from scratch that adds a number to a sorted list.\n1. Store `nums = {{shown}}`.\n2. Ask for a new number. Cast it to an integer and append it.\n3. Use one insertion step to move it into place. Shift each number bigger than it one place right.\n4. Then print the list.\nExample: you type `[[in:0:0]]`. It prints `[[out:0:0]]`.",
     "solution": "nums = {{shown}}\nnums.append(int(input(\"New number: \")))\ni = len(nums) - 1\nkey = nums[i]\nj = i - 1\nwhile j >= 0 and nums[j] > key:\n    nums[j + 1] = nums[j]\n    j = j - 1\nnums[j + 1] = key\nprint(nums)",
     "testParams": {
       "v": {
@@ -70138,7 +70138,7 @@
     "type": "scratch",
     "starter": "",
     "title": "Sort and count shifts",
-    "description": "Write a program from scratch that asks for 5 numbers, sorts them with an insertion sort and counts the shifts. Print the list, then the shifts, for example:\n[1, 3, 4, 6, 9]\nShifts: 4",
+    "description": "Write a program from scratch that counts the shifts in an insertion sort.\n1. Ask for 5 numbers. Cast each to an integer and store them in a list.\n2. Sort the list with an insertion sort, smallest first. Shift an item right only if it is bigger than the key.\n3. Count every shift.\n4. Print the list, then `Shifts:` and the count.\nExample: you type `[[in:0:0]]` then `[[in:0:1]]` then `[[in:0:2]]` then `[[in:0:3]]` then `[[in:0:4]]`. It prints `[[out:0:0]]` then `[[out:0:1]]`.",
     "solution": "nums = []\nfor k in range(5):\n    nums.append(int(input(\"Number: \")))\nshifts = 0\nfor i in range(1, len(nums)):\n    key = nums[i]\n    j = i - 1\n    while j >= 0 and nums[j] > key:\n        nums[j + 1] = nums[j]\n        shifts = shifts + 1\n        j = j - 1\n    nums[j + 1] = key\nprint(nums)\nprint(\"Shifts:\", shifts)",
     "testParams": {
       "xs": {
@@ -71023,7 +71023,7 @@
       "shown": "pylist(lst)",
       "sorted": "lst.every((x, i) => i === 0 || lst[i - 1] <= x)"
     },
-    "description": "nums is made for you. First check whether it is sorted. If it is, use a binary search for the number typed; if not, use a linear search. Print which search was used and the index (or -1), for example:\n{{sorted ? 'Binary' : 'Linear'}} {{lst.indexOf(lst[2])}}",
+    "description": "Search a list the right way.\n1. The list `nums` is made for you. Ask for a number. Cast it to an integer.\n2. Check whether `nums` is sorted: no item is bigger than the one after it.\n3. If it is sorted, use a binary search. Print `Binary` and then the index.\n4. Otherwise, use a linear search. Print `Linear` and then the index.\n5. The index is -1 if the number isn't in the list.\nExample: you type `[[in:0:0]]`. It prints `[[out:0:0]]`.",
     "starter": "nums = {{shown}}\n# Check whether nums is sorted, then search it the right way",
     "solution": "nums = {{shown}}\ntarget = int(input(\"Number: \"))\nin_order = True\nfor i in range(len(nums) - 1):\n    if nums[i] > nums[i + 1]:\n        in_order = False\npos = -1\nif in_order:\n    low = 0\n    high = len(nums) - 1\n    pos = -1\n    while low <= high and pos == -1:\n        mid = (low + high) // 2\n        if nums[mid] == target:\n            pos = mid\n        elif nums[mid] < target:\n            low = mid + 1\n        else:\n            high = mid - 1\n    print(\"Binary\", pos)\nelse:\n    for i in range(len(nums)):\n        if nums[i] == target and pos == -1:\n            pos = i\n    print(\"Linear\", pos)",
     "testParams": {
@@ -71219,7 +71219,7 @@
     "values": {
       "shown": "pylist(xs)"
     },
-    "description": "The list isn't sorted. Arrange the lines to bubble sort it, then binary search it for the number typed, and print the index (or -1).\nTwo lines are not needed.",
+    "description": "Arrange the lines to bubble sort the list, then binary search it for the number typed. It prints the index, or -1 if the number isn't there.\nTwo lines are not needed.",
     "solution": "items = {{shown}}\nfor i in range(len(items) - 1):\n    for j in range(len(items) - 1 - i):\n        if items[j] > items[j + 1]:\n            items[j], items[j + 1] = items[j + 1], items[j]\ntarget = int(input(\"Find: \"))\nlow = 0\nhigh = len(items) - 1\npos = -1\nwhile low <= high and pos == -1:\n    mid = (low + high) // 2\n    if items[mid] == target:\n        pos = mid\n    elif items[mid] < target:\n        low = mid + 1\n    else:\n        high = mid - 1\nprint(pos)",
     "distractors": [
       "mid = (low + high) / 2",
@@ -71324,7 +71324,7 @@
     "values": {
       "shown": "pylist(xs)"
     },
-    "description": "nums is made for you and isn't sorted. Bubble sort it, then binary search it for the number typed. Print the sorted list, then the index (or Not found), for example:\n{{pylist(xs.slice().sort((a, b) => a - b))}}\nIndex 2",
+    "description": "Sort a list, then search it.\n1. The list `nums` is made for you. It isn't sorted.\n2. Bubble sort `nums`, smallest first: swap a pair when the first is bigger than the second. Then print the list.\n3. Ask for a number. Cast it to an integer.\n4. Binary search the sorted list for it.\n5. If it is there, print `Index` and then its index. Otherwise, print `Not found`.\nExample: you type `[[in:0:0]]`. It prints `[[out:0:0]]` then `[[out:0:1]]`.",
     "starter": "nums = {{shown}}\n# Bubble sort nums, then binary search it for the number typed",
     "solution": "nums = {{shown}}\nfor i in range(len(nums) - 1):\n    for j in range(len(nums) - 1 - i):\n        if nums[j] > nums[j + 1]:\n            nums[j], nums[j + 1] = nums[j + 1], nums[j]\nprint(nums)\ntarget = int(input(\"Number: \"))\nlow = 0\nhigh = len(nums) - 1\npos = -1\nwhile low <= high and pos == -1:\n    mid = (low + high) // 2\n    if nums[mid] == target:\n        pos = mid\n    elif nums[mid] < target:\n        low = mid + 1\n    else:\n        high = mid - 1\nif pos == -1:\n    print(\"Not found\")\nelse:\n    print(\"Index\", pos)",
     "testParams": {
@@ -71429,7 +71429,7 @@
       "inv": "xs.reduce((n, x, i) => n + xs.slice(i + 1).filter((y) => y < x).length, 0)"
     },
     "where": "inv >= 2",
-    "description": "The same list is sorted twice: once with a bubble sort (counting swaps) and once with an insertion sort (counting shifts). What does the program print?",
+    "description": "One list is sorted twice: with a bubble sort that counts swaps, then an insertion sort that counts shifts. What does the program print?",
     "solution": "items = {{a}}\nswaps = 0\nfor i in range(len(items) - 1):\n    for j in range(len(items) - 1 - i):\n        if items[j] > items[j + 1]:\n            items[j], items[j + 1] = items[j + 1], items[j]\n            swaps = swaps + 1\nitems = {{a}}\nshifts = 0\nfor i in range(1, len(items)):\n    key = items[i]\n    j = i - 1\n    while j >= 0 and items[j] > key:\n        items[j + 1] = items[j]\n        shifts = shifts + 1\n        j = j - 1\n    items[j + 1] = key\nprint(swaps, shifts)",
     "inputs": [],
     "options": [
@@ -77337,7 +77337,7 @@
     "level": 7,
     "type": "parsons",
     "title": "Build a search",
-    "description": "Cast the input to a whole number with int() (this is called casting). Arrange the lines to make a linear search: it prints Found or Not found for the number typed.\nTwo lines are not needed.",
+    "description": "Arrange the lines to make a linear search. It casts the number typed with int(), then prints `Found` or `Not found`.\nTwo lines are not needed.",
     "starter": "",
     "solution": "items = [{{a2}}, {{a0}}, {{a1}}, 1, {{a1 - 1}}]\ntarget = int(input(\"Find: \"))\nfound = False\nfor item in items:\n    if item == target:\n        found = True\nif found:\n    print(\"Found\")\nelse:\n    print(\"Not found\")",
     "distractors": [
@@ -77561,7 +77561,7 @@
     "level": 8,
     "type": "parsons",
     "title": "A search function",
-    "description": "Cast the input to a whole number with int() (this is called casting). Arrange the lines: find() returns the index of target, or -1, and the program says whether the ID typed is in the list.\nTwo lines are not needed.",
+    "description": "Arrange the lines so find() returns the index of target, or -1. The program casts the ID typed with int() and says whether it is in the list.\nTwo lines are not needed.",
     "starter": "",
     "solution": "def find(items, target):\n    for i in range(len(items)):\n        if items[i] == target:\n            return i\n    return -1\nids = [{{a0}}, {{a1}}, {{a2}}, {{a3}}, {{a4}}]\npos = find(ids, int(input(\"ID: \")))\nif pos == -1:\n    print(\"No such ID\")\nelse:\n    print(\"ID found at index\", pos)",
     "distractors": [
@@ -77759,7 +77759,7 @@
     "level": 9,
     "type": "write",
     "title": "Search the list",
-    "description": "nums is made for you. Cast the input to a whole number with int() (this is called casting). Ask for a number and use a linear search to print the index of the first place it appears, for example:\n[[out:0:0]]\nIf it isn't in nums, print Not found.",
+    "description": "Find a number in a list.\n1. The list `nums` is made for you. Ask for a number. Cast it to an integer.\n2. Use a linear search to find the first place it appears.\n3. If it is there, print `Index` and then that index.\n4. Otherwise, print `Not found`.\nExample: you type `[[in:0]]`. It prints `[[outs:0]]`.",
     "starter": "nums = [{{a2}}, {{a0}}, {{a1}}, {{a0}}, {{a2 + 1}}, 1]\n# Ask for a number, then search nums for it",
     "solution": "nums = [{{a2}}, {{a0}}, {{a1}}, {{a0}}, {{a2 + 1}}, 1]\ntarget = int(input(\"Number: \"))\npos = -1\ni = 0\nwhile i < len(nums) and pos == -1:\n    if nums[i] == target:\n        pos = i\n    i = i + 1\nif pos == -1:\n    print(\"Not found\")\nelse:\n    print(\"Index\", pos)",
     "tests": [
@@ -77857,7 +77857,7 @@
     "level": 10,
     "type": "write",
     "title": "Linear search function",
-    "description": "pupils is made for you. Write a function linear_search(items, target) that returns the index of target in items, or -1 if it isn't there. Then ask for a name and print, for example:\n[[out:0:0]]\nor, for a name that isn't in the list:\nZed is not in the list",
+    "description": "Look up a pupil.\n1. The list `pupils` is made for you.\n2. Write a function `linear_search(items, target)`. It returns the index of target in items, or -1 if it isn't there.\n3. Ask for a name.\n4. If the name is in the list, print the name, `is at index`, then its index.\n5. Otherwise, print the name, then `is not in the list`.\nExample: you type `[[in:0]]`. It prints `[[outs:0]]`.",
     "starter": "pupils = [\"{{w0}}\", \"Bea\", \"Cole\", \"Dina\", \"Eli\", \"Fran\"]\n# Write linear_search(items, target), then use it",
     "solution": "pupils = [\"{{w0}}\", \"Bea\", \"Cole\", \"Dina\", \"Eli\", \"Fran\"]\n\ndef linear_search(items, target):\n    for i in range(len(items)):\n        if items[i] == target:\n            return i\n    return -1\n\nname = input(\"Name: \")\npos = linear_search(pupils, name)\nif pos == -1:\n    print(name, \"is not in the list\")\nelse:\n    print(name, \"is at index\", pos)",
     "tests": [
@@ -78305,7 +78305,7 @@
     "level": 1,
     "type": "predict",
     "title": "In order?",
-    "description": "Binary search needs a sorted list. The program checks this list. What does it print?",
+    "description": "Binary search needs a sorted list, so the program checks this one. What does it print?",
     "starter": "",
     "solution": "items = [{{a0}}, {{a2}}, {{a1}}, {{a3}}, {{a4}}]\nsorted_ok = True\nfor i in range(len(items) - 1):\n    if items[i] > items[i + 1]:\n        sorted_ok = False\nprint(sorted_ok)",
     "optionCount": 3,
@@ -81450,7 +81450,7 @@
     "level": 7,
     "type": "parsons",
     "title": "Build a binary search",
-    "description": "Cast the input to a whole number with int() (this is called casting). Arrange the lines to make a binary search that prints True if the number typed is in the list.\nTwo lines are not needed.",
+    "description": "Arrange the lines to make a binary search. It casts the number typed with int(), then prints `True` if it is in the list.\nTwo lines are not needed.",
     "starter": "",
     "solution": "items = [2, {{a1}}, {{a2}}, {{a3}}, {{a4}}, {{a5}}, {{a6}}]\ntarget = int(input(\"Find: \"))\nlow = 0\nhigh = len(items) - 1\nfound = False\nwhile low <= high and not found:\n    mid = (low + high) // 2\n    if items[mid] == target:\n        found = True\n    elif items[mid] < target:\n        low = mid + 1\n    else:\n        high = mid - 1\nprint(found)",
     "distractors": [
@@ -81739,7 +81739,7 @@
     "level": 8,
     "type": "parsons",
     "title": "A binary search function",
-    "description": "Cast the input to a whole number with int() (this is called casting). Arrange the lines: binary_search() returns the index of target or -1, and the program prints it.\nTwo lines are not needed.",
+    "description": "Arrange the lines so binary_search() returns the index of target, or -1. The program casts the number typed with int() and prints the result.\nTwo lines are not needed.",
     "starter": "",
     "solution": "def binary_search(items, target):\n    low = 0\n    high = len(items) - 1\n    while low <= high:\n        mid = (low + high) // 2\n        if items[mid] == target:\n            return mid\n        elif items[mid] < target:\n            low = mid + 1\n        else:\n            high = mid - 1\n    return -1\nprices = [{{a0}}, {{a1}}, {{a2}}, {{a3}}, {{a4}}, {{a5}}]\nprint(binary_search(prices, int(input(\"Price: \"))))",
     "distractors": [
@@ -81987,7 +81987,7 @@
     "level": 9,
     "type": "write",
     "title": "Search the sorted list",
-    "description": "times is sorted and made for you. Cast the input to a whole number with int() (this is called casting). Ask for a time, then use a binary search to print, for example:\n[[out:0:0]]\nIf it isn't in times, print Not found.",
+    "description": "Find a time in a sorted list.\n1. The sorted list `times` is made for you. Ask for a time. Cast it to an integer.\n2. Use a binary search. If the middle item is less than the time, search the half above it. If it is more, search the half below.\n3. If the time is there, print `Found at index` and then its index.\n4. Otherwise, print `Not found`.\nExample: you type `[[in:0]]`. It prints `[[outs:0]]`.",
     "starter": "times = [{{a0}}, {{a1}}, {{a2}}, {{a3}}, {{a4}}, {{a5}}, {{a6}}, {{a7}}]\n# Ask for a time, then binary search times for it",
     "solution": "times = [{{a0}}, {{a1}}, {{a2}}, {{a3}}, {{a4}}, {{a5}}, {{a6}}, {{a7}}]\ntarget = int(input(\"Time: \"))\nlow = 0\nhigh = len(times) - 1\nfound = False\nwhile low <= high and not found:\n    mid = (low + high) // 2\n    if times[mid] == target:\n        found = True\n    elif times[mid] < target:\n        low = mid + 1\n    else:\n        high = mid - 1\nif found:\n    print(\"Found at index\", mid)\nelse:\n    print(\"Not found\")",
     "tests": [
@@ -82131,7 +82131,7 @@
     "level": 10,
     "type": "write",
     "title": "Binary search function",
-    "description": "marks is sorted and made for you. Cast the input to a whole number with int() (this is called casting). Write a function binary_search(items, target) that returns the index of target, or -1 if it isn't there. Then ask for a mark and print, for example:\n[[out:0:0]]\nor, for a mark that isn't in the list:\n[[out:3:0]]",
+    "description": "Look up a mark.\n1. The sorted list `marks` is made for you.\n2. Write a function `binary_search(items, target)`. It returns the index of target, or -1 if it isn't there.\n3. In the function, if the middle item is less than target, search the half above it. If it is more, search the half below.\n4. Ask for a mark. Cast it to an integer.\n5. If the mark is in the list, print the mark, `is at index`, then its index.\n6. Otherwise, print the mark, then `is not in the list`.\nExample: you type `[[in:0]]`. It prints `[[outs:0]]`.",
     "starter": "marks = [{{a0}}, {{a1}}, {{a2}}, {{a3}}, {{a5}}, {{a6}}, {{a7}}, {{a8}}, {{a9}}]\n# Write binary_search(items, target), then use it",
     "solution": "marks = [{{a0}}, {{a1}}, {{a2}}, {{a3}}, {{a5}}, {{a6}}, {{a7}}, {{a8}}, {{a9}}]\n\ndef binary_search(items, target):\n    low = 0\n    high = len(items) - 1\n    while low <= high:\n        mid = (low + high) // 2\n        if items[mid] == target:\n            return mid\n        elif items[mid] < target:\n            low = mid + 1\n        else:\n            high = mid - 1\n    return -1\n\nmark = int(input(\"Mark: \"))\npos = binary_search(marks, mark)\nif pos == -1:\n    print(mark, \"is not in the list\")\nelse:\n    print(mark, \"is at index\", pos)",
     "tests": [
@@ -84753,7 +84753,7 @@
     "level": 7,
     "type": "trace",
     "title": "Trace the passes",
-    "description": "Trace the whole bubble sort. The table shows i and the list (not j): write a row for each new pass and each swap.",
+    "description": "Trace the whole bubble sort. The table shows i and the list, but not j: write a row for each new pass and each swap.",
     "starter": "",
     "solution": "items = [2, {{a1}}, 1, {{a1 - 1}}, {{a0}}]\nfor i in range(len(items) - 1):\n    for j in range(len(items) - 1 - i):\n        if items[j] > items[j + 1]:\n            items[j], items[j + 1] = items[j + 1], items[j]\nprint(items)",
     "trace_spec": {
@@ -85300,7 +85300,7 @@
     "level": 9,
     "type": "write",
     "title": "Write one pass",
-    "description": "The program reads five numbers into items. Write one pass of a bubble sort: compare each pair next to each other and swap them if the first is bigger. Then print the list, for example:\n[[out:0:0]]",
+    "description": "Do one pass of a bubble sort.\n1. The program reads five numbers into `items` for you.\n2. Compare each pair of neighbours, from the start of the list to the end.\n3. Swap a pair only if the first is bigger than the second. Equal numbers are not swapped.\n4. Then print the list.\nExample: you type `[[in:0]]`. It prints `[[outs:0]]`.",
     "starter": "items = []\nfor k in range(5):\n    items.append(int(input(\"Number: \")))\n# One pass of a bubble sort, then print(items)",
     "solution": "items = []\nfor k in range(5):\n    items.append(int(input(\"Number: \")))\nfor j in range(len(items) - 1):\n    if items[j] > items[j + 1]:\n        temp = items[j]\n        items[j] = items[j + 1]\n        items[j + 1] = temp\nprint(items)",
     "tests": [
@@ -85435,7 +85435,7 @@
     "level": 10,
     "type": "write",
     "title": "Bubble sort with an early stop",
-    "description": "The program reads five numbers into items. Write a bubble sort that stops after a pass with no swaps, counting the passes. Then print the sorted list and the number of passes, for example:\n[[out:0]]",
+    "description": "Bubble sort a list and count the passes.\n1. The program reads five numbers into `items` for you.\n2. Sort them smallest first. Swap a pair only if the first is bigger than the second, so equal numbers stay in order.\n3. Stop after a pass with no swaps. Count every pass, including that last one.\n4. Print the sorted list, then `Passes:` and the number of passes.\nExample: you type `[[in:0]]`. It prints `[[outs:0]]`.",
     "starter": "items = []\nfor k in range(5):\n    items.append(int(input(\"Number: \")))\n# Bubble sort items, stopping after a pass with no swaps",
     "solution": "items = []\nfor k in range(5):\n    items.append(int(input(\"Number: \")))\npasses = 0\nswapped = True\nwhile swapped:\n    swapped = False\n    passes = passes + 1\n    for j in range(len(items) - 1):\n        if items[j] > items[j + 1]:\n            items[j], items[j + 1] = items[j + 1], items[j]\n            swapped = True\nprint(items)\nprint(\"Passes:\", passes)",
     "tests": [
@@ -87965,7 +87965,7 @@
     "level": 6,
     "type": "trace",
     "title": "Trace the sorted part",
-    "description": "Trace the insertion sort, with i, key and the list (not j).",
+    "description": "Trace the insertion sort. The table shows i, key and the list, but not j.",
     "starter": "",
     "solution": "items = [{{a0}}, 1, {{a0 - 1}}, 2]\nfor i in range(1, len(items)):\n    key = items[i]\n    j = i - 1\n    while j >= 0 and items[j] > key:\n        items[j + 1] = items[j]\n        j = j - 1\n    items[j + 1] = key\nprint(items)",
     "trace_spec": {
@@ -88032,7 +88032,7 @@
     "level": 7,
     "type": "trace",
     "title": "Trace a full sort",
-    "description": "Trace the insertion sort, with i, key and the list (not j).",
+    "description": "Trace the insertion sort. The table shows i, key and the list, but not j.",
     "starter": "",
     "solution": "items = [{{a0}}, 2, {{a0 - 1}}, {{a0 + 1}}, 1]\nfor i in range(1, len(items)):\n    key = items[i]\n    j = i - 1\n    while j >= 0 and items[j] > key:\n        items[j + 1] = items[j]\n        j = j - 1\n    items[j + 1] = key\nprint(items)",
     "trace_spec": {
@@ -88644,7 +88644,7 @@
     "level": 9,
     "type": "write",
     "title": "Insert a new score",
-    "description": "scores is sorted and made for you. Cast the input to a whole number with int() (this is called casting). Ask for a new score, append it to the end, then use one insertion step to move it into its place. Print the list, for example:\n[[out:0:0]]",
+    "description": "Add a score to a sorted list.\n1. The sorted list `scores` is made for you. Ask for a new score. Cast it to an integer.\n2. Append it to the end of the list.\n3. Use one insertion step to move it into place. Shift each score bigger than it one place right.\n4. Then print the list.\nExample: you type `[[in:0]]`. It prints `[[outs:0]]`.",
     "starter": "scores = [{{a0}}, {{a1}}, {{a2}}, {{a3}}, {{a4}}]\n# Ask for a score, append it, then insert it into its place",
     "solution": "scores = [{{a0}}, {{a1}}, {{a2}}, {{a3}}, {{a4}}]\nscores.append(int(input(\"Score: \")))\ni = len(scores) - 1\nkey = scores[i]\nj = i - 1\nwhile j >= 0 and scores[j] > key:\n    scores[j + 1] = scores[j]\n    j = j - 1\nscores[j + 1] = key\nprint(scores)",
     "tests": [
@@ -88767,7 +88767,7 @@
     "level": 10,
     "type": "write",
     "title": "Insertion sort",
-    "description": "The program reads five numbers into items. Write an insertion sort that puts them in order, smallest first, then print the list, for example:\n[[out:0:0]]",
+    "description": "Insertion sort five numbers.\n1. The program reads five numbers into `items` for you.\n2. Sort them smallest first with an insertion sort.\n3. Shift an item right only if it is bigger than the key, so equal numbers stay in order.\n4. Then print the list.\nExample: you type `[[in:0]]`. It prints `[[outs:0]]`.",
     "starter": "items = []\nfor k in range(5):\n    items.append(int(input(\"Number: \")))\n# Insertion sort items, then print(items)",
     "solution": "items = []\nfor k in range(5):\n    items.append(int(input(\"Number: \")))\nfor i in range(1, len(items)):\n    key = items[i]\n    j = i - 1\n    while j >= 0 and items[j] > key:\n        items[j + 1] = items[j]\n        j = j - 1\n    items[j + 1] = key\nprint(items)",
     "tests": [
@@ -92066,7 +92066,7 @@
     "level": 8,
     "type": "trace",
     "title": "Trace a small merge sort",
-    "description": "Trace a merge sort of five items: it merges runs of 1, then 2, then {{a0}}. The table shows width and the list.",
+    "description": "Trace a merge sort of five items: it merges runs of one, then two, then four. The table shows width and the list.",
     "starter": "",
     "solution": "items = [{{a0}}, 1, {{a0 + 1}}, {{a0 - 1}}, 2]\nwidth = 1\nwhile width < len(items):\n    result = []\n    start = 0\n    while start < len(items):\n        left = items[start:start + width]\n        right = items[start + width:start + 2 * width]\n        i = 0\n        j = 0\n        while i < len(left) and j < len(right):\n            if left[i] <= right[j]:\n                result.append(left[i])\n                i = i + 1\n            else:\n                result.append(right[j])\n                j = j + 1\n        result = result + left[i:] + right[j:]\n        start = start + 2 * width\n    items = result\n    width = width * 2\nprint(items)",
     "trace_spec": {
@@ -92327,7 +92327,7 @@
     "level": 9,
     "type": "trace",
     "title": "Trace a merge sort of six",
-    "description": "Trace a merge sort of six items: runs of 1, then 2, then {{a0}}. The table shows width and the list.",
+    "description": "Trace a merge sort of six items: runs of one, then two, then four. The table shows width and the list.",
     "starter": "",
     "solution": "items = [{{a1}}, 2, {{a2}}, {{a0}}, {{a1 + 1}}, 1]\nwidth = 1\nwhile width < len(items):\n    result = []\n    start = 0\n    while start < len(items):\n        left = items[start:start + width]\n        right = items[start + width:start + 2 * width]\n        i = 0\n        j = 0\n        while i < len(left) and j < len(right):\n            if left[i] <= right[j]:\n                result.append(left[i])\n                i = i + 1\n            else:\n                result.append(right[j])\n                j = j + 1\n        result = result + left[i:] + right[j:]\n        start = start + 2 * width\n    items = result\n    width = width * 2\nprint(items)",
     "trace_spec": {
@@ -92409,7 +92409,7 @@
     "level": 10,
     "type": "trace",
     "title": "Trace a whole merge sort",
-    "description": "Trace a merge sort of eight items. It merges runs of 1, then 2, then {{a1 - 1}}: start is where each merge begins, and the list is replaced after each pass.",
+    "description": "Trace a merge sort of eight items, merging runs of one, then two, then four. `start` is where each merge begins, and the list is replaced after each pass.",
     "starter": "",
     "solution": "items = [{{a1}}, 2, {{a2}}, 1, {{a1 + 1}}, {{a0}}, {{a2 + 1}}, {{a1 - 1}}]\nwidth = 1\nwhile width < len(items):\n    result = []\n    start = 0\n    while start < len(items):\n        left = items[start:start + width]\n        right = items[start + width:start + 2 * width]\n        i = 0\n        j = 0\n        while i < len(left) and j < len(right):\n            if left[i] <= right[j]:\n                result.append(left[i])\n                i = i + 1\n            else:\n                result.append(right[j])\n                j = j + 1\n        result = result + left[i:] + right[j:]\n        start = start + 2 * width\n    items = result\n    width = width * 2\nprint(items)",
     "trace_spec": {
@@ -92711,7 +92711,7 @@
       "shown": "pylist(lst)",
       "half": "Math.floor(lst.length / 2)"
     },
-    "description": "This is merge sort written with recursion: merge_sort calls itself on each half until every part has one item, then merges the parts. What does it print?",
+    "description": "This merge sort uses recursion: merge_sort calls itself on each half until a part has one item, then merges them. What does it print?",
     "solution": "def merge(left, right):\n    out = []\n    i = 0\n    j = 0\n    while i < len(left) and j < len(right):\n        if left[i] <= right[j]:\n            out.append(left[i])\n            i = i + 1\n        else:\n            out.append(right[j])\n            j = j + 1\n    return out + left[i:] + right[j:]\n\ndef merge_sort(items):\n    if len(items) <= 1:\n        return items\n    half = len(items) // 2\n    return merge(merge_sort(items[:half]), merge_sort(items[half:]))\n\nprint(merge_sort({{shown}}))",
     "inputs": [],
     "options": [

@@ -348,15 +348,20 @@ pre.code, pre.output, .compare pre, .io-lines pre, .option pre, .worked pre {
 .CodeMirror-nonmatchingbracket { color: var(--fail) !important; text-decoration: underline wavy; }
 
 /* ---------- Predict ---------- */
-.options { border: none; padding: 0; margin: 1rem 0 0; }
+/* min-width: 0 (prompt 36). A fieldset's browser default is min-width: min-content, and a flex item's is auto: either way
+   the longest answer used to set the width of the whole page, so a phone scrolled sideways (typ-L1a, 38 to 68px). Now
+   the options shrink to the card, and a long answer wraps onto more lines (every space still kept). */
+.options { border: none; padding: 0; margin: 1rem 0 0; min-width: 0; min-inline-size: 0; }
 .options legend { font-weight: 700; margin-bottom: .5rem; font-size: 1.05rem; }
 .option {
   display: flex; align-items: flex-start; gap: .75rem;
   border: 2px solid var(--border); border-radius: 8px;
-  padding: .25rem .75rem; margin-bottom: .5rem; cursor: pointer;
+  padding: .25rem .75rem; margin-bottom: .5rem; cursor: pointer; min-width: 0;
 }
 .option input { width: 1.25rem; height: 1.25rem; margin-top: 1rem; flex: none; }
-.option pre { flex: 1; margin: .4rem 0; }
+.option pre { flex: 1; margin: .4rem 0; min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* A code box that scrolls sideways is reachable with Tab (app.js markScrollers): show where the focus is. */
+pre[tabindex="0"]:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 2px; }
 .option:has(input:checked) { border-color: var(--predict); border-width: 3px; }
 .option.correct { border-color: var(--pass); background: var(--pass-bg); }
 .option.wrong { border-color: var(--fail); background: var(--fail-bg); }
@@ -377,7 +382,7 @@ pre.code.numbered .ln { color: var(--muted); margin-right: 1rem; user-select: no
 /* ---------- Pick the missing line ---------- */
 .partial-code .gap { display: inline-block; min-width: 18ch; border: 2px dashed var(--parsons); border-radius: 4px; padding: 0 .3rem; }
 .partial-code .gap.empty { color: var(--muted); font-style: italic; }
-.pp-options .option code { flex: 1; margin: .5rem 0; white-space: pre-wrap; }
+.pp-options .option code { flex: 1; margin: .5rem 0; white-space: pre-wrap; min-width: 0; overflow-wrap: anywhere; } /* prompt 36: as .option pre */
 .pp-options .option input { margin-top: .55rem; }
 .pp-options .option:has(input:checked) { border-color: var(--parsons); }
 .unit-note { margin-top: .25rem; }
