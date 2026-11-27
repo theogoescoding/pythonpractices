@@ -72,6 +72,8 @@
       <a href="#students" data-page="students">Students</a>
       <a href="#homework" data-page="homework" data-backend>Homework</a>
       <a href="#assignments" data-page="assignments" data-backend>Assignments</a>
+      <!-- Exam Mode (prompt EM2): the chosen class's switch, pack overview, most-missed mark points and each student's attempts. -->
+      <a href="#exam" data-page="exam" data-backend>Exam Mode</a>
       <a href="#misconceptions" data-page="misconceptions">Misconceptions</a>
       <a href="#leaderboards" data-page="leaderboards">Leaderboards</a>
       <a href="#certificates" data-page="certificates">Certificates</a>
@@ -129,6 +131,13 @@
           <p class="small">The stage decides which units count in averages, and which sections of the unit menu open by default for your students
             (KS3: Programming fundamentals and Advanced programming; GCSE: those, Validation, and Searching and sorting; A-level: every section).
             Every unit still shows on the Students page. Changing it resets your students' open and closed sections the next time they open the app. They can still open any section.</p>
+          <!-- Exam Mode's switch (prompt EM2): the same setting as on the Exam Mode page. -->
+          <div class="teacher-controls">
+            <label>Exam Mode <select id="tb-exam-setting" data-exam-setting><option value="stage">Follow the stage</option><option value="on">On</option><option value="off">Off</option></select></label>
+            <button type="button" id="tb-exam-save" class="secondary" data-exam-save="tb-exam-setting">Save</button>
+            <span class="small">Now: <strong data-exam-state></strong></span>
+          </div>
+          <p id="tb-exam-status" class="small" role="status"></p>
           </section>
 
           <section class="teacher-section" data-collapse="class-students">
@@ -191,6 +200,7 @@
           <ul>
             <li><strong>Nicknames, progress and attempts</strong> are kept until the class ends (its end date) or is deleted. A student can delete all their own progress from the landing page; you can delete a single student or the whole class here.</li>
             <li><strong>Program code and output</strong> from failed attempts are kept in full for 30 days, then cleared every night. The failure category, misconception matches and a fingerprint of the code stay.</li>
+            <li><strong>Exam Mode answers</strong> are kept like attempts: the marks for each part, notes and whether "Say it simply" was used. The code of an answer that didn't get full marks is kept for 30 days, then cleared.</li>
             <li><strong>Login codes</strong> are kept encrypted until the class is deleted or ends. Only you can reveal them (with "Show codes"), and each reveal is logged.</li>
             <li><strong>PINs</strong> are stored only as a one-way hash. No one can see them, not even you.</li>
             <li>The data is held by Supabase in the EU (Ireland).</li>
@@ -458,6 +468,45 @@
     </section>
 
     <!-- ===== Reports ===== -->
+    <!-- ===== Exam Mode (prompt EM2, backend mode) ===== -->
+    <section id="page-exam" aria-labelledby="exam-title" hidden>
+      <h2 id="exam-title" tabindex="-1">Exam Mode</h2>
+      <p id="ex-local" class="small" hidden>Exam Mode's class page needs backend mode (the class server). In local mode, each student's Exam Mode work stays in their own browser.</p>
+      <div id="ex-main">
+        <p class="small">OCR J277 Paper 2 programming practice, marked point by point. Your students' work is marked in their browser and saved here.</p>
+        <section class="teacher-section" data-collapse="exam-switch">
+          <h3>Exam Mode for this class</h3>
+          <div class="teacher-controls">
+            <label>Exam Mode <select id="ex-setting" data-exam-setting><option value="stage">Follow the stage</option><option value="on">On</option><option value="off">Off</option></select></label>
+            <button type="button" id="ex-save" class="secondary" data-exam-save="ex-setting">Save</button>
+            <span class="small">Now: <strong data-exam-state></strong></span>
+          </div>
+          <p class="small">On by default for GCSE classes, off for KS3 and A-level. When it's off, your students don't see Exam Mode. Their work so far is kept.</p>
+          <p id="ex-status" class="small" role="status"></p>
+        </section>
+        <section class="teacher-section" data-collapse="exam-packs">
+          <h3>Packs</h3>
+          <p class="small">For each pack: the rung each student has reached, and their first-attempt and best scores on its full questions. Select a student's name to see their attempts.</p>
+          <div id="ex-packs" aria-live="polite"></div>
+        </section>
+        <section class="teacher-section" data-collapse="exam-missed">
+          <h3>Most-missed mark points</h3>
+          <p class="small">For each full question: the share of students who missed each mark point on their first attempt, most missed first. What the group gets wrong, not individual feedback.</p>
+          <div id="ex-missed"></div>
+        </section>
+        <section class="teacher-section" data-collapse="exam-help">
+          <h3>Self-check and "Say it simply"</h3>
+          <p class="small">For each question: the share of mark points students checked themselves (when the marker couldn't decide), and the share of attempts where they used "Say it simply".</p>
+          <div id="ex-help"></div>
+        </section>
+        <section id="ex-detail-section" class="ex-detail" hidden aria-labelledby="ex-detail-h">
+          <h3 id="ex-detail-h" tabindex="-1"></h3>
+          <p><button type="button" id="ex-detail-close" class="secondary">Close</button></p>
+          <div id="ex-detail"></div>
+        </section>
+      </div>
+    </section>
+
     <section id="page-reports" aria-labelledby="reports-title" hidden>
       <h2 id="reports-title" tabindex="-1">Reports</h2>
 
@@ -625,6 +674,8 @@
   <script src="certificates.js"></script>
   <script src="teacher-data.js"></script>
   <script src="homework.js"></script>
+  <!-- exam.js for Exam Mode's rules (the switch, rung names); its page part only runs on exam.html. -->
+  <script src="exam.js"></script>
   <script src="task-view.js"></script>
   <script src="task-browser.js"></script>
   <script src="config.js"></script>

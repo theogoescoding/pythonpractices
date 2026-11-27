@@ -7,8 +7,12 @@
   <link rel="icon" type="image/png" href="assets/logo/icon-light.png">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/codemirror@5.65.16/lib/codemirror.min.css">
   <link rel="stylesheet" href="styles.css">
-  <!-- Local mode only in EM1: backend.js isn't loaded, so Exam Mode work stays in this browser (EM2 adds the server). -->
+  <!-- As the other student pages: in backend mode (config.js) Exam Mode work is saved to the class's server (EM2), and
+       the page only opens when the class has Exam Mode switched on. Local mode keeps everything in this browser. -->
   <script src="store.js"></script>
+  <script src="config.js"></script>
+  <script src="backend-rows.js"></script>
+  <script src="backend.js"></script>
 </head>
 <body class="exam-mode">
   <a class="skip-link" href="#exam-main">Skip to content</a>

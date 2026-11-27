@@ -1175,5 +1175,19 @@ td pre { white-space: pre-wrap; margin: .25rem 0; font-size: .85rem; }
 .em-steps { padding-left: 1.4rem; }
 .em-step { padding: .2rem .4rem; border-radius: 6px; }
 .em-step-now { border: 2px solid var(--exam-ink); font-weight: 600; }
+/* The teacher's Exam Mode page (teacher.html #exam, EM2) */
+.ex-table { border-collapse: collapse; width: 100%; }
+.ex-table th, .ex-table td { border: 1px solid var(--border); padding: .35rem .6rem; text-align: left; vertical-align: top; }
+.ex-table .num { text-align: right; }
+.ex-table th button { font: inherit; font-weight: 700; background: none; border: 0; padding: 0; color: var(--link); text-decoration: underline; cursor: pointer; }
+.ex-table tfoot th, .ex-table tfoot td { font-weight: 600; }
+.ex-name { font: inherit; background: none; border: 0; padding: 0; color: var(--link); text-decoration: underline; cursor: pointer; text-align: left; }
+.ex-q { margin: 1rem 0 .25rem; }
+.ex-always-true { border-left: 4px solid var(--exam-ink); padding: .3rem .75rem; margin: .5rem 0; }
+.ex-detail { border-top: 2px solid var(--border); margin-top: 1rem; padding-top: .5rem; }
+.ex-attempts { padding-left: 1.4rem; }
+.ex-attempt { padding: .5rem 0; border-bottom: 1px solid var(--border); }
+.ex-attempt p { margin: .25rem 0; }
+.ex-points { list-style: none; padding: 0; margin: .25rem 0; }
 .em-scores { border-collapse: collapse; width: 100%; }
 .em-scores th, .em-scores td { border: 1px solid var(--border); padding: .35rem .6rem; text-align: left; }

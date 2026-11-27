@@ -23,6 +23,12 @@
 //                                              category, failed_test, output, error_kind, code, matched }] }  the class's failed
 //                                              checks in the last 30 days on those tasks; the Misconceptions page matches them
 //                                              with the review rules (review-rules.js, rules-review.json, on the website only)
+//   set_exam_mode { class_id, on }          -> { stage, setting, on }  Exam Mode for the class (migration 0021): on true or false,
+//                                              or null to follow the stage (on for GCSE, off for KS3 and A-level). Any teacher on the class.
+//   exam_overview { class_id }              -> { class_name, switch, packs, students: [{ nickname, packs }], average, missed, help }
+//                                              (exam-server.js overview: nicknames, numbers and question and mark-point ids only)
+//   exam_student_detail { class_id, student_id } -> { class_name, nickname, attempts: [...] }  one student of that class, newest
+//                                              first, with the code of attempts that lost marks while it is kept (30 days)
 //   reveal_codes { class_id }               -> { codes: [{ student_id, nickname, code }] }  (each reveal is logged)
 //   reset_pin { student_id }                -> { pin }  (shown once; also clears a PIN lock)
 //   reset_placement { student_id, unit }    -> { reset }  (false: the student hasn't started that unit)
@@ -65,6 +71,11 @@ import "../../../paste-details.js";
 import "../_shared/paste-flags-server.js";
 // "Needs review" (review-server.js): only the attempts; the rules stay on the website.
 import "../_shared/review-server.js";
+// Exam Mode (exam-server.js, migration 0021): the site's own rules (exam.js: the switch, the landing card's "rung
+// reached") and its questions (exam-mode.json, for each pack's rungs, full questions and mark points).
+import "../../../exam.js";
+import "../_shared/exam-server.js";
+import examData from "../../../exam-mode.json" with { type: "json" };
 
 // class-sharing.js, certificates-server.js and homework-server.js are plain scripts (tests/backend-client.js runs the
 // same files in Node): they set globalThis.ClassSharing, globalThis.CertificatesServer and globalThis.HomeworkServer.
@@ -75,6 +86,7 @@ const CertificatesServer = G.CertificatesServer;
 const HomeworkServer = G.HomeworkServer;
 const certDeps = () => ({ Sharing, Certificates: G.Certificates, Curriculum: G.Curriculum });
 const hwDeps = () => ({ Sharing, Homework: G.Homework, unitIds: UNITS });
+const examDeps = () => ({ Sharing, ExamMode: G.ExamMode, data: examData });
 
 const bad = () => new HttpError(400, "Something went wrong. Please try again.");
 const MAX_IMPORT_STUDENTS_PER_CALL = 10;
@@ -246,6 +258,19 @@ const actions: Record<string, (tid: string, body: Record<string, unknown>) => Pr
   // "Needs review" (review-server.js). Any teacher on the class, owner or co-teacher.
   async review_candidates_for_class(tid, body) {
     return await G.ReviewServer.candidatesForClass(db(), { Sharing }, tid, body.class_id, body.task_ids);
+  },
+
+  // Exam Mode (exam-server.js, migration 0021). Any teacher on the class, owner or co-teacher, as for its other settings.
+  async set_exam_mode(tid, body) {
+    return await G.ExamServer.setExamMode(db(), examDeps(), tid, body.class_id, body.on); // missing: 400 (only true, false or null)
+  },
+
+  async exam_overview(tid, body) {
+    return await G.ExamServer.overview(db(), examDeps(), tid, body.class_id);
+  },
+
+  async exam_student_detail(tid, body) {
+    return await G.ExamServer.studentDetail(db(), examDeps(), tid, body.class_id, body.student_id);
   },
 
   // Sharing a class (class-sharing.js). Any teacher on the class can list its teachers; only its owner can add one

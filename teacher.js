@@ -10,7 +10,7 @@
   const TD = self.TeacherData;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  const PAGES = ["classes", "students", "leaderboards", "certificates", "student", "homework", "assignments", "reports", "misconceptions", "tasks", "settings", "curriculum"];
+  const PAGES = ["classes", "students", "leaderboards", "certificates", "student", "homework", "assignments", "exam", "reports", "misconceptions", "tasks", "settings", "curriculum"];
   const OLD_PAGES = { overview: "students", log: "reports", workshop: "misconceptions" }; // the workshop was on Reports
   const RECENT_ATTEMPTS = 30;
   const REASONS = {
@@ -125,6 +125,7 @@
     if (p === "curriculum") renderCurriculum(); // needs no class data
     if (p === "tasks") renderTaskBrowser(arg); // needs no class
     renderHomework(); // the class chosen at the top; does nothing unless the page is showing
+    renderExam(); // the same; and Exam Mode's switch, on this page and the Classes page
     const data = collect();
     if (!data) return; // backend mode: no class loaded yet
     if (p === "students") renderStudents(data);
@@ -674,6 +675,171 @@
     const again = $("hw-report-table").querySelector('button[data-hw-sort="' + CSS.escape(hwSort.key) + '"]');
     if (again) again.focus();
   });
+
+  // ---------- Exam Mode (backend mode, prompt EM2) ----------
+  // The chosen class's switch, its students' progress through each pack, the most-missed mark points on the full
+  // questions, self-check and "Say it simply" rates, and one student's attempts. teacher-api works the numbers out
+  // (exam-server.js) and sends nicknames, numbers and question and mark-point ids; the text comes from exam-mode.json.
+  // Local mode has none of it (each student's Exam Mode work stays in their browser): the link is hidden (data-backend).
+  const EX = self.ExamMode;
+  let exData = null;        // exam-mode.json, loaded the first time the page is shown
+  let exClassId = null;     // the class on the page: always the class chosen at the top
+  let exLoadedFor = null;
+  let exOnPage = false;
+  let exOverview = null;    // teacher-api exam_overview's reply
+  let exSort = { key: "name", dir: 1 };
+  async function loadExamData() {
+    if (!exData) exData = await fetch("exam-mode.json").then((x) => x.json()).catch(() => null);
+    return exData;
+  }
+  const exPacks = () => (exData && exData.packs) || [];
+  const exQuestion = (id) => { for (const p of exPacks()) { const q = p.questions.find((x) => x.id === id); if (q) return q; } return null; };
+  const exPackName = (id) => { const p = exPacks().find((x) => x.id === id); return "Pack " + id + (p ? ": " + ((p.display && p.display.title) || p.title) : ""); };
+  const exQuestionName = (id) => { const q = exQuestion(id); return q ? q.title : id; };
+
+  // The switch: the same control on this page and in the Classes page's settings. null follows the stage.
+  const switchOf = (cls) => { const setting = cls && typeof cls.exam_mode === "boolean" ? cls.exam_mode : null; return { setting, on: EX.examModeOn(cls && cls.stage, setting) }; };
+  const switchText = (sw) => (sw.setting === null ? (sw.on ? "On (default for GCSE)" : "Off (default for KS3/A-level)") : (sw.on ? "On (set for this class)" : "Off (set for this class)"));
+  function drawExamSwitches() {
+    const cls = currentClass();
+    const sw = switchOf(cls);
+    document.querySelectorAll("[data-exam-setting]").forEach((s) => { s.value = sw.setting === null ? "stage" : sw.setting ? "on" : "off"; s.disabled = !cls; });
+    document.querySelectorAll("[data-exam-save]").forEach((b) => { b.disabled = !cls; });
+    document.querySelectorAll("[data-exam-state]").forEach((s) => { s.textContent = cls ? switchText(sw) : "–"; });
+  }
+  const EXAM_STATUS = { "ex-setting": "ex-status", "tb-exam-setting": "tb-exam-status" };
+  document.addEventListener("click", async (e) => {
+    const b = e.target.closest && e.target.closest("[data-exam-save]");
+    if (!b || !tb) return;
+    const cls = currentClass();
+    const status = $(EXAM_STATUS[b.dataset.examSave]);
+    if (!cls) return;
+    const v = $(b.dataset.examSave).value;
+    b.disabled = true;
+    status.textContent = "Saving…";
+    const r = await tb.setExamMode(cls.id, v === "stage" ? null : v === "on");
+    b.disabled = false;
+    if (r.error) { status.textContent = r.error; drawExamSwitches(); return; }
+    drawExamSwitches();
+    status.textContent = "Saved. Exam Mode is now " + switchText({ setting: r.setting, on: r.on }).replace(/^On/, "on").replace(/^Off/, "off") +
+      " for " + cls.name + ". Students see the change the next time they open the app.";
+    if (exOverview) { exOverview.switch = r; }
+  });
+
+  function renderExam() {
+    drawExamSwitches();
+    const on = page() === "exam";
+    const fresh = on && !exOnPage;
+    exOnPage = on;
+    $("ex-local").hidden = !!tb;
+    $("ex-main").hidden = !tb;
+    if (!tb || !on) return;
+    const chosen = (currentClass() || {}).id || null;
+    if (chosen !== exClassId) { exClassId = chosen; exOverview = null; closeExamDetail(); }
+    if (!exClassId) { $("ex-packs").innerHTML = '<p class="small">Make a class first (Classes page).</p>'; $("ex-missed").innerHTML = ""; $("ex-help").innerHTML = ""; return; }
+    if (fresh || exLoadedFor !== exClassId) loadExamOverview();
+  }
+  async function loadExamOverview() {
+    const id = exClassId;
+    exLoadedFor = id;
+    $("ex-packs").innerHTML = '<p class="small">Loading…</p>';
+    $("ex-missed").innerHTML = "";
+    $("ex-help").innerHTML = "";
+    await loadExamData();
+    const r = await tb.examOverview(id);
+    if (exClassId !== id) return; // another class was chosen meanwhile
+    if (r.error) { exOverview = null; $("ex-packs").innerHTML = '<p class="problem">' + esc(r.error) + "</p>"; return; }
+    exOverview = r;
+    drawExamOverview();
+  }
+
+  // One pack's cell: the rung reached and the full-question scores, as on the student's landing card.
+  const exCell = (c) => (!c || !c.started ? '<span class="small">Not started</span>'
+    : "Rung " + c.reached + " of 5" + (c.reached ? ' <span class="small">(' + esc(EX.RUNG_NAMES[c.reached]) + ")</span>" : "") + "<br>" +
+      (c.first_pct == null ? '<span class="small">No full question yet</span>' : "First " + c.first_pct + "% · Best " + c.best_pct + "%"));
+  const exAverageCell = (a) => (!a || a.reached == null ? "–" : "Rung " + a.reached + " of 5<br>" +
+    (a.first_pct == null ? '<span class="small">No full question yet</span>' : "First " + a.first_pct + "% · Best " + a.best_pct + "%"));
+  function drawExamOverview() {
+    const r = exOverview;
+    const packs = r.packs.map((p) => p.id);
+    const cols = [{ key: "name", label: "Student", cmp: (a, b) => a.nickname.localeCompare(b.nickname) }].concat(packs.map((id) => ({ key: "pack:" + id, label: exPackName(id),
+      cmp: (a, b) => (a.packs[id].reached - b.packs[id].reached) || ((a.packs[id].best_pct == null ? -1 : a.packs[id].best_pct) - (b.packs[id].best_pct == null ? -1 : b.packs[id].best_pct)) })));
+    const col = cols.find((c) => c.key === exSort.key) || cols[0];
+    const rows = r.students.slice().sort((a, b) => exSort.dir * col.cmp(a, b) || a.nickname.localeCompare(b.nickname));
+    const head = cols.map((c) => '<th scope="col"' + (c.key === exSort.key ? ' aria-sort="' + (exSort.dir === 1 ? "ascending" : "descending") + '"' : "") +
+      '><button type="button" data-ex-sort="' + esc(c.key) + '">' + esc(c.label) + "</button></th>").join("");
+    $("ex-packs").innerHTML = !rows.length ? '<p class="small">No students in this class yet.</p>' :
+      '<div class="table-wrap"><table class="ex-table"><thead><tr>' + head + "</tr></thead><tbody>" + rows.map((s) =>
+        '<tr><th scope="row"><button type="button" class="ex-name" data-ex-student="' + esc(s.nickname) + '">' + esc(s.nickname) + "</button></th>" +
+        packs.map((id) => '<td data-label="' + esc(exPackName(id)) + '">' + exCell(s.packs[id]) + "</td>").join("") + "</tr>").join("") + "</tbody>" +
+      '<tfoot><tr><th scope="row">Class average</th>' + packs.map((id) => '<td data-label="' + esc(exPackName(id)) + '">' + exAverageCell(r.average[id]) + "</td>").join("") + "</tr></tfoot></table></div>";
+
+    // Most-missed mark points, per full question.
+    $("ex-missed").innerHTML = r.missed.map((m) => {
+      const q = exQuestion(m.question_id);
+      const text = (id) => { const mp = q && q.markPoints.find((x) => x.id === id); return mp ? mp.text : id; };
+      return '<h4 class="ex-q">' + esc(exQuestionName(m.question_id)) + ' <span class="small">(' + esc(exPackName(m.pack_id)) + ")</span></h4>" +
+        (!m.students ? '<p class="small">No first attempts yet.</p>' :
+          '<p class="small">From ' + m.students + " student" + (m.students === 1 ? "'s" : "s'") + " first attempt" + (m.students === 1 ? "" : "s") + ".</p>" +
+          '<div class="table-wrap"><table class="ex-table"><thead><tr><th scope="col">Mark point</th><th scope="col" class="num">Missed by</th></tr></thead><tbody>' +
+          m.points.map((p) => "<tr><td>" + esc(p.id) + ": " + esc(text(p.id)) + '</td><td class="num"><strong>' + p.pct + "%</strong> (" + p.missed + " of " + m.students + ")</td></tr>").join("") +
+          "</tbody></table></div>" +
+          (m.always_true ? '<p class="ex-always-true">' + m.always_true + " student" + (m.always_true === 1 ? "" : "s") + " wrote a loop test that's always true (such as <code>x != \"\" or x != \"stop\"</code>), so their loop never stops.</p>" : ""));
+    }).join("") || '<p class="small">No full questions yet.</p>';
+
+    // Self-check and "Say it simply", per question.
+    $("ex-help").innerHTML = !r.help.length ? '<p class="small">No attempts yet.</p>' :
+      '<div class="table-wrap"><table class="ex-table"><thead><tr><th scope="col">Question</th><th scope="col">Rung</th><th scope="col" class="num">Attempts</th>' +
+      '<th scope="col" class="num">Mark points checked by the student</th><th scope="col" class="num">"Say it simply" used</th></tr></thead><tbody>' +
+      r.help.map((h) => '<tr><th scope="row">' + esc(exQuestionName(h.question_id)) + '</th><td data-label="Rung">' + h.rungs.map((n) => n + " " + esc(EX.RUNG_NAMES[n])).join(", ") +
+        '</td><td class="num" data-label="Attempts">' + h.attempts + '</td><td class="num" data-label="Checked by the student">' + h.self_pct + '%</td><td class="num" data-label="Say it simply">' + h.help_pct + "%</td></tr>").join("") +
+      "</tbody></table></div>";
+  }
+  $("ex-packs").addEventListener("click", (e) => {
+    const sortBtn = e.target.closest("button[data-ex-sort]");
+    if (sortBtn && exOverview) {
+      const key = sortBtn.dataset.exSort;
+      exSort = exSort.key === key ? { key, dir: -exSort.dir } : { key, dir: key === "name" ? 1 : -1 };
+      drawExamOverview();
+      const again = $("ex-packs").querySelector('button[data-ex-sort="' + CSS.escape(key) + '"]');
+      if (again) again.focus();
+      return;
+    }
+    const who = e.target.closest("button[data-ex-student]");
+    if (who) openExamDetail(who.dataset.exStudent);
+  });
+
+  // One student's attempts, newest first (teacher-api exam_student_detail checks they are in the class): question,
+  // rung, first or retry, score, each mark point (✓ or ✗, auto or self), notes, time, and the code of attempts that
+  // lost marks while it is kept (30 days), shown as on the Misconceptions page.
+  function closeExamDetail() { $("ex-detail-section").hidden = true; $("ex-detail").innerHTML = ""; }
+  $("ex-detail-close").addEventListener("click", () => { closeExamDetail(); const b = $("ex-packs").querySelector("button[data-ex-student]"); if (b) b.focus(); });
+  async function openExamDetail(nickname) {
+    const data = collect();
+    const id = data && Object.keys(data.students).find((k) => data.students[k].name === nickname);
+    $("ex-detail-section").hidden = false;
+    $("ex-detail-h").textContent = nickname + ": Exam Mode attempts";
+    $("ex-detail").innerHTML = '<p class="small">Loading…</p>';
+    $("ex-detail-h").focus();
+    if (!id) { $("ex-detail").innerHTML = '<p class="problem">This student isn\'t in the class any more.</p>'; return; }
+    const r = await tb.examStudentDetail(exClassId, id);
+    if (r.error) { $("ex-detail").innerHTML = '<p class="problem">' + esc(r.error) + "</p>"; return; }
+    const mark = (p) => (p.awarded === 1 ? '<span class="em-mark em-yes" aria-hidden="true">✓</span><span class="visually-hidden">got: </span>'
+      : p.awarded === 0 ? '<span class="em-mark em-no" aria-hidden="true">✗</span><span class="visually-hidden">missed: </span>'
+        : '<span class="em-mark em-unsure" aria-hidden="true">?</span><span class="visually-hidden">not checked: </span>');
+    $("ex-detail").innerHTML = !r.attempts.length ? '<p class="small">No Exam Mode attempts yet.</p>' : '<ol class="ex-attempts">' + r.attempts.map((a) => {
+      const q = exQuestion(a.question_id);
+      const label = (pid) => { const mp = a.rung === 5 && q && q.markPoints.find((x) => x.id === pid); return mp ? pid + ": " + mp.text : pid; };
+      return '<li class="ex-attempt"><p><strong>' + esc(exQuestionName(a.question_id)) + "</strong> · Rung " + a.rung + ": " + esc(EX.RUNG_NAMES[a.rung]) +
+        (a.step != null ? " (" + (a.rung === 1 ? "part " : "step ") + a.step + ")" : "") + " · " + (a.first ? "First attempt" : "Try " + a.attempt_number) +
+        " · <strong>" + a.total + "/" + a.max + '</strong> · <span class="small">' + esc(when(a.at)) + "</span>" +
+        (a.help_used ? ' · <span class="small">used "Say it simply"</span>' : "") + (a.paste_flag ? ' · <span class="flag flag-alert">' + esc(TD.PASTE_FLAGGED) + "</span>" : "") + "</p>" +
+        '<ul class="ex-points">' + a.points.map((p) => "<li>" + mark(p) + esc(label(p.id)) + ' <span class="small">(' + (p.status === "auto" ? "marked automatically" : "checked by the student") + ")</span></li>").join("") + "</ul>" +
+        (a.notes.length ? '<p class="small">Notes: ' + esc(a.notes.join(", ")) + "</p>" : "") +
+        (a.code != null ? '<pre class="review-code" tabindex="0" aria-label="' + esc(nickname + "'s code") + '">' + esc(a.code) + "</pre>"
+          : a.code_cleared ? '<p class="small">The code was cleared after 30 days.</p>' : "") + "</li>";
+    }).join("") + "</ol>";
+  }
 
   // ---------- One student ----------
   let shownStudent = null;

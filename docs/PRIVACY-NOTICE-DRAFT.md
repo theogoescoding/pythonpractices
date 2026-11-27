@@ -17,6 +17,8 @@ about you, why, for how long, and how to have it deleted.
   why an answer didn't pass (for example a spelling mistake in a variable name).
 - **The program code and output from attempts that didn't pass, for 30 days.** After 30 days they are deleted. What
   kind of mistake it was is kept, so your teacher can still see what to help with.
+- **Your Exam Mode answers,** stored like your practice attempts: the marks for each part of each answer, and whether
+  you used "Say it simply". The program code of an answer that didn't get full marks is kept for 30 days, then deleted.
 
 Python Practice does not ask for your real name, email address, date of birth or photo, and it does not use tracking or
 advertising.
@@ -31,7 +33,9 @@ teacher can see where you, and the class, need help.
 | What | How long |
 |---|---|
 | Program code and output from attempts that didn't pass | 30 days |
+| Program code of Exam Mode answers that didn't get full marks | 30 days |
 | Nickname, login code, progress and attempts | Until the end of the school year (31 August), or sooner if your teacher deletes your class or you delete your progress |
+| Exam Mode marks for each part of an answer, and whether "Say it simply" was used | The same as above |
 | PIN (hashed) | The same as above |
 
 At the end of the school year your class and everything in it is deleted automatically.

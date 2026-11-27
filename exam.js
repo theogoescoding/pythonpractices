@@ -3,8 +3,10 @@
 // ExamMode, tested by tests/exam-mode.js. EM1b (decision 21): a landing page with a card per pack, a tutorial on the
 // first visit, rung 1 rebuilt (bullet to code, mark it like an examiner), and each rung set in its own context. The browser part
 // below draws the page. Marking of code (rungs 4 and 5) happens in the Python worker (worker.js loads exam_marker.py
-// after harness.py), never here. Local mode only in EM1: everything is kept in this browser (localStorage), nothing is
-// sent to the server (EM2 adds that).
+// after harness.py), never here. Records are kept in this browser (localStorage); in backend mode (EM2) they also go to
+// the class's server through backend.js's outbox, and the page only opens when the class has Exam Mode switched on.
+// student-api and teacher-api load this file too, for the switch rule, packProgress and the row conversions (the page
+// part below only runs on exam.html).
 (function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory();
   else root.ExamMode = factory();
@@ -248,8 +250,48 @@
         "<p>\"Say it simply\" (rungs 1 to 3) gives the question in plain English. Each use is recorded. After a full question you can retry, see the model answer (after that, your tries aren't recorded) or move on.</p>" },
   ];
 
+  // ---------- The class switch (EM2, decisions 1 and 15) ----------
+  // A class's exam_mode setting: true or false when a teacher has set it, null to follow the stage (on for GCSE, off for
+  // KS3 and A-level). The same rule as public.exam_mode_effective in migration 0021; student-api and teacher-api use
+  // this one (exam-server.js), and tests check the two agree for every stage and setting.
+  const examModeOn = (stage, setting) => (typeof setting === "boolean" ? setting : (stage || "gcse") === "gcse");
+
+  // ---------- Saving to the server (EM2, backend mode) ----------
+  // The note recorded when the marker named the always-true loop test (decision 21): the teacher's page counts it.
+  const ALWAYS_TRUE_NOTE = "always-true-condition";
+  // A record as this page keeps it -> a row for student-api add_exam_attempts (the exam_attempts table's columns).
+  // A point the student hasn't checked yet ("check yourself") goes as { awarded: null, status: "self" }. total and
+  // auto_total are worked out from the points, as the server checks them. code is only sent when marks were lost.
+  function toServerRow(rec, packId, code) {
+    const points = (rec.points || []).map((p) => ({ id: p.id, awarded: p.awarded === 1 ? 1 : p.awarded === 0 ? 0 : null, status: p.how === "auto" ? "auto" : "self" }));
+    const auto = points.filter((p) => p.status === "auto");
+    const sum = (list) => list.reduce((s, p) => s + (p.awarded || 0), 0);
+    const row = { record_id: rec.id, timestamp: rec.at, pack_id: packId, question_id: rec.questionId, rung: rec.rung, step: rec.step == null ? null : rec.step,
+      attempt_number: rec.attempt || 1, first: !!rec.first, points, total: sum(points), max: rec.max, auto_total: sum(auto), auto_max: auto.length,
+      notes: (rec.notes || []).filter((n) => /^[a-z0-9-]{1,40}$/.test(n)).slice(0, 10), help_used: !!rec.help, paste_flag: !!rec.pasteFlag };
+    if (typeof code === "string" && code && row.total < row.max) row.student_code = code;
+    return row;
+  }
+  // A row from student-api get_exam_progress -> a record as this page keeps it (rung 4: stepsTotal, the steps it has).
+  function fromServerRow(r, stepsTotal) {
+    const rec = { id: r.record_id, at: new Date(r.timestamp).toISOString(), packId: r.pack_id, questionId: r.question_id, rung: r.rung, attempt: r.attempt_number,
+      first: !!r.first, recorded: true, queued: true, total: r.total, max: r.max, autoTotal: r.auto_total,
+      points: (r.points || []).map((p) => ({ id: p.id, awarded: p.awarded, how: p.status === "auto" ? "auto" : p.awarded == null ? "unsure" : "self" })),
+      help: !!r.help_used, notes: r.notes || [], pasteFlag: !!r.paste_flag };
+    if (r.step != null) rec.step = r.step;
+    if (r.rung === 4 && stepsTotal) rec.stepsTotal = stepsTotal;
+    return rec;
+  }
+  // This browser's records and the server's, one of each id (this browser's copy is kept: it may have a self-check
+  // the server hasn't had yet), oldest first.
+  function mergeRecords(local, server) {
+    const have = new Set((local || []).map((a) => a.id));
+    return (local || []).concat((server || []).filter((a) => !have.has(a.id))).sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
+  }
+
   return { RULES, NOTE_TEXT, numbersIn, sortedOptions, markBullets, sortedReasons, markExaminer, gapRight, checkGaps, fillCode, runPasses, toErl, toErlLine, splitArgs,
-    scoreSummary, packProgress, fullQuestionsOf, TUTORIAL, STORAGE_PREFIX, RUNG_NAMES, RUNG_KEYS };
+    scoreSummary, packProgress, fullQuestionsOf, TUTORIAL, STORAGE_PREFIX, RUNG_NAMES, RUNG_KEYS,
+    examModeOn, ALWAYS_TRUE_NOTE, toServerRow, fromServerRow, mergeRecords };
 });
 
 // ===================== Browser page (exam.html only) =====================
@@ -265,18 +307,74 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
   if (!student) { location.replace("app.html"); return; }
   $("student-name").textContent = student.name;
   Store.setupDisplaySettings();
+  // Backend mode (EM2): Exam Mode work goes to the class's server too, and the page only opens when the class has
+  // Exam Mode switched on (the teacher's switch, or the stage's default). Local mode: always open, this browser only.
+  const BE = self.Backend && self.Backend.enabled ? self.Backend : null;
+  if (BE && Store.examMode(student.id) === false) {
+    document.querySelector(".exam-nav").hidden = true;
+    document.title = "Exam Mode – Pythons and Ladders";
+    app.innerHTML = "<h2>Exam Mode</h2><p>Exam Mode isn't switched on for your class. Ask your teacher.</p><p><a href=\"app.html\">← Back to your units</a></p>";
+    return;
+  }
 
   // ---------- Saved in this browser (store.js patterns: readJson/writeJson already catch storage errors) ----------
+  // In backend mode this is a copy of the student's records, merged with the server's when the page opens.
+  // modelSeenSent and tutorialSent: the events already on their way to the server (so each is sent once).
   const KEY = X.STORAGE_PREFIX + student.id;
-  const saved = Object.assign({ attempts: [], help: [], pasteFlags: [], modelSeen: {}, tutorialSeen: false }, Store.readJson(KEY) || {});
+  const saved = Object.assign({ attempts: [], help: [], pasteFlags: [], modelSeen: {}, modelSeenSent: {}, tutorialSeen: false, tutorialSent: false }, Store.readJson(KEY) || {});
   const persist = () => { try { Store.writeJson(KEY, saved); } catch (e) { /* storage full or blocked: carry on */ } };
   const newId = () => "x-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
-  function record(entry) {
+  // code: the program the attempt was marked on (sent to the server only when marks were lost, never kept here).
+  function record(entry, code) {
     const prior = saved.attempts.filter((a) => a.questionId === entry.questionId && a.rung === entry.rung && (entry.step == null || a.step === entry.step));
-    const r = Object.assign({ id: newId(), at: new Date().toISOString(), attempt: prior.length + 1, first: prior.length === 0, recorded: true }, entry);
+    const r = Object.assign({ id: newId(), at: new Date().toISOString(), attempt: prior.length + 1, first: prior.length === 0, recorded: true, packId: pack.id }, entry);
     saved.attempts.push(r);
     persist();
+    // A full question with "check yourself" points waits until they are checked (or the student leaves the question).
+    if (r.points.some((p) => p.how === "unsure")) hold(r, code); else send(r, code);
     return r;
+  }
+
+  // ---------- The server (backend mode, EM2) ----------
+  // Each recorded attempt goes into backend.js's outbox (sent after each try, and again until it arrives), as a row of
+  // exam_attempts (X.toServerRow). queued marks it as on its way, so it is never sent twice from this browser.
+  const packOf = (qid) => (data ? data.packs.find((p) => p.questions.some((q) => q.id === qid)) : null);
+  const stepsTotalOf = (qid) => { const p = packOf(qid); return p && p.rungQuestions && p.rungQuestions.steps === qid ? p.rungs.steps.steps.length : null; };
+  let held = null; // { rec, code }: a full question's attempt waiting for its self-checks
+  function send(rec, code) {
+    if (!BE || rec.queued) return;
+    const p = packOf(rec.questionId);
+    if (!p) return; // a question that's no longer in exam-mode.json
+    rec.queued = BE.queueExam(student.id, X.toServerRow(rec, p.id, code));
+    persist();
+  }
+  function hold(rec, code) { releaseHeld(); held = { rec, code }; }
+  function releaseHeld() { if (held) { const h = held; held = null; send(h.rec, h.code); } }
+  addEventListener("pagehide", releaseHeld); // into the outbox (kept in this browser), sent now or next time
+  const event = (type, extra) => Object.assign({ record_id: newId(), record_type: type, timestamp: new Date().toISOString() }, extra || {});
+  function sendModelSeen(qid) {
+    if (!BE || saved.modelSeenSent[qid]) return;
+    if (BE.queueExamEvent(student.id, event("exam_model_seen", { task_id: qid }))) { saved.modelSeenSent[qid] = true; persist(); }
+  }
+  function sendTutorialSeen() {
+    if (!BE || saved.tutorialSent) return;
+    if (BE.queueExamEvent(student.id, event("exam_tutorial_seen"))) { saved.tutorialSent = true; persist(); }
+  }
+  // When the page opens: the server's records join this browser's (the same scores on any computer), and anything this
+  // browser has that the server hasn't (EM1's records, kept here only, the first time) is sent. Offline, or a server
+  // without Exam Mode: the page carries on with this browser's records.
+  async function syncWithServer() {
+    if (!BE) return;
+    const r = await BE.examProgress();
+    if (r.status !== 200 || !r.body || !Array.isArray(r.body.attempts)) return;
+    const server = r.body.attempts.map((row) => X.fromServerRow(row, stepsTotalOf(row.question_id)));
+    const onServer = new Set(server.map((a) => a.id));
+    for (const a of saved.attempts) if (onServer.has(a.id)) a.queued = true; else send(a, null);
+    saved.attempts = X.mergeRecords(saved.attempts, server);
+    for (const m of r.body.model_seen || []) { saved.modelSeen[m.question_id] = true; saved.modelSeenSent[m.question_id] = true; }
+    for (const qid of Object.keys(saved.modelSeen)) sendModelSeen(qid);
+    if (r.body.tutorial_seen) { saved.tutorialSeen = true; saved.tutorialSent = true; } else if (saved.tutorialSeen) sendTutorialSeen();
+    persist();
   }
 
   // ---------- Python (worker.js, with the page's 5-second stop) ----------
@@ -504,6 +602,7 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
   function focusHeading() { const h = app.querySelector("h2"); if (h) { h.setAttribute("tabindex", "-1"); h.focus(); } }
 
   function route() {
+    releaseHeld(); // leaving a full question: its attempt goes as it is (any unchecked point as not checked)
     viewStarted = Date.now();
     helpUsed = false;
     pasteFlagged = false;
@@ -534,6 +633,7 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
     const done = () => {
       saved.tutorialSeen = true;
       persist();
+      sendTutorialSeen(); // backend mode: seen on any computer
       if (location.hash === "#home") route(); else location.hash = "#home";
     };
     $("tut-back").addEventListener("click", () => { showTutorial(i - 1); focusHeading(); });
@@ -775,7 +875,8 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
       ok = mine.every((r, i) => !r.error && Checker.outputsMatch(r.output, want[i].output) && r.inputsLeft === want[i].inputsLeft);
       if (!ok) msg = mine.some((r) => r.error && /Indentation|Syntax/.test(r.error.type)) ? "Check the indentation: the lines inside the loop are indented once." : "You've picked all the right lines. Now check their order and indentation.";
     }
-    if (parsons.program.length) record({ questionId: q.id, rung: 2, total: ok ? 1 : 0, max: 1, points: [{ id: "skeleton", awarded: ok ? 1 : 0, how: "auto" }], help: helpUsed, notes: [], pasteFlag: false, seconds: Math.round((Date.now() - viewStarted) / 1000) });
+    if (parsons.program.length) record({ questionId: q.id, rung: 2, total: ok ? 1 : 0, max: 1, points: [{ id: "skeleton", awarded: ok ? 1 : 0, how: "auto" }], help: helpUsed, notes: [], pasteFlag: false, seconds: Math.round((Date.now() - viewStarted) / 1000) },
+      parsons.program.map((l) => " ".repeat(4 * (l.indent || 0)) + l.text).join("\n"));
     res.innerHTML = ok ? '<p class="success" tabindex="-1">✓ Well done – that is the skeleton of the answer.</p><p><a href="#pack/' + esc(pack.id) + '/fill">Next: Fill the gaps →</a></p>'
       : '<p class="problem" role="alert" tabindex="-1">' + esc(msg) + "</p>";
     res.firstChild.focus();
@@ -818,7 +919,8 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
     }
     const points = gaps.map((g, i) => ({ id: "gap" + (i + 1), awarded: g ? 1 : 0, how: "auto" })).concat([{ id: "runs", awarded: runOk ? 1 : 0, how: "auto" }]);
     const total = points.reduce((s, p) => s + p.awarded, 0);
-    record({ questionId: q.id, rung: 3, total, max: points.length, points, help: helpUsed, notes: [], pasteFlag: false, seconds: Math.round((Date.now() - viewStarted) / 1000) });
+    record({ questionId: q.id, rung: 3, total, max: points.length, points, help: helpUsed, notes: [], pasteFlag: false, seconds: Math.round((Date.now() - viewStarted) / 1000) },
+      X.fillCode(f, fillAnswers.a));
     res.innerHTML = '<h3 tabindex="-1">Your mark: ' + total + "/" + points.length + '</h3><ul class="em-points">' +
       gaps.map((g, i) => "<li>" + markIcon(g) + '<span class="visually-hidden">' + markWord(g) + ": </span>Gap " + (i + 1) + (g ? "" : ": not right yet") + "</li>").join("") +
       "<li>" + markIcon(runOk === true) + '<span class="visually-hidden">' + markWord(runOk === true) + ": </span>" +
@@ -862,7 +964,7 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
       const r = await runner.mark(editor.get(), q, s.check);
       const passed = r && !r.timeout && !r.error ? r.passed : null;
       record({ questionId: q.id, rung: 4, step: s.n, stepsTotal: steps.length, total: passed ? 1 : 0, max: 1, points: [{ id: "step" + s.n, awarded: passed ? 1 : 0, how: "auto" }],
-        help: false, notes: (r && r.notes) || [], pasteFlag: pasteFlagged, seconds: Math.round((Date.now() - viewStarted) / 1000) });
+        help: false, notes: (r && r.notes) || [], pasteFlag: pasteFlagged, seconds: Math.round((Date.now() - viewStarted) / 1000) }, editor.get());
       if (passed) stepDone[s.n] = true;
       const notes = ((r && r.notes) || []).filter((n) => X.NOTE_TEXT[n]).map((n) => '<p class="em-note">' + esc(X.NOTE_TEXT[n]) + "</p>").join("");
       $("em-result").innerHTML = (passed ? '<p class="success" tabindex="-1">✓ Step ' + s.n + " done." + (current() ? " Now step " + current().n + "." : " That's every step: you've written the whole answer.") + "</p>"
@@ -897,8 +999,10 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
     if (r.timeout) r = { points: q.markPoints.map((m) => ({ id: m.id, awarded: null, status: "unsure", reason: "timeout", feedback: m.feedback })), total: 0, max: q.marks, notes: ["timeout"] };
     const practice = !!saved.modelSeen[q.id];
     const points = r.points.map((p) => Object.assign({ id: p.id, awarded: p.awarded, how: p.status === "unsure" ? "unsure" : "auto" }, p.misconception ? { misconception: p.misconception } : {}));
-    const rec = practice ? null : record({ questionId: q.id, rung: 5, total: r.total, autoTotal: r.total, max: r.max, points, help: false, notes: r.notes, pasteFlag: pasteFlagged,
-      seconds: Math.round((Date.now() - viewStarted) / 1000) });
+    // The always-true loop test (decision 21) is recorded as a note too, so the teacher's page can count it (EM2).
+    const notes = r.notes.concat(r.points.some((p) => p.misconception === "always-true-or") ? [X.ALWAYS_TRUE_NOTE] : []);
+    const rec = practice ? null : record({ questionId: q.id, rung: 5, total: r.total, autoTotal: r.total, max: r.max, points, help: false, notes, pasteFlag: pasteFlagged,
+      seconds: Math.round((Date.now() - viewStarted) / 1000) }, code);
     showMarks(q, r, rec);
   }
   function showMarks(q, r, rec) {
@@ -931,14 +1035,18 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
           rp.how = "self";
           rec.total = total();
           persist();
+          // Every point checked: the attempt goes to the server now (backend mode), with the self-checks in it.
+          if (held && held.rec === rec && !rec.points.some((x) => x.how === "unsure")) releaseHeld();
         }
         draw();
         res.querySelector("h3").focus();
       }));
       $("retry-btn").addEventListener("click", () => { route(); });
       $("model-btn").addEventListener("click", () => {
+        releaseHeld(); // this attempt was made before the model answer: it still counts
         saved.modelSeen[q.id] = true;
         persist();
+        sendModelSeen(q.id); // backend mode: the server refuses later tries at this question too (decision 9)
         $("em-model").innerHTML = '<h3 tabindex="-1">Model answer</h3><h4>Python</h4><pre class="code">' + highlight(q.modelPython.trim()) + "</pre>" +
           '<h4>OCR Exam Reference Language</h4><pre class="code">' + highlight(q.modelERL.trim()) + "</pre>" +
           '<h3>Mark scheme</h3><ol class="em-scheme">' + q.markPoints.map((m) => "<li>" + esc(m.text) + "</li>").join("") + "</ol>" +
@@ -965,7 +1073,9 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
       '<thead><tr><th scope="col">Question</th><th scope="col">Rung</th><th scope="col">First attempt</th><th scope="col">Best</th><th scope="col">Attempts</th></tr></thead><tbody>' +
       rows.map((r) => '<tr><th scope="row">' + esc(title(r.questionId)) + "</th><td>" + r.rung + " " + esc(X.RUNG_NAMES[r.rung]) + "</td><td>" + r.first.total + "/" + r.first.max + "</td><td>" + r.best.total + "/" + r.best.max + "</td><td>" + r.attempts + "</td></tr>").join("") +
       "</tbody></table></div>" : "<p>No scores yet. Start with <a href=\"#pack/" + esc(pack.id) + "\">pack " + esc(pack.id) + "</a>.</p>") +
-      '<p class="small">"Say it simply" used ' + helps + " time" + (helps === 1 ? "" : "s") + ". Your Exam Mode work is saved in this browser only. Nothing is sent anywhere.</p>", "My exam scores");
+      '<p class="small">"Say it simply" used ' + helps + " time" + (helps === 1 ? "" : "s") + ". " +
+      (BE ? "Your Exam Mode work is saved to your class on the school's server, so you see the same scores on any computer. Your teacher can see it."
+        : "Your Exam Mode work is saved in this browser only. Nothing is sent anywhere.") + "</p>", "My exam scores");
   }
 
   // ---------- Start ----------
@@ -973,8 +1083,10 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
     data = j;
     for (const b of data.blocks) blockById[b.id] = b;
     pack = data.packs[0];
-    window.addEventListener("hashchange", route);
-    route();
+    return syncWithServer().catch(() => { /* the page still opens with this browser's records */ }).then(() => {
+      window.addEventListener("hashchange", route);
+      route();
+    });
   }).catch(() => {
     app.innerHTML = '<p class="problem">Couldn\'t load Exam Mode. Open this site through a local web server (see README.md) rather than double-clicking the file.</p>';
   });

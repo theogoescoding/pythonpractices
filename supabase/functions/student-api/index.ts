@@ -15,13 +15,24 @@
 //   leaderboard                        -> { boards: { overall, improving }, me: { secured, level, programme, bonus, programmes, total, gain }, max }
 //                                           their own class only: each row { rank, nickname, points, percent, me } (no unit detail,
 //                                           attempts or codes). points = the combined total (secured + level + programme + re-secure bonus)
-//   delete_my_progress                 deletes the student and everything saved for them
+//   delete_my_progress                 deletes the student and everything saved for them (their Exam Mode attempts too)
+// Exam Mode (prompt EM2, migration 0021; exam-server.js):
+//   get_progress also sends exam_mode: true | false (the class's switch, or the stage's default: on for GCSE)
+//   add_exam_attempts { rows }         -> { saved, rejected }  rows use the exam_attempts table's column names. Each row is
+//                                           checked on its own (shape, ranges, the sums of its points); a try made after the
+//                                           student opened that question's model answer is refused; a resent row saves nothing.
+//   get_exam_progress                  -> { attempts (their own, no code), model_seen: [{ question_id, at }], tutorial_seen }
+//   add_events also takes exam_model_seen (task_id = the question) and exam_tutorial_seen, with x- ids and no unit.
 
 import { lookupHash, pinMatches, verifyToken } from "../_shared/crypto.ts";
 import { check, db, HttpError, serve } from "../_shared/http.ts";
 import { NICKNAME_RULES, nicknameBlocked, validNickname } from "../_shared/nickname.ts";
 import { classPoints, studentBoard } from "../_shared/points.ts";
-import { checkAttempts, checkEvents, insertRows, PROGRESS_UNITS, Rejected, UNITS } from "../_shared/rows.ts";
+import { checkAttempts, checkEvents, EXAM_EVENT_TYPES, insertRows, PROGRESS_UNITS, Rejected, UNITS } from "../_shared/rows.ts";
+// Exam Mode: the switch rule and the row conversions are the site's own (exam.js, whose page part only runs in a
+// browser); exam-server.js checks and saves the rows.
+import "../../../exam.js";
+import "../_shared/exam-server.js";
 // The homework rule is the site's own (homework.js); homework-server.js reads and saves it. Both are plain scripts
 // (tests/backend-client.js runs the same files in Node): they set globalThis.Homework and globalThis.HomeworkServer.
 import "../../../homework.js";
@@ -47,7 +58,7 @@ const WRONG_PIN = "That PIN isn't right. Type the 4-digit PIN you sign in with."
 const NAME_TAKEN = "Another student in this class already has that nickname. Try another one.";
 const NAME_BLOCKED = "This nickname isn't allowed. Please choose another.";
 const MAX_STATE_CHARS = 900_000;
-const STUDENT_EVENT_TYPES = ["level_change", "button_use", "placement_result", "paste_flag"];
+const STUDENT_EVENT_TYPES = ["level_change", "button_use", "placement_result", "paste_flag", ...EXAM_EVENT_TYPES];
 const ATTEMPT_COLUMNS = "record_id, record_type, timestamp, unit, task_units, task_id, template_id, phase, task_type, " +
   "task_level, student_level_before, student_level_after, attempt_number, result, failure_category, failure_details, " +
   "misconception_matches, hints_used, hint_type, variant_fingerprint, failed_test_number, failed_test_inputs, " +
@@ -96,7 +107,19 @@ const actions: Record<string, (sid: string, body: Record<string, unknown>) => Pr
       attempts: await allRows("attempts", ATTEMPT_COLUMNS, sid, "id"),
       assignments: await openAssignments(student.class_id as string),
       homework: (await myHomework(sid)) ?? [],
+      exam_mode: await G.ExamServer.examModeForStudent(db(), { ExamMode: G.ExamMode }, sid),
     };
+  },
+
+  // Exam Mode (exam-server.js, migration 0021).
+  async add_exam_attempts(sid, body) {
+    const r = await G.ExamServer.addAttempts(db(), sid, body.rows, { hash: (code: string) => lookupHash("code", code) });
+    if (!r) throw bad();
+    return r;
+  },
+
+  async get_exam_progress(sid) {
+    return await G.ExamServer.forStudent(db(), sid);
   },
 
   async get_assignments(sid) {

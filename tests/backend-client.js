@@ -22,7 +22,9 @@ function memoryStorage() {
 function fakeServer() {
   // failNext: { "resume": [546, 546] } answers the next calls to that function with those statuses (an overloaded server).
   // homework: { sid: [...] } what student-api sends as the student's homework (get_progress, and after a pass or a paste flag).
-  const s = { offline: false, signOutAll: false, students: {}, progress: {}, passed: {}, attempts: {}, events: {}, calls: [], failNext: {}, points: {}, homework: {} };
+  // exam: { sid: [rows] } Exam Mode attempts (add_exam_attempts); examMode: { sid: true | false } the class's switch as
+  // get_progress sends it (unset: true).
+  const s = { offline: false, signOutAll: false, students: {}, progress: {}, passed: {}, attempts: {}, events: {}, calls: [], failNext: {}, points: {}, homework: {}, exam: {}, examMode: {} };
   const b64 = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
   const token = (sid) => b64({ sid, exp: Math.floor(Date.now() / 1000) + 8 * 3600 }) + ".sig";
   const sidOf = (t) => { try { return JSON.parse(Buffer.from(String(t).split(".")[0], "base64url").toString()).sid; } catch (e) { return null; } };
@@ -53,7 +55,17 @@ function fakeServer() {
           progress: Object.entries(s.progress[sid]).map(([unit, state]) => ({ unit, state: JSON.parse(state) })),
           passed: s.passed[sid].map((x) => ({ unit: x.split("|")[0], fingerprint: x.split("|")[1] })),
           attempts: s.attempts[sid].map((r) => Object.assign({}, r, { timestamp: r.timestamp.replace("Z", "+00:00") })),
-          homework: s.homework[sid] || [] });
+          homework: s.homework[sid] || [], exam_mode: sid in s.examMode ? s.examMode[sid] : true });
+      case "add_exam_attempts": {
+        const list = (s.exam[sid] = s.exam[sid] || []);
+        let saved = 0;
+        for (const r of body.rows) if (!list.some((x) => x.record_id === r.record_id)) { list.push(r); saved++; }
+        return reply(200, { saved, rejected: [] });
+      }
+      case "get_exam_progress":
+        return reply(200, { attempts: (s.exam[sid] || []).map((r) => Object.assign({}, r, { student_code: undefined })),
+          model_seen: s.events[sid].filter((e) => e.record_type === "exam_model_seen").map((e) => ({ question_id: e.task_id, at: e.timestamp })),
+          tutorial_seen: s.events[sid].some((e) => e.record_type === "exam_tutorial_seen") });
       case "save_progress": s.progress[sid][body.unit] = JSON.stringify(body.state); return reply(200, { ok: true });
       case "mark_passed":
         if (!s.passed[sid].includes(body.unit + "|" + body.fingerprint)) s.passed[sid].push(body.unit + "|" + body.fingerprint);
@@ -96,10 +108,12 @@ function fakeServer() {
 // reads and writes, and the two server functions of migration 0016 (written to match their SQL).
 function fakeDb() {
   const t = { users: [], teachers: [], classes: [], class_teachers: [], students: [], assignments: [], attempts: [], progress: [], certificates: [],
-    events: [], homework: [], homework_progress: [] };
+    events: [], homework: [], homework_progress: [], exam_attempts: [] };
   class Query {
     constructor(name) { this.name = name; this.filters = []; this.op = "select"; this.one = false; this.returning = false; this.from = 0; this.to = Infinity; }
     select() { if (this.op !== "select") this.returning = true; return this; }
+    // As exam-server.js uses it: update classes set exam_mode = ... where id = ...
+    update(values) { this.op = "update"; this.values = values; return this; }
     eq(col, v) { this.filters.push((r) => r[col] === v); return this; }
     neq(col, v) { this.filters.push((r) => r[col] !== v); return this; }
     in(col, vs) { this.filters.push((r) => vs.includes(r[col])); return this; }
@@ -118,12 +132,19 @@ function fakeDb() {
       if (this.op === "upsert") {
         // insert ... on conflict do nothing (ignoreDuplicates, certificates-server.js) or do update (homework-server.js).
         const keys = this.opts.onConflict.split(",");
+        const added = [];
         for (const r of this.rows) {
           const old = rows.find((x) => keys.every((k) => x[k] === r[k]));
-          if (!old) rows.push(Object.assign({ created_at: new Date().toISOString() }, r));
+          if (!old) { const row = Object.assign({ id: rows.length + 1, created_at: new Date().toISOString() }, r); rows.push(row); added.push(row); }
           else if (!this.opts.ignoreDuplicates) Object.assign(old, r);
         }
-        return { data: null, error: null };
+        // With .select() (exam-server.js): the rows actually inserted (a duplicate skipped by ignoreDuplicates isn't).
+        return { data: this.returning ? added : null, error: null };
+      }
+      if (this.op === "update") {
+        const hit = rows.filter((r) => this.filters.every((f) => f(r)));
+        for (const r of hit) Object.assign(r, this.values);
+        return { data: this.returning ? hit : null, error: null };
       }
       if (this.op === "insert") {
         if (this.name === "class_teachers" && rows.some((r) => r.class_id === this.row.class_id && r.teacher_id === this.row.teacher_id))
@@ -981,6 +1002,209 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
       "Students page: every unit is a column exactly once (in curriculum order, Debugging (GCSE) and the A-level units too), and each Level cell shows that student's level from the server");
     check(!/#student=b\d/.test(results.A.html) && !/#student=a\d/.test(results.B.html),
       "Students page: a class's tables never show another class's students");
+  }
+
+  // ---------- Exam Mode on the server (student-api and teacher-api: _shared/exam-server.js, migration 0021, prompt EM2) ----------
+  // The real module both functions run, with the site's own rules (exam.js) and questions (exam-mode.json), against an
+  // in-memory database. tests/sql/exam-mode.sql checks the real tables: row-level security, the checks, the model-answer
+  // trigger, deletes cascading and code being cleared after 30 days.
+  {
+    const fs = require("fs");
+    const Sharing = require(path.join(ROOT, "supabase", "functions", "_shared", "class-sharing.js"));
+    const ES = require(path.join(ROOT, "supabase", "functions", "_shared", "exam-server.js"));
+    const ExamMode = require(path.join(ROOT, "exam.js"));
+    const data = JSON.parse(fs.readFileSync(path.join(ROOT, "exam-mode.json"), "utf8"));
+    const deps = { Sharing, ExamMode, data };
+    const sb = fakeDb();
+    const T = sb.t;
+    const id = (n) => "0000000" + n + "-0000-0000-0000-000000000001";
+    const [O, K, X] = [id("a"), id("b"), id("c")];
+    const CLA = "0000000a-0000-0000-0000-00000000c1a5", CLK = "0000000a-0000-0000-0000-00000000c1a7", CLX = "0000000c-0000-0000-0000-00000000c1a5";
+    const ADA = "0000000a-0000-0000-0000-0000000057d1", BEN = "0000000a-0000-0000-0000-0000000057d2", CY = "0000000a-0000-0000-0000-0000000057d3";
+    const KIT = "0000000a-0000-0000-0000-0000000057d7", XAVI = "0000000c-0000-0000-0000-0000000057d1";
+    T.teachers.push({ id: O, name: "Owner O" }, { id: K, name: "Co-teacher K" }, { id: X, name: "Stranger X" });
+    T.classes.push({ id: CLA, name: "10A", teacher_id: O, stage: "gcse", exam_mode: null }, { id: CLK, name: "8K", teacher_id: O, stage: "ks3", exam_mode: null },
+      { id: CLX, name: "11X", teacher_id: X, stage: "gcse", exam_mode: null });
+    T.class_teachers.push({ class_id: CLA, teacher_id: O }, { class_id: CLA, teacher_id: K }, { class_id: CLK, teacher_id: O }, { class_id: CLX, teacher_id: X });
+    T.students.push({ id: ADA, class_id: CLA, nickname: "Ada", pin_hash: "SECRET-PIN", login_code_enc: "SECRET-CODE" }, { id: BEN, class_id: CLA, nickname: "Ben" },
+      { id: CY, class_id: CLA, nickname: "Cy" }, { id: KIT, class_id: CLK, nickname: "Kit" }, { id: XAVI, class_id: CLX, nickname: "Xavi" });
+    const problem = async (f) => { try { await f(); return null; } catch (e) { return e instanceof Sharing.Problem ? { status: e.status, problem: e.problem } : { thrown: String(e) }; } };
+    const hash = async (code) => "hmac:" + code.length;
+    const at = (min) => new Date(Date.parse("2026-11-20T10:00:00Z") + min * 60000).toISOString();
+    let n = 0;
+    // A row as exam.js sends it (ExamMode.toServerRow), from the points: [awarded, "auto" | "self" | "unsure"].
+    const row = (q, rung, min, pts, extra, code) => ExamMode.toServerRow(Object.assign({ id: "x-t" + (++n) + "-abc", at: at(min), questionId: q, rung, attempt: 1, first: true,
+      max: pts.length, points: pts.map(([a, how], i) => ({ id: "BP" + (i + 1), awarded: a, how })), help: false, notes: [], pasteFlag: false }, extra || {}), "C1", code);
+    const six = (lost) => [1, 2, 3, 4, 5, 6].map((i) => [lost.includes(i) ? 0 : 1, "auto"]);
+
+    // 1. The switch: the same rule as migration 0021's public.exam_mode_effective, for every stage and setting.
+    const table = { "ks3|null": false, "gcse|null": true, "a-level|null": false, "null|null": true, "ks3|true": true, "gcse|true": true, "a-level|true": true, "null|true": true,
+      "ks3|false": false, "gcse|false": false, "a-level|false": false, "null|false": false };
+    const mig = fs.readFileSync(path.join(ROOT, "supabase", "migrations", "0021_exam_mode.sql"), "utf8");
+    check(Object.entries(table).every(([k, want]) => { const [st, se] = k.split("|"); return ExamMode.examModeOn(st === "null" ? null : st, se === "null" ? null : se === "true") === want; }) &&
+      /select coalesce\(p_setting, coalesce\(p_stage, 'gcse'\) = 'gcse'\)/.test(mig),
+      "Exam Mode switch: the effective value for every stage and setting (null follows the stage: on for GCSE, off for KS3 and A-level; true or false wins), the same rule as the SQL function");
+    const before = [await ES.examModeForStudent(sb, deps, ADA), await ES.examModeForStudent(sb, deps, KIT)];
+    const turnedOn = await ES.setExamMode(sb, deps, O, CLK, true);
+    const coOff = await ES.setExamMode(sb, deps, K, CLA, false);
+    const after = [await ES.examModeForStudent(sb, deps, ADA), await ES.examModeForStudent(sb, deps, KIT)];
+    const back = await ES.setExamMode(sb, deps, O, CLA, null);
+    check(before.join() === "true,false" && turnedOn.on && turnedOn.setting === true && turnedOn.stage === "ks3" && coOff.on === false && after.join() === "false,true" &&
+      back.setting === null && back.on && (await ES.examModeForStudent(sb, deps, ADA)),
+      "Exam Mode switch: a GCSE class has it and a KS3 class doesn't; switching it on for the KS3 class shows it; a co-teacher can switch it too; null goes back to the stage's default");
+    const strangerSet = await problem(() => ES.setExamMode(sb, deps, X, CLA, true));
+    const badSet = await problem(() => ES.setExamMode(sb, deps, O, CLA, "yes"));
+    check(strangerSet && strangerSet.status === 404 && badSet && badSet.status === 400 && badSet.problem === "setting" && T.classes.find((c) => c.id === CLA).exam_mode === null,
+      "Exam Mode switch: a teacher who isn't on the class gets the same 404 as a class that doesn't exist; only true, false or null is taken");
+
+    // 2. Saving rows: good ones saved, bad ones refused one by one, a resend saving nothing twice.
+    const goodQ1 = row("C1-Q1", 5, 1, six([5, 6]), {}, "games = int(input())\nprint(games * 5)");
+    const goodFull = row("C1-Q2", 5, 2, six([]), {}, "print('full marks: no code kept')");
+    const part1 = row("C1-R1", 1, 3, [[1, "auto"], [1, "auto"], [0, "auto"], [1, "auto"]], { step: 1, help: true });
+    const unsure = row("C1-Q1", 5, 4, [[1, "auto"], [null, "unsure"], [1, "self"], [1, "auto"], [1, "auto"], [1, "auto"]], { attempt: 2, first: false });
+    const bad = {
+      total: Object.assign({}, row("C1-Q1", 5, 5, six([])), { total: 5 }),
+      recordId: Object.assign({}, row("C1-Q1", 5, 5, six([])), { record_id: "a-not-exam" }),
+      step: Object.assign({}, row("C1-Q1", 5, 5, six([])), { step: 2 }),
+      points: Object.assign({}, row("C1-Q1", 5, 5, six([])), { max: 7 }),
+      nullAuto: Object.assign({}, row("C1-Q1", 5, 5, six([])), { points: six([]).map(([a], i) => ({ id: "BP" + (i + 1), awarded: i ? a : null, status: "auto" })), total: 5, auto_total: 5 }),
+      autoTotal: Object.assign({}, row("C1-Q1", 5, 5, six([2])), { auto_total: 6 }),
+      extra: Object.assign({}, row("C1-Q1", 5, 5, six([])), { teacher_mark: 6 }),
+      notes: Object.assign({}, row("C1-Q1", 5, 5, six([])), { notes: ["Not A Note!"] }),
+      question: Object.assign({}, row("C1-Q1", 5, 5, six([])), { question_id: "C1 Q1; drop table" }),
+      rung: Object.assign({}, row("C1-Q1", 9, 5, six([]))),
+    };
+    const first = await ES.addAttempts(sb, ADA, [goodQ1, goodFull, part1, unsure, ...Object.values(bad)], { hash });
+    const reasons = Object.fromEntries(first.rejected.map((r) => [r.record_id, r.reason]));
+    const saved = T.exam_attempts.filter((r) => r.student_id === ADA);
+    check(first.saved === 4 && first.rejected.length === Object.keys(bad).length && saved.length === 4 &&
+      reasons[bad.total.record_id] === "bad total" && reasons["a-not-exam"] === "bad record_id" && reasons[bad.step.record_id] === "bad step" && reasons[bad.points.record_id] === "bad points" &&
+      reasons[bad.nullAuto.record_id] === "bad points" && reasons[bad.autoTotal.record_id] === "bad auto_total" && reasons[bad.extra.record_id] === "bad teacher_mark" &&
+      reasons[bad.notes.record_id] === "bad notes" && reasons[bad.question.record_id] === "bad question_id" && reasons[bad.rung.record_id] === "bad rung",
+      "add_exam_attempts: good rows are saved and bad ones refused one by one, each with its reason (the sums of the points, ids, a step on rung 5, one point per mark, unknown columns, notes, rung)");
+    const q1Row = saved.find((r) => r.record_id === goodQ1.record_id), fullRow = saved.find((r) => r.record_id === goodFull.record_id);
+    check(q1Row.student_code && q1Row.code_hash === "hmac:" + q1Row.student_code.length && q1Row.total === 4 && q1Row.auto_total === 4 && q1Row.auto_max === 6 &&
+      !("student_code" in fullRow) && fullRow.code_hash === null && saved.find((r) => r.record_id === unsure.record_id).auto_max === 4 &&
+      saved.find((r) => r.record_id === part1.record_id).help_used === true,
+      "add_exam_attempts: code is kept (with its hash) only for an attempt that lost marks; self-checked and unchecked points count in total but not in auto_total and auto_max; \"Say it simply\" is kept");
+    const again = await ES.addAttempts(sb, ADA, [goodQ1, goodFull, part1, unsure], { hash });
+    check(again.saved === 0 && again.rejected.length === 0 && T.exam_attempts.filter((r) => r.student_id === ADA).length === 4,
+      "add_exam_attempts: a resent batch saves nothing twice (the same record_id)");
+    check((await ES.addAttempts(sb, ADA, "not a list", { hash })) === null && (await ES.addAttempts(sb, ADA, new Array(501).fill(goodQ1), { hash })) === null,
+      "add_exam_attempts: anything but a list of at most 500 rows is a bad request");
+
+    // 3. Nothing after the model answer (decision 9): the try before it is kept, the one after is refused.
+    T.events.push({ id: 900, student_id: ADA, record_type: "exam_model_seen", task_id: "C1-Q2", timestamp: at(10) });
+    const beforeModel = row("C1-Q2", 5, 9, six([3]), { attempt: 2, first: false, notes: [ExamMode.ALWAYS_TRUE_NOTE] });
+    const afterModel = row("C1-Q2", 5, 11, six([]), { attempt: 3, first: false });
+    const otherQ = row("C1-Q1", 5, 12, six([]), { attempt: 3, first: false });
+    const mr = await ES.addAttempts(sb, ADA, [beforeModel, afterModel, otherQ], { hash });
+    check(mr.saved === 2 && mr.rejected.length === 1 && mr.rejected[0].record_id === afterModel.record_id && mr.rejected[0].reason === "after the model answer",
+      "add_exam_attempts: a try made after the student opened that question's model answer is refused; a try before it, and other questions, are saved");
+
+    // 4. The student's own records on another computer: their rows (no code), the model answers seen, the tutorial.
+    T.events.push({ id: 901, student_id: ADA, record_type: "exam_tutorial_seen", task_id: null, timestamp: at(0) });
+    await ES.addAttempts(sb, BEN, [row("C1-Q1", 5, 20, [[1, "auto"], [1, "auto"], [1, "auto"], [1, "auto"], [1, "auto"], [1, "self"]])], { hash });
+    const own = await ES.forStudent(sb, ADA);
+    check(own.attempts.length === 6 && own.attempts.every((r) => !("student_code" in r) && !("student_id" in r) && !("code_hash" in r)) &&
+      own.model_seen.length === 1 && own.model_seen[0].question_id === "C1-Q2" && own.tutorial_seen === true && (await ES.forStudent(sb, BEN)).attempts.length === 1 &&
+      (await ES.forStudent(sb, BEN)).tutorial_seen === false,
+      "get_exam_progress: a student gets their own rows only (no code, hash or ids), the model answers they've opened and whether they've seen the tutorial");
+
+    // 5. The teacher's overview, from a small fixed set: Ada (rungs 1 and 5: C1-Q1 4/6 then 6/6, C1-Q2 6/6 then 5/6
+    //    after "always true"), Ben (C1-Q1 6/6 with one point self-checked), Cy (nothing).
+    const ov = await ES.overview(sb, deps, O, CLA);
+    const ada = ov.students.find((s) => s.nickname === "Ada").packs.C1, ben = ov.students.find((s) => s.nickname === "Ben").packs.C1, cy = ov.students.find((s) => s.nickname === "Cy").packs.C1;
+    check(ov.students.map((s) => s.nickname).join() === "Ada,Ben,Cy" && ada.reached === 5 && ada.started && ada.first_pct === 83 && ada.best_pct === 100 && ada.full_tried === 2 &&
+      ben.reached === 5 && ben.first_pct === 100 && !cy.started && cy.reached === 0 && cy.first_pct === null &&
+      ov.average.C1.reached === 3.3 && ov.average.C1.first_pct === 92 && ov.average.C1.best_pct === 100 && ov.average.C1.students === 3 && ov.switch.on === true,
+      "exam_overview: each student's rung reached (the landing card's rule) and first and best % on the full questions (Ada 83% then 100%); the class average row (rung 3.3, first 92%, best 100%)");
+    const q1 = ov.missed.find((m) => m.question_id === "C1-Q1"), q2 = ov.missed.find((m) => m.question_id === "C1-Q2");
+    check(q1.students === 2 && q1.points[0].pct === 50 && ["BP5", "BP6"].includes(q1.points[0].id) && q1.points.filter((p) => p.missed).length === 2 && q1.always_true === 0 &&
+      q2.students === 1 && q2.points.every((p) => p.missed === 0) && q2.always_true === 0,
+      "exam_overview: most-missed mark points from each student's FIRST attempt only (C1-Q1: BP5 and BP6 50%; Ada's later 5/6 on C1-Q2 isn't counted), most missed first");
+    const help1 = ov.help.find((h) => h.question_id === "C1-Q1"), helpR1 = ov.help.find((h) => h.question_id === "C1-R1");
+    check(help1.attempts === 4 && help1.self_pct === 13 && help1.help_pct === 0 && helpR1.help_pct === 100 && helpR1.rungs.join() === "1",
+      "exam_overview: per question, the % of mark points students checked themselves (3 of 24: a checked one, an unchecked one, Ben's) and the % of attempts with \"Say it simply\"");
+    // The always-true count: a first attempt with the marker's note.
+    await ES.addAttempts(sb, BEN, [row("C1-Q2", 5, 21, six([3]), { notes: [ExamMode.ALWAYS_TRUE_NOTE] })], { hash });
+    const ov2 = await ES.overview(sb, deps, O, CLA);
+    check(ov2.missed.find((m) => m.question_id === "C1-Q2").always_true === 1 && ov2.missed.find((m) => m.question_id === "C1-Q2").points[0].id === "BP3",
+      "exam_overview: the always-true loop test is counted as its own line (from the first attempt's note)");
+    const flat = JSON.stringify(ov2);
+    check(![ADA, BEN, CY, "SECRET", "student_code", "games = int", "hmac:"].some((x) => flat.includes(x)),
+      "exam_overview: nicknames, numbers and question and mark-point ids only (no student id, PIN, login code or code)");
+    const coView = await ES.overview(sb, deps, K, CLA);
+    const strangerView = await problem(() => ES.overview(sb, deps, X, CLA));
+    const otherClass = await ES.overview(sb, deps, X, CLX);
+    check(JSON.stringify(coView) === JSON.stringify(ov2) && strangerView && strangerView.status === 404 && otherClass.students.map((s) => s.nickname).join() === "Xavi" &&
+      !JSON.stringify(otherClass).includes("Ada"),
+      "exam_overview: a co-teacher sees the same as the owner; a teacher who isn't on the class gets a 404; each class sees only its own students");
+
+    // 6. One student's detail: their attempts, newest first, with code while it is kept; only for a student of that class.
+    T.exam_attempts.find((r) => r.record_id === goodQ1.record_id).code_deleted_at = null;
+    const oldOne = row("C1-Q1", 5, -60 * 24 * 40, six([1]), { attempt: 4, first: false });
+    await ES.addAttempts(sb, ADA, [oldOne], { hash });
+    Object.assign(T.exam_attempts.find((r) => r.record_id === oldOne.record_id), { student_code: null, code_deleted_at: at(0) });
+    const det = await ES.studentDetail(sb, deps, O, CLA, ADA);
+    const times = det.attempts.map((a) => Date.parse(a.at));
+    check(det.nickname === "Ada" && det.attempts.length === 7 && times.every((t, i) => !i || times[i - 1] >= t) &&
+      det.attempts.find((a) => a.question_id === "C1-Q1" && a.total === 4).code.includes("games") && det.attempts[det.attempts.length - 1].code === null &&
+      det.attempts[det.attempts.length - 1].code_cleared === true && det.attempts.every((a) => Array.isArray(a.points) && "notes" in a && "help_used" in a),
+      "exam_student_detail: the student's attempts, newest first, with points, notes and \"Say it simply\"; code while it is kept, and \"cleared\" after 30 days");
+    const wrongClass = await problem(() => ES.studentDetail(sb, deps, O, CLA, XAVI));
+    const strangerDetail = await problem(() => ES.studentDetail(sb, deps, X, CLA, ADA));
+    const coDetail = await ES.studentDetail(sb, deps, K, CLA, ADA);
+    check(wrongClass && wrongClass.status === 404 && strangerDetail && strangerDetail.status === 404 && coDetail.attempts.length === 7 &&
+      !/SECRET/.test(JSON.stringify(coDetail)),
+      "exam_student_detail: only for a student of that class (another class's student is a 404), and only for a teacher on the class (owner or co-teacher)");
+  }
+
+  // ---------- Exam Mode in the student's browser (backend.js, prompt EM2) ----------
+  // exam.js hands its rows to backend.js, which sends them with the rest of the student's work (the same outbox: sent
+  // after a moment, kept until it arrives) and fetches them back on another computer.
+  {
+    const ExamMode = require(path.join(ROOT, "exam.js"));
+    const srv = fakeServer();
+    let p = openPage(srv);
+    await p.Backend.join("ABCDEF", "Eve");
+    const sid = p.Backend.session().sid;
+    srv.examMode[sid] = false;
+    p = openPage(srv, p.storage);
+    await p.Backend.ready();
+    check(p.Store.examMode(sid) === false, "get_progress: the class's Exam Mode switch is kept for the page (off: the menu item and exam.html are hidden)");
+    srv.examMode[sid] = true;
+    p = openPage(srv, p.storage);
+    await p.Backend.ready();
+    const rec = { id: "x-eve1-abcdef", at: new Date().toISOString(), questionId: "C1-Q1", rung: 5, attempt: 1, first: true, max: 6,
+      points: [1, 1, 0, 1, 1, 1].map((a, i) => ({ id: "BP" + (i + 1), awarded: a, how: "auto" })), help: false, notes: ["int"], pasteFlag: true };
+    const queued = p.Backend.queueExam(sid, ExamMode.toServerRow(rec, "C1", "print(1)"));
+    p.Backend.queueExamEvent(sid, { record_id: "x-eve2-abcdef", record_type: "exam_model_seen", timestamp: new Date().toISOString(), task_id: "C1-Q1" });
+    await p.Backend.flush();
+    check(queued && p.Store.examMode(sid) === true && srv.exam[sid].length === 1 && srv.exam[sid][0].total === 5 && srv.exam[sid][0].student_code === "print(1)" &&
+      srv.events[sid].some((e) => e.record_type === "exam_model_seen" && e.task_id === "C1-Q1") && srv.calls.includes("student-api:add_exam_attempts") && !p.Backend.pending(),
+      "Exam Mode work goes through the outbox: attempts with add_exam_attempts, the model answer seen with add_events");
+    p.Backend.queueExam(sid, ExamMode.toServerRow(rec, "C1", "print(1)"));
+    await p.Backend.flush();
+    const elsewhere = openPage(srv); // another computer
+    await elsewhere.Backend.resume(srv.students[sid].code, "1234");
+    const got = await elsewhere.Backend.examProgress();
+    check(srv.exam[sid].length === 1 && got.status === 200 && got.body.attempts.length === 1 && got.body.model_seen[0].question_id === "C1-Q1" &&
+      ExamMode.scoreSummary(ExamMode.mergeRecords([], got.body.attempts.map((r) => ExamMode.fromServerRow(r))))[0].first.total === 5,
+      "Exam Mode: a resend is saved once, and another computer gets the same records (the same first-attempt score)");
+    // A shared computer: the next student's sign-in clears this one's Exam Mode records once they're all on their way.
+    p.storage.setItem(p.Store.EXAM_PREFIX + sid, JSON.stringify({ attempts: [Object.assign({ queued: true }, rec)] }));
+    const other = await p.Backend.join("ABCDEF", "Fin");
+    check(other.status === 200 && p.storage.getItem(p.Store.EXAM_PREFIX + sid) === null && p.storage.getItem(p.Store.EXAM_MODE_PREFIX + sid) === null,
+      "Exam Mode on a shared computer: the next student's sign-in removes the last one's Exam Mode records (all sent) and switch");
+    const fin = p.Backend.session().sid;
+    p.storage.setItem(p.Store.EXAM_PREFIX + fin, JSON.stringify({ attempts: [{ id: "x-old" }] }));
+    await p.Backend.join("ABCDEF", "Gus");
+    check(p.storage.getItem(p.Store.EXAM_PREFIX + fin) !== null, "Exam Mode records that haven't been sent yet (from before EM2) are kept for that student's next visit");
+    const gus = p.Backend.session().sid;
+    p.storage.setItem(p.Store.EXAM_PREFIX + gus, JSON.stringify({ attempts: [] }));
+    await p.Backend.deleteMyProgress();
+    check(p.storage.getItem(p.Store.EXAM_PREFIX + gus) === null, "Delete everything saved for me also removes this browser's Exam Mode records");
   }
 
   // ---------- The Edge Functions' allowed origins (the move to pythonsandladders.uk, 2026-11) ----------

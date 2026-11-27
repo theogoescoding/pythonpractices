@@ -119,6 +119,13 @@
   const CLASS_STAGE_PREFIX = "pyPractice.classStage.v1."; // + student id
   const classStage = (studentId) => readJson(CLASS_STAGE_PREFIX + studentId) || null;
   const saveClassStage = (studentId, stage) => writeJson(CLASS_STAGE_PREFIX + studentId, stage || null);
+  // Whether the student's class has Exam Mode switched on (prompt EM2), as get_progress sent it: true or false; null in
+  // local mode, or from a server without the switch (then Exam Mode shows, as before). The menu item and exam.html read it.
+  const EXAM_MODE_PREFIX = "pyPractice.examMode.v1."; // + student id
+  const examMode = (studentId) => { const v = readJson(EXAM_MODE_PREFIX + studentId); return typeof v === "boolean" ? v : null; };
+  const saveExamMode = (studentId, on) => writeJson(EXAM_MODE_PREFIX + studentId, typeof on === "boolean" ? on : null);
+  // Exam Mode's own records (exam.js: attempts, help, paste flags, model answers seen, the tutorial), per student.
+  const EXAM_PREFIX = "pyPractice.exam.v1."; // + student id
   const loadAssignmentWork = (studentId, assignmentId) => (readJson(ASSIGNMENT_WORK_PREFIX + studentId) || {})[assignmentId] || null;
   function saveAssignmentWork(studentId, assignmentId, work) {
     const all = readJson(ASSIGNMENT_WORK_PREFIX + studentId) || {};
@@ -286,7 +293,7 @@
     loadProgress, saveProgress, logLevelChange, levelLog, setupDisplaySettings,
     logAttempt, attempts, logButton, buttonLog, logPlacement, placementLog, storageUsed,
     ASSIGNMENTS_PREFIX, ASSIGNMENT_WORK_PREFIX, assignments, saveAssignments, loadAssignmentWork, saveAssignmentWork,
-    CLASS_STAGE_PREFIX, classStage, saveClassStage,
+    CLASS_STAGE_PREFIX, classStage, saveClassStage, EXAM_MODE_PREFIX, examMode, saveExamMode, EXAM_PREFIX,
     HOMEWORK_PREFIX, homework, saveHomework, PASTE_LOG_KEY, logPasteFlag, pasteLog,
     CERTIFICATES_KEY, CERTIFICATE_TEACHER_KEY, certificates, saveCertificates, certificateTeacher, saveCertificateTeacher,
   };

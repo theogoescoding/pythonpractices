@@ -59,7 +59,7 @@ const EVENT: Spec = {
   record_id: { kind: "text", required: true, max: 60 },
   record_type: { kind: "text", required: true },
   timestamp: { kind: "time", required: true },
-  unit: { kind: "text", required: true },
+  unit: { kind: "text" }, // every event but an Exam Mode one needs a real unit (checkEvents)
   task_id: { kind: "text", max: 200 },
   student_level_before: { kind: "int" },
   student_level_after: { kind: "int" },
@@ -142,14 +142,28 @@ export async function insertRows(table: "attempts" | "events", rows: Record<stri
   return saved;
 }
 
-// Events: students may send every record type except placement_reset, which only a teacher makes.
+// Events: students may send every record type except placement_reset, which only a teacher makes (and, since
+// migration 0021, the two Exam Mode events below).
 // A paste flag (record_type paste_flag, migration 0018) must name its task. Its details (0019) are optional, and only a
 // paste flag may have them: a phase from the list, a line count above 0, a homework id (checked against the student's
 // class by student-api, with paste-flags-server.js keepOwnHomework, and by the database's 0019 trigger).
+// Exam Mode events (migration 0021): exam_model_seen (task_id = the question's id) and exam_tutorial_seen, with an x- id
+// and no unit (null). Nothing else may be set on them.
+export const EXAM_EVENT_TYPES = ["exam_model_seen", "exam_tutorial_seen"];
+const EXAM_QUESTION = /^[A-Za-z0-9-]{1,40}$/;
+const EVENT_EXTRAS = ["student_level_before", "student_level_after", "level_change_reason", "button", "placement_start_level", "placement_results", ...PASTE_FIELDS];
 export function checkEvents(rows: unknown, allowedTypes: string[]) {
   return checkRows(EVENT, rows, (r) => {
-    if (!UNITS.includes(r.unit as string)) return "bad unit";
     if (!allowedTypes.includes(r.record_type as string)) return "bad record_type";
+    if (EXAM_EVENT_TYPES.includes(r.record_type as string)) {
+      if (r.unit != null) return "bad unit";
+      if (!/^x-/.test(r.record_id as string)) return "bad record_id";
+      const extra = EVENT_EXTRAS.find((k) => r[k] !== undefined && r[k] !== null);
+      if (extra) return "bad " + extra;
+      if (r.record_type === "exam_model_seen") return typeof r.task_id === "string" && EXAM_QUESTION.test(r.task_id) ? null : "bad task_id";
+      return r.task_id != null ? "bad task_id" : null;
+    }
+    if (!UNITS.includes(r.unit as string)) return "bad unit";
     if (r.record_type !== "paste_flag") {
       const extra = PASTE_FIELDS.find((k) => r[k] !== undefined && r[k] !== null);
       return extra ? "bad " + extra : null;

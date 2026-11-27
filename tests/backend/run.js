@@ -13,7 +13,7 @@ const crypto = require("crypto");
 const L = require("./lib.js");
 const { T, call, fn, service, rest, makeTeacher, makeClass, join, deleteTeacher, clearRateLimits, test, assert, eq, results } = L;
 
-const TABLES = ["teachers", "classes", "students", "progress", "passed_tasks", "attempts", "events", "code_reveals", "assignments", "class_teachers", "certificates"];
+const TABLES = ["teachers", "classes", "students", "progress", "passed_tasks", "attempts", "events", "code_reveals", "assignments", "class_teachers", "certificates", "exam_attempts"];
 const iso = (msAgo = 0) => new Date(Date.now() - msAgo).toISOString();
 const DAY = 86400000;
 let n = 0;
@@ -495,6 +495,59 @@ function attemptRow(extra) {
         assert(p.body.passed.some((r) => r.unit === unit && r.fingerprint === task), unit + " passed task came back");
         assert(p.body.attempts.some((r) => r.unit === unit && r.task_id === task), unit + " attempt came back");
       }
+    });
+
+    // ---------- Exam Mode (prompt EM2, migration 0021, _shared/exam-server.js) ----------
+    const examRow = (extra) => Object.assign({ record_id: rid("x"), timestamp: iso(), pack_id: "C1", question_id: "C1-Q1", rung: 5, step: null,
+      attempt_number: 1, first: true, points: [1, 1, 1, 1, 0, 0].map((a, i) => ({ id: "BP" + (i + 1), awarded: a, status: "auto" })),
+      total: 4, max: 6, auto_total: 4, auto_max: 6, notes: [], help_used: false, paste_flag: false, student_code: "print(1)" }, extra);
+
+    await test("Exam Mode: add_exam_attempts saves good rows, refuses bad ones one by one, and a resend saves nothing twice", async () => {
+      const s = await join(classA, "Exam One");
+      const good = examRow();
+      const badSum = examRow({ total: 5 });
+      const r = await fn("student-api", { token: s.token, action: "add_exam_attempts", rows: [good, badSum] });
+      eq([r.status, r.body.saved, r.body.rejected.length, r.body.rejected[0].reason], [200, 1, 1, "bad total"], "first send");
+      const again = await fn("student-api", { token: s.token, action: "add_exam_attempts", rows: [good] });
+      eq([again.status, again.body.saved], [200, 0], "resend");
+      const mine = await fn("student-api", { token: s.token, action: "get_exam_progress" });
+      eq([mine.status, mine.body.attempts.length, "student_code" in mine.body.attempts[0]], [200, 1, false], "get_exam_progress (no code)");
+    });
+
+    await test("Exam Mode: a try made after the model answer was opened is refused (client check and database trigger)", async () => {
+      const s = await join(classA, "Exam Two");
+      const seen = await fn("student-api", { token: s.token, action: "add_events", rows: [{ record_id: rid("x"), record_type: "exam_model_seen", timestamp: iso(60000), task_id: "C1-Q1" }] });
+      eq([seen.status, seen.body.saved], [200, 1], "exam_model_seen saved");
+      const r = await fn("student-api", { token: s.token, action: "add_exam_attempts", rows: [examRow({ timestamp: iso() }), examRow({ timestamp: iso(120000) })] });
+      eq([r.body.saved, r.body.rejected.length, r.body.rejected[0].reason], [1, 1, "after the model answer"], "only the try before it is saved");
+    });
+
+    await test("Exam Mode: the class switch follows the stage until a teacher sets it; get_progress sends it", async () => {
+      const s = await join(classA, "Exam Three");
+      eq((await fn("student-api", { token: s.token, action: "get_progress" })).body.exam_mode, true, "a GCSE class has it by default");
+      const off = await fn("teacher-api", { action: "set_exam_mode", class_id: classA.id, on: false }, { bearer: a.jwt });
+      eq([off.status, off.body.on, off.body.setting], [200, false, false], "teacher switches it off");
+      eq((await fn("student-api", { token: s.token, action: "get_progress" })).body.exam_mode, false, "student sees it off");
+      eq((await fn("teacher-api", { action: "set_exam_mode", class_id: classA.id, on: true }, { bearer: b.jwt })).status, 404, "another teacher can't");
+      eq((await fn("teacher-api", { action: "set_exam_mode", class_id: classA.id, on: "yes" }, { bearer: a.jwt })).status, 400, "only true, false or null");
+      const back = await fn("teacher-api", { action: "set_exam_mode", class_id: classA.id, on: null }, { bearer: a.jwt });
+      eq([back.status, back.body.on, back.body.setting], [200, true, null], "back to the stage's default");
+    });
+
+    await test("Exam Mode: the overview and a student's detail are for the class's teachers only, with no ids, PINs or codes in the overview", async () => {
+      const s = await join(classA, "Exam Four");
+      await fn("student-api", { token: s.token, action: "add_exam_attempts", rows: [examRow()] });
+      const ov = await fn("teacher-api", { action: "exam_overview", class_id: classA.id }, { bearer: a.jwt });
+      eq(ov.status, 200, "owner's overview");
+      assert(ov.body.students.some((x) => x.nickname === "Exam Four" && x.packs.C1.first_pct === 67), "Exam Four's first attempt is 67%");
+      assert(!/student_code|print\(1\)|pin|login_code/.test(JSON.stringify(ov.body)), "the overview has no code, PIN or login code");
+      eq((await fn("teacher-api", { action: "exam_overview", class_id: classA.id }, { bearer: b.jwt })).status, 404, "another teacher's overview");
+      const sid = (await rest("/rest/v1/students?select=id&nickname=eq.Exam%20Four", a, { method: "GET" })).body[0].id;
+      const det = await fn("teacher-api", { action: "exam_student_detail", class_id: classA.id, student_id: sid }, { bearer: a.jwt });
+      eq([det.status, det.body.attempts.length, det.body.attempts[0].code], [200, 1, "print(1)"], "the student's detail, with code");
+      eq((await fn("teacher-api", { action: "exam_student_detail", class_id: classB.id, student_id: sid }, { bearer: b.jwt })).status, 404, "not in that class");
+      const direct = await rest("/rest/v1/exam_attempts?select=student_id", b, { method: "GET" });
+      eq(direct.body.length, 0, "teacher B reads none of class A's exam attempts directly");
     });
 
     await test("delete_my_progress deletes the student and everything saved for them", async () => {

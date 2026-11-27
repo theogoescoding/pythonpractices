@@ -182,6 +182,13 @@
     if (r.error) return say("tb-status", "Couldn't load your classes. Please try again.", true);
     classes = r.data.map((c) => Object.assign({ stage: self.Curriculum.DEFAULT_STAGE }, c, { stage: c.stage || self.Curriculum.DEFAULT_STAGE,
       owned: c.teacher_id === user.id, ownerName: (c.owner && c.owner.name) || "" }));
+    // Exam Mode's switch (migration 0021: true, false, or null to follow the stage), read on its own so that a server
+    // without it still loads the classes (every class then follows its stage).
+    const ex = await sb.from("classes").select("id, exam_mode");
+    for (const c of classes) {
+      const row = ex.error ? null : (ex.data || []).find((x) => x.id === c.id);
+      c.exam_mode = row && typeof row.exam_mode === "boolean" ? row.exam_mode : null;
+    }
     $("tb-class").innerHTML = classes.map((c) => '<option value="' + c.id + '">' + esc(c.name) + (c.owned ? "" : " (" + esc(sharedLabel(c)) + ")") + "</option>").join("");
     const soon = classes.filter((c) => (new Date(c.end_of_year + "T00:00:00") - Date.now()) / 86400000 <= ENDING_SOON_DAYS);
     $("tb-ending").hidden = !soon.length;
@@ -695,6 +702,24 @@
     return r.body;
   }
 
+  // Exam Mode (teacher-api set_exam_mode, exam_overview and exam_student_detail, migration 0021; exam-server.js on the
+  // server). Each returns the reply's body, or { error, problem }.
+  const OLD_SERVER_EXAM = "Exam Mode's class page needs the newest version of the server. It will work once the server has been updated.";
+  async function examCall(action, body) {
+    const r = await teacherApi(action, body);
+    if (r.status === 400 && !r.body.problem && /Something went wrong/.test(r.body.error || "")) return { error: OLD_SERVER_EXAM };
+    if (r.status !== 200) return { error: r.body.error || "Couldn't load Exam Mode. Please try again.", problem: r.body.problem || null };
+    return r.body;
+  }
+  // on: true, false, or null (follow the stage). The class list keeps the new setting.
+  async function setExamMode(classId, on) {
+    const r = await examCall("set_exam_mode", { class_id: classId, on });
+    if (!r.error) { const c = classes.find((x) => x.id === classId); if (c) c.exam_mode = r.setting; }
+    return r;
+  }
+  const examOverview = (classId) => examCall("exam_overview", { class_id: classId });
+  const examStudentDetail = (classId, studentId) => examCall("exam_student_detail", { class_id: classId, student_id: studentId });
+
   const leaderboards = () => (current ? boardsCall("leaderboards", { class_id: current.id }) : Promise.resolve({ error: "Choose a class first." }));
   const leaderboardsAll = () => boardsCall("leaderboards_all", {});
 
@@ -764,6 +789,7 @@
     teacherName: () => myName,
     certificatesForClass, certificatesForStudent, progressSummary,
     listHomework, createHomework, deleteHomework, homeworkReport, pasteFlagsForClass, reviewCandidates,
+    setExamMode, examOverview, examStudentDetail,
     copy, resetPin, removeStudent, renameStudent, changePassword, compareClasses, leaderboards, leaderboardsAll,
   };
 })();

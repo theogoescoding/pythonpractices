@@ -342,8 +342,37 @@ check(/href="exam\.html"[^>]*class="menu-link"|class="menu-link"[^>]*href="exam\
   "app.html: the Exam Mode button in the student menu, and no banner (decision 21)");
 const worker = fs.readFileSync(path.join(ROOT, "worker.js"), "utf8");
 check(/fetch\("exam_marker\.py"\)/.test(worker) && /msg\.type === "mark"/.test(worker) && /type: "marked"/.test(worker), "worker.js: loads exam_marker.py after harness.py and answers mark messages");
+// EM2: backend mode, as the other student pages (store, config, backend-rows, backend), and the class switch.
 const html = fs.readFileSync(path.join(ROOT, "exam.html"), "utf8");
-check(!/<script src="backend\.js"/.test(html) && !/<script src="config\.js"/.test(html),"exam.html: local mode only in EM1 (backend.js isn't loaded, so nothing is sent to the server)");
+check(/<script src="store\.js"><\/script>\s*<script src="config\.js"><\/script>\s*<script src="backend-rows\.js"><\/script>\s*<script src="backend\.js"><\/script>/.test(html) &&
+  /if \(BE && Store\.examMode\(student\.id\) === false\)/.test(pageSrc) && /Exam Mode isn't switched on for your class\. Ask your teacher\./.test(pageSrc),
+  "exam.html: backend mode as the other student pages; a class with Exam Mode switched off sees \"Exam Mode isn't switched on for your class. Ask your teacher.\"");
+// The rows the page sends are the rows the server takes (exam-server.js checkRows), for every kind of record it makes.
+const ES = require(path.join(ROOT, "supabase", "functions", "_shared", "exam-server.js"));
+const recs = [
+  { id: "x-a1-aaaaaa", at: "2026-11-27T10:00:00.000Z", questionId: "C1-R1", rung: 1, step: 1, attempt: 1, first: true, max: 4, help: true, notes: [], pasteFlag: false,
+    points: ["bullet1", "bullet2", "bullet3", "bullet4"].map((id, i) => ({ id, awarded: i ? 1 : 0, how: "auto" })) },
+  { id: "x-a2-aaaaaa", at: "2026-11-27T10:01:00.000Z", questionId: "C1-Q0", rung: 2, attempt: 1, first: true, max: 1, points: [{ id: "skeleton", awarded: 0, how: "auto" }], notes: [] },
+  { id: "x-a3-aaaaaa", at: "2026-11-27T10:02:00.000Z", questionId: "C1-R3", rung: 3, attempt: 2, first: false, max: 6,
+    points: ["gap1", "gap2", "gap3", "gap4", "gap5", "runs"].map((id) => ({ id, awarded: 1, how: "auto" })), notes: [] },
+  { id: "x-a4-aaaaaa", at: "2026-11-27T10:03:00.000Z", questionId: "C1-R4", rung: 4, step: 3, stepsTotal: 4, attempt: 1, first: true, max: 1, points: [{ id: "step3", awarded: 1, how: "auto" }], notes: ["int"] },
+  { id: "x-a5-aaaaaa", at: "2026-11-27T10:04:00.000Z", questionId: "C1-Q2", rung: 5, attempt: 1, first: true, max: 6, pasteFlag: true, notes: ["quotes-fixed", Exam.ALWAYS_TRUE_NOTE],
+    points: [{ id: "BP1", awarded: 1, how: "auto" }, { id: "BP2", awarded: 0, how: "auto" }, { id: "BP3", awarded: null, how: "unsure" }, { id: "BP4", awarded: 1, how: "self" },
+      { id: "BP5", awarded: 1, how: "auto" }, { id: "BP6", awarded: 0, how: "self" }] },
+];
+const sent = recs.map((r) => Exam.toServerRow(r, "C1", "print('x')"));
+const took = ES.checkRows(sent);
+check(took.ok.length === recs.length && !took.rejected.length && sent[4].total === 3 && sent[4].auto_total === 2 && sent[4].auto_max === 3 && sent[4].points[2].status === "self" &&
+  sent[4].points[2].awarded === null && sent[2].student_code === undefined && sent[0].student_code === "print('x')" && sent[4].notes.includes("always-true-condition"),
+  "the rows exam.js sends (every rung, a part, a step, a self-check and an unchecked point) are all taken by the server's checks; code only when marks were lost");
+const back = sent.map((r) => Exam.fromServerRow(Object.assign({}, r, { timestamp: r.timestamp.replace("Z", "+00:00") }), r.rung === 4 ? 4 : null));
+check(JSON.stringify(Exam.scoreSummary(back)) === JSON.stringify(Exam.scoreSummary(recs.map((r) => Object.assign({ recorded: true, total: r.points.reduce((s, p) => s + (p.awarded || 0), 0) }, r)))) &&
+  back[4].points.map((p) => p.how).join() === "auto,auto,unsure,self,auto,self" && back.every((r) => r.queued && r.recorded) &&
+  Exam.mergeRecords([recs[0]], back).length === recs.length && Exam.mergeRecords(back, back).length === recs.length,
+  "a row from the server becomes the same record again (the same My exam scores; unchecked points stay \"check yourself\"); merging keeps one of each");
+check(Exam.examModeOn("gcse", null) && !Exam.examModeOn("ks3", null) && !Exam.examModeOn("a-level", null) && Exam.examModeOn(null, null) &&
+  Exam.examModeOn("ks3", true) && !Exam.examModeOn("gcse", false),
+  "the class switch: null follows the stage (on for GCSE, off for KS3 and A-level); a teacher's true or false wins");
 const css = fs.readFileSync(path.join(ROOT, "styles.css"), "utf8");
 check((css.match(/--exam:/g) || []).length === 3 && (css.match(/--on-exam:/g) || []).length === 3 && (css.match(/--exam-ink:/g) || []).length === 3,
   "styles.css: the Exam Mode accent tokens are in all three theme blocks");

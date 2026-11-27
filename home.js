@@ -78,6 +78,10 @@ Store.whenReady(function () {
 
     $("delete-area").hidden = false;
     $("leaderboard-link").hidden = false; // the class's leaderboards (leaderboard.html): backend mode only
+    // Exam Mode only when the class has it on (EM2: the teacher's switch, or the stage's default). A server without the
+    // switch sends nothing (null): then it shows, as before.
+    const me = Store.currentStudent();
+    $("exam-link").hidden = !!(me && Store.examMode(me.id) === false);
     $("change-name").textContent = "Not you? Sign out";
     // Changing my nickname: the PIN, then the same nickname rules and word filter as joining (student-api rename_me).
     const closeRename = () => { $("rename-form").hidden = true; $("rename-pin").value = ""; showError("rename-error", ""); $("rename-mine").focus(); };

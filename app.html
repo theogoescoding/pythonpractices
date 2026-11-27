@@ -100,9 +100,9 @@
         <!-- Backend mode only (home.js shows it): the class's leaderboards -->
         <a href="leaderboard.html" id="leaderboard-link" class="menu-link" hidden>Leaderboard</a>
         <a href="endless.html" class="menu-link">Endless mode</a>
-        <!-- Exam Mode (prompt EM1): always shown for now; EM2 adds the per-class switch. Its tile on this page was removed
-             in EM1b (decision 21: too noisy); this button is the way in. -->
-        <a href="exam.html" class="menu-link">Exam Mode</a>
+        <!-- Exam Mode (prompt EM1; its tile here was removed in EM1b, decision 21). Backend mode (EM2): hidden when the
+             class has Exam Mode switched off (home.js). Local mode: always shown. -->
+        <a href="exam.html" id="exam-link" class="menu-link">Exam Mode</a>
         <!-- The glossary (prompt 27): Python words from the tasks and hints, each with a meaning and an example. -->
         <a href="glossary.html" class="menu-link">Glossary</a>
         <a href="#help" id="tour-help" class="menu-link">Help</a>

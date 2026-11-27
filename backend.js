@@ -75,6 +75,11 @@
     remove(Store.ASSIGNMENTS_PREFIX + sid);
     remove(Store.ASSIGNMENT_WORK_PREFIX + sid);
     remove(Store.HOMEWORK_PREFIX + sid);
+    remove(Store.EXAM_MODE_PREFIX + sid);
+    // Exam Mode's records (exam.js) once every one of them is in the outbox or on the server (queued). Records from
+    // before Exam Mode saved to the server (EM1) are kept until the student opens Exam Mode, which sends them.
+    const exam = read(Store.EXAM_PREFIX + sid);
+    if (exam && (exam.attempts || []).every((a) => a.queued)) remove(Store.EXAM_PREFIX + sid);
     for (const k of [Store.LEVEL_LOG_KEY, Store.BUTTON_LOG_KEY, Store.PLACEMENT_LOG_KEY, Store.PASTE_LOG_KEY]) {
       const log = read(k);
       if (Array.isArray(log)) write(k, log.filter((e) => e.studentId !== sid));
@@ -137,6 +142,7 @@
     const r = await api("student-api", { token: s.token, action: "delete_my_progress" });
     if (r.status === 200) {
       remove(OUTBOX_PREFIX + s.sid);
+      remove(Store.EXAM_PREFIX + s.sid); // the server deleted their Exam Mode attempts too
       clearCache(s.sid);
       remove(SESSION_KEY);
       remove(Store.CURRENT_KEY);
@@ -145,7 +151,9 @@
   }
 
   // ---------- Outbox ----------
-  // ops: { type: "attempt" | "event", row } | { type: "progress", unit, state } | { type: "passed", unit, fingerprint }
+  // ops: { type: "attempt" | "event" | "exam", row } | { type: "progress", unit, state } | { type: "passed", unit, fingerprint }
+  // ("exam": an Exam Mode attempt, student-api add_exam_attempts; Exam Mode's events go as "event" rows.)
+  const ROW_ACTIONS = { attempt: "add_attempts", event: "add_events", exam: "add_exam_attempts" };
   let signedOut = false;
   let timer = null;
   let retry = 0;
@@ -201,9 +209,9 @@
       const first = box.ops[0];
       let n = 1;
       let body;
-      if (first.type === "attempt" || first.type === "event") {
+      if (ROW_ACTIONS[first.type]) {
         while (n < box.ops.length && n < MAX_ROWS_PER_SEND && box.ops[n].type === first.type) n++;
-        body = { action: first.type === "attempt" ? "add_attempts" : "add_events", rows: box.ops.slice(0, n).map((o) => o.row) };
+        body = { action: ROW_ACTIONS[first.type], rows: box.ops.slice(0, n).map((o) => o.row) };
       } else if (first.type === "progress") {
         body = { action: "save_progress", unit: first.unit, state: first.state };
       } else {
@@ -303,6 +311,7 @@
     Store.saveAssignments(s.sid, r.body.assignments || []); // only the open ones of the student's class
     Store.saveHomework(s.sid, r.body.homework || []);       // their class's homework (none before migration 0018)
     Store.saveClassStage(s.sid, r.body.student.class_stage || null); // null until the server stores stages (migration 0013)
+    Store.saveExamMode(s.sid, r.body.exam_mode); // true or false; null from a server without Exam Mode's switch (EM2)
     const synced = { units: {}, passed: {} };
     for (const row of r.body.progress) synced.units[row.unit] = JSON.stringify(row.state);
     for (const p of r.body.passed) synced.passed[p.unit + "|" + p.fingerprint] = 1;
@@ -345,8 +354,21 @@
       : "Saving… Your work is kept on this computer until it reaches the server.";
   }
 
+  // ---------- Exam Mode (exam.js, prompt EM2) ----------
+  // Its attempts and events go through the same outbox as the rest of the site's work, so a try made offline is sent
+  // later and a resent one is saved once (record_id). Only the signed-in student's own work is queued.
+  const queueExam = (sid, row) => { if (mine(sid)) enqueue(sid, { type: "exam", row }); return mine(sid); };
+  const queueExamEvent = (sid, row) => { if (mine(sid)) enqueue(sid, { type: "event", row }); return mine(sid); };
+  // The student's own Exam Mode records from the server (student-api get_exam_progress), after sending what's waiting.
+  async function examProgress() {
+    const s = session();
+    if (!s) return { status: 401, body: {} };
+    try { await flush(); } catch (e) { /* still read what the server has */ }
+    return api("student-api", { token: s.token, action: "get_exam_progress" });
+  }
+
   return {
     enabled: true, session, join, resume, signOut, renameMe, leaderboard, deleteMyProgress, flush, pending, ready,
-    onStatus: (f) => listeners.push(f), isSignedOut: () => signedOut,
+    onStatus: (f) => listeners.push(f), isSignedOut: () => signedOut, queueExam, queueExamEvent, examProgress,
   };
 });
