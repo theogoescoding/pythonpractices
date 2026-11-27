@@ -1203,36 +1203,68 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
     check(boards.improved.map((r) => r.nickname + ":" + X.improvedText(r.score)).join() === "Fay:+50,Gus:−50" && boards.min === 5,
       "Most improved: this week's % minus last week's, only with 5 questions in each week (Hal had 4 last week); shown as +50 and −50");
 
-    // 2. Exam Mode homework (homework.js; the server's report and the student's count use it).
+    // 2. Exam Mode homework (homework.js; the server's report and the student's count use it). Decision 30: one task per
+    // whole rung (rung 1 once both parts are answered, rung 4 once every step is) or full question; partsOf from
+    // exam-mode.json, as student-api, teacher-api and the export pass it.
+    const partsOf = (qid) => X.itemParts(data.packs, qid).length;
     const hw = { created_at: ago(5), due_on: Homework.ukDate(NOW + 2 * 86400000), units: [Homework.EXAM_SECTION], task_count: 6 };
+    const steps4 = (at, totals) => totals.map((total, i) => ({ questionId: "C1-R4", rung: 4, step: i + 1, at: ago(at - i * 0.001), total }));
     const ex = [
       { questionId: "C1-Q1", rung: 5, at: ago(4), total: 3 },                    // counts (first)
       { questionId: "C1-Q1", rung: 5, at: ago(3.9), total: 3 },                  // the same score: doesn't
       { questionId: "C1-Q1", rung: 5, at: ago(3.8), total: 5 },                  // higher than every earlier: counts
       { questionId: "C1-Q1", rung: 5, at: ago(3.7), total: 4 },                  // lower: doesn't
-      { questionId: "C1-R4", rung: 4, step: 1, at: ago(3), total: 0 },           // each rung 4 step counts once
-      { questionId: "C1-R4", rung: 4, step: 2, at: ago(3), total: 1 },
-      { questionId: "C1-R1", rung: 1, step: 1, at: ago(9), total: 2 },           // before it was set: doesn't
-      { questionId: "C1-R1", rung: 1, step: 1, at: ago(2), total: 2 },           // not higher than that earlier try: doesn't
+      ...steps4(3, [1, 0, 1, 1]),                                                // rung 4: one task, once all four steps are answered
+      { questionId: "C1-R4", rung: 4, step: 1, at: ago(2.9), total: 1 },         // a step answered again on its own: no new task
+      { questionId: "C1-R1", rung: 1, step: 1, at: ago(9), total: 2 },           // before it was set: doesn't count, and doesn't set the bar (EM3b)
+      { questionId: "C1-R1", rung: 1, step: 1, at: ago(2), total: 2 },           // rung 1, part 1 ...
+      { questionId: "C1-R1", rung: 1, step: 2, at: ago(1.98), total: 3 },        // ... and part 2: one task (5 marks)
+      { questionId: "C1-R1", rung: 1, step: 1, at: ago(1.97), total: 2 },        // rung 1 again, the same 5 marks: doesn't
+      { questionId: "C1-R1", rung: 1, step: 2, at: ago(1.96), total: 3 },
       { questionId: "C1-Q2", rung: 5, at: ago(2), total: 6, pasteFlag: true },   // paste-flagged: doesn't
       { questionId: "C1-Q2", rung: 5, at: ago(1.9), total: 6 },                  // retyped, but not higher than the flagged one: doesn't
-      { questionId: "C1-Q0", rung: 2, at: ago(1), total: 0 },                    // any rung counts, even 0 marks (it's one question answered)
+      { questionId: "C1-Q0", rung: 2, at: ago(1), total: 0 },                    // rung 2 counts, even with 0 marks
     ];
-    const pr = Homework.progress(hw, [], [], ex);
-    check(pr.done === 5 && pr.taskIds.join() === "exam:C1-Q1|5|,exam:C1-Q1|5|,exam:C1-R4|4|1,exam:C1-R4|4|2,exam:C1-Q0|2|" && pr.units.join() === "exam-mode" &&
-      pr.flagged.map((f) => f.taskId).join() === "exam:C1-Q2|5|",
-      "Exam Mode homework: one task per question and rung (and step), the first recorded attempt counting; a retry only when higher than every earlier one; paste flags never (and still block a retype); only in the homework's time");
-    // Due on 23 November (UK): the two bowling tries that day count; the rung 4 steps on the 24th don't.
-    const late = Homework.progress(Object.assign({}, hw, { due_on: Homework.ukDate(NOW - 3.6 * 86400000) }), [], [], ex);
-    const anyUnit = Homework.progress(Object.assign({}, hw, { units: [] }), [], [], ex);
+    const pr = Homework.progress(hw, [], [], ex, partsOf);
+    check(pr.done === 5 && !pr.complete && pr.taskIds.join() === "exam:C1-Q1|5,exam:C1-Q1|5,exam:C1-R4|4,exam:C1-R1|1,exam:C1-Q0|2" && pr.units.join() === "exam-mode" &&
+      pr.flagged.map((f) => f.taskId).join() === "exam:C1-Q2|5",
+      "Exam Mode homework (decision 30): one task per whole rung or full question in the homework's time: rung 1 once both parts are answered, rung 4 once all four steps are; doing it again counts only when higher than every earlier time; paste flags never (and still block a retype): " + pr.taskIds.join());
+    {
+      // Rung 4 started but not finished: nothing yet. A "Try again" on a step inside a time through doesn't change its score
+      // (each step's first answer counts); going through the whole rung again with a higher score counts again.
+      const half = Homework.progress(hw, [], [], steps4(3, [1, 1]), partsOf);
+      const tryAgain = [...steps4(3, [0]), { questionId: "C1-R4", rung: 4, step: 1, at: ago(2.999), total: 1 }, ...steps4(2.99, [1, 1, 1]).map((r) => Object.assign(r, { step: r.step + 1 }))];
+      const t1 = Homework.progress(hw, [], [], tryAgain, partsOf);
+      const better = Homework.progress(hw, [], [], tryAgain.concat(steps4(2, [1, 1, 1, 1])), partsOf);
+      const same = Homework.progress(hw, [], [], steps4(3, [1, 1, 1, 1]).concat(steps4(2, [1, 1, 1, 1])), partsOf);
+      check(half.done === 0 && t1.done === 1 && better.done === 2 && same.done === 1,
+        "Exam Mode homework (decision 30): half a rung 4 counts nothing; a step's \"Try again\" inside a time through doesn't add a task (its first answer scores); the whole rung again counts only when higher (3 then 4: counts; 4 then 4: doesn't)");
+      const fullRungs = [["C1-R1", 1, 1, 2], ["C1-R1", 1, 2, 3], ["C1-Q0", 2, null, 1], ["C1-R3", 3, null, 4], ["C1-R4", 4, 1, 1], ["C1-R4", 4, 2, 1], ["C1-R4", 4, 3, 1], ["C1-R4", 4, 4, 1], ["C1-Q1", 5, null, 6]];
+      const before = fullRungs.map(([q, rung, step, total], i) => ({ questionId: q, rung, step, at: ago(9 - i * 0.001), total }));
+      const again = before.map((r, i) => Object.assign({}, r, { at: ago(1 - i * 0.001) }));
+      const p2 = Homework.progress(hw, [], [], before.concat(again), partsOf);
+      check(p2.done === 5 && p2.taskIds.join() === "exam:C1-R1|1,exam:C1-Q0|2,exam:C1-R3|3,exam:C1-R4|4,exam:C1-Q1|5" && Homework.progress(hw, [], [], before, partsOf).done === 0,
+        "Exam Mode homework: answers made before the homework was set don't count, but doing the same rungs again for it does (each homework starts afresh, EM3b): 5 rungs and questions, 5 tasks");
+    }
+    // Due on 23 November (UK): the two bowling tries that day count; rung 4 on the 24th doesn't.
+    const late = Homework.progress(Object.assign({}, hw, { due_on: Homework.ukDate(NOW - 3.6 * 86400000) }), [], [], ex, partsOf);
+    const anyUnit = Homework.progress(Object.assign({}, hw, { units: [] }), [], [], ex, partsOf);
     const practicePass = [{ kind: "attempt", result: "pass", at: ago(1), unit: "selection", units: ["selection"], taskId: "if-L3a" }];
-    check(late.done === 2 && late.taskIds.join() === "exam:C1-Q1|5|,exam:C1-Q1|5|" && anyUnit.done === 0 && Homework.progress(hw, practicePass, [], []).done === 0 &&
-      Homework.progress(Object.assign({}, hw, { units: ["selection", "exam-mode"] }), practicePass, [], ex).done === 6,
+    check(late.done === 2 && late.taskIds.join() === "exam:C1-Q1|5,exam:C1-Q1|5" && anyUnit.done === 0 && Homework.progress(hw, practicePass, [], []).done === 0 &&
+      Homework.progress(Object.assign({}, hw, { units: ["selection", "exam-mode"] }), practicePass, [], ex, partsOf).done === 6,
       "Exam Mode homework: nothing after the due date counts; only homework with the Exam Mode section counts Exam Mode (\"any unit\" means the practice units), and practice passes count only for practice units");
     const form = Homework.checkNew({ task_count: 5, due_on: Homework.ukDate(NOW + 86400000), units: ["exam-mode", "selection"] }, ["output", "selection"]);
-    check(form.ok && form.homework.units.join() === "selection,exam-mode" && Homework.examTaskName("exam:C1-R4|4|2", () => "Football club goals") === "Exam Mode: Football club goals (rung 4, step 2)" &&
-      Homework.examTaskName("exam:C1-Q1|5|") === "Exam Mode: C1-Q1 (full question)" && Homework.examTaskName("if-L3a") === null,
-      "Homework form: Exam Mode is a section a teacher can pick; its tasks have readable names in the report");
+    check(form.ok && form.homework.units.join() === "selection,exam-mode" && Homework.examTaskName("exam:C1-R4|4", () => "Football club goals") === "Exam Mode: Football club goals (rung 4)" &&
+      Homework.examTaskName("exam:C1-Q1|5") === "Exam Mode: C1-Q1 (full question)" && Homework.examTaskName("exam:C1-R4|4|2") === "Exam Mode: C1-R4 (rung 4, step 2)" && Homework.examTaskName("if-L3a") === null,
+      "Homework form: Exam Mode is a section a teacher can pick; its tasks (a whole rung or full question) have readable names in the report");
+    {
+      const fnSrc = ["student-api", "teacher-api"].map((f) => fs.readFileSync(path.join(ROOT, "supabase", "functions", f, "index.ts"), "utf8"));
+      const hsSrc = fs.readFileSync(path.join(ROOT, "supabase", "functions", "_shared", "homework-server.js"), "utf8");
+      const tdSrc = fs.readFileSync(path.join(ROOT, "teacher-data.js"), "utf8");
+      check(fnSrc.every((s) => /examParts: \(qid: string\) => G\.ExamMode\.itemParts\(examData\.packs, qid\)\.length/.test(s)) &&
+        /recs\[sid\]\.exam, deps\.examParts\)/.test(hsSrc) && /examParts: deps\.examParts/.test(hsSrc) && /s\.recs,\s*\(qid\) => Exam\.itemParts\(packs, qid\)\.length\)/.test(tdSrc),
+        "Decision 30: student-api, teacher-api (the card, the report, the Progress summary) and the Exam Mode export all count with each rung's parts from exam-mode.json");
+    }
 
     // The server: student-api's add_exam_attempts then the student's homework, and the teacher's report.
     const sb = fakeDb();
@@ -1246,7 +1278,7 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
     T.students.push({ id: ANN, class_id: CL, nickname: "Ann" }, { id: BEA, class_id: CL, nickname: "Bea" }, { id: ZED, class_id: CZ, nickname: "Zed" });
     const ASG = "0000000e-0000-0000-0000-0000000000a1", ASZ = "0000000e-0000-0000-0000-0000000000a2";
     T.assignments.push({ id: ASG, class_id: CL, title: "Exam practice", task_ids: ["C1-Q1", "if-L3a"], status: "open" }, { id: ASZ, class_id: CZ, title: "Theirs", task_ids: ["C1-Q1"], status: "open" });
-    const hwDeps = { Sharing, Homework, unitIds: require(path.join(ROOT, "curriculum.js")).UNITS.map((u) => u.id) };
+    const hwDeps = { Sharing, Homework, unitIds: require(path.join(ROOT, "curriculum.js")).UNITS.map((u) => u.id), examParts: partsOf }; // as both functions pass it
     const made = await HS.create(sb, hwDeps, O, CL, { task_count: 2, due_on: Homework.ukDate(Date.now() + 7 * 86400000), units: ["exam-mode"] }, Homework.ukDate(Date.now()));
     const row = (q, rung, pts, o) => X.toServerRow(rec(q, rung, new Date(Date.now() + 1000).toISOString(), pts, o), "C1");
     // 3. An Exam Mode assignment item: saved with its assignment_id (the class switch is off: assignments still work).
@@ -1256,11 +1288,14 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
       (await ES.forStudent(sb, ANN)).attempts[0].assignment_id === ASG && X.fromServerRow((await ES.forStudent(sb, ANN)).attempts[0]).assignmentId === ASG,
       "Assignments: an Exam Mode item's attempt is saved with its assignment_id (another class's assignment is refused), and comes back with it");
     const forAnn = await HS.forStudent(sb, hwDeps, ANN);
-    await ES.addAttempts(sb, BEA, [row("C1-R4", 4, [[1, "auto"]], { step: 1 }), row("C1-Q1", 5, all1(6), { pasteFlag: true })], {});
+    // Bea: rung 4's first three steps (no task yet), then a paste-flagged full question.
+    await ES.addAttempts(sb, BEA, [1, 2, 3].map((n) => row("C1-R4", 4, [[1, "auto"]], { step: n })).concat([row("C1-Q1", 5, all1(6), { pasteFlag: true })]), {});
+    const beaPart = (await HS.report(sb, hwDeps, O, made.homework[0].id)).students.find((s) => s.student_name === "Bea").done;
+    await ES.addAttempts(sb, BEA, [row("C1-R4", 4, [[1, "auto"]], { step: 4 })], {}); // the last step: rung 4 is one task
     const report = await HS.report(sb, hwDeps, O, made.homework[0].id);
     const bea = report.students.find((s) => s.student_name === "Bea"), ann = report.students.find((s) => s.student_name === "Ann");
-    check(made.homework[0].units.join() === "exam-mode" && forAnn[0].done === 1 && ann.done === 1 && ann.units.join() === "exam-mode" && bea.done === 1 &&
-      bea.flagged.map((f) => f.task_id + "/" + f.unit).join() === "exam:C1-Q1|5|/exam-mode",
+    check(made.homework[0].units.join() === "exam-mode" && forAnn[0].done === 1 && ann.done === 1 && ann.units.join() === "exam-mode" && beaPart === 0 && bea.done === 1 &&
+      bea.flagged.map((f) => f.task_id + "/" + f.unit).join() === "exam:C1-Q1|5/exam-mode",
       "Exam Mode homework on the server: set as a section; the student's count and the teacher's report agree, with Exam Mode answers under the Exam Mode section and \"Paste flagged\" as elsewhere");
 
     // 4 and 5. The overview, the export and paste flags: left out of every score, still shown.
@@ -1279,6 +1314,54 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
     check(lines[0] === TD.EXAM_EXPORT_COLUMNS.join(",") && lines.some((l) => /^pack_score,Ann,C1,5,83,83,1,0,/.test(l)) && lines.some((l) => /^pack_score,Bea,C1,5,,,1,1,/.test(l)) &&
       lines.some((l) => /^mark_point,,C1,,,,,,C1-Q1,Strike Zone bowling,BP2,/.test(l)) && lines.filter((l) => /^homework,/.test(l)).length === 2 && !/print\(|SECRET|student_code/.test(csv),
       "Export: an Exam Mode CSV with the columns " + TD.EXAM_EXPORT_COLUMNS.length + " (pack scores per student, most-missed mark points, Exam Mode homework results); paste flags count towards no score; no code");
+
+    // EM3b (decision 29): an assignment's Exam Mode items show, open the right question, and count towards completion.
+    // The cause: the assignment page (practice.html?assignment=, where the home card before exam-mode.json loaded and
+    // the "new assignment" reminder go) knew only bank tasks, so Exam Mode ids were dropped and completion ignored them.
+    {
+      const A = "0000000e-0000-0000-0000-0000000000b1";
+      const a = { id: A, task_ids: ["C1-R1", "if-L3a", "C1-R4", "C1-Q1"] };
+      const r = (q, rung, step, o) => Object.assign({ questionId: q, rung, step, assignmentId: A, recorded: true }, o || {});
+      const items = X.assignmentItems(data.packs, a.task_ids);
+      check(items.map((x) => x.id + ":" + (x.exam ? x.exam.rung : "task")).join() === "C1-R1:1,if-L3a:task,C1-R4:4,C1-Q1:5" &&
+        X.itemParts(data.packs, "C1-R1").join() === "1,2" && X.itemParts(data.packs, "C1-R4").join() === "1,2,3,4" && X.itemParts(data.packs, "if-L3a").length === 0,
+        "Assignment items: the Exam Mode questions keep their place among the tasks, each with its rung; rung 1 has two parts, rung 4 its four steps");
+      const recs = [r("C1-R1", 1, 1), r("C1-R4", 4, 1), r("C1-R4", 4, 2), r("C1-R4", 4, 3), r("C1-Q1", 5, null, { assignmentId: null })];
+      const none = X.examDoneIds(data.packs, a, recs, {});
+      const shown = X.examDoneIds(data.packs, a, recs, { [X.shownId("C1-R1", 1, 2)]: true, [X.shownId("C1-R4", 4, 4)]: true });
+      const all = X.examDoneIds(data.packs, a, recs.concat([r("C1-R1", 1, 2), r("C1-R4", 4, 4), r("C1-Q1", 5, null)]), {});
+      check(none.length === 0 && shown.join() === "C1-R1,C1-R4" && all.join() === "C1-R1,C1-R4,C1-Q1" &&
+        X.examDoneIds(data.packs, Object.assign({ exam_done: ["C1-Q1"] }, a), [], {}).join() === "C1-Q1" &&
+        !X.assignmentItemDone(data.packs, "C1-R1", [r("C1-R1", 1, 1), r("C1-R1", 1, 2, { assignmentId: "other" })], A, {}),
+        "Assignment items: an Exam Mode question is done once every part is tried in this assignment (a try outside it doesn't count) or its answer was shown; the server's exam_done counts too");
+      const Appjs = require(path.join(ROOT, "app.js"));
+      const tried = { "if-L3a": "passed" };
+      check(!Appjs.assignmentComplete(["if-L3a"], tried, { total: 3, done: 2 }) && Appjs.assignmentComplete(["if-L3a"], tried, { total: 3, done: 3 }) &&
+        Appjs.assignmentComplete([], {}, { total: 1, done: 1 }) && !Appjs.assignmentComplete([], {}, { total: 1, done: 0 }) && Appjs.assignmentComplete(["if-L3a"], tried),
+        "Assignment complete: only when every task is passed and every Exam Mode question is done (finishing the one bank task no longer completes it); an Exam Mode-only assignment can complete");
+      const lines = Appjs.assignmentLines(Appjs.assignmentSummary(["if-L3a"], { tried }, { total: 3, done: 3 }));
+      check(lines[0] === "4 of 4 tasks done" && Appjs.assignmentLines(Appjs.assignmentSummary(["if-L3a"], { tried }))[0] === "1 of 1 task passed",
+        "\"Assignment complete\" counts the Exam Mode questions with the tasks (\"4 of 4 tasks done\"); a bank-only assignment reads as before");
+
+      // The server: get_progress's assignments carry exam_done, worked out from the student's own rows and answers shown.
+      const sb2 = fakeDb();
+      const S1 = "0000000e-0000-0000-0000-0000000057e1", C2 = "0000000e-0000-0000-0000-00000000c1b1";
+      sb2.t.classes.push({ id: C2, name: "11A", stage: "gcse", exam_mode: false });
+      sb2.t.students.push({ id: S1, class_id: C2, nickname: "Kit" });
+      sb2.t.assignments.push({ id: A, class_id: C2, title: "Mixed", task_ids: a.task_ids, status: "open" });
+      const tsr = (q, rung, pts, o) => X.toServerRow(rec(q, rung, new Date(Date.now() - 5000).toISOString(), pts, o), "C1");
+      const saved2 = await ES.addAttempts(sb2, S1, [tsr("C1-R1", 1, [[1, "auto"]], { step: 1, assignmentId: A }), tsr("C1-R1", 1, [[0, "auto"]], { step: 2, assignmentId: A }),
+        tsr("C1-Q1", 5, all1(6), { assignmentId: A }), tsr("C1-R4", 4, [[1, "auto"]], { step: 1 })], {});
+      sb2.t.events.push({ student_id: S1, record_id: "x-seen-abcdef", record_type: "exam_model_seen", timestamp: new Date().toISOString(), task_id: "C1-R4-r4-s9", unit: null });
+      const deps = { ExamMode: X, data };
+      const sent = await ES.withExamDone(sb2, deps, S1, [{ id: A, task_ids: a.task_ids }, { id: "plain", task_ids: ["if-L3a"] }]);
+      check(saved2.saved === 4 && sent[0].exam_done.join() === "C1-R1,C1-Q1" && sent[1].exam_done.length === 0 && sent[0].task_ids.join() === a.task_ids.join(),
+        "student-api get_progress: each open assignment has exam_done, the Exam Mode questions this student has done in it (rung 4's one step outside the assignment doesn't count)");
+      const src = fs.readFileSync(path.join(ROOT, "supabase", "functions", "student-api", "index.ts"), "utf8");
+      check(/import examData from "\.\.\/\.\.\/\.\.\/exam-mode\.json" with \{ type: "json" \}/.test(src) && /G\.ExamServer\.withExamDone\(db\(\), \{ ExamMode: G\.ExamMode, data: examData \}, sid, list\)/.test(src) &&
+        /assignments: await openAssignments\(student\.class_id as string, sid\)/.test(src) && /exam_done: \[\]/.test(src),
+        "student-api: get_progress and get_assignments send exam_done (exam-mode.json imported as teacher-api does), and still send the assignments if that fails");
+    }
   }
 
   // ---------- Exam Mode in the student's browser (backend.js, prompt EM2) ----------

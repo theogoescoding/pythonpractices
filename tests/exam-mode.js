@@ -365,8 +365,17 @@ check(/data-block-example=\\"B8\\"/.test(examSrc) && /title saying what the code
   check(["id=\"lb-exam\"", "id=\"ex-board\"", "id=\"rp-exam\"", "id=\"export-exam\"", "id=\"as-exam-q\"", "id=\"as-exam-add\""].every((s) => th.includes(s)) &&
     /data-hw-unit="' \+ HW\.EXAM_SECTION \+ '"/.test(tj) && /TD\.examExportCsv\(data, exPacks\(\), EX, HW\)/.test(tj),
     "teacher view: the Exam boards (Leaderboards and Exam Mode pages), the Reports section and export, the assignment picker, and Exam Mode in the homework form");
-  check(/exam\.html#asg\/' \+ encodeURIComponent\(a\.id\) \+ "\/" \+ encodeURIComponent\(x\.id\)/.test(hj) && /asgCtx \? \{ assignmentId: asgCtx\.id \} : \{\}/.test(pageSrc),
-    "assignments: the student's card links each Exam Mode question to exam.html#asg/<assignment>/<question>, whose tries carry the assignment's id");
+  // EM3b (decision 29): every way into an assignment (the home card, the "new assignment" reminder) is its page,
+  // practice.html?assignment=, which lists the Exam Mode questions with the tasks, links each to exam.html#asg/<a>/<q>,
+  // and counts them towards completion; Exam Mode comes back to that page.
+  const aj = fs.readFileSync(path.join(ROOT, "app.js"), "utf8"), ph = fs.readFileSync(path.join(ROOT, "practice.html"), "utf8");
+  check(/href="practice\.html\?assignment=' \+ encodeURIComponent\(a\.id\)/.test(hj) && !/exam\.html#asg/.test(hj) && /X\.examDoneIds\(examPacks, a, /.test(hj) &&
+    /<script src="exam\.js"><\/script>\s*<script src="app\.js"><\/script>/.test(ph) && /const examHref = \(qid\) => "exam\.html#asg\/" \+ encodeURIComponent\(assignment\.id\) \+ "\/" \+ encodeURIComponent\(qid\)/.test(aj) &&
+    /const assignmentIsComplete = \(\) => assignmentComplete\(assignmentTasks\.map\(\(x\) => x\.id\), work\.tried, examProgress\(\)\)/.test(aj) &&
+    /asgCtx \? \{ assignmentId: asgCtx\.id \} : \{\}/.test(pageSrc) && /const assignmentHref = \(aid\) => "practice\.html\?assignment=" \+ encodeURIComponent\(aid\)/.test(pageSrc),
+    "assignments (EM3b): the card opens the assignment page, which links each Exam Mode question to exam.html#asg/<assignment>/<question> (its tries carry the assignment's id) and counts it towards completion; Exam Mode comes back to it");
+  check(/loadJson\("exam-mode\.json"\)/.test(aj) && /resolveAssignmentTasks\(\);\s*if \(!assignment \|\| !assignmentOrder\.length\)/.test(aj) && /renderExamOnly\(\)/.test(aj),
+    "assignment page (EM3b): an assignment with only Exam Mode questions lists them, rather than saying it has no tasks");
 }
 const tile = fs.readFileSync(path.join(ROOT, "app.html"), "utf8");
 check(/href="exam\.html"[^>]*class="menu-link"|class="menu-link"[^>]*href="exam\.html"/.test(tile) && !/id="exam-tile"/.test(tile),
@@ -376,9 +385,9 @@ check(/fetch\("exam_marker\.py"\)/.test(worker) && /msg\.type === "mark"/.test(w
 // EM2: backend mode, as the other student pages (store, config, backend-rows, backend), and the class switch.
 const html = fs.readFileSync(path.join(ROOT, "exam.html"), "utf8");
 check(/<script src="store\.js"><\/script>\s*<script src="config\.js"><\/script>\s*<script src="backend-rows\.js"><\/script>\s*<script src="backend\.js"><\/script>/.test(html) &&
-  /const examOff = !!\(BE && Store\.examMode\(student\.id\) === false\)/.test(pageSrc) && /Exam Mode isn't switched on for your class\. Ask your teacher\./.test(pageSrc) &&
+  /const examOff = !!\(BE && Store\.examMode\(student\.id\) === false && !examHomework\)/.test(pageSrc) && /Exam Mode isn't switched on for your class\. Ask your teacher\./.test(pageSrc) &&
   /if \(\(m = \/\^#asg\\\/.*showAssignment\(m\[1\], m\[2\]\)[^\n]*\n\s*if \(examOff\)/.test(pageSrc),
-  "exam.html: backend mode as the other student pages; a class with Exam Mode switched off sees \"Exam Mode isn't switched on for your class. Ask your teacher.\" (except an assignment's question, EM3)");
+  "exam.html: backend mode as the other student pages; a class with Exam Mode switched off sees \"Exam Mode isn't switched on for your class. Ask your teacher.\" (except an assignment's question, EM3, and while it has open Exam Mode homework, EM3b)");
 // The rows the page sends are the rows the server takes (exam-server.js checkRows), for every kind of record it makes.
 const ES = require(path.join(ROOT, "supabase", "functions", "_shared", "exam-server.js"));
 const recs = [

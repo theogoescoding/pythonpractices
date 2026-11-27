@@ -16,13 +16,17 @@
 // A task is known by its task id (a bank task's id, or a template variant's "template#seed"), the same in the attempt
 // records and the paste-flag events.
 // Exam Mode (EM3; decisions 8, 9 and 16): a section a teacher can pick, "exam-mode" in the homework's units (only when
-// picked: "any unit" means the practice units). One task = one Exam Mode question answered, at any rung: each rung 1
-// part, rung 2, rung 3, each rung 4 step and each full question. For each question, rung (and part or step):
-//   - the first recorded attempt counts (in the homework's time);
-//   - a retry counts as another task only if it scores more than every earlier attempt there (decision 9);
-//   - a paste-flagged attempt never counts (it still counts as an earlier attempt, so pasting then retyping it doesn't);
+// picked: "any unit" means the practice units). One task = one rung or full question done (decision 30): rung 1 once
+// both its parts are answered, rung 2, rung 3, rung 4 once every step is answered, and each full question. Counting
+// only the attempts in the homework's time (each homework starts afresh, EM3b: answers from before it was set don't count
+// and don't set the bar), for each question and rung:
+//   - the first time through counts (each part's first recorded attempt; its score is their total);
+//   - doing the whole rung or question again counts as another task only if it scores more than every earlier time
+//     through since the homework was set (decision 9);
+//   - a time through with a paste-flagged attempt never counts (it still sets the bar, so pasting then retyping doesn't);
 //   - self-marked and "Say it simply" attempts count as tasks (those rules are the leaderboard's).
-// Its task id is "exam:<question>|<rung>|<step>", its unit "exam-mode".
+// Its task id is "exam:<question>|<rung>", its unit "exam-mode". How many parts a rung has comes from exam-mode.json,
+// which this file doesn't load: the caller passes partsOf(questionId) (exam.js itemParts(packs, id).length).
 
 (function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory();
@@ -62,30 +66,46 @@
   }
 
   // Exam Mode (EM3): whether the homework has the Exam Mode section, and the student's Exam Mode answers that count.
-  // exam: their Exam Mode records ({ questionId, rung, step, at, total, pasteFlag }). -> { counted: [{ t, a }], flagged }
+  // exam: their Exam Mode records ({ questionId, rung, step, at, total, pasteFlag }). partsOf(questionId): how many parts
+  // that question's rung has (rung 1: 2, rung 4: its steps, otherwise 1); without it, rung 1 has 2 parts, rung 4 as many
+  // as the highest step answered, the rest 1. -> { counted: [{ t, a }], flagged }
   const coversExam = (hw) => (hw.units || []).includes(EXAM_SECTION);
-  const examTaskId = (r) => "exam:" + r.questionId + "|" + r.rung + "|" + (r.step == null ? "" : r.step);
-  function examTasks(hw, exam) {
+  const examTaskId = (r) => "exam:" + r.questionId + "|" + r.rung;
+  function examTasks(hw, exam, partsOf) {
     const counted = [], flagged = [];
     if (!coversExam(hw)) return { counted, flagged };
     const groups = new Map();
     for (const r of exam || []) {
       if (!r || !r.questionId || r.recorded === false || !Number.isFinite(time(r.at))) continue;
+      // EM3b (decision 29): each homework starts afresh. Only attempts in this homework's time count or set the bar, so
+      // a question answered before the homework was set counts again (Exam Mode has only a few questions per pack).
+      if (!inTime(hw, r.at)) continue;
       const k = examTaskId(r);
       if (!groups.has(k)) groups.set(k, []);
       groups.get(k).push(r);
     }
     for (const [taskId, list] of groups) {
       list.sort((x, y) => time(x.at) - time(y.at));
+      const r0 = list[0];
+      const given = typeof partsOf === "function" ? Number(partsOf(r0.questionId)) : 0;
+      const parts = given > 0 ? given : r0.rung === 1 ? 2 : r0.rung === 4 ? Math.max(1, ...list.map((r) => Number(r.step) || 0)) : 1;
+      // Decision 30: one task per time through the rung (or question). A time through ends when every part has been
+      // answered; its score is each part's first answer in it, added up (a "Try again" on a part doesn't change it).
       let best = null;
+      let run = new Map(), runFlagged = false;
       for (const r of list) {
+        const part = parts > 1 ? Number(r.step) : 0;
+        if (parts > 1 && !(part >= 1 && part <= parts)) continue;
+        if (!run.has(part)) run.set(part, r);
+        if (r.pasteFlag) runFlagged = true;
+        if (run.size < parts) continue;
         const t = time(r.at);
-        const total = Number(r.total) || 0;
-        if (inTime(hw, t)) {
-          if (r.pasteFlag) flagged.push({ taskId, unit: EXAM_SECTION, at: new Date(t).toISOString() });
-          else if (best === null || total > best) counted.push({ t, a: { taskId, unit: EXAM_SECTION, units: [EXAM_SECTION] } });
-        }
+        const total = [...run.values()].reduce((s, x) => s + (Number(x.total) || 0), 0);
+        if (runFlagged) flagged.push({ taskId, unit: EXAM_SECTION, at: new Date(t).toISOString() });
+        else if (best === null || total > best) counted.push({ t, a: { taskId, unit: EXAM_SECTION, units: [EXAM_SECTION] } });
         best = best === null ? total : Math.max(best, total);
+        run = new Map();
+        runFlagged = false;
       }
     }
     return { counted, flagged };
@@ -93,17 +113,17 @@
 
   // attempts: the student's attempt records ({ kind, at, unit, units, taskId, result }), every one they have (so a
   // repeat pass can be told from a first one). flags: their paste flags ({ at, unit, units, taskId }). exam (EM3): their
-  // Exam Mode records (examTasks above), counted only when the homework has the Exam Mode section.
+  // Exam Mode records (examTasks above), counted only when the homework has the Exam Mode section; partsOf as there.
   // -> { done, total, complete, taskIds (the counted tasks, in order), units (the units they were done in, in that
   //      order), flagged: [{ taskId, unit, at }] (the flagged tasks in the homework's time and units, once each) }
-  function progress(hw, attempts, flags, exam) {
+  function progress(hw, attempts, flags, exam, partsOf) {
     const total = hw.task_count;
     const flaggedAt = {};
     for (const f of flags || []) {
       const t = time(f.at);
       if (f.taskId && Number.isFinite(t) && !(flaggedAt[f.taskId] <= t)) flaggedAt[f.taskId] = t;
     }
-    const ex = examTasks(hw, exam);
+    const ex = examTasks(hw, exam, partsOf);
     const counted = Object.values(firstPasses(attempts))
       .filter(({ t, a }) => inTime(hw, t) && coversUnits(hw, unitsOf(a)) && !(flaggedAt[a.taskId] <= t))
       .concat(ex.counted)
@@ -152,7 +172,8 @@
     (joinedAt == null || !Number.isFinite(time(joinedAt)) || ukDate(time(hw.created_at)) >= ukDate(time(joinedAt))));
   // o = { attempts (every attempt record the student has: { kind, at, taskId, result, unit, units }), flags (their paste
   //       flags), homework (their class's homework: [{ created_at, due_on, units, task_count }], or null when it isn't
-  //       available, as in local mode), joinedAt (when the student joined the class), now (default now) }
+  //       available, as in local mode), joinedAt (when the student joined the class), now (default now), exam and
+  //       examParts (their Exam Mode records and partsOf, as progress takes them) }
   // -> { firstPassesThisWeek, averageFirstPassesPerWeek (one decimal place), averageHomeworkCompletion (a whole
   //      percentage; null when no homework has been set since they joined; undefined when homework isn't available),
   //      lastActive (ISO, or null) }
@@ -175,7 +196,7 @@
     if (o.homework) {
       const set = homeworkSinceJoined(o.homework, o.joinedAt, now).filter((hw) => hw.task_count > 0);
       averageHomeworkCompletion = !set.length ? null : Math.round(set.map((hw) =>
-        (100 * Math.min(progress(hw, o.attempts, o.flags, o.exam).done, hw.task_count)) / hw.task_count).reduce((x, y) => x + y, 0) / set.length);
+        (100 * Math.min(progress(hw, o.attempts, o.flags, o.exam, o.examParts).done, hw.task_count)) / hw.task_count).reduce((x, y) => x + y, 0) / set.length);
     }
     return {
       firstPassesThisWeek: firsts.filter((x) => ukWeek(x.t) === thisWeek).length,
@@ -191,9 +212,10 @@
   const doneText = (hw) => (hw.complete ? "Complete" : Math.min(hw.done || 0, hw.task_count) + " of " + hw.task_count + " done");
 
   // "Exam Mode: Strike Zone bowling (full question)" from an Exam Mode task id; null for any other task id. titleOf(qid)
-  // gives a question's title (exam-mode.json), when the caller has it.
+  // gives a question's title (exam-mode.json), when the caller has it. A task is a whole rung ("exam:<q>|<rung>", decision
+  // 30); EM3's ids with a part or step ("exam:<q>|<rung>|<step>") are still named.
   function examTaskName(taskId, titleOf) {
-    const m = /^exam:([^|]+)\|(\d)\|(\d*)$/.exec(String(taskId || ""));
+    const m = /^exam:([^|]+)\|(\d)(?:\|(\d*))?$/.exec(String(taskId || ""));
     if (!m) return null;
     const rung = +m[2];
     const where = rung === 5 ? "full question" : "rung " + rung + (m[3] ? (rung === 1 ? ", part " : ", step ") + m[3] : "");

@@ -43,7 +43,7 @@
 - **First release: all 16 patterns** in scope, not a core subset.
 
 ## 8. Teacher views, leaderboard, homework and reports (decided 24 Nov 2026)
-- **Teacher views:** class misconceptions (most-missed mark points), pattern progress (rungs reached), per-student scores (no code), and self-check rate (self-marked vs auto-marked per mark point).
+- **Teacher views:** class misconceptions (most-missed mark points), pack progress (rungs reached), per-student scores, and self-check rate (built in EM2 per question, not per mark point; accepted in decision 26).
 - **Leaderboard (separate, visible to students and teacher, by nickname):**
   - *Average % correct:* all time, minimum 5 questions answered.
   - *Most improved:* average % in the last 7 days vs the 7 days before; minimum 5 questions in the period.
@@ -184,3 +184,63 @@ Fixes (approved file updated):
 - **B7** example sentence rewritten without "…".
 - **B16** exam term is "maximum, minimum".
 - **Rung 1 feedback** names the block by its title and quotes the bullet from the current question, not the block's general example (so the playlist question doesn't mention hours or seconds).
+
+## 25. Prompts EM2 and EM3 written (27 Nov 2026)
+Theo checked the EM1b content himself and approved it.
+- **EM2** (`docs/exammode/EM2-prompt.md`): `exam_attempts` table (migration 0021) with mark-point results, auto/self totals, notes, help used, paste flag, `assignment_id`, code only for attempts under full marks (cleared after 30 days); new event types (`exam_model_seen`, `exam_tutorial_seen`); `student-api` `add_exam_attempts` and `get_exam_progress`; `classes.exam_mode` (null = by stage: on for GCSE); `teacher-api` `set_exam_mode`, `exam_overview`, `exam_student_detail`; teacher Exam Mode page (switch, pack overview, most-missed mark points, self-check and help rates, student detail); privacy notice lines. Marking stays in the browser and the server trusts it (accepted for the pilot).
+- **EM3** (`docs/exammode/EM3-prompt.md`): leaderboard rules made exact: counted = first attempts only, auto-marked points only (self-marked left out of scored and possible), paste-flagged excluded, "say it simply" first attempts count marks scored at 50% with marks possible in full; boards need ≥5 questions in the window (most improved: ≥5 in each week). Homework: Exam Mode as a section; one task per question and rung, first recorded attempt counts, a retry counts again only if higher than every earlier attempt; self-marked and helped attempts still count as tasks. Assignments take Exam Mode question ids and work even when the class switch is off. Reports and export get Exam Mode scores, rung reached, most-missed points and homework results.
+
+## 26. EM2 built (27 Nov 2026)
+Claude Code built EM2 (not yet deployed or synced when reported). Tests: exam-mode 288/288 (marker 148/148), validate, features 974/974, backend-client 107/107, SQL tests 0015–0021 in a rolled-back transaction (17 files pass). Browser checks done against a stand-in server running the real `exam-server.js`; the live `tests/backend/run.js` tests and the Deno bundling of `teacher-api`'s JSON import are not yet verified.
+- **Accepted changes from the prompt:** `step` also holds rung 1's part (1 or 2); the model-answer rule refuses only tries made after it was opened; Exam Mode events have no unit (only those two types); paste flag is a column, not an event; `set_exam_mode` accepts null (back to the stage default); the server checks sums exactly; an unanswered "check yourself" point is stored as `{awarded: null, status: "self"}` and counts as self-checked, not missed; code is sent for rungs 2–5 when marks were lost; `exam_student_detail` takes the student id.
+- **Self-check rate is per question**, not per mark point (accepted).
+- **"Rung reached" = highest rung tried** for now; decision 10's 80%-on-3 rule comes with EM4.
+- **Paste-flagged answers (decision 16) are left out of scores everywhere:** teacher overview, most-missed mark points, My exam scores, leaderboard and homework. They still show, marked "Paste flagged". Added to EM3.
+- **Misconceptions page link** to the Exam Mode page (decision 16): added to EM3.
+- Earlier "local mode only" notes in decisions 20 and 22 are superseded by EM2.
+- **Deploy order:** migration first (`supabase migration list`, then `db push`), then deploy `student-api` and `teacher-api` (and `join-class`, `resume` if the domain-move origins aren't deployed yet), and only then sync and push the site. Test project before the trial project.
+
+## 27. Wrong answers don't block rungs 1–4 (decided 27 Nov 2026)
+Theo found students stuck on a step of rungs 1–4 until they got it right. Students must be able to get a step wrong and move on.
+- After the first check on any step of rungs 1–4 (each rung 1 part, i.e. all bullets together and all examiner pairs together (updated in decision 28); the Parsons check; rung 3 gaps; each rung 4 step), the student gets three buttons: **Try again**, **Show answer**, **Next**. This matches decision 13 for full questions.
+- **Next** is disabled until the first check, so every step must be tried once. Pressing Next on a wrong step fills in the correct version first, so the next step builds on working code. The student's own version is what gets recorded.
+- **Show answer** is recorded with `exam_model_seen`.
+- The first check is what counts (decision 13). Later right answers show "Correct on try n" to the student only.
+- The rung summary lists steps that were shown or wrong first time, with "Try this step again" links. These are practice only.
+- No database change. Added to prompt EM3 as section 6.
+
+## 28. EM3 built (27 Nov 2026)
+Claude Code built EM3 (not yet deployed or synced when reported). No new migration; `student-api` and `teacher-api` need redeploying. Tests: exam-mode 299/299 (marker 148/148), validate all passed, features 974/974, backend-client 118/118, SQL tests 32 passed. Browser checks at 1280px and 390px: section 6 in local mode (32), sections 1–5 against a stand-in server running the real `exam-server.js` and `homework-server.js` (25). The live `tests/backend/run.js` tests not yet run.
+- **Accepted changes from the prompt:**
+  - Rung 1's three buttons are per part (all bullets, all examiner pairs), not per bullet, because each part is checked and recorded as one record.
+  - Show answer's `exam_model_seen` uses a step-scoped id (e.g. `C1-R4-r4-s2`) so later steps of the same question aren't refused. Later tries of that step aren't recorded.
+  - Rung 4 steps have their correct code in `exam-mode.json` (the model answer built up step by step, checked by the gate). Rung 3 reads its answers from the model program.
+  - The end-of-rung summary is on rungs 1 and 4 only (rungs 2 and 3 have one step each).
+  - In rung 4, code Python can't read counts as a wrong check, so Next still works.
+  - Homework set as "any unit" doesn't count Exam Mode; only homework with the Exam Mode section does.
+  - A paste-flagged try still counts as an earlier attempt for homework, so retyping a pasted answer doesn't count either. A paste-flagged first attempt leaves no first-attempt score; the next try doesn't take its place.
+  - A question with no auto-marked points isn't counted on the leaderboard.
+  - The teacher Leaderboards page works the board out in the browser from the class's rows, with the same rule (no new `teacher-api` action).
+  - The export is one "Exam Mode (CSV)" file in three sections (pack scores, most-missed mark points, homework).
+  - EM2's overview arithmetic moved into `exam.js` (`classOverview`), shared by the server, Reports and the export.
+- **Homework retries:** a retry counts again only if it beats every earlier attempt (EM3 prompt), replacing "the previous attempt" in decision 9.
+
+
+## 29. Problems found testing EM3 on the trial project (27 Nov 2026)
+Theo's live checks after deploying EM3:
+- **Assignments:** an Exam Mode item can be set, but the student opens the assignment and sees no tasks. With a normal task added, the student sees only that task, and finishing it completes and closes the assignment. Exam Mode items aren't shown or counted towards completion.
+- **Homework:** the student's homework card can't be clicked through to Exam Mode, and Exam Mode answers (rungs included) don't count as homework tasks.
+- **Misconceptions page:** the link line shows, but Exam Mode isn't in the unit drop-down. **Decided (Claude's recommendation):** add "Exam Mode" to the drop-down; picking it shows the class's most-missed Exam Mode mark points on that page (the same data and code as the Exam Mode page), with the link kept. Replaces "a link rather than a second copy" in decision 16.
+- EM3's browser checks ran against a stand-in server, not the real project, and `tests/backend/run.js` wasn't run. The fix (prompt EM3b) starts there.
+
+## 30. EM3b built, homework counting settled (27 Nov 2026)
+Claude Code built EM3b (not yet deployed when reported). No migration; `student-api` and `teacher-api` need redeploying. Tests: exam-mode 300/300 (marker 148/148), backend-client 125/125, features 977/977, validate passed; browser checks 24/24 at 1280px and 390px against a stand-in running the real server code.
+- **Assignments cause:** `practice.html?assignment=…` (the "Open it" reminder link, and the home card if clicked before `exam-mode.json` loaded) only looked ids up in `tasks.json`, so Exam Mode items were dropped and completion came from bank tasks alone. Server and database were fine. Fixed: every item listed in order with Not tried yet / Tried / ✓ Done; complete only when every item is done (rung 1 both parts, rung 4 every step; a shown part counts as done); `student-api` sends which Exam Mode questions are done; teacher view gets a "Done" column.
+- **Homework cause:** no code bug found. EM3's rule compared retries with every earlier attempt, including ones from before the homework was set, so test students who had already done pack C1 had nothing left to count.
+- **Decided (Claude's recommendations, Theo to confirm):**
+  - **Each homework starts afresh:** only answers made after it was set count, and only those set the bar for a retry.
+  - **One homework task per rung, not per step:** rung 1 counts once when both parts are done; rung 4 counts once when every step is done; each full question counts once. Replaces EM3's one task per rung 1 part and per rung 4 step (decision 8 says one task = one question answered).
+  - **All homework cards link through:** unit cards open their unit, as Exam Mode cards now open Exam Mode.
+  - Exam Mode opens while the class has open Exam Mode homework, even when the class switch is off (accepted, matching assignments).
+- **Misconceptions:** "Exam Mode" is the last drop-down option (only when Exam Mode is on), showing most-missed mark points in place of "Most-failed tasks"; link line kept.
+- **Backend tests:** `tests/backend/run.js` only runs against the test project (`qiggrpwzfowhhcjrlauq`), needing `tests/backend/config.local.json` with the service-role key. Not run yet.

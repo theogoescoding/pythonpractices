@@ -591,10 +591,16 @@
       <div class="teacher-controls">
         <label>Unit <select id="mc-unit"></select></label>
       </div>
-      <section class="teacher-section" aria-labelledby="mc-failed-h">
+      <section id="mc-failed-section" class="teacher-section" aria-labelledby="mc-failed-h">
       <h3 id="mc-failed-h">Most-failed tasks</h3>
       <p class="small">This class's tasks with the most failed attempts in the chosen unit. Select a task to open it in the Task browser, ready to try.</p>
       <div id="mc-failed" aria-live="polite"></div>
+      </section>
+      <!-- EM3b (decision 29): with "Exam Mode" chosen, in place of the most-failed tasks: the Exam Mode page's most-missed mark points. -->
+      <section id="mc-exam-section" class="teacher-section" aria-labelledby="mc-exam-h" hidden>
+      <h3 id="mc-exam-h">Most-missed mark points (Exam Mode)</h3>
+      <p class="small">For each full question: the share of students who missed each mark point on their first attempt, most missed first. The same figures as the Exam Mode page.</p>
+      <div id="mc-exam" aria-live="polite"></div>
       </section>
 
       <section class="teacher-section" data-collapse="mc-review" data-collapse-default="closed" aria-labelledby="mc-review-h">

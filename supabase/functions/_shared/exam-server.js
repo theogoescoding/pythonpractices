@@ -176,6 +176,25 @@
     };
   }
 
+  // ---------- Assignments (EM3b, decision 29) ----------
+  // The student's open assignments (as student-api sends them), each with exam_done: the ids of its Exam Mode questions
+  // that are done (exam.js assignmentItemDone: every part tried with this assignment, or its answer shown). The student's
+  // page joins this with its own records, so the assignment card, the assignment page and completion agree on any
+  // computer. An assignment with no Exam Mode question gets []. A server without migration 0021: [] for every one.
+  async function withExamDone(sb, deps, sid, assignments) {
+    const X = deps.ExamMode, packs = deps.data.packs;
+    const list = (assignments || []).map((a) => Object.assign({}, a, { exam_done: [] }));
+    const ids = list.filter((a) => X.assignmentItems(packs, a.task_ids).some((x) => x.exam)).map((a) => a.id);
+    if (!ids.length) return list;
+    const r = await sb.from("exam_attempts").select("question_id, rung, step, assignment_id").eq("student_id", sid).in("assignment_id", ids).order("id");
+    if (r.error && noExam(r.error)) return list;
+    const recs = (data(r, "assignment exam attempts") || []).map((row) => ({ questionId: row.question_id, rung: row.rung, step: row.step == null ? null : row.step, assignmentId: row.assignment_id }));
+    const seen = {};
+    for (const id of Object.keys(await modelSeenTimes(sb, sid))) seen[id] = true;
+    for (const a of list) if (ids.includes(a.id)) a.exam_done = X.examDoneIds(packs, a, recs, seen);
+    return list;
+  }
+
   // ---------- The class switch (decisions 1 and 15) ----------
   // { stage, setting } of a class. A server without migration 0021 has no exam_mode column (setting null), and one
   // without 0013 no stage (GCSE).
@@ -278,5 +297,5 @@
   }
 
   return { MESSAGES, MODEL_SEEN, TUTORIAL_SEEN, EVENT_TYPES, MAX_ROWS_PER_BATCH, noExam, rowProblem, checkRows, addAttempts, forStudent, classSetting,
-    examModeForStudent, setExamMode, overview, studentBoards, classRecords, studentDetail };
+    examModeForStudent, setExamMode, overview, studentBoards, classRecords, studentDetail, withExamDone };
 });

@@ -3,7 +3,8 @@
 // (homework.js), so the student's card, the teacher's report and the tests always agree.
 // A plain script, like certificates-server.js, so the Deno functions and the Node tests (tests/backend-client.js) run
 // the same code. Every function takes the database client (the service role, or a fake in the tests) and
-// deps = { Homework, Sharing, unitIds }. Teacher problems are thrown as Sharing.Problem (teacher-api shows them).
+// deps = { Homework, Sharing, unitIds, examParts }. examParts(questionId): how many parts an Exam Mode question's rung has
+// (exam.js itemParts on exam-mode.json; decision 30: one homework task per whole rung). Teacher problems are thrown as Sharing.Problem (teacher-api shows them).
 // Only homework_progress is written here as the service role: students never write it, and teachers only read it.
 // Nothing returned has a student id, PIN, login code or attempt text: student names, numbers, units and task ids only.
 
@@ -65,7 +66,7 @@
     for (const hw of list) {
       out[hw.id] = {};
       for (const sid of studentIds) {
-        const p = deps.Homework.progress(hw, recs[sid].attempts, recs[sid].flags, recs[sid].exam);
+        const p = deps.Homework.progress(hw, recs[sid].attempts, recs[sid].flags, recs[sid].exam, deps.examParts);
         out[hw.id][sid] = p;
         rows.push({ homework_id: hw.id, student_id: sid, done: p.done, complete: p.complete, units: p.units, task_ids: p.taskIds, updated_at: now });
       }
@@ -169,7 +170,7 @@
     if (r.error && !noTable(r.error)) data(r, "homework");
     const homework = r.error ? [] : (r.data || []).map(asHw);
     const joined = data(await sb.from("students").select("id, created_at").eq("id", s.id).maybeSingle(), "student");
-    const x = deps.Homework.progressSummary({ attempts: recs.attempts.concat(tries.map((t) => ({ kind: "attempt", at: t.timestamp }))), flags: recs.flags, exam: recs.exam, homework,
+    const x = deps.Homework.progressSummary({ attempts: recs.attempts.concat(tries.map((t) => ({ kind: "attempt", at: t.timestamp }))), flags: recs.flags, exam: recs.exam, examParts: deps.examParts, homework,
       joinedAt: joined && joined.created_at, now });
     return { first_passes_this_week: x.firstPassesThisWeek, average_first_passes_per_week: x.averageFirstPassesPerWeek,
       average_homework_completion: x.averageHomeworkCompletion, last_active: x.lastActive };

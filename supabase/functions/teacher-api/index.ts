@@ -86,7 +86,8 @@ const Sharing = G.ClassSharing;
 const CertificatesServer = G.CertificatesServer;
 const HomeworkServer = G.HomeworkServer;
 const certDeps = () => ({ Sharing, Certificates: G.Certificates, Curriculum: G.Curriculum });
-const hwDeps = () => ({ Sharing, Homework: G.Homework, unitIds: UNITS });
+// examParts: how many parts an Exam Mode question's rung has (decision 30: one homework task per whole rung).
+const hwDeps = () => ({ Sharing, Homework: G.Homework, unitIds: UNITS, examParts: (qid: string) => G.ExamMode.itemParts(examData.packs, qid).length });
 const examDeps = () => ({ Sharing, ExamMode: G.ExamMode, data: examData });
 
 const bad = () => new HttpError(400, "Something went wrong. Please try again.");

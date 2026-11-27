@@ -454,6 +454,39 @@
   }
   // The rung a question is used on (1-4: the pack's rung question; 5: a full question), or 0 if it isn't one.
   const rungOfQuestion = (packs, qid) => { const a = assignableQuestions(packs).find((x) => x.id === qid); return a ? a.rung : 0; };
+  // ---------- An assignment's Exam Mode items (EM3b, decision 29) ----------
+  // The parts an item has to have done: rung 1's two parts, rung 4's steps (by number), one for rungs 2, 3 and a full
+  // question (null). [] for an id that isn't an Exam Mode question.
+  function itemParts(packs, qid) {
+    const item = assignableQuestions(packs).find((x) => x.id === qid);
+    if (!item) return [];
+    if (item.rung === 1) return [1, 2];
+    if (item.rung === 4) { const p = (packs || []).find((x) => x.id === item.packId); return ((p && p.rungs && p.rungs.steps && p.rungs.steps.steps) || []).map((s) => s.n); }
+    return [null];
+  }
+  // Whether an assignment's Exam Mode question is done: every part of it has a recorded try saved with this assignment,
+  // or had its answer shown (a shown part's later tries aren't recorded, decision 9). recs: the student's records as
+  // exam.js keeps them; seen: { id: true } of the answers shown (exam_model_seen task ids: shownId for rungs 1-4, the
+  // question's id for a full question's model answer).
+  function assignmentItemDone(packs, qid, recs, aid, seen) {
+    const rung = rungOfQuestion(packs, qid);
+    const parts = itemParts(packs, qid);
+    if (!parts.length) return false;
+    const mine = (recs || []).filter((r) => r && r.recorded !== false && r.assignmentId === aid && r.questionId === qid && r.rung === rung);
+    const shown = (s) => !!(seen && seen[rung === 5 ? qid : shownId(qid, rung, s)]);
+    return parts.every((s) => shown(s) || mine.some((r) => (s == null ? r.step == null : r.step === s)));
+  }
+  // An assignment's items in the teacher's order: [{ id, exam (an Exam Mode item, from assignableQuestions) or null }].
+  function assignmentItems(packs, taskIds) {
+    const exam = assignableQuestions(packs);
+    return (taskIds || []).map((id) => ({ id, exam: exam.find((x) => x.id === id) || null }));
+  }
+  // The ids of an assignment's Exam Mode questions that are done (the server's list, from student-api get_progress,
+  // joined with this browser's own records, so an answer not yet sent still counts).
+  function examDoneIds(packs, assignment, recs, seen) {
+    const server = new Set((assignment && assignment.exam_done) || []);
+    return assignmentItems(packs, assignment && assignment.task_ids).filter((x) => x.exam && (server.has(x.id) || assignmentItemDone(packs, x.id, recs, assignment.id, seen))).map((x) => x.id);
+  }
   // This browser's records and the server's, one of each id (this browser's copy is kept: it may have a self-check
   // the server hasn't had yet), oldest first.
   function mergeRecords(local, server) {
@@ -465,7 +498,8 @@
     scoreSummary, packProgress, fullQuestionsOf, TUTORIAL, STORAGE_PREFIX, RUNG_NAMES, RUNG_KEYS,
     examModeOn, ALWAYS_TRUE_NOTE, toServerRow, fromServerRow, mergeRecords,
     freshStep, afterCheck, afterShow, stepRecorded, nextEnabled, nextFillsIn, triesNote, needsAnotherLook, shownId, gapAnswers, addedLines,
-    classOverview, countedFirsts, examBoards, improvedText, BOARD_MIN_QUESTIONS, assignableQuestions, rungOfQuestion };
+    classOverview, countedFirsts, examBoards, improvedText, BOARD_MIN_QUESTIONS, assignableQuestions, rungOfQuestion,
+    itemParts, assignmentItemDone, assignmentItems, examDoneIds };
 });
 
 // ===================== Browser page (exam.html only) =====================
@@ -485,12 +519,17 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
   // Exam Mode switched on (the teacher's switch, or the stage's default). Local mode: always open, this browser only.
   const BE = self.Backend && self.Backend.enabled ? self.Backend : null;
   // Switched off: only an assignment's Exam Mode question opens (EM3: the teacher chose it); everything else says so.
-  const examOff = !!(BE && Store.examMode(student.id) === false);
+  // Open homework with the Exam Mode section (EM3b) opens all of it too: the teacher set it, and its card links here.
+  const examHomework = (Store.homework(student.id) || []).some((hw) => !hw.complete && (hw.units || []).includes("exam-mode") &&
+    !(typeof hw.due_on === "string" && new Date().toLocaleDateString("en-CA", { timeZone: "Europe/London" }) > hw.due_on));
+  const examOff = !!(BE && Store.examMode(student.id) === false && !examHomework);
   if ($("exam-board-link")) $("exam-board-link").hidden = !BE; // the Exam leaderboard needs the class's server
-  // An assignment being done (#asg/<assignment id>/...): its tries are saved with its id, and Next goes back to it.
+  // An assignment being done (#asg/<assignment id>/<question>): its tries are saved with its id, and Next goes back to
+  // the assignment's page (practice.html?assignment=, EM3b: one page lists all its items and counts them).
   let asgCtx = null;
-  const go = (hash) => { location.hash = asgCtx ? "#asg/" + asgCtx.id : hash; };
-  const nextHref = (hash) => (asgCtx ? "#asg/" + asgCtx.id : hash);
+  const assignmentHref = (aid) => "practice.html?assignment=" + encodeURIComponent(aid);
+  const go = (hash) => { if (asgCtx) location.href = assignmentHref(asgCtx.id); else location.hash = hash; };
+  const nextHref = (hash) => (asgCtx ? assignmentHref(asgCtx.id) : hash);
 
   // ---------- Saved in this browser (store.js patterns: readJson/writeJson already catch storage errors) ----------
   // In backend mode this is a copy of the student's records, merged with the server's when the page opens.
@@ -1469,33 +1508,25 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
       boardTable(r.body.improved || [], "Most improved", X.improvedText);
   }
 
-  // ---------- An assignment's Exam Mode questions (EM3) ----------
-  // #asg/<id>: the assignment's Exam Mode questions, each opening at its rung (#asg/<id>/<question>). Their tries are
-  // saved with the assignment's id. It works even when the class has Exam Mode switched off: the teacher chose these.
+  // ---------- An assignment's Exam Mode questions (EM3, EM3b) ----------
+  // #asg/<id>/<question>: one of the assignment's Exam Mode questions, opening at its rung. Its tries are saved with the
+  // assignment's id. It works even when the class has Exam Mode switched off: the teacher chose it. The assignment
+  // itself (every item, done or not, and completion) is its page, practice.html?assignment=<id>: #asg/<id> on its own,
+  // or a question that isn't in it, goes there.
   function showAssignment(aid, qid) {
     const a = (Store.assignments(student.id) || []).find((x) => x.id === aid);
-    const items = a ? X.assignableQuestions(data.packs).filter((x) => a.task_ids.includes(x.id)).sort((x, y) => a.task_ids.indexOf(x.id) - a.task_ids.indexOf(y.id)) : [];
+    const items = a ? X.assignableQuestions(data.packs).filter((x) => a.task_ids.includes(x.id)) : [];
     if (!a || !items.length) {
       setView('<h2>Assignment</h2><p>This assignment isn\'t open for your class, or has no Exam Mode questions.</p><p><a href="app.html">← Back to your units</a></p>', "Assignment");
       return;
     }
     const item = qid ? items.find((x) => x.id === qid) : null;
-    if (qid && !item) { location.hash = "#asg/" + aid; return; }
-    if (item) {
-      asgCtx = { id: aid, title: a.title };
-      const q = questionById(item.id);
-      if (item.rung === 5) showQuestion(q);
-      else ({ 1: showDecode, 2: showSkeleton, 3: showFill, 4: showSteps })[item.rung]();
-      app.insertAdjacentHTML("afterbegin", '<p class="small em-asg-note">Assignment: <a href="#asg/' + esc(aid) + '">' + esc(a.title) + "</a></p>");
-      return;
-    }
-    const tried = (x) => X.scoreSummary(saved.attempts.filter((r) => r.assignmentId === aid && r.questionId === x.id))[0];
-    setView("<h2>" + esc(a.title) + "</h2>" + (a.description ? "<p>" + esc(a.description) + "</p>" : "") +
-      '<p class="small">Exam Mode questions set by your teacher. Your first try at each one is the one that counts.</p><ol class="em-rungs">' +
-      items.map((x) => { const s = tried(x); return '<li><a href="#asg/' + esc(aid) + "/" + esc(x.id) + '">' + esc(x.label) + "</a> " +
-        '<span class="small">' + (!s ? "Not tried yet" : "First try: " + (s.first ? s.first.total + "/" + s.first.max : "–") + ", best: " + (s.best ? s.best.total + "/" + s.best.max : "–")) +
-        (s && s.pasteFlagged ? " " + PASTE_FLAGGED : "") + "</span></li>"; }).join("") +
-      '</ol><p><a href="app.html">← Back to your units</a></p>', a.title);
+    if (!item) { location.replace(assignmentHref(aid)); return; }
+    asgCtx = { id: aid, title: a.title };
+    const q = questionById(item.id);
+    if (item.rung === 5) showQuestion(q);
+    else ({ 1: showDecode, 2: showSkeleton, 3: showFill, 4: showSteps })[item.rung]();
+    app.insertAdjacentHTML("afterbegin", '<p class="small em-asg-note">Assignment: <a href="' + esc(assignmentHref(aid)) + '">' + esc(a.title) + "</a></p>");
   }
 
   // ---------- Start ----------

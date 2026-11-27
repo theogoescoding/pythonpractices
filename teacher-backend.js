@@ -330,9 +330,11 @@
       // EM3: each student's Exam Mode records (as exam.js keeps them), the class's homework and each student's paste flags
       // (homework.js's progress for the Exam Mode export, the same rule as the server's homework report).
       data.exam = {};
+      data.examSeen = {}; // EM3b: the answers each student has shown ({ exam_model_seen task id: true }), for an assignment's "Done"
       data.pasteFlags = {};
       for (const s of st) {
         data.exam[s.id] = examRows.filter((r) => r.student_id === s.id).map((r) => self.ExamMode.fromServerRow(r));
+        data.examSeen[s.id] = Object.fromEntries(events.filter((e) => e.student_id === s.id && e.record_type === "exam_model_seen" && e.task_id).map((e) => [e.task_id, true]));
         data.pasteFlags[s.id] = events.filter((e) => e.student_id === s.id && e.record_type === "paste_flag")
           .map((e) => ({ at: e.timestamp, unit: e.unit, units: [e.unit], taskId: e.task_id }));
       }

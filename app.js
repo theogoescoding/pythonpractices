@@ -579,23 +579,29 @@ function openSecuredDialog(doc, o) {
 // ---------- "Assignment complete" ----------
 // An assignment is complete when every one of its tasks has been passed: work.tried[id] === "passed", the same record
 // the home page's assignment card counts ("3 of 5 done"). taskIds: the assignment's tasks (as the practice page
-// resolves them).
-const assignmentComplete = (taskIds, tried) => taskIds.length > 0 && taskIds.every((id) => (tried || {})[id] === "passed");
+// resolves them). exam (EM3b, decision 29): its Exam Mode questions, { total, done } (exam.js assignmentItemDone): every
+// one of them must be done too.
+const assignmentComplete = (taskIds, tried, exam) => taskIds.length + (exam ? exam.total : 0) > 0 &&
+  taskIds.every((id) => (tried || {})[id] === "passed") && (!exam || exam.done >= exam.total);
 
 // The band for a grade (0-100).
 const assignmentBand = (grade) => (grade >= ASSIGNMENT_WELL_DONE_FROM ? "Well done" : grade >= ASSIGNMENT_GETTING_THERE_FROM ? "Getting there" : "Keep practising");
 
 // The breakdown, worked out from the saved assignment work (Store.loadAssignmentWork: tried, and each task's hints and
 // checks in current and drafts); nothing new is saved. { total, passed, hints, attempts, grade, band }.
-function assignmentSummary(taskIds, work) {
+// exam (EM3b): { total, done } of its Exam Mode questions, counted with the tasks (a done question as a passed task);
+// then withExam is true and the first line says "done".
+function assignmentSummary(taskIds, work, exam) {
   const w = work || {};
   const stateOf = (id) => (w.current && w.current.taskId === id ? w.current : (w.drafts || {})[id]) || {};
-  const passed = taskIds.filter((id) => (w.tried || {})[id] === "passed").length;
+  const ex = exam && exam.total ? exam : { total: 0, done: 0 };
+  const passed = taskIds.filter((id) => (w.tried || {})[id] === "passed").length + Math.min(ex.done, ex.total);
+  const total = taskIds.length + ex.total;
   const hints = taskIds.reduce((n, id) => n + (stateOf(id).hints || 0), 0);
   const attempts = taskIds.reduce((n, id) => n + (stateOf(id).attempts || 0), 0);
-  const percent = taskIds.length ? (100 * passed) / taskIds.length : 0;
+  const percent = total ? (100 * passed) / total : 0;
   const grade = Math.max(0, percent - ASSIGNMENT_HINT_PENALTY * hints);
-  return { total: taskIds.length, passed, hints, attempts, grade, band: assignmentBand(grade) };
+  return { total, passed, hints, attempts, grade, band: assignmentBand(grade), withExam: ex.total > 0 };
 }
 
 // The unit most of the assignment's tasks come from (more than half of them), or null (a tie, or no unit has more
@@ -610,7 +616,7 @@ function assignmentUnit(tasks) {
 const ASSIGNMENT_DIALOG = { title: "Assignment complete", unit: "Go to this unit", home: "Back to units" };
 // The lines of the breakdown, e.g. ["8 of 8 tasks passed", "3 hints used", "12 attempts", "Grade: Well done"].
 const assignmentLines = (s) => [
-  s.passed + " of " + s.total + " task" + (s.total === 1 ? "" : "s") + " passed",
+  s.passed + " of " + s.total + " task" + (s.total === 1 ? "" : "s") + (s.withExam ? " done" : " passed"),
   s.hints + " hint" + (s.hints === 1 ? "" : "s") + " used",
   s.attempts + " attempt" + (s.attempts === 1 ? "" : "s"),
   "Grade: " + s.band,
@@ -1293,7 +1299,8 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     if (assignmentDoneDue) {
       assignmentDoneDue = false;
       openAssignmentDialog(document, Object.assign(common, {
-        summary: assignmentSummary(assignmentTasks.map((x) => x.id), work), unitId: assignmentUnit(assignmentTasks),
+        summary: assignmentSummary(assignmentTasks.map((x) => x.id), work, examProgress()),
+        unitId: assignmentUnit(assignmentTasks.concat(assignmentExam.map(() => null))), // an Exam Mode question has no unit
         onUnit: (u) => { location.href = "practice.html?unit=" + encodeURIComponent(u); },
       }));
     } else {
@@ -1304,11 +1311,57 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
 
   // ---------- Assignments ----------
   // The assignment's tasks, in the teacher's order (old ids are found through former_ids; unknown ids are left out).
+  // EM3b (decision 29): an assignment can also hold Exam Mode questions (exam-mode.json). They are listed with the
+  // tasks, each opening in Exam Mode (exam.html#asg/<assignment>/<question>, which comes back here), and count towards
+  // completion once every part of them is done (exam.js assignmentItemDone: the server's exam_done, from student-api
+  // get_progress, joined with this browser's own Exam Mode records).
   let assignmentTasks = [];
+  let assignmentExam = [];  // its Exam Mode questions: [{ id, label, rung, packId }]
+  let assignmentOrder = []; // every item in the teacher's order: { task } or { exam }
+  let examPacks = null;     // exam-mode.json's packs, loaded with the tasks for an assignment (null without it)
   function resolveAssignmentTasks() {
     const renamed = {};
     for (const t of tasks) for (const old of t.former_ids || []) renamed[old] = t.id;
-    assignmentTasks = (assignment ? assignment.task_ids : []).map((id) => taskById[id] || taskById[renamed[id]]).filter(Boolean);
+    const exam = examPacks && self.ExamMode ? self.ExamMode.assignableQuestions(examPacks) : [];
+    assignmentOrder = (assignment ? assignment.task_ids : []).map((id) => {
+      const t = taskById[id] || taskById[renamed[id]];
+      if (t) return { task: t };
+      const x = exam.find((e) => e.id === id);
+      return x ? { exam: x } : null;
+    }).filter(Boolean);
+    assignmentTasks = assignmentOrder.filter((o) => o.task).map((o) => o.task);
+    assignmentExam = assignmentOrder.filter((o) => o.exam).map((o) => o.exam);
+  }
+  const examHref = (qid) => "exam.html#asg/" + encodeURIComponent(assignment.id) + "/" + encodeURIComponent(qid);
+  // This browser's Exam Mode records (exam.js keeps them under ExamMode.STORAGE_PREFIX): { attempts, modelSeen }.
+  const examRecords = () => (self.ExamMode && Store.readJson(self.ExamMode.STORAGE_PREFIX + student.id)) || {};
+  function examDoneSet() {
+    if (!assignment) return new Set();
+    if (!examPacks) return new Set(assignment.exam_done || []);
+    const ex = examRecords();
+    return new Set(self.ExamMode.examDoneIds(examPacks, assignment, ex.attempts || [], ex.modelSeen || {}));
+  }
+  const examProgress = () => { const d = examDoneSet(); return { total: assignmentExam.length, done: assignmentExam.filter((x) => d.has(x.id)).length }; };
+  const examTried = (qid) => (examRecords().attempts || []).some((r) => r.assignmentId === assignment.id && r.questionId === qid);
+  const assignmentIsComplete = () => assignmentComplete(assignmentTasks.map((x) => x.id), work.tried, examProgress());
+  // The Exam Mode side of an assignment opened from Exam Mode: "Assignment complete" opens once, here, when an Exam Mode
+  // question was the last thing done (a task's pass opens it in finishTask, as before).
+  function completedFromExamMode() {
+    if (preview || !assignmentExam.length || work.completeShown || !assignmentIsComplete()) return;
+    work.completeShown = true;
+    save();
+    assignmentDoneDue = true;
+  }
+  // An assignment with only Exam Mode questions: the list, in the task's place.
+  function renderExamOnly() {
+    const done = examDoneSet();
+    $("task").innerHTML = '<h2 class="assignment-exam-h">' + esc(assignment.title) + "</h2>" + (assignment.description ? "<p>" + esc(assignment.description) + "</p>" : "") +
+      "<p>This assignment's questions are in Exam Mode. Open each one; you come back here when you've finished it.</p>" +
+      '<ol class="assignment-exam-list">' + assignmentExam.map((x) => '<li><a class="assignment-task" href="' + esc(examHref(x.id)) + '">Exam Mode: ' + esc(x.label) +
+        ' <span class="small">· ' + (done.has(x.id) ? "✓ Done" : examTried(x.id) ? "Tried" : "Not tried yet") + "</span></a></li>").join("") + "</ol>" +
+      (assignmentIsComplete() ? '<p class="notice notice-up" role="status">✓ Assignment complete.</p>' : "") +
+      '<p><a href="app.html">Back to your units</a></p>';
+    showDialogIfDue();
   }
 
   // Opens task number i (wrapping round). A task already open keeps its answer.
@@ -1397,13 +1450,13 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     const t = task();
     if (inAssignment) {
       // Practice only: the task is marked as done here, and nothing else changes.
-      const ids = assignmentTasks.map((x) => x.id);
-      const wasComplete = assignmentComplete(ids, work.tried);
+      const wasComplete = assignmentIsComplete();
       work.tried[t.id] = passed ? "passed" : work.tried[t.id] || "tried";
+      // The pass that completes the assignment (saved below): the completion screen opens once the page is drawn. Not
+      // when it was already complete (on loading the page, or earlier), and not in teacher practice. Its Exam Mode
+      // questions (EM3b) must be done too.
+      if (passed && !preview && !wasComplete && assignmentIsComplete()) { assignmentDoneDue = true; work.completeShown = true; }
       save();
-      // The pass that completes the assignment (saved above): the completion screen opens once the page is drawn.
-      // Not when it was already complete (on loading the page, or earlier), and not in teacher practice.
-      if (passed && !preview && !wasComplete && assignmentComplete(ids, work.tried)) assignmentDoneDue = true;
       renderSide();
       return {};
     }
@@ -1467,13 +1520,22 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     $("reset-area").hidden = endless || inAssignment || inPlacement();
     if (inAssignment) {
       const c = cur();
+      const examDone = examDoneSet();
+      // Every item in the teacher's order: a task opens here; an Exam Mode question (EM3b) opens in Exam Mode.
       $("unit-levels").innerHTML = '<li class="assignment-intro"><strong>' + esc(assignment.title) + "</strong>" +
         (assignment.description ? '<span class="small">' + esc(assignment.description) + "</span>" : "") + "</li>" +
-        assignmentTasks.map((t, i) => {
+        assignmentOrder.map((o, n) => {
+          if (o.exam) {
+            const mark = examDone.has(o.exam.id) ? "✓ Done" : examTried(o.exam.id) ? "Tried" : "Not tried yet";
+            return '<li><a class="assignment-task" href="' + esc(examHref(o.exam.id)) + '">' + (n + 1) + ". Exam Mode: " + esc(o.exam.label) +
+              ' <span class="small">· ' + esc(mark) + "</span></a></li>";
+          }
+          const t = o.task;
+          const i = assignmentTasks.indexOf(t);
           const state = work.tried[t.id];
           const mark = state === "passed" ? "✓ Done" : state ? "Tried" : "Not tried yet";
           return '<li><button type="button" class="secondary assignment-task' + (c && c.taskId === t.id ? " current" : "") + '" data-assignment-task="' + i + '"' +
-            (c && c.taskId === t.id ? ' aria-current="step"' : "") + ">" + (i + 1) + ". " + esc(t.title) + ' <span class="small">· ' + esc(mark) + "</span></button></li>";
+            (c && c.taskId === t.id ? ' aria-current="step"' : "") + ">" + (n + 1) + ". " + esc(t.title) + ' <span class="small">· ' + esc(mark) + "</span></button></li>";
         }).join("");
       $("streak-info").textContent = preview ? "Teacher practice: nothing you do here is recorded or saved. Hints are free, and you can check as often as you like."
         : "This is practice set by your teacher. It doesn't change your level or your progress: try as often as you like, and hints are free.";
@@ -1527,7 +1589,7 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
 
   function header(t) {
     return '<h2 id="task-title">' + esc(t.title) + "</h2>" +
-      '<p class="meta">' + (preview ? '<span class="cat-tag">Teacher practice · not recorded</span>' : inAssignment ? '<span class="cat-tag">Assignment · task ' + (work.index + 1) + " of " + assignmentTasks.length + "</span>" : "") +
+      '<p class="meta">' + (preview ? '<span class="cat-tag">Teacher practice · not recorded</span>' : inAssignment ? '<span class="cat-tag">Assignment · task ' + (assignmentOrder.findIndex((o) => o.task && o.task.id === t.id) + 1) + " of " + assignmentOrder.length + "</span>" : "") +
         unitsOf(t).map((u) => '<span class="cat-tag">' + esc(unitTitle(u)) + "</span>").join("") +
         " Level " + t.level + " · " + esc(t.type === "scratch" ? "Write from scratch" : levelName(t.level, t.unit)) + " · Task " + esc(t.id) + "</p>" +
       '<p class="description">' + linked(t).description + "</p>" +
@@ -2787,9 +2849,12 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
     loadJson("templates.json").catch(() => []), // without templates, practice still works from the task bank
     loadJson("misconceptions.json").catch(() => []), // without it, failures just don't show a misconception's explanation
     loadJson("glossary.json").catch(() => null), // without it, task text and hints just aren't linked to the glossary
+    // An assignment's Exam Mode questions (EM3b). Without it, only the assignment's bank tasks are shown.
+    inAssignment && !preview ? loadJson("exam-mode.json").catch(() => null) : null,
   ])
-    .then(async ([data, tpls, mis, gloss]) => {
+    .then(async ([data, tpls, mis, gloss, exam]) => {
       glossary = gloss && self.Glossary ? self.Glossary.compile(gloss) : null;
+      examPacks = exam && exam.packs ? exam.packs : null;
       tasks = data;
       templates = tpls;
       templateById = Object.fromEntries(templates.map((x) => [x.id, x]));
@@ -2800,16 +2865,24 @@ if (typeof document !== "undefined" && document.getElementById("task")) Store.wh
       ensureSkillStates(progress, (id) => taskById[id]);
       if (inAssignment) {
         resolveAssignmentTasks();
-        if (!assignment || !assignmentTasks.length) {
+        if (!assignment || !assignmentOrder.length) {
           $("unit-levels").innerHTML = "";
           $("task").innerHTML = '<p class="problem">' + (preview ? "That task isn't in the task bank." : assignment ? "This assignment has no tasks yet." : "This assignment is closed, or it couldn't be found.") +
             (preview ? "" : ' <a href="app.html">Back to your units</a>') + "</p>";
+          return;
+        }
+        completedFromExamMode(); // back from Exam Mode with its last question done: "Assignment complete"
+        if (!assignmentTasks.length) { // only Exam Mode questions (EM3b)
+          work.current = null;
+          renderSide();
+          renderExamOnly();
           return;
         }
         const open = work.current && assignmentTasks.findIndex((t) => t.id === work.current.taskId);
         if (open == null || open < 0) { work.current = null; serveAssignmentTask(0); } else work.index = open;
         renderSide();
         renderTask();
+        showDialogIfDue();
         return;
       }
       if (!endless && !tasks.some((t) => t.unit === unitId)) { location.replace("app.html"); return; }

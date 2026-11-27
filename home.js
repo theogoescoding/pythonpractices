@@ -175,54 +175,57 @@ Store.whenReady(function () {
   }
 
   // ---------- Class assignments (backend mode) ----------
-  // The open assignments of the student's class, as a module above the unit cards. Practice only.
-  // EM3: an assignment can also hold Exam Mode questions (their ids are in exam-mode.json). Each opens in exam.html at its
-  // rung (#asg/<assignment>/<question>), even when the class has Exam Mode switched off; the practice tasks open as before.
-  let examItems = null; // [{ id, label }] every Exam Mode question an assignment can hold, once exam-mode.json is loaded
+  // The open assignments of the student's class, as a module above the unit cards. Practice only. Each card opens the
+  // assignment page (practice.html?assignment=), which lists every item: bank tasks, and Exam Mode questions (EM3; their
+  // ids are in exam-mode.json), each opening in Exam Mode. "x done" counts both (EM3b, decision 29): a bank task once
+  // passed there, an Exam Mode question once every part of it is done (exam.js assignmentItemDone; the server's
+  // exam_done, joined with this browser's own Exam Mode records).
+  let examPacks = null; // exam-mode.json's packs, once loaded (null until then: the server's exam_done is used alone)
+  let examLoading = false;
   function renderAssignments(student) {
     const list = Store.assignments(student.id);
     const work = (id) => Store.loadAssignmentWork(student.id, id) || { tried: {} };
+    const X = self.ExamMode;
     $("assignments").hidden = !list.length;
-    if (list.length && examItems === null && self.ExamMode) {
-      examItems = [];
-      fetch("exam-mode.json").then((r) => r.json()).then((d) => { examItems = self.ExamMode.assignableQuestions(d.packs); renderAssignments(student); }).catch(() => { /* bank tasks only */ });
+    if (list.length && !examPacks && !examLoading && X) {
+      examLoading = true;
+      fetch("exam-mode.json").then((r) => r.json()).then((d) => { examPacks = d.packs; renderAssignments(student); }).catch(() => { /* the server's exam_done only */ });
     }
+    const ex = (X && Store.readJson(X.STORAGE_PREFIX + student.id)) || {};
     $("assignment-list").innerHTML = list.map((a) => {
       const tried = work(a.id).tried || {};
-      const exam = (examItems || []).filter((x) => a.task_ids.includes(x.id)).sort((x, y) => a.task_ids.indexOf(x.id) - a.task_ids.indexOf(y.id));
-      const practice = a.task_ids.filter((id) => !exam.some((x) => x.id === id));
-      const done = practice.filter((id) => tried[id] === "passed").length;
-      if (!exam.length) {
-        return '<li><a class="unit-card assignment-card" href="practice.html?assignment=' + encodeURIComponent(a.id) + '">' +
-          "<h3>" + esc(a.title) + "</h3>" + (a.description ? "<p>" + esc(a.description) + "</p>" : "") +
-          '<p class="unit-meta"><span>' + a.task_ids.length + " task" + (a.task_ids.length === 1 ? "" : "s") + "</span><span><strong>" +
-          (done ? done + " done" : "Not started") + "</strong></span></p></a></li>";
-      }
-      return '<li><div class="unit-card assignment-card assignment-exam">' +
+      const examDone = examPacks ? X.examDoneIds(examPacks, a, ex.attempts || [], ex.modelSeen || {}) : (a.exam_done || []);
+      const done = a.task_ids.filter((id) => tried[id] === "passed").length + examDone.length;
+      return '<li><a class="unit-card assignment-card" href="practice.html?assignment=' + encodeURIComponent(a.id) + '">' +
         "<h3>" + esc(a.title) + "</h3>" + (a.description ? "<p>" + esc(a.description) + "</p>" : "") +
-        (practice.length ? '<p><a href="practice.html?assignment=' + encodeURIComponent(a.id) + '">Practice tasks (' + practice.length + ")</a> " +
-          '<span class="small">' + (done ? done + " done" : "Not started") + "</span></p>" : "") +
-        '<p class="small">Exam Mode questions:</p><ul class="assignment-exam-items">' + exam.map((x) =>
-          '<li><a href="exam.html#asg/' + encodeURIComponent(a.id) + "/" + encodeURIComponent(x.id) + '">' + esc(x.label) + "</a></li>").join("") + "</ul></div></li>";
+        '<p class="unit-meta"><span>' + a.task_ids.length + " task" + (a.task_ids.length === 1 ? "" : "s") + "</span><span><strong>" +
+        (done >= a.task_ids.length ? "✓ Complete" : done ? done + " done" : "Not started") + "</strong></span></p></a></li>";
     }).join("");
   }
 
   // ---------- Homework (backend mode) ----------
   // A card for each homework of the student's class (as student-api last sent it): the due date, the units (or "Any
-  // unit") and "x of y done", or "Complete" once done. Not a link: any task in those units counts (homework.js).
-  // Local mode has no homework, so the section stays hidden.
+  // unit") and "x of y done", or "Complete" once done. Every card links through (decision 30): a card with one section is
+  // a link to it (a unit opens in practice.html?unit=, Exam Mode opens exam.html); a card with several has a link for
+  // each; "Any unit" goes to the unit list below. Any task in those units counts (homework.js). Local mode has no
+  // homework, so the section stays hidden.
+  const homeworkHref = (u) => (u === self.Homework.EXAM_SECTION ? "exam.html" : "practice.html?unit=" + encodeURIComponent(u));
   function renderHomework(student) {
     const list = backend ? Store.homework(student.id) : [];
     $("homework").hidden = !list.length;
     $("homework-list").innerHTML = list.map((hw) => {
-      const units = hw.units && hw.units.length ? hw.units.map((u) => self.Curriculum.studentUnitTitle(u)).join(", ") : "Any unit";
+      const units = hw.units || [];
       const late = !hw.complete && self.Homework.pastDue(hw);
-      return '<li><div class="unit-card homework-card' + (hw.complete ? " homework-complete" : "") + '">' +
+      const name = (u) => self.Curriculum.studentUnitTitle(u);
+      const whole = units.length === 1 ? homeworkHref(units[0]) : !units.length ? "#units-h" : null; // the whole card is the link
+      const unitsHtml = units.length > 1 ? units.map((u) => '<a href="' + esc(homeworkHref(u)) + '">' + esc(name(u)) + "</a>").join(", ")
+        : esc(units.length ? name(units[0]) : "Any unit");
+      return '<li><' + (whole ? 'a href="' + esc(whole) + '"' : "div") + ' class="unit-card homework-card' + (hw.complete ? " homework-complete" : "") + '">' +
         "<h3>Due " + esc(self.Homework.longDate(hw.due_on)) + "</h3>" +
-        '<p><span class="homework-label">Units:</span> ' + esc(units) + "</p>" +
+        '<p><span class="homework-label">Units:</span> ' + unitsHtml + "</p>" +
         (late ? '<p class="small">The due date has passed. New tasks no longer count.</p>' : "") +
         '<p class="unit-meta"><span>' + hw.task_count + " task" + (hw.task_count === 1 ? "" : "s") + "</span><span><strong>" +
-        (hw.complete ? "✓ " : "") + esc(self.Homework.doneText(hw)) + "</strong></span></p></div></li>";
+        (hw.complete ? "✓ " : "") + esc(self.Homework.doneText(hw)) + "</strong></span></p></" + (whole ? "a" : "div") + "></li>";
     }).join("");
   }
 

@@ -1,6 +1,7 @@
 // student-api: POST { token, action, ... }. Every call checks the session token from resume or join-class.
 //   get_progress                       -> { student: { nickname, class_name, class_stage }, progress: [{ unit, state }], passed: [{ unit, fingerprint }], attempts: [...],
-//                                           assignments: [{ id, title, description, task_ids, updated_at }] (open ones of their class),
+//                                           assignments: [{ id, title, description, task_ids, updated_at, exam_done }] (open ones of their class;
+//                                             exam_done: the Exam Mode questions in it this student has done, EM3b),
 //                                           homework: [{ id, task_count, due_on, units, created_at, done, complete }] (their class's, migration 0018) }
 //   homework                           -> { homework: [...] }  the same list on its own
 //   save_progress { unit, state }      one unit's saved state (as the app keeps it in progress.units[unit], or progress.endless)
@@ -35,6 +36,8 @@ import { checkAttempts, checkEvents, EXAM_EVENT_TYPES, insertRows, PROGRESS_UNIT
 // browser); exam-server.js checks and saves the rows.
 import "../../../exam.js";
 import "../_shared/exam-server.js";
+// exam-mode.json: which Exam Mode questions an assignment can hold, and the parts each has (EM3b: exam_done), as teacher-api imports it.
+import examData from "../../../exam-mode.json" with { type: "json" };
 // The homework rule is the site's own (homework.js); homework-server.js reads and saves it. Both are plain scripts
 // (tests/backend-client.js runs the same files in Node): they set globalThis.Homework and globalThis.HomeworkServer.
 import "../../../homework.js";
@@ -44,7 +47,8 @@ import "../_shared/paste-flags-server.js";
 
 // deno-lint-ignore no-explicit-any
 const G = globalThis as any;
-const hwDeps = () => ({ Homework: G.Homework, unitIds: UNITS });
+// examParts: how many parts an Exam Mode question's rung has (decision 30: one homework task per whole rung).
+const hwDeps = () => ({ Homework: G.Homework, unitIds: UNITS, examParts: (qid: string) => G.ExamMode.itemParts(examData.packs, qid).length });
 // The student's homework, worked out and saved. A problem here never stops their work being saved: then null.
 async function myHomework(sid: string) {
   try {
@@ -92,10 +96,18 @@ async function classStage(classId: string): Promise<string | null> {
   return (r.data as { stage?: string }).stage ?? null;
 }
 
-// The open assignments of a class, newest first. Closed ones are never sent to students.
-async function openAssignments(classId: string) {
-  return check(await db().from("assignments").select("id, title, description, task_ids, updated_at")
-    .eq("class_id", classId).eq("status", "open").order("created_at", { ascending: false }), "assignments");
+// The open assignments of a class, newest first. Closed ones are never sent to students. Each has exam_done (EM3b):
+// the ids of its Exam Mode questions this student has done (exam-server.js withExamDone). A problem working that out
+// never stops the assignments being sent: then exam_done is [] and the student's page uses its own records.
+async function openAssignments(classId: string, sid: string) {
+  const list = check(await db().from("assignments").select("id, title, description, task_ids, updated_at")
+    .eq("class_id", classId).eq("status", "open").order("created_at", { ascending: false }), "assignments") as unknown as Record<string, unknown>[];
+  try {
+    return await G.ExamServer.withExamDone(db(), { ExamMode: G.ExamMode, data: examData }, sid, list);
+  } catch (e) {
+    console.error("assignment exam_done", e);
+    return list.map((a) => ({ ...a, exam_done: [] }));
+  }
 }
 
 const actions: Record<string, (sid: string, body: Record<string, unknown>) => Promise<unknown>> = {
@@ -107,7 +119,7 @@ const actions: Record<string, (sid: string, body: Record<string, unknown>) => Pr
       progress: await allRows("progress", "unit, state", sid, "unit"),
       passed: await allRows("passed_tasks", "unit, fingerprint", sid, "created_at"),
       attempts: await allRows("attempts", ATTEMPT_COLUMNS, sid, "id"),
-      assignments: await openAssignments(student.class_id as string),
+      assignments: await openAssignments(student.class_id as string, sid),
       homework: (await myHomework(sid)) ?? [],
       exam_mode: await G.ExamServer.examModeForStudent(db(), { ExamMode: G.ExamMode }, sid),
     };
@@ -137,7 +149,7 @@ const actions: Record<string, (sid: string, body: Record<string, unknown>) => Pr
   },
 
   async get_assignments(sid) {
-    return { assignments: await openAssignments(await classOf(sid)) };
+    return { assignments: await openAssignments(await classOf(sid), sid) };
   },
 
   async homework(sid) {

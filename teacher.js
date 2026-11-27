@@ -512,9 +512,9 @@
       '<label class="hw-all"><input type="checkbox" data-hw-block="' + b.id + '"> Select all of ' + esc(b.name) + "</label>" +
       '<div class="hw-unit-grid">' + b.units.map((u) => '<label><input type="checkbox" data-hw-unit="' + esc(u) + '" data-block="' + b.id + '"> ' +
         esc(self.Curriculum.studentUnitTitle(u)) + "</label>").join("") + "</div></details>").join("") +
-      // EM3: Exam Mode as a section of its own (one task = one Exam Mode question answered, at any rung).
-      '<label class="hw-exam"><input type="checkbox" data-hw-unit="' + HW.EXAM_SECTION + '"> Exam Mode <span class="small">(one task = one question answered, at any rung;' +
-      " a retry counts only if it scores more)</span></label>";
+      // EM3: Exam Mode as a section of its own (one task = one rung or full question done, decision 30).
+      '<label class="hw-exam"><input type="checkbox" data-hw-unit="' + HW.EXAM_SECTION + '"> Exam Mode <span class="small">(one task = one rung or full question done;' +
+      " doing it again counts only if it scores more)</span></label>";
     hwBlockStates();
   }
   // Each block's "Select all" box: ticked when every unit is, part-ticked when some are; the count in its heading.
@@ -784,6 +784,36 @@
       (c.first_pct == null ? '<span class="small">No full question yet</span>' : "First " + c.first_pct + "% · Best " + c.best_pct + "%"));
   const exAverageCell = (a) => (!a || a.reached == null ? "–" : "Rung " + a.reached + " of 5<br>" +
     (a.first_pct == null ? '<span class="small">No full question yet</span>' : "First " + a.first_pct + "% · Best " + a.best_pct + "%"));
+  // The most-missed mark points (teacher-api exam_overview's missed: exam.js classOverview), per full question. The Exam
+  // Mode page and the Misconceptions page's "Exam Mode" choice (EM3b) both draw it with this.
+  function examMissedHtml(missed) {
+    return (missed || []).map((m) => {
+      const q = exQuestion(m.question_id);
+      const text = (id) => { const mp = q && q.markPoints.find((x) => x.id === id); return mp ? mp.text : id; };
+      return '<h4 class="ex-q">' + esc(exQuestionName(m.question_id)) + ' <span class="small">(' + esc(exPackName(m.pack_id)) + ")</span></h4>" +
+        (!m.students ? '<p class="small">No first attempts yet.</p>' :
+          '<p class="small">From ' + m.students + " student" + (m.students === 1 ? "'s" : "s'") + " first attempt" + (m.students === 1 ? "" : "s") + ".</p>" +
+          '<div class="table-wrap"><table class="ex-table"><thead><tr><th scope="col">Mark point</th><th scope="col" class="num">Missed by</th></tr></thead><tbody>' +
+          m.points.map((p) => "<tr><td>" + esc(p.id) + ": " + esc(text(p.id)) + '</td><td class="num"><strong>' + p.pct + "%</strong> (" + p.missed + " of " + m.students + ")</td></tr>").join("") +
+          "</tbody></table></div>" +
+          (m.always_true ? '<p class="ex-always-true">' + m.always_true + " student" + (m.always_true === 1 ? "" : "s") + " wrote a loop test that's always true (such as <code>x != \"\" or x != \"stop\"</code>), so their loop never stops.</p>" : ""));
+    }).join("") || '<p class="small">No full questions yet.</p>';
+  }
+  // The Misconceptions page's Exam Mode choice: teacher-api exam_overview for the chosen class, the same reply the Exam
+  // Mode page draws (kept for the class, and shared with that page when it's already loaded).
+  let mcExam = { classId: null, r: null, error: "", loading: false };
+  function mcExamOverview(classId) {
+    if (exOverview && exLoadedFor === classId) return { r: exOverview, error: "", loading: false };
+    if (mcExam.classId === classId && (mcExam.r || mcExam.error || mcExam.loading)) return mcExam;
+    const mine = (mcExam = { classId, r: null, error: "", loading: true });
+    Promise.all([loadExamData(), tb.examOverview(classId)]).then(([, r]) => {
+      if (mcExam !== mine) return; // another class meanwhile
+      mine.loading = false;
+      if (r.error) mine.error = r.error; else mine.r = r;
+      if (page() === "misconceptions") render();
+    });
+    return mine;
+  }
   function drawExamOverview() {
     const r = exOverview;
     const packs = r.packs.map((p) => p.id);
@@ -803,17 +833,7 @@
     $("ex-board").innerHTML = r.leaderboard ? examBoardsHtml(r.leaderboard) : '<p class="small">The Exam leaderboard needs the newest version of the server.</p>';
 
     // Most-missed mark points, per full question.
-    $("ex-missed").innerHTML = r.missed.map((m) => {
-      const q = exQuestion(m.question_id);
-      const text = (id) => { const mp = q && q.markPoints.find((x) => x.id === id); return mp ? mp.text : id; };
-      return '<h4 class="ex-q">' + esc(exQuestionName(m.question_id)) + ' <span class="small">(' + esc(exPackName(m.pack_id)) + ")</span></h4>" +
-        (!m.students ? '<p class="small">No first attempts yet.</p>' :
-          '<p class="small">From ' + m.students + " student" + (m.students === 1 ? "'s" : "s'") + " first attempt" + (m.students === 1 ? "" : "s") + ".</p>" +
-          '<div class="table-wrap"><table class="ex-table"><thead><tr><th scope="col">Mark point</th><th scope="col" class="num">Missed by</th></tr></thead><tbody>' +
-          m.points.map((p) => "<tr><td>" + esc(p.id) + ": " + esc(text(p.id)) + '</td><td class="num"><strong>' + p.pct + "%</strong> (" + p.missed + " of " + m.students + ")</td></tr>").join("") +
-          "</tbody></table></div>" +
-          (m.always_true ? '<p class="ex-always-true">' + m.always_true + " student" + (m.always_true === 1 ? "" : "s") + " wrote a loop test that's always true (such as <code>x != \"\" or x != \"stop\"</code>), so their loop never stops.</p>" : ""));
-    }).join("") || '<p class="small">No full questions yet.</p>';
+    $("ex-missed").innerHTML = examMissedHtml(r.missed);
 
     // Self-check and "Say it simply", per question.
     $("ex-help").innerHTML = !r.help.length ? '<p class="small">No attempts yet.</p>' :
@@ -1068,11 +1088,22 @@
   // The unit picker lists the class's stage's units (curriculum.js stageUnits), then "All units", which it opens on.
   function renderMisconceptions(data) {
     const unitIds = stageUnitIds();
+    // EM3b (decision 29): "Exam Mode", last, when the class has Exam Mode on (backend mode only, like the link line).
+    const examOn = !!(tb && currentClass() && switchOf(currentClass()).on);
     // It opens on "All units" (review finding L7); a unit the teacher picked is kept while it is in the class's stage.
-    if (mcUnit !== "all" && !unitIds.includes(mcUnit)) mcUnit = "all";
-    const options = unitIds.map((u) => '<option value="' + esc(u) + '">' + esc(unitTitle(u)) + "</option>").join("") + '<option value="all">All units</option>';
+    if (mcUnit !== "all" && !unitIds.includes(mcUnit) && !(mcUnit === HW.EXAM_SECTION && examOn)) mcUnit = "all";
+    const options = unitIds.map((u) => '<option value="' + esc(u) + '">' + esc(unitTitle(u)) + "</option>").join("") + '<option value="all">All units</option>' +
+      (examOn ? '<option value="' + HW.EXAM_SECTION + '">Exam Mode</option>' : "");
     if ($("mc-unit").dataset.options !== options) { $("mc-unit").innerHTML = options; $("mc-unit").dataset.options = options; } // keeps focus on the picker
     $("mc-unit").value = mcUnit;
+    // Exam Mode: the class's most-missed mark points (the Exam Mode page's data and drawing) in place of the most-failed tasks.
+    const examChosen = mcUnit === HW.EXAM_SECTION;
+    $("mc-failed-section").hidden = examChosen;
+    $("mc-exam-section").hidden = !examChosen;
+    if (examChosen) {
+      const st = mcExamOverview(currentClass().id);
+      $("mc-exam").innerHTML = st.loading ? '<p class="small">Loading…</p>' : st.error ? '<p class="problem">' + esc(st.error) + "</p>" : examMissedHtml(st.r.missed);
+    }
     const where = mcUnit === "all" ? "any unit" : unitTitle(mcUnit);
     const failedTasks = TD.mostFailedTasks(data, mcUnit === "all" ? null : mcUnit);
     $("mc-failed").innerHTML = !failedTasks.length ? '<p class="small">No failed attempts in ' + esc(where) + " yet.</p>" :
@@ -1304,14 +1335,17 @@
       const bankOnly = Object.assign({}, a, { task_ids: a.task_ids.filter((id) => !examItem(id)) });
       const s = TD.assignmentStats(data, bankOnly);
       // EM3: the Exam Mode items, each student's first-attempt and best score (their tries saved with this assignment).
+      // EM3b: and whether it's done (every part tried in this assignment, or its answer shown: exam.js assignmentItemDone,
+      // the rule the student's assignment page counts by).
       const exam = a.task_ids.map(examItem).filter(Boolean);
       const examRows = exam.flatMap((x) => TD.examStudents(data).map((st) => {
         const r = EX.scoreSummary(st.recs.filter((rec) => rec.assignmentId === a.id && rec.questionId === x.id))[0];
-        return r ? '<tr><th scope="row">' + esc(x.label) + "</th><td>" + esc(st.nickname) + '</td><td class="num">' + (r.first ? r.first.total + "/" + r.first.max : "–") +
+        const done = EX.assignmentItemDone(exPacks(), x.id, st.recs, a.id, (data.examSeen || {})[st.id] || {});
+        return r ? '<tr><th scope="row">' + esc(x.label) + "</th><td>" + esc(st.nickname) + "</td><td>" + (done ? "✓ Done" : "Not yet") + '</td><td class="num">' + (r.first ? r.first.total + "/" + r.first.max : "–") +
           '</td><td class="num">' + (r.best ? r.best.total + "/" + r.best.max : "–") + "</td><td>" + (r.pasteFlagged ? '<span class="flag flag-alert">' + esc(TD.PASTE_FLAGGED) + "</span>" : "") + "</td></tr>" : "";
       })).join("");
       const examTable = !exam.length ? "" : "<h4>Exam Mode questions</h4>" + (!examRows ? '<p class="small">No one has tried them yet.</p>' :
-        '<div class="table-wrap"><table><thead><tr><th scope="col">Question</th><th scope="col">Student</th><th scope="col">First attempt</th><th scope="col">Best</th><th scope="col">Flags</th></tr></thead><tbody>' +
+        '<div class="table-wrap"><table><thead><tr><th scope="col">Question</th><th scope="col">Student</th><th scope="col">Done</th><th scope="col">First attempt</th><th scope="col">Best</th><th scope="col">Flags</th></tr></thead><tbody>' +
         examRows + "</tbody></table></div>");
       const rows = s.tasks.map((t) => "<tr><th scope=\"row\">" + taskLink(t.taskId) + '</th><td class="num">' + t.triedCount + '</td><td class="num">' + t.passedCount +
         '</td><td class="num">' + t.checks + '</td><td class="num">' + t.fails + '</td><td class="num">' + t.showHow + "</td><td>" + esc(TD.failureName(t.topCategory) || "–") +

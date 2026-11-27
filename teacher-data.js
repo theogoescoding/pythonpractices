@@ -827,7 +827,8 @@
     }
     for (const hw of (data.homework || []).filter((h) => Homework.coversExam(h))) {
       for (const s of students) {
-        const p = Homework.progress(hw, (data.attempts || []).filter((a) => a.studentId === s.id), (data.pasteFlags || {})[s.id] || [], s.recs);
+        const p = Homework.progress(hw, (data.attempts || []).filter((a) => a.studentId === s.id), (data.pasteFlags || {})[s.id] || [], s.recs,
+          (qid) => Exam.itemParts(packs, qid).length); // one task per whole rung (decision 30)
         rows.push({ section: "homework", student: s.nickname, homework_due: hw.due_on, homework_tasks: hw.task_count, done: Math.min(p.done, hw.task_count),
           complete: p.complete ? "yes" : "no", exam_mode_tasks_done: p.taskIds.filter((id) => /^exam:/.test(id)).length,
           paste_flagged: p.flagged.filter((f) => /^exam:/.test(f.taskId)).length });
