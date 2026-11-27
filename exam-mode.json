@@ -1,6 +1,6 @@
 {
  "version": 1,
- "note": "Exam Mode data (prompts EM1, EM1b). Blocks are the backbone (decisions 18-19). Packs hold questions; C1 is the core combination (input + loop + selection + update + output). C1-Q0, C1-Q1 and C1-Q2 approved by Theo 24-25 Nov 2026; the rung 1, 3 and 4 questions (C1-R1, C1-R3, C1-R4) were drafted by Claude in EM1b for Theo to check. testAnswers are the marker's gate: it must agree on at least 95% of mark points per question, and every total must match.",
+ "note": "Exam Mode data (prompts EM1, EM1b). Blocks are the backbone (decisions 18-19). Packs hold questions; C1 is the core combination (input + loop + selection + update + output). C1-Q0, C1-Q1 and C1-Q2 approved by Theo 24-25 Nov 2026; the rung 1, 3 and 4 questions (C1-R1, C1-R3, C1-R4) were drafted by Claude in EM1b for Theo to check. testAnswers are the marker's gate: it must agree on at least 95% of mark points per question, and every total must match. EM1c (decision 23): each block has a 'display' object (the student-facing wording from docs/exammode/exam-mode-block-display.json, approved 26 Nov 2026); cue, cuePhrases, name and mistakes stay for the marker, rung 1 and planning.",
  "spec": {
   "code": "J277",
   "version": "2.4"
@@ -57,7 +57,18 @@
     "printing when asked to store (ER 2024)",
     "changing a given identifier, e.g. word 1 for word1 (ER 2024)",
     "input used as a variable name"
-   ]
+   ],
+   "display": {
+    "title": "Store what the user types",
+    "questionExamples": [
+     "take the number of hours as input",
+     "prompt the user to enter their password"
+    ],
+    "python": "hours = int(input(\"Hours: \"))",
+    "erl": "hours = input(\"Hours\")",
+    "examTerm": "input, variable",
+    "commonMistake": "Writing it the wrong way round: input(\"Hours\") = hours"
+   }
   },
   {
    "id": "B2",
@@ -90,7 +101,18 @@
     "comparing to a word without quotes (== yes)",
     "= instead of == (penalised once)",
     "both outputs printed"
-   ]
+   ],
+   "display": {
+    "title": "Do one thing or another",
+    "questionExamples": [
+     "output \"VALID\" or \"NOT VALID\" depending on the height",
+     "outputs \"match\" if they are the same"
+    ],
+    "python": "if a == b:\n    print(\"match\")\nelse:\n    print(\"no match\")",
+    "erl": "if a == b then\n    print(\"match\")\nelse\n    print(\"no match\")\nendif",
+    "examTerm": "selection",
+    "commonMistake": "Printing both messages"
+   }
   },
   {
    "id": "B3",
@@ -138,7 +160,18 @@
     "PIN == \"1234\" OR \"4321\" (ER 2025)",
     "num > 1 AND num < 100 shuts out the boundaries (ER 2025)",
     "≥ or => instead of >= (ER 2024)"
-   ]
+   ],
+   "display": {
+    "title": "Check two things at once",
+    "questionExamples": [
+     "between 40 and 180 inclusive",
+     "the PIN is not \"1234\" or \"4321\""
+    ],
+    "python": "if h >= 40 and h <= 180:",
+    "erl": "if h >= 40 AND h <= 180 then",
+    "examTerm": "Boolean operators (AND, OR)",
+    "commonMistake": "h >= 40 and <= 180: the variable must be written twice"
+   }
   },
   {
    "id": "B4",
@@ -172,7 +205,18 @@
    "mistakes": [
     "repeating the calculation without a new input each time (2022 4(c))",
     "a while loop whose counter never changes"
-   ]
+   ],
+   "display": {
+    "title": "Repeat a set number of times",
+    "questionExamples": [
+     "the player is asked 3 questions",
+     "until the quantity the user input has been entered"
+    ],
+    "python": "for i in range(3):",
+    "erl": "for i = 0 to 2\n    ...\nnext i",
+    "examTerm": "count-controlled loop",
+    "commonMistake": "Asking for the input once, before the loop"
+   }
   },
   {
    "id": "B5",
@@ -220,7 +264,18 @@
     "inventing a 2D index for a 1D array (ER 2024)",
     "for x in list then list[x] (ER 2024)",
     "starting at index 1 (2022 5(d), 2023 2(b))"
-   ]
+   ],
+   "display": {
+    "title": "Go through every item in an array",
+    "questionExamples": [
+     "the names are stored in the array theTeam",
+     "searches through the array"
+    ],
+    "python": "for i in range(len(team)):\n    if team[i] == name:",
+    "erl": "for i = 0 to team.length - 1\n    if team[i] == name then",
+    "examTerm": "array, index",
+    "commonMistake": "Not using i as the index"
+   }
   },
   {
    "id": "B6",
@@ -260,7 +315,18 @@
     "total = 0 inside the loop (2022 5(d))",
     "print(total + x) never changes total",
     "updating even when the booking failed (ER 2025)"
-   ]
+   ],
+   "display": {
+    "title": "Keep a running total or count",
+    "questionExamples": [
+     "totals the number of seconds",
+     "reduce the value stored in tickets"
+    ],
+    "python": "total = total + score",
+    "erl": "total = total + score",
+    "examTerm": "totalling, counting",
+    "commonMistake": "Setting total = 0 inside the loop"
+   }
   },
   {
    "id": "B7",
@@ -312,7 +378,17 @@
     "no parameter, or input() overwriting it (ER 2024, ER 2025)",
     "print instead of return (ER 2025)",
     "code outside the function body"
-   ]
+   ],
+   "display": {
+    "title": "Write your own function",
+    "questionExamples": [
+     "Write a function, calculatePrice(), that takes the number of tickets as a parameter and returns the total price"
+    ],
+    "python": "def calculatePrice(num):\n    return num * 60",
+    "erl": "function calculatePrice(num)\n    return num * 60\nendfunction",
+    "examTerm": "function, parameter, return",
+    "commonMistake": "Using input() inside it, or print instead of return"
+   }
   },
   {
    "id": "B8",
@@ -351,7 +427,18 @@
     "resetting the variable inside the loop (2025 6(e))",
     "\"a while loop repeats until the condition is True\" (ER 2025)",
     "while x > 0 when the stop value is 0 (2022 5(e))"
-   ]
+   ],
+   "display": {
+    "title": "Keep asking until a stop value",
+    "questionExamples": [
+     "repeat until the user enters 0",
+     "until \"stop\" is entered"
+    ],
+    "python": "hours = int(input(\"Hours: \"))\nwhile hours != 0:\n    ...\n    hours = int(input(\"Hours: \"))",
+    "erl": "hours = input(\"Hours\")\nwhile hours != 0\n    ...\n    hours = input(\"Hours\")\nendwhile",
+    "examTerm": "condition-controlled loop",
+    "commonMistake": "Asking only before the loop, so it never stops"
+   }
   },
   {
    "id": "B9",
@@ -384,7 +471,18 @@
     "redefining the function instead of calling it (ER 2025)",
     "== for assignment",
     "a text argument without quotes"
-   ]
+   ],
+   "display": {
+    "title": "Use a function and keep its answer",
+    "questionExamples": [
+     "uses the function calculatePrice() to find the price for 3 tickets",
+     "stores the result in totalPrice"
+    ],
+    "python": "totalPrice = calculatePrice(3)",
+    "erl": "totalPrice = calculatePrice(3)",
+    "examTerm": "calling a function, return value",
+    "commonMistake": "Writing the function out again instead of calling it"
+   }
   },
   {
    "id": "B10",
@@ -423,7 +521,18 @@
     "comma instead of + to join (ER 2024)",
     "printing instead of storing (ER 2024)",
     "string methods combined with casting (ER 2024)"
-   ]
+   ],
+   "display": {
+    "title": "Work with text",
+    "questionExamples": [
+     "is 4 characters in length",
+     "the first 3 letters of the surname"
+    ],
+    "python": "len(pin) == 4\nsurname[0:3]",
+    "erl": "pin.length == 4\nsurname.left(3)",
+    "examTerm": "string manipulation",
+    "commonMistake": "Joining text with a comma instead of +"
+   }
   },
   {
    "id": "B11",
@@ -459,7 +568,18 @@
    ],
    "mistakes": [
     "the variable inside the quotes (ER 2025)"
-   ]
+   ],
+   "display": {
+    "title": "Show a message with a value in it",
+    "questionExamples": [
+     "in an appropriate message",
+     "outputs \"The total is\" and then the total"
+    ],
+    "python": "print(\"The total is\", total)",
+    "erl": "print(\"The total is \" + str(total))",
+    "examTerm": "output, concatenation",
+    "commonMistake": "Putting the variable inside the quotes"
+   }
   },
   {
    "id": "B12",
@@ -497,7 +617,18 @@
     "average worked out inside the loop",
     "MOD and DIV swapped",
     "x for multiply (not accepted in Section B)"
-   ]
+   ],
+   "display": {
+    "title": "Do the maths",
+    "questionExamples": [
+     "calculate the average",
+     "work out if a number is odd or even"
+    ],
+    "python": "average = total / count\nif num % 2 == 0:",
+    "erl": "average = total / count\nif num MOD 2 == 0 then",
+    "examTerm": "arithmetic operators, MOD, DIV",
+    "commonMistake": "Working out the average inside the loop"
+   }
   },
   {
    "id": "B13",
@@ -529,7 +660,18 @@
     "row and column swapped",
     "adding text without casting",
     "a single index on a 2D array"
-   ]
+   ],
+   "display": {
+    "title": "Use a table of data",
+    "questionExamples": [
+     "stored in a two-dimensional (2D) array",
+     "events[1, 1] contains \"MS1\""
+    ],
+    "python": "events[i][3]",
+    "erl": "events[i, 3]",
+    "examTerm": "2D array",
+    "commonMistake": "Mixing up row and column"
+   }
   },
   {
    "id": "B14",
@@ -561,7 +703,18 @@
    "mistakes": [
     "generic definition where context is asked for (2025 4(b))",
     "int() on text with a decimal point"
-   ]
+   ],
+   "display": {
+    "title": "Change the data type",
+    "questionExamples": [
+     "convert it to a string before storing",
+     "take the PIN as input as a string"
+    ],
+    "python": "int(text)\nstr(number)",
+    "erl": "int(text)\nstr(number)",
+    "examTerm": "casting",
+    "commonMistake": "Joining text and a number without converting"
+   }
   },
   {
    "id": "B15",
@@ -597,7 +750,18 @@
     "overwriting the procedure's parameters with input()",
     "typing the file name instead of using the parameter (2023 6(e))",
     "not knowing the ERL file statements"
-   ]
+   ],
+   "display": {
+    "title": "Read or save a file",
+    "questionExamples": [
+     "read the numbers from the text file data.txt",
+     "write the inputs to pilots.txt"
+    ],
+    "python": "f = open(\"data.txt\", \"r\")\nline = f.readline()\nf.close()",
+    "erl": "myFile = open(\"data.txt\")\nline = myFile.readLine()\nmyFile.close()",
+    "examTerm": "file handling",
+    "commonMistake": "Forgetting to close the file"
+   }
   },
   {
    "id": "B16",
@@ -628,7 +792,17 @@
    ],
    "mistakes": [
     "over-complicated array solutions instead of a running highest (ER 2024)"
-   ]
+   ],
+   "display": {
+    "title": "Find the biggest or smallest",
+    "questionExamples": [
+     "calculate which team has the highest score"
+    ],
+    "python": "if score > highest:\n    highest = score",
+    "erl": "if score > highest then\n    highest = score\nendif",
+    "examTerm": "maximum, minimum",
+    "commonMistake": "Building an array first when one variable would do"
+   }
   },
   {
    "id": "B17",
@@ -656,7 +830,17 @@
    ],
    "mistakes": [
     "generating once before the loop, so every question is the same (2023 5(c))"
-   ]
+   ],
+   "display": {
+    "title": "Pick a random number",
+    "questionExamples": [
+     "two random whole numbers between 1 and 10 inclusive"
+    ],
+    "python": "import random\nnum = random.randint(1, 10)",
+    "erl": "num = random(1, 10)",
+    "examTerm": "random numbers",
+    "commonMistake": "Picking the number once, before the loop"
+   }
   }
  ],
  "packs": [
@@ -664,6 +848,9 @@
    "id": "C1",
    "kind": "combination",
    "title": "Core combination: …until 0 / stop is entered",
+   "display": {
+    "title": "Core combination: keep asking until a stop value"
+   },
    "blocks": [
     "B1",
     "B8",

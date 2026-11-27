@@ -225,11 +225,11 @@
   // ---------- The tutorial, shown on the first visit (EM1b, decision 21): blocks, bullets → mark points, riders ----------
   const TUTORIAL = [
     { id: "blocks", title: "Exam questions are built from blocks",
-      html: "<p>The programming questions in Paper 2 are built from a small set of <strong>blocks</strong>: take an input and store it, a loop, an if, a running total, an output, and a few more.</p>" +
-        "<p>Each block has <strong>cue phrases</strong>: the words in the question that tell you which block you need. For example:</p>" +
-        "<ul><li>\"repeats until 0 is entered\" means a loop that stops on 0: <code>while minutes != 0:</code></li>" +
-        "<li>\"adds the minutes to a running total\" means <code>total = total + minutes</code></li></ul>" +
-        "<p>The Blocks page, in the menu above, lists all 17 blocks with their cue phrases.</p>" },
+      // decision 23 (EM1c): the plain-job-first layout, with B8 as the example (drawn from exam-mode.json by the page).
+      html: "<p>The programming questions in Paper 2 are built from a small set of <strong>blocks</strong>, such as storing what the user types, a loop, or a running total.</p>" +
+        "<p>Each block has a title saying what the code does, and examples of question wording that tell you the block is needed. For example:</p>" +
+        "<div class=\"em-tutorial-block\" data-block-example=\"B8\"></div>" +
+        "<p>The Blocks page, in the menu above, shows all 17.</p>" },
     { id: "marks", title: "Each bullet earns marks",
       html: "<p>The bullets in a question become the <strong>mark points</strong> in the mark scheme. The examiner gives each mark point they can see in your answer, even if other parts of it are wrong.</p>" +
         "<div class=\"em-example\"><p><strong>Bullet:</strong> adds the minutes to a running total</p><p><strong>Mark point:</strong> Adds the minutes to the total (<code>total = total + minutes</code>)</p></div>" +
@@ -341,6 +341,37 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
     return out + esc(code.slice(last));
   }
   const blockById = {};
+  // How a block is named to students (decision 23, EM1c): its display title, what the code does; never the old
+  // cue-phrase name. In rung 1's feedback the title is followed by the bullet of the current question it answers
+  // (decision 24), e.g. Keep asking until a stop value – “repeats until 0 is entered”, so the feedback never quotes
+  // another setting. A pack's display title (where it has one) replaces its planning title the same way.
+  const quoted = (s) => "“" + s + "”";
+  const blockTitle = (id) => blockById[id].display.title;
+  const blockWithBullet = (id, bullet) => blockTitle(id) + " – " + quoted(String(bullet).replace(/\.\s*$/, ""));
+  const packTitle = (p) => (p.display && p.display.title) || p.title;
+  // One block, plain job first (decision 23): the title, "In the question you'll see:", "What to write:" (Python, with
+  // the ERL under it behind Show ERL), "Exam term:", "Common mistake:". tag: "li" on the Blocks page, "div" elsewhere.
+  function blockCardHtml(b, tag, extra) {
+    const d = b.display;
+    return "<" + tag + ' class="em-block" id="block-' + esc(b.id) + '"><h3 class="em-block-title">' + esc(d.title) + "</h3>" +
+      '<p class="em-block-label">In the question you\'ll see:</p><ul class="em-examples">' + d.questionExamples.map((x) => "<li>" + esc(quoted(x)) + "</li>").join("") + "</ul>" +
+      // tabindex 0: a code box that scrolls sideways on a phone can be scrolled with the keyboard (as app.js markScrollers).
+      '<p class="em-block-label">What to write:</p><pre class="code" tabindex="0">' + highlight(d.python) + "</pre>" +
+      '<p><button type="button" class="secondary em-erl-btn" aria-expanded="false" aria-controls="erl-' + esc(b.id) + '">Show ERL</button></p>' +
+      '<div id="erl-' + esc(b.id) + '" class="em-erl" hidden><p class="em-block-label">In OCR Exam Reference Language:</p><pre class="code" tabindex="0">' + highlight(d.erl) + "</pre></div>" +
+      '<p><span class="em-block-label">Exam term:</span> ' + esc(d.examTerm) + "</p>" +
+      '<p><span class="em-block-label">Common mistake:</span> ' + esc(d.commonMistake) + "</p>" + (extra || "") + "</" + tag + ">";
+  }
+  // Show ERL / Hide ERL on any block card.
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest && e.target.closest(".em-erl-btn");
+    if (!btn) return;
+    const box = document.getElementById(btn.getAttribute("aria-controls"));
+    const open = box.hidden;
+    box.hidden = !open;
+    btn.setAttribute("aria-expanded", String(open));
+    btn.textContent = open ? "Hide ERL" : "Show ERL";
+  });
   const markIcon = (ok) => (ok === true ? '<span class="em-mark em-yes" aria-hidden="true">✓</span>' : ok === false ? '<span class="em-mark em-no" aria-hidden="true">✗</span>' : '<span class="em-mark em-unsure" aria-hidden="true">?</span>');
   const markWord = (ok) => (ok === true ? "got" : ok === false ? "missed" : "check yourself");
 
@@ -498,6 +529,8 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
       '<p class="em-after"><button type="button" class="secondary" id="tut-back"' + (i === 0 ? " disabled" : "") + '>Back</button> ' +
       '<button type="button" class="primary" id="tut-next">' + (last ? "Start Exam Mode" : "Next") + "</button> " +
       (last ? "" : '<button type="button" class="secondary" id="tut-skip">Skip</button>') + "</p>", "How Exam Mode works");
+    // A block shown as an example (screen 1: B8), in the same layout as the Blocks page.
+    app.querySelectorAll("[data-block-example]").forEach((el) => { const b = blockById[el.dataset.blockExample]; if (b) el.innerHTML = blockCardHtml(b, "div"); });
     const done = () => {
       saved.tutorialSeen = true;
       persist();
@@ -516,23 +549,21 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
       '<h3 id="packs-h">Packs</h3><ul class="em-packs" aria-labelledby="packs-h">' + data.packs.map((p) => {
         const g = X.packProgress(p, saved.attempts);
         const score = (s) => s.total + "/" + s.max;
-        return '<li class="em-pack-card"><h4>Pack ' + esc(p.id) + ": " + esc(p.title) + "</h4>" +
-          '<p class="small">Blocks: ' + p.blocks.map((b) => esc(blockById[b].name)).join(", ") + ".</p>" +
+        return '<li class="em-pack-card"><h4>Pack ' + esc(p.id) + ": " + esc(packTitle(p)) + "</h4>" +
+          '<p class="small">Blocks: ' + p.blocks.map((b) => esc(blockTitle(b))).join(", ") + ".</p>" +
           "<p>" + (g.reached ? "Rung reached: " + g.reached + " of 5 (" + esc(X.RUNG_NAMES[g.reached]) + ")" : "Not started yet") + "</p>" +
           "<p>" + (g.first ? "Full questions: first attempt " + score(g.first) + ", best " + score(g.best) + " (" + g.fullTried + " of " + g.fullCount + " tried)" : "Full questions: not tried yet") + "</p>" +
           '<p class="em-pack-actions"><a class="em-continue" href="' + esc(g.next) + '">' + (g.started ? "Continue" : "Start") + '</a> <a href="#pack/' + esc(p.id) + '">All rungs</a></p></li>';
       }).join("") + "</ul>", "");
   }
 
-  // Blocks: the 17, in teaching order, with the cue phrase and the name. Only pack C1 has content in EM1.
+  // Blocks: the 17, in teaching order, each plain job first (decision 23). Only pack C1 has content so far.
   function showBlocks() {
     const inPack = new Set(pack.blocks);
-    setView('<h2>Blocks</h2><p>Exam questions are built from these blocks. Spot the cue phrase in the question, then you know which block it needs.</p>' +
-      '<ol class="em-blocks">' + data.teachingOrder.map((id) => {
-        const b = blockById[id];
-        return '<li class="em-block"><span class="em-block-id">' + esc(b.id) + '</span> <strong>"' + esc(b.cue) + '"</strong> <span class="em-block-name">' + esc(b.name) + "</span>" +
-          '<span class="small em-block-status">' + (inPack.has(id) ? 'Practise it in <a href="#pack/' + esc(pack.id) + '">pack ' + esc(pack.id) + "</a>" : "Coming later") + "</span></li>";
-      }).join("") + "</ol>", "Blocks");
+    setView("<h2>Blocks</h2><p>Exam questions are built from these blocks. Each one says what the code does, then the kind of wording in a question that tells you it's needed.</p>" +
+      '<ol class="em-blocks">' + data.teachingOrder.map((id) => blockCardHtml(blockById[id], "li",
+        '<p class="small em-block-status">' + (inPack.has(id) ? 'Practise it in <a href="#pack/' + esc(pack.id) + '">pack ' + esc(pack.id) + "</a>" : "Coming later") + "</p>")).join("") +
+      "</ol>", "Blocks");
   }
 
   // A pack: the five rungs, each set in its own context (decision 21).
@@ -544,8 +575,8 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
       ["fill", 3, "Fill the gaps", "Complete the program."],
       ["steps", 4, "One bullet at a time", "Build the answer one step at a time. You can run your code."],
     ];
-    setView("<h2>Pack " + esc(pack.id) + ": " + esc(pack.title) + "</h2>" +
-      '<p class="small">Blocks: ' + pack.blocks.map((b) => esc(blockById[b].name)).join(", ") + ".</p>" +
+    setView("<h2>Pack " + esc(pack.id) + ": " + esc(packTitle(pack)) + "</h2>" +
+      '<p class="small">Blocks: ' + pack.blocks.map((b) => esc(blockTitle(b))).join(", ") + ".</p>" +
       '<ol class="em-rungs">' +
       rungs.map(([k, n, name, what]) => { const q = rungQuestion(k); return '<li><a href="#pack/' + esc(pack.id) + "/" + k + '"><strong>Rung ' + n + ": " + name + "</strong></a> – " + esc(q.title) + ". " + what +
         ' <span class="small">Best: ' + best(q.id, n) + "</span></li>"; }).join("") +
@@ -565,7 +596,10 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
     const d = pack.rungs.decode;
     const answerCode = (id) => q.testAnswers.find((a) => a.id === id).code.trim();
     const pointOf = (id) => q.markPoints.find((m) => m.id === id);
-    const blockName = (pointId) => { const b = blockById[pointOf(pointId).block]; return b.name + ' ("' + b.cue + '")'; };
+    // Decision 24: the block's title and this question's bullet for that mark point (the bullet-to-code item with the
+    // same mark point; its position is the bullet's).
+    const bulletFor = (pointId) => q.bullets[d.bulletToCode.findIndex((item) => item.point === pointId)];
+    const blockName = (pointId) => blockWithBullet(pointOf(pointId).block, bulletFor(pointId));
     const up = (w) => String(w).toUpperCase();
     if (!decodeState || decodeState.q !== q.id) decodeState = { q: q.id, choices: [], part1: null, part2Open: false, picks: d.examiner.map(() => ({})), part2: null };
     const s = decodeState;

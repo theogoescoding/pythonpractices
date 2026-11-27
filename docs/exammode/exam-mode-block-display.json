@@ -1,0 +1,189 @@
+{
+ "note": "Student-facing block display (decision 23, approved by Theo 26 Nov 2026). Merge into each block in exam-mode.json as a 'display' object. Example sentences are written in the style of OCR questions, not copied. Updated 27 Nov 2026 (decision 24): B4 ERL now 0 to 2 to match range(3); B7 example has no ellipsis; B16 exam term 'maximum, minimum'.",
+ "blocks": {
+  "B1": {
+   "title": "Store what the user types",
+   "questionExamples": [
+    "take the number of hours as input",
+    "prompt the user to enter their password"
+   ],
+   "python": "hours = int(input(\"Hours: \"))",
+   "erl": "hours = input(\"Hours\")",
+   "examTerm": "input, variable",
+   "commonMistake": "Writing it the wrong way round: input(\"Hours\") = hours"
+  },
+  "B2": {
+   "title": "Do one thing or another",
+   "questionExamples": [
+    "output \"VALID\" or \"NOT VALID\" depending on the height",
+    "outputs \"match\" if they are the same"
+   ],
+   "python": "if a == b:\n    print(\"match\")\nelse:\n    print(\"no match\")",
+   "erl": "if a == b then\n    print(\"match\")\nelse\n    print(\"no match\")\nendif",
+   "examTerm": "selection",
+   "commonMistake": "Printing both messages"
+  },
+  "B3": {
+   "title": "Check two things at once",
+   "questionExamples": [
+    "between 40 and 180 inclusive",
+    "the PIN is not \"1234\" or \"4321\""
+   ],
+   "python": "if h >= 40 and h <= 180:",
+   "erl": "if h >= 40 AND h <= 180 then",
+   "examTerm": "Boolean operators (AND, OR)",
+   "commonMistake": "h >= 40 and <= 180: the variable must be written twice"
+  },
+  "B4": {
+   "title": "Repeat a set number of times",
+   "questionExamples": [
+    "the player is asked 3 questions",
+    "until the quantity the user input has been entered"
+   ],
+   "python": "for i in range(3):",
+   "erl": "for i = 0 to 2\n    ...\nnext i",
+   "examTerm": "count-controlled loop",
+   "commonMistake": "Asking for the input once, before the loop"
+  },
+  "B5": {
+   "title": "Go through every item in an array",
+   "questionExamples": [
+    "the names are stored in the array theTeam",
+    "searches through the array"
+   ],
+   "python": "for i in range(len(team)):\n    if team[i] == name:",
+   "erl": "for i = 0 to team.length - 1\n    if team[i] == name then",
+   "examTerm": "array, index",
+   "commonMistake": "Not using i as the index"
+  },
+  "B6": {
+   "title": "Keep a running total or count",
+   "questionExamples": [
+    "totals the number of seconds",
+    "reduce the value stored in tickets"
+   ],
+   "python": "total = total + score",
+   "erl": "total = total + score",
+   "examTerm": "totalling, counting",
+   "commonMistake": "Setting total = 0 inside the loop"
+  },
+  "B7": {
+   "title": "Write your own function",
+   "questionExamples": [
+    "Write a function, calculatePrice(), that takes the number of tickets as a parameter and returns the total price"
+   ],
+   "python": "def calculatePrice(num):\n    return num * 60",
+   "erl": "function calculatePrice(num)\n    return num * 60\nendfunction",
+   "examTerm": "function, parameter, return",
+   "commonMistake": "Using input() inside it, or print instead of return"
+  },
+  "B8": {
+   "title": "Keep asking until a stop value",
+   "questionExamples": [
+    "repeat until the user enters 0",
+    "until \"stop\" is entered"
+   ],
+   "python": "hours = int(input(\"Hours: \"))\nwhile hours != 0:\n    ...\n    hours = int(input(\"Hours: \"))",
+   "erl": "hours = input(\"Hours\")\nwhile hours != 0\n    ...\n    hours = input(\"Hours\")\nendwhile",
+   "examTerm": "condition-controlled loop",
+   "commonMistake": "Asking only before the loop, so it never stops"
+  },
+  "B9": {
+   "title": "Use a function and keep its answer",
+   "questionExamples": [
+    "uses the function calculatePrice() to find the price for 3 tickets",
+    "stores the result in totalPrice"
+   ],
+   "python": "totalPrice = calculatePrice(3)",
+   "erl": "totalPrice = calculatePrice(3)",
+   "examTerm": "calling a function, return value",
+   "commonMistake": "Writing the function out again instead of calling it"
+  },
+  "B10": {
+   "title": "Work with text",
+   "questionExamples": [
+    "is 4 characters in length",
+    "the first 3 letters of the surname"
+   ],
+   "python": "len(pin) == 4\nsurname[0:3]",
+   "erl": "pin.length == 4\nsurname.left(3)",
+   "examTerm": "string manipulation",
+   "commonMistake": "Joining text with a comma instead of +"
+  },
+  "B11": {
+   "title": "Show a message with a value in it",
+   "questionExamples": [
+    "in an appropriate message",
+    "outputs \"The total is\" and then the total"
+   ],
+   "python": "print(\"The total is\", total)",
+   "erl": "print(\"The total is \" + str(total))",
+   "examTerm": "output, concatenation",
+   "commonMistake": "Putting the variable inside the quotes"
+  },
+  "B12": {
+   "title": "Do the maths",
+   "questionExamples": [
+    "calculate the average",
+    "work out if a number is odd or even"
+   ],
+   "python": "average = total / count\nif num % 2 == 0:",
+   "erl": "average = total / count\nif num MOD 2 == 0 then",
+   "examTerm": "arithmetic operators, MOD, DIV",
+   "commonMistake": "Working out the average inside the loop"
+  },
+  "B13": {
+   "title": "Use a table of data",
+   "questionExamples": [
+    "stored in a two-dimensional (2D) array",
+    "events[1, 1] contains \"MS1\""
+   ],
+   "python": "events[i][3]",
+   "erl": "events[i, 3]",
+   "examTerm": "2D array",
+   "commonMistake": "Mixing up row and column"
+  },
+  "B14": {
+   "title": "Change the data type",
+   "questionExamples": [
+    "convert it to a string before storing",
+    "take the PIN as input as a string"
+   ],
+   "python": "int(text)\nstr(number)",
+   "erl": "int(text)\nstr(number)",
+   "examTerm": "casting",
+   "commonMistake": "Joining text and a number without converting"
+  },
+  "B15": {
+   "title": "Read or save a file",
+   "questionExamples": [
+    "read the numbers from the text file data.txt",
+    "write the inputs to pilots.txt"
+   ],
+   "python": "f = open(\"data.txt\", \"r\")\nline = f.readline()\nf.close()",
+   "erl": "myFile = open(\"data.txt\")\nline = myFile.readLine()\nmyFile.close()",
+   "examTerm": "file handling",
+   "commonMistake": "Forgetting to close the file"
+  },
+  "B16": {
+   "title": "Find the biggest or smallest",
+   "questionExamples": [
+    "calculate which team has the highest score"
+   ],
+   "python": "if score > highest:\n    highest = score",
+   "erl": "if score > highest then\n    highest = score\nendif",
+   "examTerm": "maximum, minimum",
+   "commonMistake": "Building an array first when one variable would do"
+  },
+  "B17": {
+   "title": "Pick a random number",
+   "questionExamples": [
+    "two random whole numbers between 1 and 10 inclusive"
+   ],
+   "python": "import random\nnum = random.randint(1, 10)",
+   "erl": "num = random(1, 10)",
+   "examTerm": "random numbers",
+   "commonMistake": "Picking the number once, before the loop"
+  }
+ }
+}

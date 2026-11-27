@@ -1162,10 +1162,15 @@ td pre { white-space: pre-wrap; margin: .25rem 0; font-size: .85rem; }
 .em-note { border: 2px solid var(--exam-ink); border-radius: 8px; padding: .5rem .75rem; }
 .em-self { margin: .4rem 0 0 1.5em; border-left: 4px solid var(--exam-ink); padding-left: .75rem; }
 .em-after { margin-top: 1rem; }
+/* A block, plain job first (decision 23, EM1c): on the Blocks page and as the tutorial's example */
 .em-blocks { padding-left: 0; list-style: none; }
-.em-block { display: grid; grid-template-columns: 3rem minmax(0, 1fr); gap: .1rem .5rem; padding: .5rem 0; border-bottom: 1px solid var(--border); }
-.em-block-id { grid-row: span 3; font-weight: 700; color: var(--exam-ink); }
-.em-block-name, .em-block-status { grid-column: 2; }
+.em-block { border: 2px solid var(--border); border-left: 6px solid var(--exam); border-radius: 10px; padding: .5rem 1rem .6rem; margin: .75rem 0; background: var(--card); min-width: 0; }
+.em-block-title { margin: .2rem 0 .4rem; font-size: 1.15rem; color: var(--exam-ink); }
+.em-block p { margin: .35rem 0; }
+.em-block-label { font-weight: 700; }
+.em-examples { margin: .2rem 0 .4rem; padding-left: 1.4rem; }
+.em-block pre { margin: .2rem 0; }
+.em-block-status { margin-top: .4rem; }
 .em-rungs > li { margin: .6rem 0; }
 .em-steps { padding-left: 1.4rem; }
 .em-step { padding: .2rem .4rem; border-radius: 6px; }
