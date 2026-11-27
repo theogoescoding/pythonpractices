@@ -367,8 +367,16 @@
     return api("student-api", { token: s.token, action: "get_exam_progress" });
   }
 
+  // The class's Exam leaderboard (student-api exam_leaderboard, EM3), after sending what's waiting so the last answer counts.
+  async function examLeaderboard() {
+    const s = session();
+    if (!s) return { status: 401, body: {} };
+    try { await flush(); } catch (e) { /* the board still loads */ }
+    return api("student-api", { token: s.token, action: "exam_leaderboard" });
+  }
+
   return {
     enabled: true, session, join, resume, signOut, renameMe, leaderboard, deleteMyProgress, flush, pending, ready,
-    onStatus: (f) => listeners.push(f), isSignedOut: () => signedOut, queueExam, queueExamEvent, examProgress,
+    onStatus: (f) => listeners.push(f), isSignedOut: () => signedOut, queueExam, queueExamEvent, examProgress, examLeaderboard,
   };
 });

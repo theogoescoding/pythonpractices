@@ -74,7 +74,12 @@
   const taskLink = (id) => (tasksById[id] ? '<a href="#tasks=' + encodeURIComponent(tasksById[id].id) + '">' + esc(taskLabel(id)) + "</a>" : esc(taskLabel(id)));
   const tb = self.TeacherBackend && self.TeacherBackend.enabled ? self.TeacherBackend : null;
   let classData = null; // backend mode: the chosen class, as teacher-backend.js loaded it
-  const collect = () => (tb ? classData : TD.collect(Store, UNITS));
+  // Local mode: each student's Exam Mode records are in this browser too (exam.js), for the reports, export and boards (EM3).
+  const withLocalExam = (data) => {
+    if (data && !data.exam) { data.exam = {}; for (const id of Object.keys(data.students)) data.exam[id] = (Store.readJson(Store.EXAM_PREFIX + id) || {}).attempts || []; }
+    return data;
+  };
+  const collect = () => (tb ? classData : withLocalExam(TD.collect(Store, UNITS)));
   const byName = (students) => Object.entries(students).sort((a, b) => a[1].name.localeCompare(b[1].name));
   const currentClass = () => (tb ? tb.currentClass() : null);
   const stage = () => self.Curriculum.stageOf((currentClass() || {}).stage).id;
@@ -126,6 +131,9 @@
     if (p === "tasks") renderTaskBrowser(arg); // needs no class
     renderHomework(); // the class chosen at the top; does nothing unless the page is showing
     renderExam(); // the same; and Exam Mode's switch, on this page and the Classes page
+    // EM3 (decision 16): the Misconceptions page's one line to the Exam Mode page, when the class has Exam Mode on.
+    $("mc-exam-link").hidden = !(tb && currentClass() && switchOf(currentClass()).on);
+    if (!exData) loadExamData().then(() => { if (exData) render(); }); // the Exam Mode questions, for assignments, reports and boards
     const data = collect();
     if (!data) return; // backend mode: no class loaded yet
     if (p === "students") renderStudents(data);
@@ -328,8 +336,19 @@
   const localBoards = (data, extra, byPercent) => self.Secured.boards(TD.leaderboardStudents(data, POINT_UNITS, null, extra), byPercent);
 
   let lbShown = null; // the class data the class boards were made from (they load again when it changes)
+  // Exam Mode's two boards (EM3, exam.js examBoards: the rule student-api and teacher-api use too), from the class's rows.
+  function examBoardsHtml(b) {
+    const board = (title, note, rows, text) => '<section class="board"><h4>' + esc(title) + '</h4><p class="small">' + esc(note) + "</p>" +
+      (!rows.length ? '<p class="small">No one has answered ' + b.min + " questions here yet.</p>" :
+        '<div class="table-wrap"><table class="board-table" aria-label="' + esc(title) + '"><thead><tr><th scope="col" class="num">Place</th><th scope="col">Nickname</th>' +
+        '<th scope="col" class="num">' + esc(title) + "</th></tr></thead><tbody>" + rows.map((r) => '<tr><td class="num">' + r.place + "</td><td>" + esc(r.nickname) +
+          '</td><td class="num">' + esc(text(r.score)) + "</td></tr>").join("") + "</tbody></table></div>") + "</section>";
+    return board("Average % correct", "All time: marks scored ÷ marks possible on counted first tries.", b.average, (n) => n + "%") +
+      board("Most improved", "This week's average % minus last week's (" + b.min + " questions or more in each).", b.improved, EX.improvedText);
+  }
   async function renderLeaderboards(data) {
     const c = currentClass();
+    $("lb-exam").innerHTML = examBoardsHtml(EX.examBoards(TD.examStudents(data)));
     $("lb-class-name").textContent = c ? "Class: " + c.name : "Every student who has used this browser.";
     if (lbShown === data) return;
     lbShown = data;
@@ -480,6 +499,9 @@
   }
   // A task's name: its title, then its id. A template variant ("template#seed") is named by its template.
   function taskName(id) {
+    // An Exam Mode answer (EM3): "Exam Mode: Strike Zone bowling (full question)".
+    const exam = HW.examTaskName(id, exQuestionName);
+    if (exam) return exam;
     const tpl = String(id).split("#")[0];
     const title = (tasksById[id] && tasksById[id].title) || (templateTitles && templateTitles[tpl]) || (tasksById[tpl.replace(/^d-/, "")] || {}).title;
     return title ? title + " (" + id + ")" : id;
@@ -489,7 +511,10 @@
     $("hw-blocks").innerHTML = HW_BLOCKS.map((b) => '<details class="hw-block"><summary>' + esc(b.name) + ' <span class="small" data-hw-count="' + b.id + '"></span></summary>' +
       '<label class="hw-all"><input type="checkbox" data-hw-block="' + b.id + '"> Select all of ' + esc(b.name) + "</label>" +
       '<div class="hw-unit-grid">' + b.units.map((u) => '<label><input type="checkbox" data-hw-unit="' + esc(u) + '" data-block="' + b.id + '"> ' +
-        esc(self.Curriculum.studentUnitTitle(u)) + "</label>").join("") + "</div></details>").join("");
+        esc(self.Curriculum.studentUnitTitle(u)) + "</label>").join("") + "</div></details>").join("") +
+      // EM3: Exam Mode as a section of its own (one task = one Exam Mode question answered, at any rung).
+      '<label class="hw-exam"><input type="checkbox" data-hw-unit="' + HW.EXAM_SECTION + '"> Exam Mode <span class="small">(one task = one question answered, at any rung;' +
+      " a retry counts only if it scores more)</span></label>";
     hwBlockStates();
   }
   // Each block's "Select all" box: ticked when every unit is, part-ticked when some are; the count in its heading.
@@ -774,6 +799,9 @@
         packs.map((id) => '<td data-label="' + esc(exPackName(id)) + '">' + exCell(s.packs[id]) + "</td>").join("") + "</tr>").join("") + "</tbody>" +
       '<tfoot><tr><th scope="row">Class average</th>' + packs.map((id) => '<td data-label="' + esc(exPackName(id)) + '">' + exAverageCell(r.average[id]) + "</td>").join("") + "</tr></tfoot></table></div>";
 
+    // The Exam leaderboard (EM3): what the class's students see in Exam Mode.
+    $("ex-board").innerHTML = r.leaderboard ? examBoardsHtml(r.leaderboard) : '<p class="small">The Exam leaderboard needs the newest version of the server.</p>';
+
     // Most-missed mark points, per full question.
     $("ex-missed").innerHTML = r.missed.map((m) => {
       const q = exQuestion(m.question_id);
@@ -975,6 +1003,29 @@
   // The exports and the level changes. Compare classes is on the Leaderboards page; the workshop is on Misconceptions.
   function renderReports(data) {
     renderLevelLog(data);
+    renderExamReport(data);
+  }
+  // EM3: Exam Mode's numbers for the class (exam.js classOverview, the same rule as the Exam Mode page's).
+  function renderExamReport(data) {
+    if (!exData) { $("rp-exam").innerHTML = '<p class="small">Loading…</p>'; loadExamData().then(() => { if (page() === "reports") renderExamReport(collect()); }); return; }
+    const packs = exPacks();
+    const o = EX.classOverview(packs, TD.examStudents(data));
+    if (!o.students.some((s) => packs.some((p) => s.packs[p.id].started))) { $("rp-exam").innerHTML = '<p class="small">No Exam Mode work yet.</p>'; return; }
+    const cell = (c) => (!c.started ? '<span class="small">Not started</span>' : "Rung " + c.reached + " of 5<br>" +
+      (c.first_pct == null ? '<span class="small">No full question yet</span>' : "First " + c.first_pct + "% · Best " + c.best_pct + "%") +
+      (c.paste_flagged ? ' <span class="flag flag-alert">' + esc(TD.PASTE_FLAGGED) + "</span>" : ""));
+    $("rp-exam").innerHTML = "<h4>Scores and rung reached</h4>" +
+      '<div class="table-wrap"><table class="ex-table"><thead><tr><th scope="col">Student</th>' + packs.map((p) => '<th scope="col">' + esc(exPackName(p.id)) + "</th>").join("") +
+      "</tr></thead><tbody>" + o.students.map((s) => '<tr><th scope="row">' + esc(s.nickname) + "</th>" + packs.map((p) => "<td>" + cell(s.packs[p.id]) + "</td>").join("") + "</tr>").join("") +
+      "</tbody></table></div><h4>Most-missed mark points</h4>" + o.missed.map((m) => {
+        const q = exQuestion(m.question_id);
+        return '<p><strong>' + esc(exQuestionName(m.question_id)) + "</strong> " + (!m.students ? '<span class="small">No first attempts yet.</span>' :
+          '<span class="small">(' + m.students + " first attempt" + (m.students === 1 ? "" : "s") + ")</span></p><ul>" + m.points.filter((p) => p.missed).map((p) => {
+            const mp = q && q.markPoints.find((x) => x.id === p.id);
+            return "<li>" + esc(p.id) + ": " + esc(mp ? mp.text : "") + " – <strong>" + p.pct + "%</strong> missed</li>";
+          }).join("") + (m.points.some((p) => p.missed) ? "" : '<li class="small">No mark point missed.</li>') + "</ul>" +
+          (m.always_true ? '<p class="ex-always-true">' + m.always_true + " wrote a loop test that's always true.</p>" : "") + "<p>");
+      }).join("") + "</p>";
   }
 
   // ---------- "Needs review" (review-rules.js) ----------
@@ -1102,7 +1153,10 @@
   const parseTaskIds = (text) => [...new Set(String(text || "").split(/[\s,;]+/).map((s) => s.trim()).filter(Boolean))];
   // The ids typed, each found in the bank (also by an old id), or not.
   function checkTaskIds(ids) {
+    const examItems = EX.assignableQuestions(exPacks()); // EM3: Exam Mode questions (exam-mode.json)
     return ids.map((id) => {
+      const ex = examItems.find((x) => x.id.toLowerCase() === id.toLowerCase());
+      if (ex) return { id: ex.id, exam: ex };
       const t = tasksById[id] || bankTasks.find((x) => x.id.toLowerCase() === id.toLowerCase());
       if (!t) return { id, problem: "isn't a task in the bank" };
       if ((t.tags || []).includes("placement")) return { id, problem: "is a placement task (placement tasks are only used in the placement test)" };
@@ -1121,6 +1175,7 @@
     const ids = checked.map((c) => c.id);
     $("as-task-check").innerHTML = checked.length ? '<ol class="small as-task-list">' + checked.map((c, i) => {
       const remove = ' <button type="button" class="secondary" data-as-remove="' + i + '">Remove</button>';
+      if (c.exam) return "<li>" + esc(c.id) + " – Exam Mode: " + esc(c.exam.label) + remove + "</li>";
       if (!c.task) return '<li class="problem">' + esc(c.id) + " " + esc(c.problem) + remove + "</li>";
       const others = TD.swapOptions(bankTasks, ids, i);
       const note = builderNotes[c.id];
@@ -1139,8 +1194,20 @@
     $("as-add-task").disabled = full || !options.length;
     $("as-add").disabled = full || !options.length;
     $("as-add").textContent = full ? "The list has " + TD.BUILDER_MAX_TASKS + " tasks" : options.length ? "Add" : "No more tasks in this unit";
+    // EM3: each pack's Exam Mode questions not in the list yet (rungs 1-4, then the full questions).
+    const examLeft = EX.assignableQuestions(exPacks()).filter((x) => !ids.includes(x.id));
+    $("as-exam-q").innerHTML = examLeft.map((x) => '<option value="' + esc(x.id) + '">' + esc(exPackName(x.packId) + " · " + x.label) + "</option>").join("");
+    $("as-exam-q").disabled = !examLeft.length;
+    $("as-exam-add").disabled = !examLeft.length || ids.length >= 50;
     return checked;
   }
+  $("as-exam-add").addEventListener("click", () => {
+    const ids = checkTaskIds(parseTaskIds($("as-tasks").value)).map((c) => c.id);
+    const id = $("as-exam-q").value;
+    if (!id || ids.includes(id)) return;
+    setTaskIds(ids.concat([id]));
+    $("as-exam-q").focus();
+  });
 
   // The builder controls: the stage's units, how many tasks (1 to 10, 5 at first) and the levels (1 to 10 at first).
   function fillFiveTaskControls() {
@@ -1231,8 +1298,21 @@
     $("as-main").hidden = !tb;
     if (!tb) return;
     const list = data.assignments || [];
+    const examItems = EX.assignableQuestions(exPacks());
+    const examItem = (id) => examItems.find((x) => x.id === id);
     $("as-list").innerHTML = list.length ? list.map((a) => {
-      const s = TD.assignmentStats(data, a);
+      const bankOnly = Object.assign({}, a, { task_ids: a.task_ids.filter((id) => !examItem(id)) });
+      const s = TD.assignmentStats(data, bankOnly);
+      // EM3: the Exam Mode items, each student's first-attempt and best score (their tries saved with this assignment).
+      const exam = a.task_ids.map(examItem).filter(Boolean);
+      const examRows = exam.flatMap((x) => TD.examStudents(data).map((st) => {
+        const r = EX.scoreSummary(st.recs.filter((rec) => rec.assignmentId === a.id && rec.questionId === x.id))[0];
+        return r ? '<tr><th scope="row">' + esc(x.label) + "</th><td>" + esc(st.nickname) + '</td><td class="num">' + (r.first ? r.first.total + "/" + r.first.max : "–") +
+          '</td><td class="num">' + (r.best ? r.best.total + "/" + r.best.max : "–") + "</td><td>" + (r.pasteFlagged ? '<span class="flag flag-alert">' + esc(TD.PASTE_FLAGGED) + "</span>" : "") + "</td></tr>" : "";
+      })).join("");
+      const examTable = !exam.length ? "" : "<h4>Exam Mode questions</h4>" + (!examRows ? '<p class="small">No one has tried them yet.</p>' :
+        '<div class="table-wrap"><table><thead><tr><th scope="col">Question</th><th scope="col">Student</th><th scope="col">First attempt</th><th scope="col">Best</th><th scope="col">Flags</th></tr></thead><tbody>' +
+        examRows + "</tbody></table></div>");
       const rows = s.tasks.map((t) => "<tr><th scope=\"row\">" + taskLink(t.taskId) + '</th><td class="num">' + t.triedCount + '</td><td class="num">' + t.passedCount +
         '</td><td class="num">' + t.checks + '</td><td class="num">' + t.fails + '</td><td class="num">' + t.showHow + "</td><td>" + esc(TD.failureName(t.topCategory) || "–") +
         "</td><td>" + esc(t.topMisconception ? mName(t.topMisconception) : "–") + "</td></tr>").join("");
@@ -1242,17 +1322,17 @@
         '<h3 id="as-' + esc(a.id) + '">' + esc(a.title) + ' <span class="flag' + (a.status === "open" ? "" : " flag-alert") + '">' + (a.status === "open" ? "Open" : "Closed") + "</span></h3>" +
         (a.description ? "<p>" + esc(a.description) + "</p>" : "") +
         '<p class="small">' + a.task_ids.length + " task" + (a.task_ids.length === 1 ? "" : "s") + " · created " + esc(when(a.created_at)) + " · " + s.students + " student" + (s.students === 1 ? "" : "s") + " have tried it</p>" +
-        '<ol class="assignment-tasks">' + a.task_ids.map((id) => "<li>" + taskLink(id) + "</li>").join("") + "</ol>" +
+        '<ol class="assignment-tasks">' + a.task_ids.map((id) => "<li>" + (examItem(id) ? "Exam Mode: " + esc(examItem(id).label) : taskLink(id)) + "</li>").join("") + "</ol>" +
         '<p class="teacher-controls"><button type="button" class="secondary" data-as-edit="' + esc(a.id) + '">Change</button>' +
           '<button type="button" class="secondary" data-as-status="' + esc(a.id) + '" data-to="' + (a.status === "open" ? "closed" : "open") + '">' + (a.status === "open" ? "Close it" : "Open it again") + "</button>" +
           '<button type="button" class="secondary" data-as-delete="' + esc(a.id) + '">Delete</button>' +
           '<span data-as-confirm="' + esc(a.id) + '" hidden>Delete this assignment? Students will no longer see it; their work on it stays in the attempt log. ' +
           '<button type="button" class="danger" data-as-delete-yes="' + esc(a.id) + '">Yes, delete</button> ' +
           '<button type="button" class="secondary" data-as-delete-no="' + esc(a.id) + '">Cancel</button></span></p>' +
-        "<h4>Struggled with most</h4>" + (hard ? "<ol>" + hard + "</ol>" : '<p class="small">No one has struggled with a task yet.</p>') +
+        (!bankOnly.task_ids.length ? "" : "<h4>Struggled with most</h4>" + (hard ? "<ol>" + hard + "</ol>" : '<p class="small">No one has struggled with a task yet.</p>') +
         '<div class="table-wrap"><table><thead><tr><th scope="col">Task</th><th scope="col">Students who tried</th><th scope="col">Students who passed</th>' +
           '<th scope="col">Checks</th><th scope="col">Failed checks</th><th scope="col">"Show me how"</th><th scope="col">Most common failure</th><th scope="col">Top misconception</th></tr></thead>' +
-          "<tbody>" + rows + "</tbody></table></div></section>";
+          "<tbody>" + rows + "</tbody></table></div>") + examTable + "</section>";
     }).join("") : '<p class="small">No assignments for this class yet.</p>';
   }
 
@@ -1266,7 +1346,7 @@
     const checked = renderAssignmentCheck();
     if (!title) return fail("Please give the assignment a title.");
     if (!checked.length) return fail("Please add at least one task.");
-    if (checked.some((c) => !c.task)) return fail("Some task ids need fixing (see the list above).");
+    if (checked.some((c) => !c.task && !c.exam)) return fail("Some task ids need fixing (see the list above).");
     if (checked.length > 50) return fail("An assignment can have up to 50 tasks.");
     const r = await tb.saveAssignment({ id: editing && editing.id, status: (editing && editing.status) || "open", title,
       description: $("as-description").value.trim(), task_ids: checked.map((c) => c.id) });
@@ -1448,6 +1528,10 @@
     "export-workshop": { title: "Workshop tables (CSV)",
       text: "The two tables from the Misconceptions page: each misconception matched (attempts, students and tasks), then each task's failed attempts that matched no misconception.",
       build: () => { const data = collect(); return data ? [{ name: "python-practice-workshop-" + today() + ".csv", text: workshopCsv(data) }] : null; } },
+    // EM3: Exam Mode (teacher-data.js examExportCsv: the same numbers as the Reports page and the Exam Mode page).
+    "export-exam": { title: "Exam Mode (CSV)",
+      text: "Three sections, one row each: every student's rung reached and first-attempt and best scores in each pack (pack_score); the mark points the class missed most on its first attempts (mark_point); and each homework with the Exam Mode section, per student (homework). Paste-flagged answers count towards no score. No codes or PINs.",
+      build: () => { const data = collect(); return data && exData ? [{ name: "python-practice-exam-mode-" + today() + ".csv", text: TD.examExportCsv(data, exPacks(), EX, HW) }] : null; } },
   };
 
   // The first rows of a CSV text (a quoted field can hold commas, quotes and new lines).

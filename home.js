@@ -176,17 +176,34 @@ Store.whenReady(function () {
 
   // ---------- Class assignments (backend mode) ----------
   // The open assignments of the student's class, as a module above the unit cards. Practice only.
+  // EM3: an assignment can also hold Exam Mode questions (their ids are in exam-mode.json). Each opens in exam.html at its
+  // rung (#asg/<assignment>/<question>), even when the class has Exam Mode switched off; the practice tasks open as before.
+  let examItems = null; // [{ id, label }] every Exam Mode question an assignment can hold, once exam-mode.json is loaded
   function renderAssignments(student) {
     const list = Store.assignments(student.id);
     const work = (id) => Store.loadAssignmentWork(student.id, id) || { tried: {} };
     $("assignments").hidden = !list.length;
+    if (list.length && examItems === null && self.ExamMode) {
+      examItems = [];
+      fetch("exam-mode.json").then((r) => r.json()).then((d) => { examItems = self.ExamMode.assignableQuestions(d.packs); renderAssignments(student); }).catch(() => { /* bank tasks only */ });
+    }
     $("assignment-list").innerHTML = list.map((a) => {
       const tried = work(a.id).tried || {};
-      const done = a.task_ids.filter((id) => tried[id] === "passed").length;
-      return '<li><a class="unit-card assignment-card" href="practice.html?assignment=' + encodeURIComponent(a.id) + '">' +
+      const exam = (examItems || []).filter((x) => a.task_ids.includes(x.id)).sort((x, y) => a.task_ids.indexOf(x.id) - a.task_ids.indexOf(y.id));
+      const practice = a.task_ids.filter((id) => !exam.some((x) => x.id === id));
+      const done = practice.filter((id) => tried[id] === "passed").length;
+      if (!exam.length) {
+        return '<li><a class="unit-card assignment-card" href="practice.html?assignment=' + encodeURIComponent(a.id) + '">' +
+          "<h3>" + esc(a.title) + "</h3>" + (a.description ? "<p>" + esc(a.description) + "</p>" : "") +
+          '<p class="unit-meta"><span>' + a.task_ids.length + " task" + (a.task_ids.length === 1 ? "" : "s") + "</span><span><strong>" +
+          (done ? done + " done" : "Not started") + "</strong></span></p></a></li>";
+      }
+      return '<li><div class="unit-card assignment-card assignment-exam">' +
         "<h3>" + esc(a.title) + "</h3>" + (a.description ? "<p>" + esc(a.description) + "</p>" : "") +
-        '<p class="unit-meta"><span>' + a.task_ids.length + " task" + (a.task_ids.length === 1 ? "" : "s") + "</span><span><strong>" +
-        (done ? done + " done" : "Not started") + "</strong></span></p></a></li>";
+        (practice.length ? '<p><a href="practice.html?assignment=' + encodeURIComponent(a.id) + '">Practice tasks (' + practice.length + ")</a> " +
+          '<span class="small">' + (done ? done + " done" : "Not started") + "</span></p>" : "") +
+        '<p class="small">Exam Mode questions:</p><ul class="assignment-exam-items">' + exam.map((x) =>
+          '<li><a href="exam.html#asg/' + encodeURIComponent(a.id) + "/" + encodeURIComponent(x.id) + '">' + esc(x.label) + "</a></li>").join("") + "</ul></div></li>";
     }).join("");
   }
 

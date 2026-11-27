@@ -381,7 +381,8 @@
   const SCRATCH_LEVEL = 10;
 
   const unitById = (id) => UNITS.find((u) => u.id === id) || null;
-  const unitTitle = (id) => (unitById(id) || { title: id }).title;
+  // Exam Mode is a homework section too (EM3), named here so homework cards, lists and reports say "Exam Mode".
+  const unitTitle = (id) => (unitById(id) || { title: id === "exam-mode" ? "Exam Mode" : id }).title;
   // A unit can set its own task type and name for a level (levelTypes, levelNames); otherwise the ladder's are used.
   const levelName = (n, unitId) => ((unitById(unitId) || {}).levelNames || {})[n] || (LEVELS[n - 1] || { name: "" }).name;
   // levelTypes: every task type a level may use (most levels have one); levelType: the level's main (first) type.

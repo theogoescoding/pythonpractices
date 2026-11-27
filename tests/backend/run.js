@@ -550,6 +550,33 @@ function attemptRow(extra) {
       eq(direct.body.length, 0, "teacher B reads none of class A's exam attempts directly");
     });
 
+    // ---------- EM3: the Exam leaderboard, Exam Mode homework and assignments ----------
+    await test("EM3: exam_leaderboard ranks the class by its rule (5 counted first tries) and marks the student's own row", async () => {
+      const s = await join(classA, "Board One");
+      const rows = [0, 1, 2, 3, 4].map((i) => examRow({ question_id: "C1-B" + i, timestamp: iso(60000 * (i + 1)), student_code: undefined, total: 6, auto_total: 6,
+        points: [1, 1, 1, 1, 1, 1].map((a, j) => ({ id: "BP" + (j + 1), awarded: a, status: "auto" })) }));
+      rows.forEach((r) => delete r.student_code);
+      eq((await fn("student-api", { token: s.token, action: "add_exam_attempts", rows })).body.saved, 5, "five first tries saved");
+      const b = await fn("student-api", { token: s.token, action: "exam_leaderboard" });
+      const me = (b.body.average || []).find((r) => r.me);
+      eq([b.status, me && me.nickname, me && me.score, b.body.min], [200, "Board One", 100, 5], "on the board at 100%, marked as me");
+      assert(!/student_id|pin|code/.test(JSON.stringify(b.body)), "nicknames, places and scores only");
+    });
+
+    await test("EM3: an Exam Mode answer counts for homework with the Exam Mode section, and saves with an assignment's id", async () => {
+      const s = await join(classA, "Homework One");
+      const due = new Date(Date.now() + 7 * DAY).toISOString().slice(0, 10);
+      const hw = await fn("teacher-api", { action: "create_homework", class_id: classA.id, task_count: 2, due_on: due, units: ["exam-mode"] }, { bearer: a.jwt });
+      eq([hw.status, hw.body.homework.some((h) => h.units.join() === "exam-mode")], [200, true], "homework set with the Exam Mode section");
+      const asg = await rest("/rest/v1/assignments", a, { body: { class_id: classA.id, title: "Exam item", task_ids: ["C1-Q1"] }, headers: { Prefer: "return=representation" } });
+      const asgId = asg.body[0].id;
+      const r = await fn("student-api", { token: s.token, action: "add_exam_attempts", rows: [examRow({ assignment_id: asgId })] });
+      const mine = (r.body.homework || []).find((h) => h.units.join() === "exam-mode");
+      eq([r.status, r.body.saved, mine && mine.done], [200, 1, 1], "saved, and the new homework count comes back (1 of 2)");
+      const back = await fn("student-api", { token: s.token, action: "get_exam_progress" });
+      eq(back.body.attempts[0].assignment_id, asgId, "saved with the assignment's id");
+    });
+
     await test("delete_my_progress deletes the student and everything saved for them", async () => {
       const s = await join(classA, "Leaver");
       await fn("student-api", { token: s.token, action: "add_attempts", rows: [attemptRow({})] });

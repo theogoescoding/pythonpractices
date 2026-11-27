@@ -22,6 +22,8 @@
 //                                           checked on its own (shape, ranges, the sums of its points); a try made after the
 //                                           student opened that question's model answer is refused; a resent row saves nothing.
 //   get_exam_progress                  -> { attempts (their own, no code), model_seen: [{ question_id, at }], tutorial_seen }
+//   exam_leaderboard                   -> { average, improved, min }  their class's Exam leaderboard (EM3): [{ place, nickname, score, me }]
+//   add_exam_attempts also sends back homework (EM3: the Exam Mode section) after saving anything
 //   add_events also takes exam_model_seen (task_id = the question) and exam_tutorial_seen, with x- ids and no unit.
 
 import { lookupHash, pinMatches, verifyToken } from "../_shared/crypto.ts";
@@ -115,7 +117,19 @@ const actions: Record<string, (sid: string, body: Record<string, unknown>) => Pr
   async add_exam_attempts(sid, body) {
     const r = await G.ExamServer.addAttempts(db(), sid, body.rows, { hash: (code: string) => lookupHash("code", code) });
     if (!r) throw bad();
+    // An Exam Mode answer can count towards homework with the Exam Mode section (EM3, homework.js): work it out again and
+    // send the new "x of y done" back, as add_attempts does after a pass.
+    if (r.saved > 0) {
+      const homework = await myHomework(sid);
+      if (homework) return { ...r, homework };
+    }
     return r;
+  },
+
+  // The student's own class's Exam leaderboard (EM3, exam.js examBoards through exam-server.js): nicknames, places and
+  // scores only, their own row marked me.
+  async exam_leaderboard(sid) {
+    return await G.ExamServer.studentBoards(db(), { ExamMode: G.ExamMode }, sid);
   },
 
   async get_exam_progress(sid) {

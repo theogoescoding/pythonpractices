@@ -34,11 +34,18 @@
   const asHw = (h) => ({ id: h.id, class_id: h.class_id, created_by: h.created_by, task_count: h.task_count, due_on: String(h.due_on).slice(0, 10),
     units: h.units || [], created_at: new Date(h.created_at).toISOString() });
 
-  // Every pass and every paste flag of these students, as homework.js reads them: { sid: { attempts, flags } }.
+  // Every pass and every paste flag of these students, and their Exam Mode answers (EM3: the Exam Mode section), as
+  // homework.js reads them: { sid: { attempts, flags, exam } }. A server without migration 0021 has no Exam Mode answers.
   async function records(sb, ids) {
     const out = {};
-    for (const id of ids) out[id] = { attempts: [], flags: [] };
+    for (const id of ids) out[id] = { attempts: [], flags: [], exam: [] };
     if (!ids.length) return out;
+    const probe = await sb.from("exam_attempts").select("id").in("student_id", ids).range(0, 0);
+    if (!(probe.error && (probe.error.code === "42P01" || probe.error.code === "PGRST205" || /exam_attempts/.test(probe.error.message || "")))) {
+      const rows = await all(() => sb.from("exam_attempts").select("id, student_id, timestamp, question_id, rung, step, total, paste_flag")
+        .in("student_id", ids).order("id"), "read exam answers");
+      for (const r of rows) out[r.student_id].exam.push({ questionId: r.question_id, rung: r.rung, step: r.step, at: r.timestamp, total: r.total, pasteFlag: !!r.paste_flag });
+    }
     const passes = await all(() => sb.from("attempts").select("id, student_id, record_type, timestamp, unit, task_units, task_id, result")
       .in("student_id", ids).eq("record_type", "attempt").eq("result", "pass").order("id"), "read passes");
     for (const a of passes) out[a.student_id].attempts.push({ kind: "attempt", at: a.timestamp, unit: a.unit, units: a.task_units || [a.unit], taskId: a.task_id, result: a.result });
@@ -58,7 +65,7 @@
     for (const hw of list) {
       out[hw.id] = {};
       for (const sid of studentIds) {
-        const p = deps.Homework.progress(hw, recs[sid].attempts, recs[sid].flags);
+        const p = deps.Homework.progress(hw, recs[sid].attempts, recs[sid].flags, recs[sid].exam);
         out[hw.id][sid] = p;
         rows.push({ homework_id: hw.id, student_id: sid, done: p.done, complete: p.complete, units: p.units, task_ids: p.taskIds, updated_at: now });
       }
@@ -162,7 +169,7 @@
     if (r.error && !noTable(r.error)) data(r, "homework");
     const homework = r.error ? [] : (r.data || []).map(asHw);
     const joined = data(await sb.from("students").select("id, created_at").eq("id", s.id).maybeSingle(), "student");
-    const x = deps.Homework.progressSummary({ attempts: recs.attempts.concat(tries.map((t) => ({ kind: "attempt", at: t.timestamp }))), flags: recs.flags, homework,
+    const x = deps.Homework.progressSummary({ attempts: recs.attempts.concat(tries.map((t) => ({ kind: "attempt", at: t.timestamp }))), flags: recs.flags, exam: recs.exam, homework,
       joinedAt: joined && joined.created_at, now });
     return { first_passes_this_week: x.firstPassesThisWeek, average_first_passes_per_week: x.averageFirstPassesPerWeek,
       average_homework_completion: x.averageHomeworkCompletion, last_active: x.lastActive };

@@ -25,7 +25,8 @@
 //                                              with the review rules (review-rules.js, rules-review.json, on the website only)
 //   set_exam_mode { class_id, on }          -> { stage, setting, on }  Exam Mode for the class (migration 0021): on true or false,
 //                                              or null to follow the stage (on for GCSE, off for KS3 and A-level). Any teacher on the class.
-//   exam_overview { class_id }              -> { class_name, switch, packs, students: [{ nickname, packs }], average, missed, help }
+//   exam_overview { class_id }              -> { class_name, switch, packs, students: [{ nickname, packs }], average, missed, help,
+//                                              leaderboard: { average, improved, min } (EM3: the class's Exam leaderboard) }
 //                                              (exam-server.js overview: nicknames, numbers and question and mark-point ids only)
 //   exam_student_detail { class_id, student_id } -> { class_name, nickname, attempts: [...] }  one student of that class, newest
 //                                              first, with the code of attempts that lost marks while it is kept (30 days)

@@ -1160,6 +1160,127 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
       "exam_student_detail: only for a student of that class (another class's student is a 404), and only for a teacher on the class (owner or co-teacher)");
   }
 
+  // ---------- EM3: the Exam leaderboard, Exam Mode homework, assignments, the export, paste flags ----------
+  {
+    const fs = require("fs");
+    const Sharing = require(path.join(ROOT, "supabase", "functions", "_shared", "class-sharing.js"));
+    const ES = require(path.join(ROOT, "supabase", "functions", "_shared", "exam-server.js"));
+    const HS = require(path.join(ROOT, "supabase", "functions", "_shared", "homework-server.js"));
+    const X = require(path.join(ROOT, "exam.js"));
+    const Homework = require(path.join(ROOT, "homework.js"));
+    const TD = require(path.join(ROOT, "teacher-data.js"));
+    const data = JSON.parse(fs.readFileSync(path.join(ROOT, "exam-mode.json"), "utf8"));
+    const NOW = Date.parse("2026-11-27T12:00:00Z");
+    const ago = (days) => new Date(NOW - days * 86400000).toISOString();
+    let k = 0;
+    // A record as exam.js keeps it. pts: [awarded, how] per point; o: { first, help, pasteFlag, step, attempt, assignmentId }.
+    const rec = (q, rung, at, pts, o) => Object.assign({ id: "x-r" + (++k) + "-abcdef", at, questionId: q, rung, attempt: 1, first: true, recorded: true, max: pts.length,
+      total: pts.reduce((s, [a]) => s + (a || 0), 0), points: pts.map(([a, how], i) => ({ id: "p" + (i + 1), awarded: a, how })), help: false, pasteFlag: false, notes: [] }, o || {});
+    const all1 = (n) => Array.from({ length: n }, () => [1, "auto"]);
+    const half = [[1, "auto"], [0, "auto"]];
+    // Five distinct first attempts in a window, each worth 2 auto marks, scoring the given numbers.
+    const five = (q, days, scores) => scores.map((s, i) => rec(q + i, 5, ago(days + i * 0.1), [[s >= 1 ? 1 : 0, "auto"], [s >= 2 ? 1 : 0, "auto"]]));
+
+    // 1. The leaderboard rule.
+    const amy = five("A", 1, [2, 2, 2, 2, 2]);                                                   // 100% this week
+    amy.push(rec("A0", 5, ago(1.5), [[0, "auto"], [0, "auto"]], { attempt: 2, first: false }));    // a retry: never counts (it would pull 100% down)
+    const bob = five("B", 1, [1, 1, 1, 1, 1]);                                                   // 50%
+    bob.push(rec("B9", 5, ago(2), [[1, "auto"], [1, "self"]]));                                  // self-marked left out: 1/1, so (5+1)/(10+1) = 55%
+    const cat = five("C", 1, [2, 2, 2, 2, 2]).map((r) => Object.assign(r, { help: true }));    // "Say it simply": half marks, possible in full = 50%
+    const dan = five("D", 1, [2, 2, 2, 2]);                                                       // only 4 questions: not on the board
+    const eve = five("E", 1, [1, 1, 1, 1, 1]);                                                   // 50%: ties with Cat
+    const fay = five("F", 1, [2, 2, 2, 2, 2]).concat(five("G", 8, [1, 1, 1, 1, 1]));            // this week 100%, last week 50%: +50
+    const gus = five("H", 1, [1, 1, 1, 1, 1]).concat(five("I", 8, [2, 2, 2, 2, 2]));            // this week 50%, last week 100%: −50
+    const hal = five("J", 1, [2, 2, 2, 2, 2]).concat(five("K", 8, [1, 1, 1, 1]));               // only 4 last week: not on Most improved
+    const ivy = five("L", 1, [2, 2, 2, 2, 2]).map((r, i) => (i ? r : Object.assign(r, { pasteFlag: true })));  // 1 flagged first: 4 left, not on the board
+    const boards = X.examBoards([{ nickname: "Amy", recs: amy, me: true }, { nickname: "Bob", recs: bob }, { nickname: "Cat", recs: cat }, { nickname: "Dan", recs: dan },
+      { nickname: "Eve", recs: eve }, { nickname: "Fay", recs: fay }, { nickname: "Gus", recs: gus }, { nickname: "Hal", recs: hal }, { nickname: "Ivy", recs: ivy }], NOW);
+    const avg = Object.fromEntries(boards.average.map((r) => [r.nickname, r]));
+    check(avg.Amy.score === 100 && avg.Amy.me && avg.Bob.score === 55 && avg.Cat.score === 50 && avg.Eve.score === 50 && !avg.Dan && !avg.Ivy && avg.Fay.score === 75 && avg.Gus.score === 75 && avg.Hal.score === 78,
+      "Exam leaderboard: first attempts only (a retry never counts), self-marked points left out of scored and possible (Bob 55%), \"Say it simply\" at half marks (Cat 50%), at least 5 questions (Dan, and Ivy once her paste-flagged first is left out, aren't on it)");
+    check(avg.Cat.place === avg.Eve.place && boards.average.map((r) => r.place + ":" + r.nickname).join() === "1:Amy,2:Hal,3:Fay,3:Gus,5:Bob,6:Cat,6:Eve",
+      "Exam leaderboard: ties share a place (1, 2, 3, 3, 5, 6, 6): " + boards.average.map((r) => r.place + " " + r.nickname + " " + r.score).join(", "));
+    check(boards.improved.map((r) => r.nickname + ":" + X.improvedText(r.score)).join() === "Fay:+50,Gus:−50" && boards.min === 5,
+      "Most improved: this week's % minus last week's, only with 5 questions in each week (Hal had 4 last week); shown as +50 and −50");
+
+    // 2. Exam Mode homework (homework.js; the server's report and the student's count use it).
+    const hw = { created_at: ago(5), due_on: Homework.ukDate(NOW + 2 * 86400000), units: [Homework.EXAM_SECTION], task_count: 6 };
+    const ex = [
+      { questionId: "C1-Q1", rung: 5, at: ago(4), total: 3 },                    // counts (first)
+      { questionId: "C1-Q1", rung: 5, at: ago(3.9), total: 3 },                  // the same score: doesn't
+      { questionId: "C1-Q1", rung: 5, at: ago(3.8), total: 5 },                  // higher than every earlier: counts
+      { questionId: "C1-Q1", rung: 5, at: ago(3.7), total: 4 },                  // lower: doesn't
+      { questionId: "C1-R4", rung: 4, step: 1, at: ago(3), total: 0 },           // each rung 4 step counts once
+      { questionId: "C1-R4", rung: 4, step: 2, at: ago(3), total: 1 },
+      { questionId: "C1-R1", rung: 1, step: 1, at: ago(9), total: 2 },           // before it was set: doesn't
+      { questionId: "C1-R1", rung: 1, step: 1, at: ago(2), total: 2 },           // not higher than that earlier try: doesn't
+      { questionId: "C1-Q2", rung: 5, at: ago(2), total: 6, pasteFlag: true },   // paste-flagged: doesn't
+      { questionId: "C1-Q2", rung: 5, at: ago(1.9), total: 6 },                  // retyped, but not higher than the flagged one: doesn't
+      { questionId: "C1-Q0", rung: 2, at: ago(1), total: 0 },                    // any rung counts, even 0 marks (it's one question answered)
+    ];
+    const pr = Homework.progress(hw, [], [], ex);
+    check(pr.done === 5 && pr.taskIds.join() === "exam:C1-Q1|5|,exam:C1-Q1|5|,exam:C1-R4|4|1,exam:C1-R4|4|2,exam:C1-Q0|2|" && pr.units.join() === "exam-mode" &&
+      pr.flagged.map((f) => f.taskId).join() === "exam:C1-Q2|5|",
+      "Exam Mode homework: one task per question and rung (and step), the first recorded attempt counting; a retry only when higher than every earlier one; paste flags never (and still block a retype); only in the homework's time");
+    // Due on 23 November (UK): the two bowling tries that day count; the rung 4 steps on the 24th don't.
+    const late = Homework.progress(Object.assign({}, hw, { due_on: Homework.ukDate(NOW - 3.6 * 86400000) }), [], [], ex);
+    const anyUnit = Homework.progress(Object.assign({}, hw, { units: [] }), [], [], ex);
+    const practicePass = [{ kind: "attempt", result: "pass", at: ago(1), unit: "selection", units: ["selection"], taskId: "if-L3a" }];
+    check(late.done === 2 && late.taskIds.join() === "exam:C1-Q1|5|,exam:C1-Q1|5|" && anyUnit.done === 0 && Homework.progress(hw, practicePass, [], []).done === 0 &&
+      Homework.progress(Object.assign({}, hw, { units: ["selection", "exam-mode"] }), practicePass, [], ex).done === 6,
+      "Exam Mode homework: nothing after the due date counts; only homework with the Exam Mode section counts Exam Mode (\"any unit\" means the practice units), and practice passes count only for practice units");
+    const form = Homework.checkNew({ task_count: 5, due_on: Homework.ukDate(NOW + 86400000), units: ["exam-mode", "selection"] }, ["output", "selection"]);
+    check(form.ok && form.homework.units.join() === "selection,exam-mode" && Homework.examTaskName("exam:C1-R4|4|2", () => "Football club goals") === "Exam Mode: Football club goals (rung 4, step 2)" &&
+      Homework.examTaskName("exam:C1-Q1|5|") === "Exam Mode: C1-Q1 (full question)" && Homework.examTaskName("if-L3a") === null,
+      "Homework form: Exam Mode is a section a teacher can pick; its tasks have readable names in the report");
+
+    // The server: student-api's add_exam_attempts then the student's homework, and the teacher's report.
+    const sb = fakeDb();
+    const T = sb.t;
+    const O = "0000000e-0000-0000-0000-000000000001", Z = "0000000e-0000-0000-0000-000000000002";
+    const CL = "0000000e-0000-0000-0000-00000000c1a1", CZ = "0000000e-0000-0000-0000-00000000c1a2";
+    const ANN = "0000000e-0000-0000-0000-0000000057d1", BEA = "0000000e-0000-0000-0000-0000000057d2", ZED = "0000000e-0000-0000-0000-0000000057d9";
+    T.teachers.push({ id: O, name: "Owner" }, { id: Z, name: "Other" });
+    T.classes.push({ id: CL, name: "10E", teacher_id: O, stage: "gcse", exam_mode: false }, { id: CZ, name: "10Z", teacher_id: Z, stage: "gcse", exam_mode: null });
+    T.class_teachers.push({ class_id: CL, teacher_id: O }, { class_id: CZ, teacher_id: Z });
+    T.students.push({ id: ANN, class_id: CL, nickname: "Ann" }, { id: BEA, class_id: CL, nickname: "Bea" }, { id: ZED, class_id: CZ, nickname: "Zed" });
+    const ASG = "0000000e-0000-0000-0000-0000000000a1", ASZ = "0000000e-0000-0000-0000-0000000000a2";
+    T.assignments.push({ id: ASG, class_id: CL, title: "Exam practice", task_ids: ["C1-Q1", "if-L3a"], status: "open" }, { id: ASZ, class_id: CZ, title: "Theirs", task_ids: ["C1-Q1"], status: "open" });
+    const hwDeps = { Sharing, Homework, unitIds: require(path.join(ROOT, "curriculum.js")).UNITS.map((u) => u.id) };
+    const made = await HS.create(sb, hwDeps, O, CL, { task_count: 2, due_on: Homework.ukDate(Date.now() + 7 * 86400000), units: ["exam-mode"] }, Homework.ukDate(Date.now()));
+    const row = (q, rung, pts, o) => X.toServerRow(rec(q, rung, new Date(Date.now() + 1000).toISOString(), pts, o), "C1");
+    // 3. An Exam Mode assignment item: saved with its assignment_id (the class switch is off: assignments still work).
+    const r1 = await ES.addAttempts(sb, ANN, [row("C1-Q1", 5, all1(6), { assignmentId: ASG }), row("C1-Q2", 5, all1(6), { assignmentId: ASZ })], {});
+    const saved = T.exam_attempts.filter((r) => r.student_id === ANN);
+    check(r1.saved === 1 && r1.rejected.length === 1 && r1.rejected[0].reason === "bad assignment_id" && saved[0].assignment_id === ASG &&
+      (await ES.forStudent(sb, ANN)).attempts[0].assignment_id === ASG && X.fromServerRow((await ES.forStudent(sb, ANN)).attempts[0]).assignmentId === ASG,
+      "Assignments: an Exam Mode item's attempt is saved with its assignment_id (another class's assignment is refused), and comes back with it");
+    const forAnn = await HS.forStudent(sb, hwDeps, ANN);
+    await ES.addAttempts(sb, BEA, [row("C1-R4", 4, [[1, "auto"]], { step: 1 }), row("C1-Q1", 5, all1(6), { pasteFlag: true })], {});
+    const report = await HS.report(sb, hwDeps, O, made.homework[0].id);
+    const bea = report.students.find((s) => s.student_name === "Bea"), ann = report.students.find((s) => s.student_name === "Ann");
+    check(made.homework[0].units.join() === "exam-mode" && forAnn[0].done === 1 && ann.done === 1 && ann.units.join() === "exam-mode" && bea.done === 1 &&
+      bea.flagged.map((f) => f.task_id + "/" + f.unit).join() === "exam:C1-Q1|5|/exam-mode",
+      "Exam Mode homework on the server: set as a section; the student's count and the teacher's report agree, with Exam Mode answers under the Exam Mode section and \"Paste flagged\" as elsewhere");
+
+    // 4 and 5. The overview, the export and paste flags: left out of every score, still shown.
+    const ov = await ES.overview(sb, { Sharing, ExamMode: X, data }, O, CL, Date.now());
+    const beaOv = ov.students.find((s) => s.nickname === "Bea").packs.C1;
+    check(beaOv.first_pct === null && beaOv.best_pct === null && beaOv.paste_flagged === 1 && ov.missed.find((m) => m.question_id === "C1-Q1").students === 1 &&
+      ov.leaderboard && Array.isArray(ov.leaderboard.average),
+      "Paste flags: a paste-flagged first attempt gives no pack score and isn't in the most-missed mark points, but is counted (paste_flagged) so it can be shown; the overview carries the Exam leaderboard");
+    const sum = X.scoreSummary([rec("C1-Q1", 5, ago(2), all1(6), { pasteFlag: true }), rec("C1-Q1", 5, ago(1), half.concat(all1(4)), { attempt: 2, first: false })]);
+    check(sum[0].first === null && sum[0].best.total === 5 && sum[0].pasteFlagged === 1,
+      "My exam scores: a paste-flagged first attempt has no first score; the best is the best unflagged one; it says how many were flagged (shown \"Paste flagged\")");
+    const tdData = { students: { s1: { name: "Ann" }, s2: { name: "Bea" } }, attempts: [], exam: { s1: [rec("C1-Q1", 5, ago(1), half.concat(all1(4)))], s2: [rec("C1-Q2", 5, ago(1), all1(6), { pasteFlag: true })] },
+      pasteFlags: {}, homework: [hw] };
+    const csv = TD.examExportCsv(tdData, data.packs, X, Homework);
+    const lines = csv.trim().split(/\r?\n/);
+    check(lines[0] === TD.EXAM_EXPORT_COLUMNS.join(",") && lines.some((l) => /^pack_score,Ann,C1,5,83,83,1,0,/.test(l)) && lines.some((l) => /^pack_score,Bea,C1,5,,,1,1,/.test(l)) &&
+      lines.some((l) => /^mark_point,,C1,,,,,,C1-Q1,Strike Zone bowling,BP2,/.test(l)) && lines.filter((l) => /^homework,/.test(l)).length === 2 && !/print\(|SECRET|student_code/.test(csv),
+      "Export: an Exam Mode CSV with the columns " + TD.EXAM_EXPORT_COLUMNS.length + " (pack scores per student, most-missed mark points, Exam Mode homework results); paste flags count towards no score; no code");
+  }
+
   // ---------- Exam Mode in the student's browser (backend.js, prompt EM2) ----------
   // exam.js hands its rows to backend.js, which sends them with the rest of the student's work (the same outbox: sent
   // after a moment, kept until it arrives) and fetches them back on another computer.
@@ -1190,8 +1311,8 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
     await elsewhere.Backend.resume(srv.students[sid].code, "1234");
     const got = await elsewhere.Backend.examProgress();
     check(srv.exam[sid].length === 1 && got.status === 200 && got.body.attempts.length === 1 && got.body.model_seen[0].question_id === "C1-Q1" &&
-      ExamMode.scoreSummary(ExamMode.mergeRecords([], got.body.attempts.map((r) => ExamMode.fromServerRow(r))))[0].first.total === 5,
-      "Exam Mode: a resend is saved once, and another computer gets the same records (the same first-attempt score)");
+      (() => { const row = ExamMode.scoreSummary(ExamMode.mergeRecords([], got.body.attempts.map((r) => ExamMode.fromServerRow(r))))[0]; return row.first === null && row.best === null && row.pasteFlagged === 1; })(),
+      "Exam Mode: a resend is saved once, and another computer gets the same records (this paste-flagged try: no score, labelled, EM3)");
     // A shared computer: the next student's sign-in clears this one's Exam Mode records once they're all on their way.
     p.storage.setItem(p.Store.EXAM_PREFIX + sid, JSON.stringify({ attempts: [Object.assign({ queued: true }, rec)] }));
     const other = await p.Backend.join("ABCDEF", "Fin");

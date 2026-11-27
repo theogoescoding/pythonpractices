@@ -302,6 +302,13 @@
         <p id="lb-all-status" class="small" role="status"></p>
         <div id="lb-all" class="boards"></div>
       </section>
+      <!-- EM3: Exam Mode's own board, for the class chosen at the top. It adds nothing to the points above. -->
+      <section class="teacher-section" data-collapse="lb-exam">
+        <h3>Exam Mode</h3>
+        <p class="small">A separate board: Exam Mode adds nothing to the points above. It counts each student's first try at each question and rung,
+          the marks given automatically (not the ones they checked themselves) and "Say it simply" at half marks. Paste-flagged answers don't count. A student appears once they have answered 5 questions.</p>
+        <div id="lb-exam" class="boards"></div>
+      </section>
       <!-- Moved here from Reports, beside All my classes, which is also about every class (review findings L6 and T4). -->
       <section class="teacher-section" data-collapse="compare">
       <h3>Compare classes</h3>
@@ -455,6 +462,12 @@
             <label>Add a task from the unit <select id="as-add-task"></select></label>
             <button type="button" id="as-add" class="secondary">Add</button>
           </div>
+          <!-- EM3: Exam Mode questions alongside bank tasks (each pack's rungs and full questions). Students open each one in
+               Exam Mode, even when the class has Exam Mode switched off. -->
+          <div class="teacher-controls" id="as-exam-row">
+            <label>Add an Exam Mode question <select id="as-exam-q"></select></label>
+            <button type="button" id="as-exam-add" class="secondary">Add</button>
+          </div>
           <label for="as-tasks" class="editor-label">Task ids, in order (one per line, or separated by commas)</label>
           <textarea id="as-tasks" class="text-input" rows="4" spellcheck="false" aria-describedby="as-tasks-help"></textarea>
           <p id="as-tasks-help" class="small">Any bank task: predict, Parsons, fill in the blanks or write (not placement tasks). You can also type or paste ids here; find them in the
@@ -489,6 +502,11 @@
           <p class="small">For each pack: the rung each student has reached, and their first-attempt and best scores on its full questions. Select a student's name to see their attempts.</p>
           <div id="ex-packs" aria-live="polite"></div>
         </section>
+        <section class="teacher-section" data-collapse="exam-board">
+          <h3>Exam leaderboard</h3>
+          <p class="small">What your students see in Exam Mode: first tries only, the marks given automatically, "Say it simply" at half marks, paste-flagged answers left out. A student appears once they have answered 5 questions.</p>
+          <div id="ex-board" class="boards"></div>
+        </section>
         <section class="teacher-section" data-collapse="exam-missed">
           <h3>Most-missed mark points</h3>
           <p class="small">For each full question: the share of students who missed each mark point on their first attempt, most missed first. What the group gets wrong, not individual feedback.</p>
@@ -521,6 +539,7 @@
         <button type="button" id="export-levels" class="secondary">Levels table (CSV)</button>
         <button type="button" id="export-log" class="secondary">Detail log (CSV)</button>
         <button type="button" id="export-workshop" class="secondary">Workshop tables (CSV)</button>
+        <button type="button" id="export-exam" class="secondary">Exam Mode (CSV)</button>
       </div>
       <!-- The short version, then each export's description in a closed fold-out (review findings S11 and N15). -->
       <p class="small">Each button shows what is in the file, with a sample row, before you download it.</p>
@@ -530,7 +549,8 @@
           <strong>Full attempt log</strong>: every attempt, level change, button use and placement result for the whole class (with the data dictionary, which explains
           every column in plain English; your browser may ask whether to allow two downloads). <strong>Levels table</strong>: each student's level, placement,
           level 10 and button flags in every unit. <strong>Detail log</strong>: one row per attempt and button use, including code and output.
-          <strong>Workshop tables</strong>: the misconception table and the per-task unmatched table from the Misconceptions page.</p>
+          <strong>Workshop tables</strong>: the misconception table and the per-task unmatched table from the Misconceptions page.
+          <strong>Exam Mode</strong>: each student's rung reached and first-attempt and best scores in each pack, the most-missed mark points, and Exam Mode homework results.</p>
       </details>
       <dialog id="export-dialog" class="export-dialog" aria-labelledby="export-dialog-h">
         <h3 id="export-dialog-h"></h3>
@@ -541,6 +561,13 @@
         <p class="teacher-controls"><button type="button" id="export-dialog-download" class="primary">Download</button>
           <button type="button" id="export-dialog-close" class="secondary">Cancel</button></p>
       </dialog>
+      </section>
+
+      <!-- EM3: Exam Mode's numbers for the class (the same as the Exam Mode page and the Exam Mode export). -->
+      <section class="teacher-section" data-collapse="exam-report">
+      <h3>Exam Mode</h3>
+      <p class="small">Each student's rung reached and their first-attempt and best scores on each pack's full questions, then the mark points the class missed most on their first attempts. Paste-flagged answers count towards no score.</p>
+      <div id="rp-exam"></div>
       </section>
 
       <!-- Its own section, closed at first as the old fold-out was (review finding L6). Compare classes is on Leaderboards. -->
@@ -559,6 +586,8 @@
     <section id="page-misconceptions" aria-labelledby="misconceptions-title" hidden>
       <h2 id="misconceptions-title" tabindex="-1">Misconceptions</h2>
       <p class="small">Where this class goes wrong, to help plan small-group workshops. A misconception is matched when a student's failed program gives exactly the same result as a short buggy program showing that mistake.</p>
+      <!-- EM3 (decision 16): one line, shown when the class has Exam Mode on. -->
+      <p id="mc-exam-link" class="small" hidden>Exam Mode mistakes are on the <a href="#exam">Exam Mode page</a>.</p>
       <div class="teacher-controls">
         <label>Unit <select id="mc-unit"></select></label>
       </div>

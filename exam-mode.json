@@ -1093,7 +1093,8 @@
         "kind": "code",
         "rule": "input_stored",
         "min": 1
-       }
+       },
+       "code": "goals = int(input(\"Enter the goals scored (-1 to stop): \"))"
       },
       {
        "n": 2,
@@ -1101,7 +1102,8 @@
        "check": {
         "kind": "code",
         "rule": "accumulates"
-       }
+       },
+       "code": "total = 0\ngoals = int(input(\"Enter the goals scored (-1 to stop): \"))\ntotal = total + goals"
       },
       {
        "n": 3,
@@ -1112,7 +1114,8 @@
          "t1"
         ],
         "rule": "finishes_on_stop"
-       }
+       },
+       "code": "total = 0\ngoals = int(input(\"Enter the goals scored (-1 to stop): \"))\nwhile goals != -1:\n    total = total + goals\n    goals = int(input(\"Enter the goals scored (-1 to stop): \"))"
       },
       {
        "n": 4,
@@ -1123,7 +1126,8 @@
          "t1"
         ],
         "rule": "prints_expected_once_after_loop"
-       }
+       },
+       "code": "total = 0\ngoals = int(input(\"Enter the goals scored (-1 to stop): \"))\nwhile goals != -1:\n    total = total + goals\n    goals = int(input(\"Enter the goals scored (-1 to stop): \"))\nprint(\"Total goals:\", total)"
       }
      ]
     }

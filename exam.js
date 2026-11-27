@@ -168,6 +168,9 @@
   // Recorded attempts (the model answer not yet opened) → one row per question and rung: the first attempt's score and
   // the best. Rung 4 is one record per step check; its score is the steps passed (first: on their first check). Rung 1
   // is one record per part (step 1 bullet to code, step 2 examiner); its score adds the parts up.
+  // Paste-flagged attempts (decisions 16 and 26, EM3) count towards no score: a flagged first attempt gives no first
+  // score (null; for rungs 1 and 4, that part or step adds nothing), and the best is the best unflagged one (null if
+  // every one was flagged). pasteFlagged: how many were flagged, so the page can say "Paste flagged".
   function scoreSummary(attempts) {
     const groups = new Map();
     for (const a of attempts || []) {
@@ -179,20 +182,24 @@
     const rows = [];
     for (const list of groups.values()) {
       const { questionId, rung } = list[0];
+      const pasteFlagged = list.filter((a) => a.pasteFlag).length;
       if (list.some((a) => a.step != null)) {
         const steps = new Map();
         for (const a of list) {
-          if (!steps.has(a.step)) steps.set(a.step, { first: a.total, best: a.total, max: a.max });
-          else steps.get(a.step).best = Math.max(steps.get(a.step).best, a.total);
+          if (!steps.has(a.step)) steps.set(a.step, { first: a.pasteFlag ? 0 : a.total, best: a.pasteFlag ? 0 : a.total, max: a.max, counted: !a.pasteFlag });
+          else if (!a.pasteFlag) { const s = steps.get(a.step); s.best = Math.max(s.best, a.total); s.counted = true; }
         }
         const max = list[0].stepsTotal || [...steps.values()].reduce((s, x) => s + (x.max || 1), 0);
         const sum = (k) => [...steps.values()].reduce((s, x) => s + x[k], 0);
-        rows.push({ questionId, rung, attempts: list.length, first: { total: sum("first"), max }, best: { total: sum("best"), max } });
+        const anyCounted = [...steps.values()].some((x) => x.counted);
+        rows.push({ questionId, rung, attempts: list.length, pasteFlagged, first: { total: sum("first"), max }, best: anyCounted ? { total: sum("best"), max } : null });
         continue;
       }
       const first = list.find((a) => a.first) || list[0];
-      const best = list.reduce((b, a) => (a.total > b.total ? a : b), list[0]);
-      rows.push({ questionId, rung, attempts: list.length, first: { total: first.total, max: first.max }, best: { total: best.total, max: best.max } });
+      const counted = list.filter((a) => !a.pasteFlag);
+      const best = counted.length ? counted.reduce((b, a) => (a.total > b.total ? a : b), counted[0]) : null;
+      rows.push({ questionId, rung, attempts: list.length, pasteFlagged, first: first.pasteFlag ? null : { total: first.total, max: first.max },
+        best: best ? { total: best.total, max: best.max } : null });
     }
     return rows.sort((a, b) => (a.questionId < b.questionId ? -1 : a.questionId > b.questionId ? 1 : a.rung - b.rung));
   }
@@ -214,15 +221,128 @@
     let reached = 0;
     for (let r = 1; r <= 5; r++) if (tried(r)) reached = r;
     const rows = scoreSummary(rec).filter((r) => r.rung === 5 && full.some((q) => q.id === r.questionId));
-    const add = (k) => rows.reduce((s, r) => ({ total: s.total + r[k].total, max: s.max + r[k].max }), { total: 0, max: 0 });
+    // A paste-flagged score (null) adds nothing (EM3).
+    const add = (k) => rows.filter((r) => r[k]).reduce((s, r) => ({ total: s.total + r[k].total, max: s.max + r[k].max }), { total: 0, max: 0 });
+    const scored = (k) => rows.some((r) => r[k]);
     let next = "#pack/" + pack.id;
     const firstRung = [1, 2, 3, 4].find((r) => !tried(r));
     const firstQ = full.find((q) => !rec.some((a) => a.rung === 5 && a.questionId === q.id));
     if (firstRung) next = "#pack/" + pack.id + "/" + RUNG_KEYS[firstRung - 1];
     else if (firstQ) next = "#q/" + firstQ.id;
     return { reached, started: rec.some((a) => pack.questions.some((q) => q.id === a.questionId)), fullTried: rows.length, fullCount: full.length,
-      first: rows.length ? add("first") : null, best: rows.length ? add("best") : null, next };
+      first: scored("first") ? add("first") : null, best: scored("best") ? add("best") : null, next,
+      pasteFlagged: rec.filter((a) => a.pasteFlag && pack.questions.some((q) => q.id === a.questionId)).length };
   }
+
+  // ---------- A class's Exam Mode numbers (EM2's teacher page, EM3's reports and export) ----------
+  // students: [{ nickname, recs }], each student's records as this page keeps them (on the server, X.fromServerRow of
+  // their exam_attempts rows). One rule for teacher-api's overview and the teacher view's Reports and export:
+  //   students: [{ nickname, packs: { packId: { reached, started, full_tried, full_count, first_pct, best_pct, paste_flagged } } }]
+  //     (reached by the landing card's rule; first and best on the pack's full questions, as %, paste flags left out);
+  //   average: { packId: { reached, first_pct, best_pct, students } } (reached over every student; the % over those with
+  //     a full-question score);
+  //   missed: [{ pack_id, question_id, students, points: [{ id, missed, pct }], always_true }] for each full question:
+  //     from each student's first attempt (none if that attempt was paste-flagged), most missed first;
+  //   help: [{ pack_id, question_id, rungs, attempts, self_pct, help_pct }] per question with attempts.
+  const pctOf = (n, d) => (d ? Math.round((100 * n) / d) : null);
+  function classOverview(packs, students) {
+    const byTime = (a, b) => Date.parse(a.at) - Date.parse(b.at);
+    const out = students.map((s) => {
+      const packsOut = {};
+      for (const p of packs) {
+        const g = packProgress(p, s.recs);
+        packsOut[p.id] = { reached: g.reached, started: g.started, full_tried: g.fullTried, full_count: g.fullCount,
+          first_pct: g.first ? pctOf(g.first.total, g.first.max) : null, best_pct: g.best ? pctOf(g.best.total, g.best.max) : null, paste_flagged: g.pasteFlagged };
+      }
+      return { nickname: s.nickname, packs: packsOut };
+    });
+    const mean = (list) => (list.length ? Math.round((10 * list.reduce((a, b) => a + b, 0)) / list.length) / 10 : null);
+    const average = {};
+    for (const p of packs) {
+      const cells = out.map((s) => s.packs[p.id]);
+      const firsts = cells.filter((c) => c.first_pct != null), bests = cells.filter((c) => c.best_pct != null);
+      average[p.id] = { reached: mean(cells.map((c) => c.reached)), first_pct: firsts.length ? Math.round(mean(firsts.map((c) => c.first_pct))) : null,
+        best_pct: bests.length ? Math.round(mean(bests.map((c) => c.best_pct))) : null, students: cells.length };
+    }
+    const missed = [];
+    for (const p of packs) {
+      for (const q of fullQuestionsOf(p)) {
+        const firsts = [];
+        for (const s of students) {
+          const mine = s.recs.filter((r) => r.recorded !== false && r.questionId === q.id && r.rung === 5).sort(byTime);
+          const f = mine.find((r) => r.first) || mine[0];
+          if (f && !f.pasteFlag) firsts.push(f);
+        }
+        const points = q.markPoints.map((m) => {
+          const n = firsts.filter((f) => (f.points || []).some((x) => x.id === m.id && x.awarded === 0)).length;
+          return { id: m.id, missed: n, pct: pctOf(n, firsts.length) };
+        }).sort((a, b) => (b.pct || 0) - (a.pct || 0) || (a.id < b.id ? -1 : 1));
+        missed.push({ pack_id: p.id, question_id: q.id, students: firsts.length, points, always_true: firsts.filter((f) => (f.notes || []).includes(ALWAYS_TRUE_NOTE)).length });
+      }
+    }
+    const help = [];
+    for (const p of packs) {
+      for (const q of p.questions) {
+        const mine = students.flatMap((s) => s.recs.filter((r) => r.recorded !== false && r.questionId === q.id));
+        if (!mine.length) continue;
+        const pts = mine.flatMap((r) => r.points || []);
+        help.push({ pack_id: p.id, question_id: q.id, rungs: [...new Set(mine.map((r) => r.rung))].sort(), attempts: mine.length,
+          self_pct: pctOf(pts.filter((x) => x.how !== "auto").length, pts.length), help_pct: pctOf(mine.filter((r) => r.help).length, mine.length) });
+      }
+    }
+    return { students: out, average, missed, help };
+  }
+
+  // ---------- The Exam Mode leaderboard (EM3; decisions 8, 9, 14, 16) ----------
+  // What counts, for each student: the FIRST attempt at each question and rung (each rung 1 part and rung 4 step on its
+  // own); retries never. Only its auto-marked points, in the marks scored and the marks possible (self-marked ones are
+  // left out of both). A paste-flagged first attempt counts for nothing. A first attempt with "Say it simply" used
+  // counts its marks scored at 50%, its marks possible in full. A question with no auto-marked point isn't counted.
+  // -> [{ t (ms), scored, possible }]
+  const DAY_MS = 86400000;
+  const BOARD_MIN_QUESTIONS = 5;
+  function countedFirsts(recs) {
+    const groups = new Map();
+    for (const r of recs || []) {
+      if (r.recorded === false) continue;
+      const k = r.questionId + "|" + r.rung + "|" + (r.step == null ? "" : r.step);
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(r);
+    }
+    const out = [];
+    for (const list of groups.values()) {
+      list.sort((a, b) => Date.parse(a.at) - Date.parse(b.at) || (a.attempt || 0) - (b.attempt || 0));
+      const f = list.find((a) => a.first) || list[0];
+      if (f.pasteFlag) continue;
+      const auto = (f.points || []).filter((p) => p.how === "auto");
+      if (!auto.length) continue;
+      const got = auto.filter((p) => p.awarded === 1).length;
+      out.push({ t: Date.parse(f.at), scored: f.help ? got / 2 : got, possible: auto.length });
+    }
+    return out;
+  }
+  // Two boards for a class. students: [{ nickname, recs, me }]. A student appears once they have at least 5 counted
+  // questions in the board's window. Average % correct: all time, 100 × scored ÷ possible, rounded. Most improved: the
+  // average % in the last 7 days minus the 7 days before (at least 5 questions in each), rounded. Ties share a place
+  // (1, 2, 2, 4). -> { average: [{ place, nickname, score, me }], improved: [...], min }
+  function examBoards(students, now) {
+    const at = now == null ? Date.now() : now;
+    const pc = (list) => (100 * list.reduce((s, x) => s + x.scored, 0)) / list.reduce((s, x) => s + x.possible, 0);
+    const rows = (students || []).map((s) => {
+      const c = countedFirsts(s.recs).filter((x) => x.t <= at);
+      const last = c.filter((x) => x.t > at - 7 * DAY_MS), prev = c.filter((x) => x.t > at - 14 * DAY_MS && x.t <= at - 7 * DAY_MS);
+      return { nickname: s.nickname, me: !!s.me, average: c.length >= BOARD_MIN_QUESTIONS ? Math.round(pc(c)) : null,
+        improved: last.length >= BOARD_MIN_QUESTIONS && prev.length >= BOARD_MIN_QUESTIONS ? Math.round(pc(last) - pc(prev)) : null };
+    });
+    const rank = (key) => {
+      const list = rows.filter((r) => r[key] != null).sort((a, b) => b[key] - a[key] || a.nickname.localeCompare(b.nickname));
+      let place = 0;
+      return list.map((r, i) => { if (i === 0 || r[key] !== list[i - 1][key]) place = i + 1; return { place, nickname: r.nickname, score: r[key], me: r.me }; });
+    };
+    return { average: rank("average"), improved: rank("improved"), min: BOARD_MIN_QUESTIONS };
+  }
+  // "+12", "−3" or "0", as the Most improved board shows it.
+  const improvedText = (n) => (n > 0 ? "+" + n : n < 0 ? "−" + Math.abs(n) : "0");
 
   // ---------- The tutorial, shown on the first visit (EM1b, decision 21): blocks, bullets → mark points, riders ----------
   const TUTORIAL = [
@@ -250,6 +370,44 @@
         "<p>\"Say it simply\" (rungs 1 to 3) gives the question in plain English. Each use is recorded. After a full question you can retry, see the model answer (after that, your tries aren't recorded) or move on.</p>" },
   ];
 
+  // ---------- Rungs 1-4: get it wrong and move on (EM3, decision 27) ----------
+  // Each step (rung 1's two parts, rung 2, rung 3, each rung 4 step) has a state. After the first check, right or wrong,
+  // the student gets Try again, Show answer and Next; Next stays off until that first check. The first check is the one
+  // that counts (decision 13): later checks are recorded as retries until the answer is shown, then not at all (decision
+  // 9), and "Try this step again" from the rung's summary is practice, never recorded.
+  //   shownBefore: the answer was shown on an earlier visit (its exam_model_seen is already saved).
+  const freshStep = (shownBefore) => ({ tries: 0, firstOk: null, ok: false, shown: false, shownBefore: !!shownBefore, practice: false });
+  const afterCheck = (st, ok) => Object.assign({}, st, { tries: st.tries + 1, firstOk: st.firstOk === null ? !!ok : st.firstOk, ok: !!ok });
+  const afterShow = (st) => Object.assign({}, st, { shown: true, ok: true });
+  const stepRecorded = (st) => !st.shown && !st.shownBefore && !st.practice;
+  const nextEnabled = (st) => st.tries > 0;
+  const nextFillsIn = (st) => !st.ok;            // Next on a wrong step puts the correct version in first
+  const triesNote = (st) => (st.ok && !st.shown && st.tries > 1 ? "Correct on try " + st.tries : ""); // for the student only
+  const needsAnotherLook = (st) => st.shown || st.firstOk === false; // listed in the rung's summary
+  // Show answer is recorded with exam_model_seen. Its task_id names the question, the rung and the step (not just the
+  // question, which on the server blocks every later try at the whole question: the full questions' model answer).
+  const shownId = (qid, rung, step) => qid + "-r" + rung + (step != null ? "-s" + step : "");
+  // Rung 3's answers, read from the rung question's model program (each line of the gapped code against the model's).
+  function gapAnswers(fill, model) {
+    const lines = String(model).split("\n").map((l) => l.replace(/\s+$/, ""));
+    const out = [];
+    let from = 0;
+    for (const tl of fill.code.split("\n")) {
+      if (!tl.includes("____")) continue;
+      const re = new RegExp("^" + tl.split("____").map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("(.+?)") + "$");
+      let m = null;
+      for (let i = from; i < lines.length && !m; i++) { m = re.exec(lines[i]); if (m) from = i + 1; }
+      if (!m) return null;
+      out.push(...m.slice(1));
+    }
+    return out.length === fill.gaps.length ? out : null;
+  }
+  // Rung 4: the lines a step adds to the working code before it (what to write, for the feedback).
+  function addedLines(before, after) {
+    const left = String(before || "").split("\n");
+    return String(after).split("\n").filter((l) => { const i = left.indexOf(l); if (i >= 0) { left.splice(i, 1); return false; } return l.trim() !== ""; });
+  }
+
   // ---------- The class switch (EM2, decisions 1 and 15) ----------
   // A class's exam_mode setting: true or false when a teacher has set it, null to follow the stage (on for GCSE, off for
   // KS3 and A-level). The same rule as public.exam_mode_effective in migration 0021; student-api and teacher-api use
@@ -270,6 +428,7 @@
       attempt_number: rec.attempt || 1, first: !!rec.first, points, total: sum(points), max: rec.max, auto_total: sum(auto), auto_max: auto.length,
       notes: (rec.notes || []).filter((n) => /^[a-z0-9-]{1,40}$/.test(n)).slice(0, 10), help_used: !!rec.help, paste_flag: !!rec.pasteFlag };
     if (typeof code === "string" && code && row.total < row.max) row.student_code = code;
+    if (rec.assignmentId) row.assignment_id = rec.assignmentId; // an attempt on a class assignment (EM3)
     return row;
   }
   // A row from student-api get_exam_progress -> a record as this page keeps it (rung 4: stepsTotal, the steps it has).
@@ -280,8 +439,21 @@
       help: !!r.help_used, notes: r.notes || [], pasteFlag: !!r.paste_flag };
     if (r.step != null) rec.step = r.step;
     if (r.rung === 4 && stepsTotal) rec.stepsTotal = stepsTotal;
+    if (r.assignment_id) rec.assignmentId = r.assignment_id;
     return rec;
   }
+  // Every Exam Mode question an assignment can hold, in the picker's order: for each pack, rungs 1-4 (each its own
+  // question) then the full questions. -> [{ id, packId, rung, title, label }] (EM3)
+  function assignableQuestions(packs) {
+    const out = [];
+    for (const p of packs || []) {
+      RUNG_KEYS.forEach((k, i) => { const q = p.questions.find((x) => x.id === (p.rungQuestions || {})[k]); if (q) out.push({ id: q.id, packId: p.id, rung: i + 1, title: q.title, label: "Rung " + (i + 1) + ": " + RUNG_NAMES[i + 1] + " – " + q.title }); });
+      for (const q of fullQuestionsOf(p)) out.push({ id: q.id, packId: p.id, rung: 5, title: q.title, label: "Full question – " + q.title });
+    }
+    return out;
+  }
+  // The rung a question is used on (1-4: the pack's rung question; 5: a full question), or 0 if it isn't one.
+  const rungOfQuestion = (packs, qid) => { const a = assignableQuestions(packs).find((x) => x.id === qid); return a ? a.rung : 0; };
   // This browser's records and the server's, one of each id (this browser's copy is kept: it may have a self-check
   // the server hasn't had yet), oldest first.
   function mergeRecords(local, server) {
@@ -291,7 +463,9 @@
 
   return { RULES, NOTE_TEXT, numbersIn, sortedOptions, markBullets, sortedReasons, markExaminer, gapRight, checkGaps, fillCode, runPasses, toErl, toErlLine, splitArgs,
     scoreSummary, packProgress, fullQuestionsOf, TUTORIAL, STORAGE_PREFIX, RUNG_NAMES, RUNG_KEYS,
-    examModeOn, ALWAYS_TRUE_NOTE, toServerRow, fromServerRow, mergeRecords };
+    examModeOn, ALWAYS_TRUE_NOTE, toServerRow, fromServerRow, mergeRecords,
+    freshStep, afterCheck, afterShow, stepRecorded, nextEnabled, nextFillsIn, triesNote, needsAnotherLook, shownId, gapAnswers, addedLines,
+    classOverview, countedFirsts, examBoards, improvedText, BOARD_MIN_QUESTIONS, assignableQuestions, rungOfQuestion };
 });
 
 // ===================== Browser page (exam.html only) =====================
@@ -310,12 +484,13 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
   // Backend mode (EM2): Exam Mode work goes to the class's server too, and the page only opens when the class has
   // Exam Mode switched on (the teacher's switch, or the stage's default). Local mode: always open, this browser only.
   const BE = self.Backend && self.Backend.enabled ? self.Backend : null;
-  if (BE && Store.examMode(student.id) === false) {
-    document.querySelector(".exam-nav").hidden = true;
-    document.title = "Exam Mode – Pythons and Ladders";
-    app.innerHTML = "<h2>Exam Mode</h2><p>Exam Mode isn't switched on for your class. Ask your teacher.</p><p><a href=\"app.html\">← Back to your units</a></p>";
-    return;
-  }
+  // Switched off: only an assignment's Exam Mode question opens (EM3: the teacher chose it); everything else says so.
+  const examOff = !!(BE && Store.examMode(student.id) === false);
+  if ($("exam-board-link")) $("exam-board-link").hidden = !BE; // the Exam leaderboard needs the class's server
+  // An assignment being done (#asg/<assignment id>/...): its tries are saved with its id, and Next goes back to it.
+  let asgCtx = null;
+  const go = (hash) => { location.hash = asgCtx ? "#asg/" + asgCtx.id : hash; };
+  const nextHref = (hash) => (asgCtx ? "#asg/" + asgCtx.id : hash);
 
   // ---------- Saved in this browser (store.js patterns: readJson/writeJson already catch storage errors) ----------
   // In backend mode this is a copy of the student's records, merged with the server's when the page opens.
@@ -327,7 +502,8 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
   // code: the program the attempt was marked on (sent to the server only when marks were lost, never kept here).
   function record(entry, code) {
     const prior = saved.attempts.filter((a) => a.questionId === entry.questionId && a.rung === entry.rung && (entry.step == null || a.step === entry.step));
-    const r = Object.assign({ id: newId(), at: new Date().toISOString(), attempt: prior.length + 1, first: prior.length === 0, recorded: true, packId: pack.id }, entry);
+    const r = Object.assign({ id: newId(), at: new Date().toISOString(), attempt: prior.length + 1, first: prior.length === 0, recorded: true, packId: pack.id },
+      asgCtx ? { assignmentId: asgCtx.id } : {}, entry);
     saved.attempts.push(r);
     persist();
     // A full question with "check yourself" points waits until they are checked (or the student leaves the question).
@@ -594,7 +770,8 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
     document.title = (title ? title + " – " : "") + "Exam Mode – Pythons and Ladders";
     // The navigation shows where the student is: Blocks, My exam scores, or Packs (the landing page, a pack's rungs and
     // its full questions). The tutorial is none of them.
-    const section = /^#blocks/.test(location.hash) ? "blocks" : /^#scores/.test(location.hash) ? "scores" : /^#tutorial/.test(location.hash) ? "" : "pack";
+    const section = /^#blocks/.test(location.hash) ? "blocks" : /^#scores/.test(location.hash) ? "scores" : /^#leaderboard/.test(location.hash) ? "leaderboard"
+      : /^#(tutorial|asg\/)/.test(location.hash) ? "" : "pack";
     document.querySelectorAll(".exam-nav a").forEach((a) => {
       if (a.dataset.section === section) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
     });
@@ -609,7 +786,17 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
     showPython = false; // each page starts in ERL, as the exam does
     const h = location.hash || "#home";
     let m;
+    asgCtx = null;
+    document.querySelector(".exam-nav").hidden = examOff;
+    if ((m = /^#asg\/([0-9a-f-]{36})(?:\/([\w-]+))?$/i.exec(h))) { showAssignment(m[1], m[2]); focusHeading(); return; }
+    if (examOff) { // EM2: the class has Exam Mode switched off
+      document.title = "Exam Mode – Pythons and Ladders";
+      app.innerHTML = "<h2>Exam Mode</h2><p>Exam Mode isn't switched on for your class. Ask your teacher.</p><p><a href=\"app.html\">← Back to your units</a></p>";
+      focusHeading();
+      return;
+    }
     if (h === "#tutorial" || (h === "#home" && !saved.tutorialSeen)) showTutorial(0); // first visit: the tutorial first
+    else if (h === "#leaderboard") showLeaderboard();
     else if (h === "#blocks") showBlocks();
     else if (h === "#scores") showScores();
     else if ((m = /^#pack\/([\w-]+)\/(decode|skeleton|fill|steps)$/.exec(h))) ({ decode: showDecode, skeleton: showSkeleton, fill: showFill, steps: showSteps })[m[2]]();
@@ -668,7 +855,8 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
 
   // A pack: the five rungs, each set in its own context (decision 21).
   function showPack() {
-    const best = (qid, rung) => { const r = X.scoreSummary(saved.attempts).find((x) => x.questionId === qid && x.rung === rung); return r ? r.best.total + "/" + r.best.max : "not tried"; };
+    const best = (qid, rung) => { const r = X.scoreSummary(saved.attempts).find((x) => x.questionId === qid && x.rung === rung);
+      return !r ? "not tried" : r.best ? r.best.total + "/" + r.best.max : "Paste flagged"; };
     const rungs = [
       ["decode", 1, "Decode", "Pick the line of code each bullet needs, then mark two answers like an examiner."],
       ["skeleton", 2, "Skeleton", "Put the lines of the answer in order."],
@@ -685,11 +873,48 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
       "</ul></li></ol>", "Pack " + pack.id);
   }
 
+  // ---------- Rungs 1-4: get it wrong and move on (EM3, decision 27) ----------
+  // Every step has one row of buttons: Check (Check again after the first), and after the first check Try again, Show
+  // answer and Next. Next is off until the first check. Next on a wrong step puts the correct version in first, so the
+  // next step starts from working code; the student's own version is what was recorded at the check. Show answer is
+  // recorded with exam_model_seen (X.shownId: the question, rung and step), after which that step's tries aren't recorded.
+  function actionsHtml(st, opts) {
+    const p = opts.prefix;
+    return '<p class="em-step-actions">' +
+      (opts.hideCheck ? "" : '<button type="button" class="primary" id="' + p + 'check">' +
+        esc(st.tries ? opts.checkAgain || "Check again" : opts.check || "Check my answer") + "</button> ") +
+      (st.tries ? '<button type="button" class="secondary" id="' + p + 'again">Try again</button> ' : "") +
+      (st.tries && !st.shown ? '<button type="button" class="secondary" id="' + p + 'show">Show answer</button> ' : "") +
+      '<button type="button" class="' + (st.tries ? "primary" : "secondary") + '" id="' + p + 'next"' + (X.nextEnabled(st) ? "" : ' disabled aria-describedby="' + p + 'next-why"') + ">" + esc(opts.next) + "</button>" +
+      (X.nextEnabled(st) ? "" : ' <span class="small" id="' + p + 'next-why">Check your answer once first.</span>') + "</p>";
+  }
+  const stepNotes = (st, filled) => (st.shown ? '<p class="em-note">Answer shown. Your first try is the one that counts, and tries at this step from now on aren\'t recorded.</p>'
+    : st.shownBefore ? '<p class="em-note">You\'ve seen this answer before, so tries at this step are practice and aren\'t recorded.</p>'
+      : st.practice ? '<p class="em-note">Practice: this try isn\'t recorded, and your score doesn\'t change.</p>' : "") +
+    (filled ? '<p class="em-note">The correct answer is filled in, so you can carry on from it. Your own answer is the one that was recorded.</p>' : "") +
+    (X.triesNote(st) ? '<p class="success">✓ ' + esc(X.triesNote(st)) + "</p>" : "");
+  function markShown(qid, rung, step) {
+    const id = X.shownId(qid, rung, step);
+    saved.modelSeen[id] = true;
+    persist();
+    sendModelSeen(id);
+  }
+  const stepState = (qid, rung, step) => X.freshStep(!!saved.modelSeen[X.shownId(qid, rung, step)]);
+  // The end of a rung: the steps shown or wrong first time, each with "Try this step again" (practice only).
+  function summaryHtml(title, items, nextHtml) {
+    const look = items.filter((i) => X.needsAnotherLook(i.st));
+    return '<section class="em-summary" aria-labelledby="sum-h"><h3 id="sum-h" tabindex="-1">' + esc(title) + "</h3>" +
+      (look.length ? "<p>Have another look at:</p><ul>" + look.map((i) => "<li><strong>" + esc(i.label) + '</strong> <span class="small">(' +
+        (i.st.shown ? "answer shown" : "wrong first time") + ')</span> <button type="button" class="secondary" data-again="' + esc(i.key) + '">Try this step again</button></li>').join("") +
+        '</ul><p class="small">Trying a step again is practice. It doesn\'t change your recorded score.</p>' : "<p>Every step was right first time.</p>") +
+      "<p>" + nextHtml + "</p></section>";
+  }
+
   // Rung 1: Decode (rebuilt in EM1b, decision 21). Part 1, bullet to code: for each bullet, pick the line that earns its
   // mark (the wrong lines are real mistakes from the examiners' reports and mark schemes); the block is named after
   // answering. Part 2, mark it like an examiner: two short answers side by side; pick the one that earns the mark point,
   // and why. The answers are the rung question's own test answers, so the marker's gate checks them too. Each part is
-  // one record (step 1 and step 2), so My exam scores adds them up.
+  // one step (one record each: step 1 and step 2), so My exam scores adds them up. EM3: each part has the three buttons.
   let decodeState = null;
   function showDecode() {
     const q = rungQuestion("decode");
@@ -701,7 +926,12 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
     const bulletFor = (pointId) => q.bullets[d.bulletToCode.findIndex((item) => item.point === pointId)];
     const blockName = (pointId) => blockWithBullet(pointOf(pointId).block, bulletFor(pointId));
     const up = (w) => String(w).toUpperCase();
-    if (!decodeState || decodeState.q !== q.id) decodeState = { q: q.id, choices: [], part1: null, part2Open: false, picks: d.examiner.map(() => ({})), part2: null };
+    const rightChoices = () => d.bulletToCode.map((it) => it.options.find((o) => o.right).code);
+    const rightPicks = () => d.examiner.map((p) => ({ which: p.right, reason: p.reasons.find((r) => r.right).text }));
+    if (!decodeState || decodeState.q !== q.id) {
+      decodeState = { q: q.id, choices: [], part1: null, st1: stepState(q.id, 1, 1), filled1: false, part2Open: false, picks: d.examiner.map(() => ({})), part2: null,
+        st2: stepState(q.id, 1, 2), filled2: false, finished: false };
+    }
     const s = decodeState;
     const seconds = () => Math.round((Date.now() - viewStarted) / 1000);
     const codeHtml = (c) => "<code>" + highlight(viewLine(c)) + "</code>";
@@ -711,8 +941,7 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
       return '<h3 tabindex="-1" id="p1-h">Part 1: ' + r.total + "/" + r.max + '</h3><ul class="em-points">' + r.points.map((p, i) => "<li>" + markIcon(p.correct) +
         '<span class="visually-hidden">' + markWord(p.correct) + ": </span><strong>Bullet " + (i + 1) + "</strong>" + (p.correct ? ": " + codeHtml(p.answer) : "") +
         ' <span class="small">Block: ' + esc(blockName(p.point)) + "</span>" +
-        (p.correct ? "" : '<p class="em-why">' + codeHtml(p.given) + ": " + esc(p.why) + "</p><p class=\"em-why\">The line that earns the mark: " + codeHtml(p.answer) + "</p>") + "</li>").join("") + "</ul>" +
-        '<p><button type="button" class="secondary" id="again1">Try part 1 again</button>' + (s.part2Open ? "" : ' <button type="button" class="primary" id="open2">Next: mark it like an examiner</button>') + "</p>";
+        (p.correct ? "" : '<p class="em-why">' + codeHtml(p.given) + ": " + esc(p.why) + "</p><p class=\"em-why\">Write this line instead: " + codeHtml(p.answer) + "</p>") + "</li>").join("") + "</ul>";
     };
     const part2Result = () => {
       const r = s.part2;
@@ -721,16 +950,16 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
         return "<li><strong>" + esc(pointOf(pair.point).text) + '</strong> <span class="small">Block: ' + esc(blockName(pair.point)) + "</span>" +
           '<p class="em-why">' + markIcon(w.correct) + '<span class="visually-hidden">' + markWord(w.correct) + ": </span>" + (w.correct ? "Answer " + up(w.answer) + " earns it." : "Answer " + up(w.answer) + " earns it, not answer " + up(w.given) + ".") + "</p>" +
           '<p class="em-why">' + markIcon(y.correct) + '<span class="visually-hidden">' + markWord(y.correct) + ": </span>" + (y.correct ? "" : "The reason: ") + esc(y.answer) + "</p></li>";
-      }).join("") + '</ul><p><button type="button" class="secondary" id="again2">Try part 2 again</button> <a href="#pack/' + esc(pack.id) + '/skeleton">Next: Skeleton →</a></p>';
+      }).join("") + "</ul>";
     };
 
     const draw = () => {
       const part1 = '<form id="bullets-form" class="em-part" novalidate><h3>Part 1: Bullet to code</h3><p class="small">For each bullet, pick the line of code that earns its mark.</p>' +
         d.bulletToCode.map((item, i) => '<fieldset class="em-q"><legend>Bullet ' + (i + 1) + ": " + esc(q.bullets[i]) + "</legend>" +
           X.sortedOptions(item).map((o) => '<label class="em-check em-code-option"><input type="radio" name="b' + i + '" value="' + esc(o.code) + '"' +
-            (s.choices[i] === o.code ? " checked" : "") + (s.part1 ? " disabled" : "") + "> " + codeHtml(o.code) + "</label>").join("") + "</fieldset>").join("") +
-        (s.part1 ? "" : '<p><button type="submit" class="primary">Check part 1</button></p>') + "</form>" +
-        '<div id="part1-result" aria-live="polite">' + (s.part1 ? part1Result() : "") + "</div>";
+            (s.choices[i] === o.code ? " checked" : "") + (s.part1 ? " disabled" : "") + "> " + codeHtml(o.code) + "</label>").join("") + "</fieldset>").join("") + "</form>" +
+        '<div id="part1-result" aria-live="polite">' + (s.part1 ? part1Result() : "") + stepNotes(s.st1, s.filled1) + "</div>" +
+        actionsHtml(s.st1, { prefix: "p1-", check: "Check part 1", hideCheck: !!s.part1, next: s.st1.practice ? "Back to the summary" : "Next: mark it like an examiner" });
       const part2 = !s.part2Open ? "" : '<form id="examiner-form" class="em-part" novalidate><h3 id="p2-title" tabindex="-1">Part 2: Mark it like an examiner</h3>' +
         '<p class="small">Two students answered the question. For each mark point, pick the answer that earns it, and why.</p>' +
         d.examiner.map((pair, i) => '<fieldset class="em-q"><legend>Mark point: ' + esc(pointOf(pair.point).text) + "</legend>" +
@@ -738,10 +967,12 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
           '<fieldset class="em-q"><legend>Which answer earns this mark?</legend>' + ["a", "b"].map((w) => '<label class="em-check"><input type="radio" name="w' + i + '" value="' + w + '"' +
             (s.picks[i].which === w ? " checked" : "") + (s.part2 ? " disabled" : "") + "> Answer " + up(w) + "</label>").join("") + "</fieldset>" +
           '<fieldset class="em-q"><legend>Why?</legend>' + X.sortedReasons(pair).map((r) => '<label class="em-check"><input type="radio" name="r' + i + '" value="' + esc(r.text) + '"' +
-            (s.picks[i].reason === r.text ? " checked" : "") + (s.part2 ? " disabled" : "") + "> " + esc(r.text) + "</label>").join("") + "</fieldset></fieldset>").join("") +
-        (s.part2 ? "" : '<p><button type="submit" class="primary">Check part 2</button></p>') + "</form>" +
-        '<div id="part2-result" aria-live="polite">' + (s.part2 ? part2Result() : "") + "</div>";
-      setView("<h2>Rung 1: Decode – " + esc(q.title) + "</h2>" + paperHtml(q) + sayItSimplyHtml(q) + langToggleHtml() + part1 + part2, "Decode");
+            (s.picks[i].reason === r.text ? " checked" : "") + (s.part2 ? " disabled" : "") + "> " + esc(r.text) + "</label>").join("") + "</fieldset></fieldset>").join("") + "</form>" +
+        '<div id="part2-result" aria-live="polite">' + (s.part2 ? part2Result() : "") + stepNotes(s.st2, s.filled2) + "</div>" +
+        actionsHtml(s.st2, { prefix: "p2-", check: "Check part 2", hideCheck: !!s.part2, next: s.st2.practice ? "Back to the summary" : "Next: the end of rung 1" });
+      const summary = !s.finished ? "" : summaryHtml("Rung 1 done", [{ key: "1", label: "Part 1: Bullet to code", st: s.st1 }, { key: "2", label: "Part 2: Mark it like an examiner", st: s.st2 }],
+        asgCtx ? '<a href="' + esc(nextHref("")) + '">Back to the assignment →</a>' : '<a href="#pack/' + esc(pack.id) + '/skeleton">Next: Skeleton →</a>');
+      setView("<h2>Rung 1: Decode – " + esc(q.title) + "</h2>" + paperHtml(q) + sayItSimplyHtml(q) + langToggleHtml() + part1 + part2 + summary, "Decode");
       wireSayItSimply(q, 1);
       wireLangToggle(draw);
       // Choices are kept as they are made, so "Show in Python" doesn't lose them.
@@ -749,51 +980,102 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
       app.querySelectorAll('#examiner-form input[type="radio"]').forEach((el) => el.addEventListener("change", () => {
         s.picks[+el.name.slice(1)][el.name[0] === "w" ? "which" : "reason"] = el.value;
       }));
-      $("bullets-form").addEventListener("submit", (e) => {
-        e.preventDefault();
+      const focus = (id) => { const el = $(id); if (el) el.focus(); };
+      const on = (id, f) => { const el = $(id); if (el) el.addEventListener("click", f); };
+      // Enter in a part runs its check (never a page reload).
+      [["bullets-form", "p1-check"], ["examiner-form", "p2-check"]].forEach(([f, b]) => { if ($(f)) $(f).addEventListener("submit", (e) => { e.preventDefault(); if ($(b)) $(b).click(); }); });
+      // Part 1
+      on("p1-check", () => {
         if (d.bulletToCode.some((_, i) => !s.choices[i])) { $("part1-result").innerHTML = '<p class="problem" role="alert">Pick a line for every bullet first.</p>'; return; }
         s.part1 = X.markBullets(d, s.choices);
-        record({ questionId: q.id, rung: 1, step: 1, total: s.part1.total, max: s.part1.max, points: s.part1.points.map((p) => ({ id: p.id, awarded: p.correct ? 1 : 0, how: "auto" })),
+        if (X.stepRecorded(s.st1)) record({ questionId: q.id, rung: 1, step: 1, total: s.part1.total, max: s.part1.max, points: s.part1.points.map((p) => ({ id: p.id, awarded: p.correct ? 1 : 0, how: "auto" })),
           help: helpUsed, notes: [], pasteFlag: false, seconds: seconds() });
+        s.st1 = X.afterCheck(s.st1, s.part1.total === s.part1.max);
+        s.filled1 = false;
         draw();
-        $("p1-h").focus();
+        focus("p1-h");
       });
-      if ($("again1")) $("again1").addEventListener("click", () => { s.part1 = null; s.choices = []; draw(); const first = app.querySelector('#bullets-form input'); if (first) first.focus(); });
-      if ($("open2")) $("open2").addEventListener("click", () => { s.part2Open = true; draw(); $("p2-title").focus(); });
-      if ($("examiner-form")) $("examiner-form").addEventListener("submit", (e) => {
-        e.preventDefault();
+      on("p1-again", () => { s.part1 = null; s.choices = []; s.filled1 = false; draw(); const first = app.querySelector("#bullets-form input"); if (first) first.focus(); });
+      on("p1-show", () => { s.choices = rightChoices(); s.part1 = X.markBullets(d, s.choices); s.st1 = X.afterShow(s.st1); s.filled1 = false; markShown(q.id, 1, 1); draw(); focus("p1-h"); });
+      on("p1-next", () => {
+        if (X.nextFillsIn(s.st1)) { s.choices = rightChoices(); s.part1 = X.markBullets(d, s.choices); s.filled1 = true; }
+        if (s.st1.practice) { s.st1 = Object.assign({}, s.st1, { practice: false }); s.finished = true; draw(); focus("sum-h"); return; }
+        s.part2Open = true;
+        draw();
+        focus("p2-title");
+      });
+      // Part 2
+      on("p2-check", () => {
         if (s.picks.some((p) => !p.which || !p.reason)) { $("part2-result").innerHTML = '<p class="problem" role="alert">Pick an answer and a reason for every mark point first.</p>'; return; }
         s.part2 = X.markExaminer(d, s.picks);
-        record({ questionId: q.id, rung: 1, step: 2, total: s.part2.total, max: s.part2.max, points: s.part2.points.map((p) => ({ id: p.id, awarded: p.correct ? 1 : 0, how: "auto" })),
+        if (X.stepRecorded(s.st2)) record({ questionId: q.id, rung: 1, step: 2, total: s.part2.total, max: s.part2.max, points: s.part2.points.map((p) => ({ id: p.id, awarded: p.correct ? 1 : 0, how: "auto" })),
           help: helpUsed, notes: [], pasteFlag: false, seconds: seconds() });
+        s.st2 = X.afterCheck(s.st2, s.part2.total === s.part2.max);
+        s.filled2 = false;
         draw();
-        $("p2-h").focus();
+        focus("p2-h");
       });
-      if ($("again2")) $("again2").addEventListener("click", () => { s.part2 = null; s.picks = d.examiner.map(() => ({})); draw(); $("p2-title").focus(); });
+      on("p2-again", () => { s.part2 = null; s.picks = d.examiner.map(() => ({})); s.filled2 = false; draw(); focus("p2-title"); });
+      on("p2-show", () => { s.picks = rightPicks(); s.part2 = X.markExaminer(d, s.picks); s.st2 = X.afterShow(s.st2); s.filled2 = false; markShown(q.id, 1, 2); draw(); focus("p2-h"); });
+      on("p2-next", () => {
+        if (X.nextFillsIn(s.st2)) { s.picks = rightPicks(); s.part2 = X.markExaminer(d, s.picks); s.filled2 = true; }
+        s.st2 = Object.assign({}, s.st2, { practice: false });
+        s.finished = true;
+        draw();
+        focus("sum-h");
+      });
+      // "Try this step again" from the summary: practice, never recorded.
+      app.querySelectorAll("button[data-again]").forEach((b) => b.addEventListener("click", () => {
+        s.finished = false;
+        if (b.dataset.again === "1") { s.st1 = Object.assign(X.freshStep(), { practice: true }); s.part1 = null; s.choices = []; s.filled1 = false; draw(); const first = app.querySelector("#bullets-form input"); if (first) first.focus(); }
+        else { s.st2 = Object.assign(X.freshStep(), { practice: true }); s.part2 = null; s.picks = d.examiner.map(() => ({})); s.filled2 = false; draw(); focus("p2-title"); }
+      }));
     };
     draw();
   }
 
   // Rung 2: Skeleton (Parsons, the practice page's behaviour: click or Enter moves a line, ◀ ▶ indent, ▲ ▼ move, ✕ removes).
+  // EM3: the three buttons; Show answer and Next (on a wrong skeleton) put the lines in the right order.
   let parsons = null;
   function showSkeleton() {
     const q = rungQuestion("skeleton");
     const sk = pack.rungs.skeleton;
-    if (!parsons || parsons.q !== q.id) {
+    const freshLines = () => {
       const items = sk.lines.map((l, i) => ({ id: "s" + i, text: l.trim() })).concat(sk.distractors.map((d, i) => ({ id: "d" + i, text: d.line.trim() })));
       for (let i = items.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [items[i], items[j]] = [items[j], items[i]]; }
-      parsons = { q: q.id, available: items, program: [] };
-    }
+      return items;
+    };
+    if (!parsons || parsons.q !== q.id) parsons = { q: q.id, available: freshLines(), program: [], st: stepState(q.id, 2, null), result: "", filled: false };
+    // The right skeleton: every needed line, in order, with its indent; the lines that aren't needed left to use.
+    const putRight = () => {
+      parsons.program = sk.lines.map((l, i) => ({ id: "s" + i, text: l.trim(), indent: Math.round((l.length - l.trimStart().length) / 4) }));
+      parsons.available = sk.distractors.map((d, i) => ({ id: "d" + i, text: d.line.trim() }));
+    };
     const draw = () => {
+      const st = parsons.st;
       setView("<h2>Rung 2: Skeleton – " + esc(q.title) + "</h2>" + paperHtml(q) + sayItSimplyHtml(q) + langToggleHtml() +
         '<p id="parsons-help" class="small">Click a line (or press Enter) to move it into your program. Use the arrow buttons, or Alt+↑/↓ to reorder and ←/→ to indent. Press Enter or Delete on a line in your program to remove it.</p>' +
         '<div class="parsons"><div class="parsons-col"><h3 id="avail-h">Lines to use</h3><ul id="p-avail" class="p-list" aria-labelledby="avail-h"></ul></div>' +
         '<div class="parsons-col"><h3 id="prog-h">Your program</h3><ul id="p-prog" class="p-list program" aria-labelledby="prog-h"></ul></div></div>' +
-        '<p><button type="button" class="primary" id="check-btn">Check my answer</button></p><div id="em-result" aria-live="polite"></div>', "Skeleton");
+        '<div id="em-result" aria-live="polite">' + parsons.result + stepNotes(st, parsons.filled) + "</div>" +
+        actionsHtml(st, { prefix: "sk-", next: "Next: Fill the gaps" }), "Skeleton");
       wireSayItSimply(q, 2);
       wireLangToggle(draw);
       drawParsons();
-      $("check-btn").addEventListener("click", () => checkSkeleton(q, sk));
+      $("sk-check").addEventListener("click", () => checkSkeleton(q, sk, draw));
+      if ($("sk-again")) $("sk-again").addEventListener("click", () => { parsons.available = freshLines(); parsons.program = []; parsons.result = ""; parsons.filled = false; draw(); $("p-avail").querySelector(".p-line").focus(); });
+      if ($("sk-show")) $("sk-show").addEventListener("click", () => {
+        putRight();
+        parsons.st = X.afterShow(parsons.st);
+        parsons.result = '<p class="success" tabindex="-1">This is the skeleton of the answer.</p>';
+        markShown(q.id, 2, null);
+        draw();
+        $("em-result").firstChild.focus();
+      });
+      $("sk-next").addEventListener("click", () => {
+        if (X.nextFillsIn(parsons.st)) { putRight(); parsons.filled = true; parsons.result = ""; }
+        go("#pack/" + pack.id + "/fill");
+      });
     };
     draw();
   }
@@ -852,18 +1134,17 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
     if (handled) e.preventDefault();
   });
   // Checked as on the practice page: no line that isn't needed, no needed line left out, and the program's output on the
-  // tests (t1, t2) is the same as the correct skeleton's.
-  async function checkSkeleton(q, sk) {
+  // tests (t1, t2) is the same as the correct skeleton's. An empty program isn't a check (nothing to mark).
+  async function checkSkeleton(q, sk, draw) {
     const res = $("em-result");
     const used = parsons.program.find((l) => l.id.startsWith("d"));
     const missing = parsons.available.some((l) => l.id.startsWith("s"));
     let ok = false, msg = "";
-    if (!parsons.program.length) msg = "Move some lines into 'Your program' first.";
-    else if (used) {
+    if (!parsons.program.length) { res.innerHTML = '<p class="problem" role="alert">Move some lines into \'Your program\' first.</p>'; return; }
+    if (used) {
       const why = sk.distractors[+used.id.slice(1)].why;
-      msg = "Your program uses a line that isn't needed: " + viewLine(used.text) + " – move it back out. " + why.charAt(0).toUpperCase() + why.slice(1) + ".";
-    }
-    else if (missing) msg = "Some lines you need are still in 'Lines to use'.";
+      msg = "Your program uses a line that isn't needed: " + viewLine(used.text) + ". Move it back out. " + why.charAt(0).toUpperCase() + why.slice(1) + ".";
+    } else if (missing) msg = "Some lines you need are still in 'Lines to use'. Move every needed line into your program.";
     else {
       res.innerHTML = '<p class="running">Checking…</p>';
       const code = parsons.program.map((l) => " ".repeat(4 * (l.indent || 0)) + l.text).join("\n");
@@ -873,21 +1154,25 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
       const want = await runner.run(sk.lines.join("\n"), inputs);
       if (!mine || !want) { res.innerHTML = '<p class="problem" role="alert">Python couldn\'t be loaded. Check your internet connection and reload the page.</p>'; return; }
       ok = mine.every((r, i) => !r.error && Checker.outputsMatch(r.output, want[i].output) && r.inputsLeft === want[i].inputsLeft);
-      if (!ok) msg = mine.some((r) => r.error && /Indentation|Syntax/.test(r.error.type)) ? "Check the indentation: the lines inside the loop are indented once." : "You've picked all the right lines. Now check their order and indentation.";
+      if (!ok) msg = mine.some((r) => r.error && /Indentation|Syntax/.test(r.error.type)) ? "Check the indentation. Indent the lines inside the loop once." : "You've picked all the right lines. Now check their order and indentation.";
     }
-    if (parsons.program.length) record({ questionId: q.id, rung: 2, total: ok ? 1 : 0, max: 1, points: [{ id: "skeleton", awarded: ok ? 1 : 0, how: "auto" }], help: helpUsed, notes: [], pasteFlag: false, seconds: Math.round((Date.now() - viewStarted) / 1000) },
+    if (X.stepRecorded(parsons.st)) record({ questionId: q.id, rung: 2, total: ok ? 1 : 0, max: 1, points: [{ id: "skeleton", awarded: ok ? 1 : 0, how: "auto" }], help: helpUsed, notes: [], pasteFlag: false, seconds: Math.round((Date.now() - viewStarted) / 1000) },
       parsons.program.map((l) => " ".repeat(4 * (l.indent || 0)) + l.text).join("\n"));
-    res.innerHTML = ok ? '<p class="success" tabindex="-1">✓ Well done – that is the skeleton of the answer.</p><p><a href="#pack/' + esc(pack.id) + '/fill">Next: Fill the gaps →</a></p>'
-      : '<p class="problem" role="alert" tabindex="-1">' + esc(msg) + "</p>";
-    res.firstChild.focus();
+    parsons.st = X.afterCheck(parsons.st, ok);
+    parsons.filled = false;
+    parsons.result = ok ? '<p class="success" tabindex="-1">✓ Well done – that is the skeleton of the answer.</p>' : '<p class="problem" role="alert" tabindex="-1">' + esc(msg) + "</p>";
+    draw();
+    $("em-result").firstChild.focus();
   }
 
   // Rung 3: Fill the gaps. Each gap is checked (accept / acceptPattern), then the completed program runs on t1 and t2.
+  // EM3: the three buttons; Show answer and Next (when wrong) fill each gap from the rung question's model program.
   let fillAnswers = null;
   function showFill() {
     const q = rungQuestion("fill");
     const f = pack.rungs.fill;
-    if (!fillAnswers || fillAnswers.q !== q.id) fillAnswers = { q: q.id, a: f.gaps.map(() => "") };
+    const right = X.gapAnswers(f, q.modelPython) || f.gaps.map((g) => (g.accept || [""])[0]);
+    if (!fillAnswers || fillAnswers.q !== q.id) fillAnswers = { q: q.id, a: f.gaps.map(() => ""), st: stepState(q.id, 3, null), result: "", filled: false };
     const draw = () => {
       const parts = viewCode(f.code).split("____");
       let code = '<pre class="code fill-code">' + highlight(parts[0]);
@@ -897,15 +1182,38 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
       }
       setView("<h2>Rung 3: Fill the gaps – " + esc(q.title) + "</h2>" + paperHtml(q) + sayItSimplyHtml(q) + langToggleHtml() + code + "</pre>" +
         '<p class="small">Answer in Python. The checker accepts input() with or without int().</p>' +
-        '<p><button type="button" class="primary" id="check-btn">Check my answer</button></p><div id="em-result" aria-live="polite"></div>', "Fill the gaps");
+        '<div id="em-result" aria-live="polite">' + fillAnswers.result + stepNotes(fillAnswers.st, fillAnswers.filled) + "</div>" +
+        actionsHtml(fillAnswers.st, { prefix: "fl-", next: "Next: One bullet at a time" }), "Fill the gaps");
       wireSayItSimply(q, 3);
       wireLangToggle(draw);
       document.querySelectorAll(".blank").forEach((inp) => inp.addEventListener("input", () => { fillAnswers.a[+inp.dataset.i] = inp.value; inp.style.width = Math.max(5, inp.value.length + 2) + "ch"; }));
-      $("check-btn").addEventListener("click", () => checkFill(q, f));
+      $("fl-check").addEventListener("click", () => checkFill(q, f, right, draw));
+      if ($("fl-again")) $("fl-again").addEventListener("click", () => {
+        // Keep the right gaps; empty the others and go to the first of them.
+        const ok = X.checkGaps(f, fillAnswers.a);
+        fillAnswers.a = fillAnswers.a.map((v, i) => (ok[i] ? v : ""));
+        fillAnswers.result = "";
+        fillAnswers.filled = false;
+        draw();
+        const first = [...document.querySelectorAll(".blank")].find((b) => !b.value) || document.querySelector(".blank");
+        if (first) first.focus();
+      });
+      if ($("fl-show")) $("fl-show").addEventListener("click", () => {
+        fillAnswers.a = right.slice();
+        fillAnswers.st = X.afterShow(fillAnswers.st);
+        fillAnswers.result = '<p class="success" tabindex="-1">Every gap is filled in with an answer that gets the mark.</p>';
+        markShown(q.id, 3, null);
+        draw();
+        $("em-result").firstChild.focus();
+      });
+      $("fl-next").addEventListener("click", () => {
+        if (X.nextFillsIn(fillAnswers.st)) { fillAnswers.a = right.slice(); fillAnswers.filled = true; fillAnswers.result = ""; }
+        go("#pack/" + pack.id + "/steps");
+      });
     };
     draw();
   }
-  async function checkFill(q, f) {
+  async function checkFill(q, f, right, draw) {
     const res = $("em-result");
     if (fillAnswers.a.some((a) => !a.trim())) { res.innerHTML = '<p class="problem" role="alert">Fill in every gap before checking.</p>'; return; }
     const gaps = X.checkGaps(f, fillAnswers.a);
@@ -919,61 +1227,114 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
     }
     const points = gaps.map((g, i) => ({ id: "gap" + (i + 1), awarded: g ? 1 : 0, how: "auto" })).concat([{ id: "runs", awarded: runOk ? 1 : 0, how: "auto" }]);
     const total = points.reduce((s, p) => s + p.awarded, 0);
-    record({ questionId: q.id, rung: 3, total, max: points.length, points, help: helpUsed, notes: [], pasteFlag: false, seconds: Math.round((Date.now() - viewStarted) / 1000) },
+    if (X.stepRecorded(fillAnswers.st)) record({ questionId: q.id, rung: 3, total, max: points.length, points, help: helpUsed, notes: [], pasteFlag: false, seconds: Math.round((Date.now() - viewStarted) / 1000) },
       X.fillCode(f, fillAnswers.a));
-    res.innerHTML = '<h3 tabindex="-1">Your mark: ' + total + "/" + points.length + '</h3><ul class="em-points">' +
-      gaps.map((g, i) => "<li>" + markIcon(g) + '<span class="visually-hidden">' + markWord(g) + ": </span>Gap " + (i + 1) + (g ? "" : ": not right yet") + "</li>").join("") +
+    fillAnswers.st = X.afterCheck(fillAnswers.st, total === points.length);
+    fillAnswers.filled = false;
+    fillAnswers.result = '<h3 tabindex="-1">Your mark: ' + total + "/" + points.length + '</h3><ul class="em-points">' +
+      gaps.map((g, i) => "<li>" + markIcon(g) + '<span class="visually-hidden">' + markWord(g) + ": </span>Gap " + (i + 1) +
+        (g ? "" : ' isn\'t right. Write <code>' + esc(right[i]) + "</code>.") + "</li>").join("") +
       "<li>" + markIcon(runOk === true) + '<span class="visually-hidden">' + markWord(runOk === true) + ": </span>" +
-      (runOk === null ? "The program runs on the tests once every gap is right" : runOk ? "The program works on the tests" : "The program doesn't stop on 0 or show the right total on the tests") + "</li></ul>" +
-      (total === points.length ? '<p><a href="#pack/' + esc(pack.id) + '/steps">Next: One bullet at a time →</a></p>' : "");
-    res.querySelector("h3").focus();
+      (runOk === null ? "The program runs on the tests once every gap is right." : runOk ? "The program works on the tests." : "The program doesn't stop on the stop value, or doesn't show the right total. Check each gap again.") + "</li></ul>";
+    draw();
+    const h = $("em-result").querySelector("h3");
+    if (h) h.focus();
   }
 
   // Rung 4: one step at a time, in one editor, with Run (decision 12). Each step is checked by its rule straight away.
+  // EM3: after a step's first check, Try again, Show answer (its correct code in the editor) and Next (on a wrong step,
+  // the correct code goes in first, so the next step builds on working code). After the last step, the summary.
   let stepsCode = "";
-  let stepDone = {};
+  let stepsState = null;
   function showSteps() {
     const q = rungQuestion("steps");
     const steps = pack.rungs.steps.steps;
-    const current = () => steps.find((s) => !stepDone[s.n]) || null;
-    setView("<h2>Rung 4: One bullet at a time – " + esc(q.title) + "</h2>" + paperHtml(q) +
-      '<ol class="em-steps" id="em-steps"></ol>' + editorHtml(stepsCode) +
-      '<p><button type="button" class="secondary" id="run-btn">Run</button> <button type="button" class="primary" id="check-btn">Check this step</button></p>' +
-      '<div id="em-result" aria-live="polite"></div>', "One bullet at a time");
-    const drawSteps = () => {
-      const cur = current();
-      $("em-steps").innerHTML = steps.map((s) => '<li class="em-step' + (cur && cur.n === s.n ? " em-step-now" : "") + '"' + (cur && cur.n === s.n ? ' aria-current="step"' : "") + ">" +
-        (stepDone[s.n] ? markIcon(true) + '<span class="visually-hidden">done: </span>' : "") + esc(s.task) + "</li>").join("");
-      $("check-btn").disabled = !cur;
-      $("check-btn").textContent = cur ? "Check step " + cur.n : "All steps done";
+    if (!stepsState || stepsState.q !== q.id) stepsState = { q: q.id, idx: 0, st: steps.map((s) => stepState(q.id, 4, s.n)), result: "", filled: false, finished: false };
+    const S = stepsState;
+    const codeBefore = (i) => (i > 0 ? steps[i - 1].code : "");
+    const draw = () => {
+      const cur = S.finished ? null : steps[S.idx];
+      const st = cur ? S.st[S.idx] : null;
+      const icon = (i) => { const x = S.st[i]; return x.tries === 0 && !x.shown ? "" : x.firstOk ? markIcon(true) + '<span class="visually-hidden">right first time: </span>'
+        : x.shown && x.firstOk === null ? '<span class="small">(answer shown)</span> ' : markIcon(false) + '<span class="visually-hidden">wrong first time: </span>'; };
+      setView("<h2>Rung 4: One bullet at a time – " + esc(q.title) + "</h2>" + paperHtml(q) +
+        '<ol class="em-steps" id="em-steps">' + steps.map((s, i) => '<li class="em-step' + (cur && i === S.idx ? " em-step-now" : "") + '"' + (cur && i === S.idx ? ' aria-current="step"' : "") + ">" +
+          icon(i) + esc(s.task) + "</li>").join("") + "</ol>" + editorHtml(stepsCode) +
+        '<p><button type="button" class="secondary" id="run-btn">Run</button></p>' +
+        '<div id="em-result" aria-live="polite">' + S.result + (st ? stepNotes(st, S.filled) : "") + "</div>" +
+        (cur ? actionsHtml(st, { prefix: "st-", check: "Check step " + cur.n, checkAgain: "Check step " + cur.n + " again",
+          next: st.practice ? "Back to the summary" : S.idx === steps.length - 1 ? "Finish rung 4" : "Next: step " + steps[S.idx + 1].n }) :
+          summaryHtml("Rung 4 done", steps.map((s, i) => ({ key: String(i), label: "Step " + s.n + ": " + s.task, st: S.st[i] })),
+            asgCtx ? '<a href="' + esc(nextHref("")) + '">Back to the assignment →</a>' : '<a href="#q/' + esc(fullQuestions()[0].id) + '">Next: the full questions →</a>')), "One bullet at a time");
+      wireEditor((v) => { stepsCode = v; }, pasteHandler(q.id, 4));
+      $("run-btn").addEventListener("click", async () => {
+        const t = q.tests[0];
+        $("em-result").innerHTML = '<p class="running">Running…</p>';
+        const r = await runner.run(editor.get(), [t.inputs.slice()]);
+        if (!r) { $("em-result").innerHTML = '<p class="problem" role="alert">Python couldn\'t be loaded. Check your internet connection and reload the page.</p>'; return; }
+        const err = Checker.explainError(r[0].error);
+        $("em-result").innerHTML = '<h3>Output</h3><p class="inputs">The user types: ' + esc(t.inputs.join(", then ")) + '</p><pre class="output">' + TaskView.showOutput(r[0].output) + "</pre>" + (err ? TaskView.errorBoxHtml(err) : "");
+      });
+      const setCode = (code) => { stepsCode = code; editor.set(code); };
+      const on = (id, f) => { const el = $(id); if (el) el.addEventListener("click", f); };
+      on("st-check", async () => {
+        const i = S.idx, s = steps[i];
+        $("em-result").innerHTML = '<p class="running">Checking step ' + s.n + "…</p>";
+        const code = editor.get();
+        const r = await runner.mark(code, q, s.check);
+        if (!r) { $("em-result").innerHTML = '<p class="problem" role="alert">Python couldn\'t be loaded. Check your internet connection and reload the page.</p>'; return; }
+        // Code Python can't read (or that runs too long) is a wrong check, as before: the student can still go on.
+        const unreadable = r.timeout || r.error || r.passed === null;
+        const passed = !unreadable && !!r.passed;
+        if (X.stepRecorded(S.st[i])) record({ questionId: q.id, rung: 4, step: s.n, stepsTotal: steps.length, total: passed ? 1 : 0, max: 1, points: [{ id: "step" + s.n, awarded: passed ? 1 : 0, how: "auto" }],
+          help: false, notes: r.notes || [], pasteFlag: pasteFlagged, seconds: Math.round((Date.now() - viewStarted) / 1000) }, code);
+        S.st[i] = X.afterCheck(S.st[i], passed);
+        S.filled = false;
+        const notes = (r.notes || []).filter((n) => X.NOTE_TEXT[n]).map((n) => '<p class="em-note">' + esc(X.NOTE_TEXT[n]) + "</p>").join("");
+        const add = X.addedLines(codeBefore(i), s.code);
+        S.result = (passed ? '<p class="success" tabindex="-1">✓ Step ' + s.n + " done.</p>"
+          : '<p class="problem" role="alert" tabindex="-1">' + (unreadable ? esc(r.timeout ? X.NOTE_TEXT.timeout : "Python couldn't read your code, so this step couldn't be marked.") + " " : "") +
+            "Not yet: " + esc(s.task.toLowerCase()) + ". " + (add.length ? "Add " + (add.length === 1 ? "this line" : "these lines") + ":" : "") + "</p>" +
+            (add.length ? '<pre class="code">' + highlight(add.join("\n")) + "</pre>" : "") + '<p class="small">Run your code to see what it does.</p>') + notes;
+        draw();
+        $("em-result").firstChild.focus();
+      });
+      on("st-again", () => { S.result = ""; S.filled = false; draw(); const cm = document.querySelector(".CodeMirror"); if (cm && cm.CodeMirror) cm.CodeMirror.focus(); else $("editor").focus(); });
+      on("st-show", () => {
+        const i = S.idx;
+        setCode(steps[i].code);
+        S.st[i] = X.afterShow(S.st[i]);
+        S.result = '<p class="success" tabindex="-1">The code for step ' + steps[i].n + " is in the editor.</p>";
+        markShown(q.id, 4, steps[i].n);
+        draw();
+        $("em-result").firstChild.focus();
+      });
+      on("st-next", () => {
+        const i = S.idx;
+        const filled = X.nextFillsIn(S.st[i]);
+        if (filled) setCode(steps[i].code);
+        if (S.st[i].practice) { S.st[i] = Object.assign({}, S.st[i], { practice: false }); S.finished = true; }
+        else if (i === steps.length - 1) S.finished = true;
+        else S.idx = i + 1;
+        S.result = "";
+        S.filled = filled && !S.finished;
+        draw();
+        const h = $("sum-h") || $("em-steps");
+        if (h) { h.setAttribute("tabindex", "-1"); h.focus(); }
+      });
+      // "Try this step again": the working code before that step, practice only.
+      app.querySelectorAll("button[data-again]").forEach((b) => b.addEventListener("click", () => {
+        const i = +b.dataset.again;
+        S.idx = i;
+        S.st[i] = Object.assign(X.freshStep(), { practice: true });
+        S.finished = false;
+        S.result = "";
+        S.filled = false;
+        setCode(codeBefore(i));
+        draw();
+      }));
     };
-    wireEditor((v) => { stepsCode = v; }, pasteHandler(q.id, 4));
-    drawSteps();
-    $("run-btn").addEventListener("click", async () => {
-      const t = q.tests[0];
-      $("em-result").innerHTML = '<p class="running">Running…</p>';
-      const r = await runner.run(editor.get(), [t.inputs.slice()]);
-      if (!r) { $("em-result").innerHTML = '<p class="problem" role="alert">Python couldn\'t be loaded. Check your internet connection and reload the page.</p>'; return; }
-      const err = Checker.explainError(r[0].error);
-      $("em-result").innerHTML = '<h3>Output</h3><p class="inputs">The user types: ' + esc(t.inputs.join(", then ")) + '</p><pre class="output">' + TaskView.showOutput(r[0].output) + "</pre>" + (err ? TaskView.errorBoxHtml(err) : "");
-    });
-    $("check-btn").addEventListener("click", async () => {
-      const s = current();
-      if (!s) return;
-      $("em-result").innerHTML = '<p class="running">Checking step ' + s.n + "…</p>";
-      const r = await runner.mark(editor.get(), q, s.check);
-      const passed = r && !r.timeout && !r.error ? r.passed : null;
-      record({ questionId: q.id, rung: 4, step: s.n, stepsTotal: steps.length, total: passed ? 1 : 0, max: 1, points: [{ id: "step" + s.n, awarded: passed ? 1 : 0, how: "auto" }],
-        help: false, notes: (r && r.notes) || [], pasteFlag: pasteFlagged, seconds: Math.round((Date.now() - viewStarted) / 1000) }, editor.get());
-      if (passed) stepDone[s.n] = true;
-      const notes = ((r && r.notes) || []).filter((n) => X.NOTE_TEXT[n]).map((n) => '<p class="em-note">' + esc(X.NOTE_TEXT[n]) + "</p>").join("");
-      $("em-result").innerHTML = (passed ? '<p class="success" tabindex="-1">✓ Step ' + s.n + " done." + (current() ? " Now step " + current().n + "." : " That's every step: you've written the whole answer.") + "</p>"
-        : passed === null ? '<p class="problem" role="alert" tabindex="-1">' + esc(r && r.timeout ? X.NOTE_TEXT.timeout : "Python couldn't read your code, so this step couldn't be checked. Run it to see which line is wrong.") + "</p>"
-        : '<p class="problem" role="alert" tabindex="-1">Not yet: ' + esc(s.task.toLowerCase()) + ". Run your code to see what it does.</p>") + notes +
-        (!current() ? '<p><a href="#q/' + esc(fullQuestions()[0].id) + '">Next: the full questions →</a></p>' : "");
-      drawSteps();
-      $("em-result").firstChild.focus();
-    });
+    draw();
   }
 
   // Rung 5: a full question, as in the exam. Editor only (no Run, decision 12). Marked by exam_marker.py on Submit.
@@ -1057,25 +1418,84 @@ if (typeof document !== "undefined" && document.getElementById("exam-app")) Stor
       $("next-btn").addEventListener("click", () => {
         const list = fullQuestions();
         const i = list.findIndex((x) => x.id === q.id);
-        location.hash = i >= 0 && i < list.length - 1 ? "#q/" + list[i + 1].id : "#pack/" + pack.id;
+        go(i >= 0 && i < list.length - 1 ? "#q/" + list[i + 1].id : "#pack/" + pack.id);
       });
     };
     draw();
     res.querySelector("h3").focus();
   }
 
-  // My exam scores: each question's first-attempt score and best score.
+  // My exam scores: each question's first-attempt score and best score. A paste-flagged answer counts towards no score
+  // (EM3, decisions 16 and 26): it still shows, labelled "Paste flagged", as on the rest of the site.
+  const PASTE_FLAGGED = '<span class="flag flag-alert">Paste flagged</span>';
   function showScores() {
     const rows = X.scoreSummary(saved.attempts);
     const title = (id) => { const q = questionById(id); return q ? q.title : id; };
     const helps = saved.help.length;
+    const score = (s) => (s ? s.total + "/" + s.max : "–");
     setView("<h2>My exam scores</h2>" + (rows.length ? '<div class="table-wrap"><table class="em-scores"><caption class="visually-hidden">First-attempt and best scores</caption>' +
       '<thead><tr><th scope="col">Question</th><th scope="col">Rung</th><th scope="col">First attempt</th><th scope="col">Best</th><th scope="col">Attempts</th></tr></thead><tbody>' +
-      rows.map((r) => '<tr><th scope="row">' + esc(title(r.questionId)) + "</th><td>" + r.rung + " " + esc(X.RUNG_NAMES[r.rung]) + "</td><td>" + r.first.total + "/" + r.first.max + "</td><td>" + r.best.total + "/" + r.best.max + "</td><td>" + r.attempts + "</td></tr>").join("") +
-      "</tbody></table></div>" : "<p>No scores yet. Start with <a href=\"#pack/" + esc(pack.id) + "\">pack " + esc(pack.id) + "</a>.</p>") +
+      rows.map((r) => '<tr><th scope="row">' + esc(title(r.questionId)) + (r.pasteFlagged ? " " + PASTE_FLAGGED : "") + "</th><td>" + r.rung + " " + esc(X.RUNG_NAMES[r.rung]) +
+        "</td><td>" + score(r.first) + "</td><td>" + score(r.best) + "</td><td>" + r.attempts + "</td></tr>").join("") +
+      "</tbody></table></div>" + (rows.some((r) => r.pasteFlagged) ? '<p class="small">A paste-flagged answer doesn\'t count towards any score.</p>' : "")
+      : "<p>No scores yet. Start with <a href=\"#pack/" + esc(pack.id) + "\">pack " + esc(pack.id) + "</a>.</p>") +
       '<p class="small">"Say it simply" used ' + helps + " time" + (helps === 1 ? "" : "s") + ". " +
       (BE ? "Your Exam Mode work is saved to your class on the school's server, so you see the same scores on any computer. Your teacher can see it."
         : "Your Exam Mode work is saved in this browser only. Nothing is sent anywhere.") + "</p>", "My exam scores");
+  }
+
+  // ---------- The Exam leaderboard (EM3; backend mode) ----------
+  // Two boards for the class, worked out on the server with exam.js's rule (first attempts only, auto-marked points only,
+  // "Say it simply" at 50%, paste flags left out, at least 5 questions): Average % correct and Most improved.
+  function boardTable(rows, label, scoreText) {
+    if (!rows.length) return '<p class="small">No one has answered ' + X.BOARD_MIN_QUESTIONS + " questions here yet.</p>";
+    return '<table class="board-table" aria-label="' + esc(label) + '"><thead><tr><th scope="col" class="num">Place</th><th scope="col">Nickname</th><th scope="col" class="num">' +
+      esc(label) + "</th></tr></thead><tbody>" + rows.map((r) => "<tr" + (r.me ? ' class="board-me"' : "") + '><td class="num">' + r.place + "</td><td>" + esc(r.nickname) +
+        (r.me ? ' <span class="small">(you)</span>' : "") + '</td><td class="num">' + esc(scoreText(r.score)) + "</td></tr>").join("") + "</tbody></table>";
+  }
+  async function showLeaderboard() {
+    setView('<h2>Exam leaderboard</h2><p class="small">Your class, by nickname. It counts the first try at each question and rung, the marks given automatically, and ' +
+      '"Say it simply" at half marks. Paste-flagged answers don\'t count. You appear once you have answered ' + X.BOARD_MIN_QUESTIONS + " questions.</p>" +
+      '<div id="exam-boards" aria-live="polite"><p class="small">Loading…</p></div>', "Exam leaderboard");
+    const box = $("exam-boards");
+    if (!BE) { box.innerHTML = '<p class="small">The Exam leaderboard needs your class\'s server, so it isn\'t available in this browser.</p>'; return; }
+    const r = await BE.examLeaderboard();
+    if (r.status !== 200) {
+      box.innerHTML = '<p class="problem">' + esc(r.status === 400 ? "The Exam leaderboard needs the newest version of the server. It will show once it has been updated." : (r.body && r.body.error) || "Couldn't load the leaderboard. Please try again.") + "</p>";
+      return;
+    }
+    box.innerHTML = "<h3>Average % correct</h3>" + boardTable(r.body.average || [], "Average % correct", (n) => n + "%") +
+      '<h3>Most improved</h3><p class="small">This week\'s average % minus last week\'s (' + X.BOARD_MIN_QUESTIONS + " questions or more in each).</p>" +
+      boardTable(r.body.improved || [], "Most improved", X.improvedText);
+  }
+
+  // ---------- An assignment's Exam Mode questions (EM3) ----------
+  // #asg/<id>: the assignment's Exam Mode questions, each opening at its rung (#asg/<id>/<question>). Their tries are
+  // saved with the assignment's id. It works even when the class has Exam Mode switched off: the teacher chose these.
+  function showAssignment(aid, qid) {
+    const a = (Store.assignments(student.id) || []).find((x) => x.id === aid);
+    const items = a ? X.assignableQuestions(data.packs).filter((x) => a.task_ids.includes(x.id)).sort((x, y) => a.task_ids.indexOf(x.id) - a.task_ids.indexOf(y.id)) : [];
+    if (!a || !items.length) {
+      setView('<h2>Assignment</h2><p>This assignment isn\'t open for your class, or has no Exam Mode questions.</p><p><a href="app.html">← Back to your units</a></p>', "Assignment");
+      return;
+    }
+    const item = qid ? items.find((x) => x.id === qid) : null;
+    if (qid && !item) { location.hash = "#asg/" + aid; return; }
+    if (item) {
+      asgCtx = { id: aid, title: a.title };
+      const q = questionById(item.id);
+      if (item.rung === 5) showQuestion(q);
+      else ({ 1: showDecode, 2: showSkeleton, 3: showFill, 4: showSteps })[item.rung]();
+      app.insertAdjacentHTML("afterbegin", '<p class="small em-asg-note">Assignment: <a href="#asg/' + esc(aid) + '">' + esc(a.title) + "</a></p>");
+      return;
+    }
+    const tried = (x) => X.scoreSummary(saved.attempts.filter((r) => r.assignmentId === aid && r.questionId === x.id))[0];
+    setView("<h2>" + esc(a.title) + "</h2>" + (a.description ? "<p>" + esc(a.description) + "</p>" : "") +
+      '<p class="small">Exam Mode questions set by your teacher. Your first try at each one is the one that counts.</p><ol class="em-rungs">' +
+      items.map((x) => { const s = tried(x); return '<li><a href="#asg/' + esc(aid) + "/" + esc(x.id) + '">' + esc(x.label) + "</a> " +
+        '<span class="small">' + (!s ? "Not tried yet" : "First try: " + (s.first ? s.first.total + "/" + s.first.max : "–") + ", best: " + (s.best ? s.best.total + "/" + s.best.max : "–")) +
+        (s && s.pasteFlagged ? " " + PASTE_FLAGGED : "") + "</span></li>"; }).join("") +
+      '</ol><p><a href="app.html">← Back to your units</a></p>', a.title);
   }
 
   // ---------- Start ----------

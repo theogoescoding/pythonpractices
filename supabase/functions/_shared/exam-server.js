@@ -25,7 +25,7 @@
   const KEYS = ["record_id", "timestamp", "pack_id", "question_id", "rung", "step", "attempt_number", "first", "points", "total", "max",
     "auto_total", "auto_max", "notes", "help_used", "paste_flag", "student_code", "assignment_id"];
   // What a student gets back of their own rows (no code), and what a teacher's overview reads.
-  const OWN_COLUMNS = "record_id, timestamp, pack_id, question_id, rung, step, attempt_number, first, points, total, max, auto_total, auto_max, notes, help_used, paste_flag";
+  const OWN_COLUMNS = "record_id, timestamp, pack_id, question_id, rung, step, attempt_number, first, points, total, max, auto_total, auto_max, notes, help_used, paste_flag, assignment_id";
   const OVERVIEW_COLUMNS = "student_id, " + OWN_COLUMNS;
   const DETAIL_COLUMNS = OWN_COLUMNS + ", student_code, code_deleted_at";
   const MESSAGES = {
@@ -226,10 +226,9 @@
   //   help: [{ pack_id, question_id, rungs, attempts, self_pct, help_pct }]: of the recorded attempts, the % of mark
   //     points the student checked themselves and the % with "Say it simply" used.
   // Only nicknames, numbers and question and mark-point ids: no student id, code, PIN or login code.
-  async function overview(sb, deps, tid, classId) {
-    const cls = await deps.Sharing.requireClass(sb, tid, classId, false);
-    const sw = switchState(deps, await classSetting(sb, cls.id));
-    const students = await studentsOf(sb, cls.id);
+  // The class's students, each with their Exam Mode records as exam.js keeps them: [{ id, nickname, recs }].
+  async function classRecords(sb, deps, classId) {
+    const students = await studentsOf(sb, classId);
     const ids = students.map((s) => s.id);
     let rows = [];
     if (ids.length) {
@@ -237,54 +236,30 @@
       if (!(probe.error && noExam(probe.error))) rows = await all(() => sb.from("exam_attempts").select(OVERVIEW_COLUMNS).in("student_id", ids).order("id"), "exam attempts");
     }
     const X = deps.ExamMode, d = deps.data;
-    const recsOf = (sid) => rows.filter((r) => r.student_id === sid).map((r) => X.fromServerRow(r, stepsTotalOf(d, r.pack_id, r.question_id)));
-    const out = students.map((s) => {
-      const recs = recsOf(s.id);
-      const packs = {};
-      for (const p of d.packs) {
-        const g = X.packProgress(p, recs);
-        packs[p.id] = { reached: g.reached, started: g.started, full_tried: g.fullTried, full_count: g.fullCount,
-          first_pct: g.first ? pct(g.first.total, g.first.max) : null, best_pct: g.best ? pct(g.best.total, g.best.max) : null };
-      }
-      return { nickname: s.nickname, packs };
-    });
-    const mean = (list) => (list.length ? Math.round((10 * list.reduce((a, b) => a + b, 0)) / list.length) / 10 : null);
-    const average = {};
-    for (const p of d.packs) {
-      const cells = out.map((s) => s.packs[p.id]);
-      const scored = cells.filter((c) => c.first_pct != null);
-      average[p.id] = { reached: mean(cells.map((c) => c.reached)), first_pct: scored.length ? Math.round(mean(scored.map((c) => c.first_pct))) : null,
-        best_pct: scored.length ? Math.round(mean(scored.map((c) => c.best_pct))) : null, students: cells.length };
-    }
-    const missed = [];
-    for (const p of d.packs) {
-      for (const q of X.fullQuestionsOf(p)) {
-        // Each student's first recorded attempt at the full question (the earliest, should a student have two).
-        const firsts = [];
-        for (const sid of ids) {
-          const mine = rows.filter((r) => r.student_id === sid && r.question_id === q.id && r.rung === 5).sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
-          const f = mine.find((r) => r.first) || mine[0];
-          if (f) firsts.push(f);
-        }
-        const points = q.markPoints.map((m) => {
-          const n = firsts.filter((f) => (f.points || []).some((x) => x.id === m.id && x.awarded === 0)).length;
-          return { id: m.id, missed: n, pct: pct(n, firsts.length) };
-        }).sort((a, b) => (b.pct || 0) - (a.pct || 0) || (a.id < b.id ? -1 : 1));
-        missed.push({ pack_id: p.id, question_id: q.id, students: firsts.length, points,
-          always_true: firsts.filter((f) => (f.notes || []).includes(X.ALWAYS_TRUE_NOTE)).length });
-      }
-    }
-    const help = [];
-    for (const p of d.packs) {
-      for (const q of p.questions) {
-        const mine = rows.filter((r) => r.question_id === q.id);
-        if (!mine.length) continue;
-        const pts = mine.flatMap((r) => r.points || []);
-        help.push({ pack_id: p.id, question_id: q.id, rungs: [...new Set(mine.map((r) => r.rung))].sort(), attempts: mine.length,
-          self_pct: pct(pts.filter((x) => x.status === "self").length, pts.length), help_pct: pct(mine.filter((r) => r.help_used).length, mine.length) });
-      }
-    }
-    return { class_name: cls.name, switch: sw, packs: d.packs.map((p) => ({ id: p.id })), students: out, average, missed, help };
+    return students.map((s) => ({ id: s.id, nickname: s.nickname,
+      recs: rows.filter((r) => r.student_id === s.id).map((r) => X.fromServerRow(r, stepsTotalOf(d, r.pack_id, r.question_id))) }));
+  }
+
+  // Everything the teacher's Exam Mode page shows for one class: the switch, then exam.js classOverview (students'
+  // packs, the class average, the most-missed mark points, self-check and help rates; paste flags left out of every
+  // score, EM3) and the class's Exam leaderboard (exam.js examBoards, EM3). Only nicknames, numbers and question and
+  // mark-point ids: no student id, code, PIN or login code.
+  async function overview(sb, deps, tid, classId, now) {
+    const cls = await deps.Sharing.requireClass(sb, tid, classId, false);
+    const sw = switchState(deps, await classSetting(sb, cls.id));
+    const students = await classRecords(sb, deps, cls.id);
+    const o = deps.ExamMode.classOverview(deps.data.packs, students.map((s) => ({ nickname: s.nickname, recs: s.recs })));
+    const leaderboard = deps.ExamMode.examBoards(students.map((s) => ({ nickname: s.nickname, recs: s.recs })), now);
+    return Object.assign({ class_name: cls.name, switch: sw, packs: deps.data.packs.map((p) => ({ id: p.id })) }, o, { leaderboard });
+  }
+
+  // The student's own class's Exam leaderboard (student-api exam_leaderboard): nicknames, places and scores, their own
+  // row marked me. The class is always the student's own.
+  async function studentBoards(sb, deps, sid, now) {
+    const s = data(await sb.from("students").select("id, class_id").eq("id", sid).maybeSingle(), "student");
+    if (!s) return { average: [], improved: [], min: deps.ExamMode.BOARD_MIN_QUESTIONS };
+    const students = await classRecords(sb, deps, s.class_id);
+    return deps.ExamMode.examBoards(students.map((x) => ({ nickname: x.nickname, recs: x.recs, me: x.id === sid })), now);
   }
 
   // One student's attempts, newest first, with their code while it is kept (30 days, failed attempts only). The student
@@ -303,5 +278,5 @@
   }
 
   return { MESSAGES, MODEL_SEEN, TUTORIAL_SEEN, EVENT_TYPES, MAX_ROWS_PER_BATCH, noExam, rowProblem, checkRows, addAttempts, forStudent, classSetting,
-    examModeForStudent, setExamMode, overview, studentDetail };
+    examModeForStudent, setExamMode, overview, studentBoards, classRecords, studentDetail };
 });

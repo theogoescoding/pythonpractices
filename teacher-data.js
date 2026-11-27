@@ -792,7 +792,52 @@
   const pasteFlagsFromServer = (reply) => Object.fromEntries(((reply && reply.students) || []).map((s) =>
     [s.student_id, Object.fromEntries(s.units.map((u) => [u.unit, u.flags]))]));
 
+  // ---------- Exam Mode (EM3): reports and the export ----------
+  // data.exam: { studentId: [records as exam.js keeps them] } (backend mode: from exam_attempts; local mode: this browser's
+  // Exam Mode records). -> [{ id, nickname, recs }] by name, for exam.js's classOverview and examBoards.
+  const examStudents = (data) => Object.entries(data.students).sort((a, b) => a[1].name.localeCompare(b[1].name))
+    .map(([id, s]) => ({ id, nickname: s.name, recs: ((data.exam || {})[id] || []) }));
+  const EXAM_EXPORT_COLUMNS = ["section", "student", "pack", "rung_reached", "first_attempt_pct", "best_pct", "full_questions_tried", "paste_flagged",
+    "question", "question_title", "mark_point", "mark_point_text", "missed", "of_students", "missed_pct", "always_true",
+    "homework_due", "homework_tasks", "done", "complete", "exam_mode_tasks_done"];
+  // One CSV with three sections, the same numbers as the Reports page and the Exam Mode page:
+  //   pack_score: one row per student and pack (rung reached, first-attempt and best % on the full questions, the full
+  //     questions tried, how many answers were paste-flagged; paste flags count towards no score);
+  //   mark_point: the most-missed mark points of each full question (from first attempts);
+  //   homework: each homework with the Exam Mode section, one row per student (homework.js's progress, the rule the
+  //     server's homework report uses; exam_mode_tasks_done: how many of the done tasks were Exam Mode answers).
+  // packs: exam-mode.json's packs. Exam: exam.js; Homework: homework.js. No codes, PINs or login codes.
+  function examExportCsv(data, packs, Exam, Homework) {
+    const students = examStudents(data);
+    const o = Exam.classOverview(packs, students);
+    const rows = [];
+    const qTitle = (id) => { for (const p of packs) { const q = p.questions.find((x) => x.id === id); if (q) return q.title; } return id; };
+    o.students.forEach((s) => packs.forEach((p) => {
+      const c = s.packs[p.id];
+      rows.push({ section: "pack_score", student: s.nickname, pack: p.id, rung_reached: c.reached, first_attempt_pct: c.first_pct == null ? "" : c.first_pct,
+        best_pct: c.best_pct == null ? "" : c.best_pct, full_questions_tried: c.full_tried, paste_flagged: c.paste_flagged });
+    }));
+    for (const m of o.missed) {
+      const q = packs.flatMap((p) => p.questions).find((x) => x.id === m.question_id);
+      for (const pt of m.points) {
+        const mp = q && q.markPoints.find((x) => x.id === pt.id);
+        rows.push({ section: "mark_point", pack: m.pack_id, question: m.question_id, question_title: qTitle(m.question_id), mark_point: pt.id, mark_point_text: mp ? mp.text : "",
+          missed: pt.missed, of_students: m.students, missed_pct: pt.pct == null ? "" : pt.pct, always_true: m.always_true });
+      }
+    }
+    for (const hw of (data.homework || []).filter((h) => Homework.coversExam(h))) {
+      for (const s of students) {
+        const p = Homework.progress(hw, (data.attempts || []).filter((a) => a.studentId === s.id), (data.pasteFlags || {})[s.id] || [], s.recs);
+        rows.push({ section: "homework", student: s.nickname, homework_due: hw.due_on, homework_tasks: hw.task_count, done: Math.min(p.done, hw.task_count),
+          complete: p.complete ? "yes" : "no", exam_mode_tasks_done: p.taskIds.filter((id) => /^exam:/.test(id)).length,
+          paste_flagged: p.flagged.filter((f) => /^exam:/.test(f.taskId)).length });
+      }
+    }
+    return toCsv(EXAM_EXPORT_COLUMNS.map((key) => ({ key })), rows);
+  }
+
   return {
+    examStudents, EXAM_EXPORT_COLUMNS, examExportCsv,
     pasteFlagsFor, pasteFlagsFromServer,
     certificatesFor, certificateRows,
     pointsByStudent, leaderboardStudents,

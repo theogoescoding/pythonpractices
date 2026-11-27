@@ -23,6 +23,10 @@
   const ASSIGNMENT_COLUMNS = "id, class_id, title, description, task_ids, status, created_at, updated_at";
   const EVENT_COLUMNS = "id, student_id, record_id, record_type, timestamp, unit, task_id, student_level_before, student_level_after, " +
     "level_change_reason, button, placement_start_level, placement_results";
+  // Exam Mode's rows (migration 0021, EM3: reports, the export, the Leaderboards page and the Assignments page). No code.
+  const EXAM_COLUMNS = "id, student_id, record_id, timestamp, pack_id, question_id, rung, step, attempt_number, first, points, total, max, auto_total, auto_max, " +
+    "notes, help_used, paste_flag, assignment_id";
+  const HOMEWORK_COLUMNS = "id, class_id, task_count, due_on, units, created_at";
 
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -306,17 +310,33 @@
         .catch((e) => { if (noAssignments(e)) return all(inClass("attempts", ATTEMPT_COLUMNS.replace(", assignment_id", ""))); throw e; });
       const assignmentsQuery = all(() => sb.from("assignments").select(ASSIGNMENT_COLUMNS).eq("class_id", current.id).order("created_at", { ascending: false }).order("id"))
         .catch((e) => { if (noAssignments(e)) return []; throw e; });
-      const [st, progress, attempts, events, assignments] = await Promise.all([
+      // Exam Mode's rows and the class's homework (EM3): a server without migration 0021 (or 0018) has none, and the class
+      // still loads.
+      const examQuery = all(inClass("exam_attempts", EXAM_COLUMNS)).catch(() => []);
+      const homeworkQuery = all(() => sb.from("homework").select(HOMEWORK_COLUMNS).eq("class_id", current.id).order("due_on").order("id")).catch(() => []);
+      const [st, progress, attempts, events, assignments, examRows, homework] = await Promise.all([
         all(() => sb.from("students").select("id, nickname, created_at, imported, locked_until").eq("class_id", current.id).order("created_at").order("id")),
         all(() => sb.from("progress").select("student_id, unit, state, students!inner(class_id)").eq("students.class_id", current.id).order("student_id").order("unit")),
         attemptsQuery,
         all(inClass("events", EVENT_COLUMNS)),
         assignmentsQuery,
+        examQuery,
+        homeworkQuery,
       ]);
       students = st;
       renderStudents();
       const data = BackendRows.teacherData({ students: st, progress, attempts, events }, self.Curriculum.UNITS);
       data.assignments = assignments; // the class's assignments (teacher.js Assignments page)
+      // EM3: each student's Exam Mode records (as exam.js keeps them), the class's homework and each student's paste flags
+      // (homework.js's progress for the Exam Mode export, the same rule as the server's homework report).
+      data.exam = {};
+      data.pasteFlags = {};
+      for (const s of st) {
+        data.exam[s.id] = examRows.filter((r) => r.student_id === s.id).map((r) => self.ExamMode.fromServerRow(r));
+        data.pasteFlags[s.id] = events.filter((e) => e.student_id === s.id && e.record_type === "paste_flag")
+          .map((e) => ({ at: e.timestamp, unit: e.unit, units: [e.unit], taskId: e.task_id }));
+      }
+      data.homework = homework;
       onData(data);
     } catch (e) {
       say("tb-status", "Couldn't load this class's data. Please try again.", true);

@@ -22,6 +22,7 @@ const AGREEMENT_NEEDED = 0.95; // decision 5
 const MISCONCEPTIONS = ["always-true-or"]; // exam_marker.py _MISCONCEPTIONS (EM1b)
 
 let failures = 0, checks = 0;
+let pendingChecks = 1; // the end of the file, plus one for each async block still running (see finish)
 function check(ok, message) {
   checks++;
   if (!ok) { failures++; console.log("  FAIL " + message); }
@@ -239,6 +240,21 @@ const stepResults = runMarker(stepJobs.map((j) => ({ code: j.code, question: j.q
 stepJobs.forEach((j, i) => check(stepResults[i].passed === j.want, j.what + " (got " + stepResults[i].passed + ")"));
 check(stepResults[stepResults.length - 1].notes.includes("int"), "a step marked without int() carries the int note");
 
+// EM3 section 6: Next and Show answer put each rung 4 step's correct code in, so the next step builds on working code.
+// Each step's code must pass that step and every step before it, and the last must be the model answer.
+const codeJobs = [];
+steps.forEach((s, i) => { for (let k = 0; k <= i; k++) codeJobs.push({ code: s.code, question: q4, check: steps[k].check, what: "step " + s.n + "'s code passes step " + steps[k].n }); });
+const codeResults = runMarker(codeJobs.map((j) => ({ code: j.code, question: j.question, check: j.check })));
+check(steps.every((s) => typeof s.code === "string" && s.code.trim()) && codeResults.every((r) => r.passed === true) && steps[steps.length - 1].code + "\n" === q4.modelPython,
+  "rung 4: each step's correct code passes that step and every one before it, and the last step's is the model answer" +
+  (codeResults.every((r) => r.passed === true) ? "" : " (" + codeJobs.filter((j, i) => codeResults[i].passed !== true).map((j) => j.what).join("; ") + ")"));
+const q3 = pack.questions.find((q) => q.id === pack.rungQuestions.fill);
+const gapAns = Exam.gapAnswers(pack.rungs.fill, q3.modelPython);
+const gapRun = gapAns ? runMarker([{ code: Exam.fillCode(pack.rungs.fill, gapAns), question: q3, runTests: pack.rungs.fill.tests }])[0] : {};
+check(gapAns && gapAns.length === pack.rungs.fill.gaps.length && Exam.checkGaps(pack.rungs.fill, gapAns).every(Boolean) &&
+  pack.rungs.fill.tests.every((id) => Exam.runPasses(q3.tests.find((t) => t.id === id), gapRun[id])),
+  "rung 3: Show answer's gaps (read from the model program: " + JSON.stringify(gapAns) + ") are accepted, and the program works on the rung's tests");
+
 const q1 = questions.find((q) => q.id === "C1-Q1");
 const slip = runMarker([
   { code: "games = int(input('g'))\nwhile games != 0\n    member = input('m')\n    if member = 'yes':\n        print(games * 3.5)\n    else:\n        print(games * 5)\n    games = int(input('g'))\n", question: q1 },
@@ -337,6 +353,21 @@ for (const p of data.packs) {
 }
 check(/data-block-example=\\"B8\\"/.test(examSrc) && /title saying what the code does/.test(Exam.TUTORIAL[0].html) && !/cue phrase/i.test(Exam.TUTORIAL.map((t) => t.html).join(" ")),
   "tutorial screen 1: the layout in a sentence or two, with B8 as the example (no cue-phrase wording)");
+// EM3: where the new pieces live (tests/backend-client.js checks their rules; the browser checks were run by hand).
+{
+  const th = fs.readFileSync(path.join(ROOT, "teacher.html"), "utf8"), tj = fs.readFileSync(path.join(ROOT, "teacher.js"), "utf8");
+  const eh = fs.readFileSync(path.join(ROOT, "exam.html"), "utf8"), hj = fs.readFileSync(path.join(ROOT, "home.js"), "utf8");
+  check(/<a href="#leaderboard" data-section="leaderboard" id="exam-board-link" hidden>Exam leaderboard<\/a>/.test(eh) && /BE\.examLeaderboard\(\)/.test(pageSrc),
+    "Exam Mode's navigation has \"Exam leaderboard\" (backend mode), from student-api exam_leaderboard");
+  check(/id="mc-exam-link" class="small" hidden>Exam Mode mistakes are on the <a href="#exam">Exam Mode page<\/a>\./.test(th) &&
+    /\$\("mc-exam-link"\)\.hidden = !\(tb && currentClass\(\) && switchOf\(currentClass\(\)\)\.on\)/.test(tj),
+    "Misconceptions page: \"Exam Mode mistakes are on the Exam Mode page\", hidden when the class has Exam Mode off");
+  check(["id=\"lb-exam\"", "id=\"ex-board\"", "id=\"rp-exam\"", "id=\"export-exam\"", "id=\"as-exam-q\"", "id=\"as-exam-add\""].every((s) => th.includes(s)) &&
+    /data-hw-unit="' \+ HW\.EXAM_SECTION \+ '"/.test(tj) && /TD\.examExportCsv\(data, exPacks\(\), EX, HW\)/.test(tj),
+    "teacher view: the Exam boards (Leaderboards and Exam Mode pages), the Reports section and export, the assignment picker, and Exam Mode in the homework form");
+  check(/exam\.html#asg\/' \+ encodeURIComponent\(a\.id\) \+ "\/" \+ encodeURIComponent\(x\.id\)/.test(hj) && /asgCtx \? \{ assignmentId: asgCtx\.id \} : \{\}/.test(pageSrc),
+    "assignments: the student's card links each Exam Mode question to exam.html#asg/<assignment>/<question>, whose tries carry the assignment's id");
+}
 const tile = fs.readFileSync(path.join(ROOT, "app.html"), "utf8");
 check(/href="exam\.html"[^>]*class="menu-link"|class="menu-link"[^>]*href="exam\.html"/.test(tile) && !/id="exam-tile"/.test(tile),
   "app.html: the Exam Mode button in the student menu, and no banner (decision 21)");
@@ -345,8 +376,9 @@ check(/fetch\("exam_marker\.py"\)/.test(worker) && /msg\.type === "mark"/.test(w
 // EM2: backend mode, as the other student pages (store, config, backend-rows, backend), and the class switch.
 const html = fs.readFileSync(path.join(ROOT, "exam.html"), "utf8");
 check(/<script src="store\.js"><\/script>\s*<script src="config\.js"><\/script>\s*<script src="backend-rows\.js"><\/script>\s*<script src="backend\.js"><\/script>/.test(html) &&
-  /if \(BE && Store\.examMode\(student\.id\) === false\)/.test(pageSrc) && /Exam Mode isn't switched on for your class\. Ask your teacher\./.test(pageSrc),
-  "exam.html: backend mode as the other student pages; a class with Exam Mode switched off sees \"Exam Mode isn't switched on for your class. Ask your teacher.\"");
+  /const examOff = !!\(BE && Store\.examMode\(student\.id\) === false\)/.test(pageSrc) && /Exam Mode isn't switched on for your class\. Ask your teacher\./.test(pageSrc) &&
+  /if \(\(m = \/\^#asg\\\/.*showAssignment\(m\[1\], m\[2\]\)[^\n]*\n\s*if \(examOff\)/.test(pageSrc),
+  "exam.html: backend mode as the other student pages; a class with Exam Mode switched off sees \"Exam Mode isn't switched on for your class. Ask your teacher.\" (except an assignment's question, EM3)");
 // The rows the page sends are the rows the server takes (exam-server.js checkRows), for every kind of record it makes.
 const ES = require(path.join(ROOT, "supabase", "functions", "_shared", "exam-server.js"));
 const recs = [
@@ -370,6 +402,43 @@ check(JSON.stringify(Exam.scoreSummary(back)) === JSON.stringify(Exam.scoreSumma
   back[4].points.map((p) => p.how).join() === "auto,auto,unsure,self,auto,self" && back.every((r) => r.queued && r.recorded) &&
   Exam.mergeRecords([recs[0]], back).length === recs.length && Exam.mergeRecords(back, back).length === recs.length,
   "a row from the server becomes the same record again (the same My exam scores; unchecked points stay \"check yourself\"); merging keeps one of each");
+// EM3 section 6 (decision 27): get it wrong and move on.
+{
+  let st = Exam.freshStep();
+  const before = { next: Exam.nextEnabled(st), recorded: Exam.stepRecorded(st) };
+  st = Exam.afterCheck(st, false);
+  const wrongFirst = { next: Exam.nextEnabled(st), fills: Exam.nextFillsIn(st), first: st.firstOk, look: Exam.needsAnotherLook(st) };
+  st = Exam.afterCheck(st, true);
+  const rightSecond = { first: st.firstOk, note: Exam.triesNote(st), fills: Exam.nextFillsIn(st), recorded: Exam.stepRecorded(st) };
+  const shown = Exam.afterShow(Exam.afterCheck(Exam.freshStep(), false));
+  const practice = Object.assign(Exam.freshStep(), { practice: true });
+  check(before.next === false && before.recorded && wrongFirst.next && wrongFirst.fills && wrongFirst.first === false && wrongFirst.look &&
+    rightSecond.first === false && rightSecond.note === "Correct on try 2" && !rightSecond.fills && rightSecond.recorded,
+    "rungs 1-4: Next is off until the first check; a wrong first check stays wrong (Next fills the answer in), and a later right one shows \"Correct on try 2\"");
+  check(!Exam.stepRecorded(shown) && shown.ok && Exam.triesNote(shown) === "" && Exam.needsAnotherLook(shown) && !Exam.stepRecorded(practice) && !Exam.stepRecorded(Exam.freshStep(true)) &&
+    !Exam.needsAnotherLook(Exam.afterCheck(Exam.freshStep(), true)),
+    "rungs 1-4: after Show answer (now or on an earlier visit), and in practice from the summary, tries aren't recorded; the summary lists steps shown or wrong first time");
+  const ids = [Exam.shownId("C1-R1", 1, 2), Exam.shownId("C1-Q0", 2, null), Exam.shownId("C1-R4", 4, 3)];
+  check(ids.join() === "C1-R1-r1-s2,C1-Q0-r2,C1-R4-r4-s3" && ids.every((x) => /^[A-Za-z0-9-]{1,40}$/.test(x)),
+    "Show answer's exam_model_seen names the question, rung and step (" + ids.join(", ") + "), within the existing id pattern: no database change");
+  check(Exam.addedLines("total = 0\nx = 1", "total = 0\nx = 1\ntotal = total + x").join() === "total = total + x" && Exam.addedLines("", "a = 1").join() === "a = 1",
+    "rung 4's feedback names the lines a step adds (what to write)");
+}
+// A Show answer on one rung 4 step doesn't stop the next steps being saved (the server's model-answer rule is the whole
+// question's), and the page doesn't send tries at a shown step (stepRecorded above).
+{
+  const ES2 = require(path.join(ROOT, "supabase", "functions", "_shared", "exam-server.js"));
+  const rows = [], events = [{ student_id: "s1", record_type: "exam_model_seen", task_id: Exam.shownId("C1-R4", 4, 2), timestamp: "2026-11-27T10:00:00.000Z" }];
+  const fake = { from: (t) => { const q = { f: [], select() { return q; }, eq(c, v) { q.f.push([c, v]); return q; }, in() { return q; }, order() { return q; }, range() { return q; }, maybeSingle() { return q; },
+    upsert(rs) { rows.push(...rs); q.up = rs; return q; },
+    then(res) { return Promise.resolve(q.up ? { data: q.up, error: null } : { data: (t === "events" ? events : []).filter((r) => q.f.every(([c, v]) => r[c] === v)), error: null }).then(res); } }; return q; } };
+  pendingChecks++;
+  const later = Exam.toServerRow({ id: "x-step3-abcdef", at: "2026-11-27T10:05:00.000Z", questionId: "C1-R4", rung: 4, step: 3, attempt: 1, first: true, max: 1, points: [{ id: "step3", awarded: 1, how: "auto" }] }, "C1");
+  ES2.addAttempts(fake, "s1", [later], {}).then((r) => {
+    check(r.saved === 1 && r.rejected.length === 0, "a step shown on rung 4 doesn't stop the server saving the next step's attempt");
+    finish();
+  });
+}
 check(Exam.examModeOn("gcse", null) && !Exam.examModeOn("ks3", null) && !Exam.examModeOn("a-level", null) && Exam.examModeOn(null, null) &&
   Exam.examModeOn("ks3", true) && !Exam.examModeOn("gcse", false),
   "the class switch: null follows the stage (on for GCSE, off for KS3 and A-level); a teacher's true or false wins");
@@ -377,5 +446,10 @@ const css = fs.readFileSync(path.join(ROOT, "styles.css"), "utf8");
 check((css.match(/--exam:/g) || []).length === 3 && (css.match(/--on-exam:/g) || []).length === 3 && (css.match(/--exam-ink:/g) || []).length === 3,
   "styles.css: the Exam Mode accent tokens are in all three theme blocks");
 
-console.log("\n" + (checks - failures) + " of " + checks + " Exam Mode checks passed.");
-process.exit(failures ? 1 : 0);
+// Some checks above finish later (the server's rules are async): the summary waits for every one (pendingChecks).
+function finish() {
+  if (--pendingChecks > 0) return;
+  console.log("\n" + (checks - failures) + " of " + checks + " Exam Mode checks passed.");
+  process.exit(failures ? 1 : 0);
+}
+finish();
