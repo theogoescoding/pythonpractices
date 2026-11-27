@@ -506,12 +506,13 @@ function attemptRow(extra) {
       eq((await rest("/rest/v1/students?select=id&nickname=eq.Leaver", a, { method: "GET" })).body.length, 0, "student row gone");
     });
 
-    await test("CORS allows only the GitHub Pages site and localhost:8000", async () => {
+    await test("CORS allows only pythonsandladders.uk (and www), the old GitHub Pages address and localhost:8000", async () => {
       // The local gateway (Kong) answers preflights itself and rewrites Access-Control-Allow-Origin to *, so the
       // headers can only be checked exactly on the test project. The 403 for other origins comes from the function.
       if (T.kind === "local") console.log("       (local gateway sets Access-Control-Allow-Origin: *; exact headers are checked on the test project)");
-      for (const [origin, allowed] of [["https://theogoescoding.github.io", true], ["http://localhost:8000", true],
-        ["https://evil.example", false], ["https://theogoescoding.github.io.evil.example", false], ["http://localhost:8001", false]]) {
+      for (const [origin, allowed] of [["https://pythonsandladders.uk", true], ["https://www.pythonsandladders.uk", true],
+        ["https://theogoescoding.github.io", true], ["http://localhost:8000", true],
+        ["https://evil.example", false], ["https://pythonsandladders.uk.evil.example", false], ["https://theogoescoding.github.io.evil.example", false], ["http://localhost:8001", false]]) {
         await clearRateLimits();
         const r = await fn("resume", { code: "1", pin: "1" }, { headers: { Origin: origin } });
         eq([origin, r.status], [origin, allowed ? 401 : 403], "request from " + origin);

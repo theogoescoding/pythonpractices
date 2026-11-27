@@ -2,9 +2,13 @@
 // Error messages never say more than the user needs; details go to the function log only.
 
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2.49.4";
+import "./origins.js";
 
-// Only these origins may call the functions from a browser (the GitHub Pages site and the local dev server).
-const ALLOWED_ORIGINS = ["https://theogoescoding.github.io", "http://localhost:8000"];
+// Only these origins may call the functions from a browser: the list and the rule are in origins.js (the site at
+// pythonsandladders.uk, with and without www, the old GitHub Pages address during the move, and the local dev server),
+// shared with the Node tests.
+// deno-lint-ignore no-explicit-any
+const Origins = (globalThis as any).Origins as { ALLOWED_ORIGINS: readonly string[]; allowed: (o: string | null) => boolean };
 const MAX_BODY_BYTES = 1_000_000;
 
 export class HttpError extends Error {
@@ -17,7 +21,7 @@ export const GENERIC_ERROR = "Something went wrong. Please try again.";
 
 function corsHeaders(origin: string | null): Record<string, string> {
   const h: Record<string, string> = { "Vary": "Origin" };
-  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+  if (origin && Origins.allowed(origin)) {
     h["Access-Control-Allow-Origin"] = origin;
     h["Access-Control-Allow-Methods"] = "POST, OPTIONS";
     h["Access-Control-Allow-Headers"] = "authorization, x-client-info, apikey, content-type";
@@ -41,7 +45,7 @@ export type Body = Record<string, unknown>;
 export function serve(handler: (body: Body, req: Request) => Promise<unknown>) {
   Deno.serve(async (req) => {
     const origin = req.headers.get("Origin");
-    if (origin && !ALLOWED_ORIGINS.includes(origin)) return reply(null, 403, { error: "This site may not use this service." });
+    if (origin && !Origins.allowed(origin)) return reply(null, 403, { error: "This site may not use this service." });
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(origin) });
     if (req.method !== "POST") return reply(origin, 405, { error: GENERIC_ERROR });
     try {

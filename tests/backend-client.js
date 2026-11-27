@@ -983,6 +983,27 @@ const attempt = (Store, sid, extra) => Store.logAttempt(sid, Object.assign({ kin
       "Students page: a class's tables never show another class's students");
   }
 
+  // ---------- The Edge Functions' allowed origins (the move to pythonsandladders.uk, 2026-11) ----------
+  // _shared/origins.js is the list and the rule http.ts uses for every function (CORS headers and the 403).
+  {
+    const fs = require("fs");
+    const Origins = require(path.join(ROOT, "supabase", "functions", "_shared", "origins.js"));
+    const httpTs = fs.readFileSync(path.join(ROOT, "supabase", "functions", "_shared", "http.ts"), "utf8");
+    const yes = ["https://pythonsandladders.uk", "https://www.pythonsandladders.uk", "https://theogoescoding.github.io", "http://localhost:8000"];
+    const no = ["https://evil.example", "http://pythonsandladders.uk", "https://pythonsandladders.uk/", "https://pythonsandladders.uk.evil.example",
+      "https://evilpythonsandladders.uk", "https://theogoescoding.github.io/pythonpractices", "https://theogoescoding.github.io.evil.example",
+      "https://other.github.io", "http://localhost:8001", "null", "", null, undefined];
+    check(yes.every((o) => Origins.allowed(o)) && no.every((o) => !Origins.allowed(o)) && Origins.ALLOWED_ORIGINS.length === yes.length &&
+      Origins.ALLOWED_ORIGINS.every((o) => /^https?:\/\/[^/]+$/.test(o)) && Object.isFrozen(Origins.ALLOWED_ORIGINS),
+      "Allowed origins: the new address (with and without www), the old GitHub Pages address (kept during the move) and localhost:8000 are accepted; any other origin, a path, http on the new domain, a look-alike or no origin is refused; every entry is an origin with no path");
+    check(/import "\.\/origins\.js";/.test(httpTs) && (httpTs.match(/Origins\.allowed\(origin\)/g) || []).length === 2 && !/ALLOWED_ORIGINS = \[/.test(httpTs) &&
+      fs.readdirSync(path.join(ROOT, "supabase", "functions")).filter((d) => !d.startsWith("_") && !d.startsWith(".")).every((d) => {
+        const src = fs.readFileSync(path.join(ROOT, "supabase", "functions", d, "index.ts"), "utf8");
+        return /from "\.\.\/_shared\/http\.ts"/.test(src) && /\bserve\(/.test(src) && !/Access-Control-Allow-Origin/.test(src);
+      }),
+      "Allowed origins: http.ts uses origins.js for both the CORS headers and the 403, and every function serves through http.ts (none sets its own CORS headers)");
+  }
+
   const failed = out.filter((ok) => !ok).length;
   console.log(failed ? "\n" + failed + " of " + out.length + " backend client checks failed." : "\nAll " + out.length + " backend client checks passed.");
   process.exit(failed ? 1 : 0);
