@@ -10,8 +10,9 @@
   if (typeof module === "object" && module.exports) module.exports = ClassCard;
   else root.ClassCard = ClassCard;
 })(typeof self !== "undefined" ? self : this, function () {
-  // The website's address on every card. The one place to change it before the pilot.
-  const SITE_ADDRESS = "[SITE ADDRESS]";
+  // The website's address on every card: the custom domain since 2026-11, shown as students type it (no scheme). The
+  // one place to change it.
+  const SITE_ADDRESS = "pythonsandladders.uk";
   // What a student does, in four short steps, and the line at the bottom of the card.
   const STEPS = [
     "Go to " + SITE_ADDRESS + ".",
